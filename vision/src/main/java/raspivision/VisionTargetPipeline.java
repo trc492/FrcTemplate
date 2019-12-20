@@ -300,6 +300,7 @@ public class VisionTargetPipeline implements VisionPipeline
      * @param targets The targets to validate.
      * @return True if valid, false otherwise.
      */
+    @SuppressWarnings("unused")
     private boolean isValid(List<VisionTarget> targets)
     {
         // Invalid if no targets or odd number of targets.
