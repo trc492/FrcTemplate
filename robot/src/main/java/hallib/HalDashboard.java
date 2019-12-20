@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.util.Set;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.wpilibj.NamedSendable;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import trclib.TrcDbgTrace;
