@@ -317,7 +317,7 @@ public class FrcCANTalon extends TrcMotor
         }
 
         this.feedbackDeviceType = devType;
-        recordResponseCode(motor.configSelectedFeedbackSensor(devType, 0, 0));
+        recordResponseCode(motor.configSelectedFeedbackSensor(devType, 0, 10));
         feedbackDeviceIsPot = devType == FeedbackDevice.Analog;
     }   //setFeedbackDevice
 
@@ -420,15 +420,7 @@ public class FrcCANTalon extends TrcMotor
     public double getPosition()
     {
         final String funcName = "getPosition";
-        double pos;
-        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-        {
-            pos = motor.getSensorCollection().getQuadraturePosition();
-        }
-        else
-        {
-            pos = motor.getSelectedSensorPosition(0);
-        }
+        double pos = motor.getSelectedSensorPosition(0);
         recordResponseCode(motor.getLastError());
 
         pos -= zeroPosition;
@@ -569,15 +561,7 @@ public class FrcCANTalon extends TrcMotor
         }
         else if (hardware)
         {
-            ErrorCode error;
-            if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-            {
-                error = recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 10));
-            }
-            else
-            {
-                error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
-            }
+            ErrorCode error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
             if (error != ErrorCode.OK)
             {
                 TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on TalonSRX %d failed with error %s!", motor.getDeviceID(),

@@ -52,7 +52,9 @@ public abstract class TrcServo
     public abstract boolean isInverted();
 
     /**
-     * This method sets the servo position. On a 180-degree servo, 0.0 is at 0-degree and 1.0 is at 180-degree.
+     * This method sets the servo logical position, mapping [0,1] => [min,max].
+     * <p>
+     * On a 180-degree servo, 0.0 is at 0-degree and 1.0 is at 180-degree. For a 90-degree servo, 0->0deg, 1->90deg.
      * If servo direction is inverted, then 0.0 is at 180-degree and 1.0 is at 0-degree. On a continuous servo,
      * 0.0 is rotating full speed in reverse, 0.5 is to stop the motor and 1.0 is rotating the motor full speed
      * forward. Again, motor direction can be inverted if setInverted is called.
@@ -62,8 +64,8 @@ public abstract class TrcServo
     public abstract void setPosition(double position);
 
     /**
-     * This method returns the position value set by the last setPosition call. Note that servo motors do not provide
-     * real time position feedback. So getPosition doesn't actually return the current position.
+     * This method returns the logical position value set by the last setPosition call. Note that servo motors do not
+     * provide real time position feedback. So getPosition doesn't actually return the current position.
      *
      * @return motor position value set by the last setPosition call.
      */
@@ -71,12 +73,12 @@ public abstract class TrcServo
 
     public static final double CONTINUOUS_SERVO_FORWARD_MAX = 1.0;
     public static final double CONTINUOUS_SERVO_REVERSE_MAX = 0.0;
-    public static final double CONTINUOUS_SERVO_STOP        = 0.5;
+    public static final double CONTINUOUS_SERVO_STOP = 0.5;
 
-    private static final double DEF_PHYSICAL_MIN    = 0.0;
-    private static final double DEF_PHYSICAL_MAX    = 1.0;
-    private static final double DEF_LOGICAL_MIN     = 0.0;
-    private static final double DEF_LOGICAL_MAX     = 1.0;
+    private static final double DEF_PHYSICAL_MIN = 0.0;
+    private static final double DEF_PHYSICAL_MAX = 1.0;
+    private static final double DEF_LOGICAL_MIN = 0.0;
+    private static final double DEF_LOGICAL_MAX = 1.0;
 
     private final String instanceName;
     private TrcTimer timer;
@@ -94,8 +96,8 @@ public abstract class TrcServo
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                TrcDbgTrace.getGlobalTracer():
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -115,8 +117,8 @@ public abstract class TrcServo
     }   //toString
 
     /**
-     * This method returns the current position of the servo as read by an encoder. If there is no encoder (depending
-     * on the implementation) it will throw an exception.
+     * This method returns the current physical position of the servo as read by an encoder.
+     * If there is no encoder (depending on the implementation) it will throw an exception.
      *
      * @return the physical position of the mechanism with an encoder.
      * @throws UnsupportedOperationException if not supported by TrcServo implementation.
@@ -124,7 +126,7 @@ public abstract class TrcServo
     public double getEncoderPosition()
     {
         throw new UnsupportedOperationException("This implementation does not have an encoder!");
-    }	//getEncoderPosition
+    }    //getEncoderPosition
 
     /**
      * This method sets the servo motor position. If a notifier is given, it calls the notifier after the given amount
@@ -132,7 +134,7 @@ public abstract class TrcServo
      *
      * @param position specifies the physical position of the servo motor. This value may be in degrees if
      *                 setPhysicalRange is called with the degree range.
-     * @param timeout specifies a maximum time value the operation should be completed in seconds.
+     * @param timeout  specifies a maximum time value the operation should be completed in seconds.
      * @param notifier specifies a notifier to be notified when the timeout event has expired.
      */
     public void setPosition(double position, double timeout, TrcNotifier.Receiver notifier)
@@ -150,8 +152,8 @@ public abstract class TrcServo
      *
      * @param position specifies the physical position of the servo motor. This value may be in degrees if
      *                 setPhysicalRange is called with the degree range.
-     * @param timeout specifies a maximum time value the operation should be completed in seconds.
-     * @param event specifies an event object to signal when the timeout event has expired.
+     * @param timeout  specifies a maximum time value the operation should be completed in seconds.
+     * @param event    specifies an event object to signal when the timeout event has expired.
      */
     public void setPosition(double position, double timeout, TrcEvent event)
     {
@@ -202,8 +204,8 @@ public abstract class TrcServo
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                                "logicalMin=%f,logicalMax=%f", logicalMin, logicalMax);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "logicalMin=%f,logicalMax=%f", logicalMin,
+                logicalMax);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
