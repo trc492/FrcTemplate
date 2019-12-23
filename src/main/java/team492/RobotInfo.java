@@ -88,7 +88,7 @@ public class RobotInfo
     //
     // Relay channels.
     //
-    public static final int RELAY_RINGLIGHT_POWER               = 0;    // 20A: Green
+
     //
     // Solenoid channels.
     //
@@ -96,17 +96,16 @@ public class RobotInfo
     //
     // Vision subsystem.
     //
-    public static final double CAMERA_DEPTH                     = -17; // Inches from center of EE to center of camera, + = forward
-    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
-    public static final double CAMERA_PITCH                     = 0.0; // Down is positive
-    public static final double CAMERA_DATA_TIMEOUT              = 0.5; // 500ms
-    public static final double CAMERA_CENTERED_THRESHOLD        = 2; // +- 2 inches in x axis
+    public static final double CAMERA_DEPTH                     = -17;  //Inches from center of EE to center of camera += forward
+    public static final double CAMERA_OFFSET                    = 3;    //Inches from center of EE to center of camera, += right
+    public static final double CAMERA_DATA_TIMEOUT              = 0.5;  //500ms
+    public static final double CAMERA_CENTERED_THRESHOLD        = 2;    // +- 2 inches in x axis
 
     //
     // Ultrasonic sensors.
     //
-    public static final double SONAR_INCHES_PER_VOLT            = 1.0/0.0098; //9.8mV per inch
-    public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
+    // public static final double SONAR_INCHES_PER_VOLT            = 1.0/0.0098; //9.8mV per inch
+    // public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
 
     //
     // DriveBase subsystem.

@@ -32,17 +32,9 @@ public class VisionTargeting
 
     public VisionTargeting(Robot.Preferences preferences)
     {
-        if (preferences.useRaspberryPi)
-        {
-            vision = new FrcRaspiVisionProcessor(
-                "RaspiVision", "RaspiVision", "VisionData", RobotInfo.RELAY_RINGLIGHT_POWER);
-        }
-        else
-        {
-            // This equation is the best fit line for a few data points to convert target height -> depth
-            vision = new FrcLimeLightVisionProcessor("LimeLight");
-            ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(height -> -0.341895 * height + 81.4745);
-        }
+        // This equation is the best fit line for a few data points to convert target height -> depth
+        vision = new FrcLimeLightVisionProcessor("LimeLight");
+        ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(height -> -0.341895 * height + 81.4745);
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }

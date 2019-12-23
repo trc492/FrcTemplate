@@ -64,7 +64,6 @@ public class Robot extends FrcRobotBase
         public final boolean useNavX = true;
         public final boolean useGyroAssist = false;
         public final boolean useVision = true;
-        public final boolean useRaspberryPi = false;
         public final boolean useStreamCamera = true;
         public final boolean doAutoUpdates = false;
 
