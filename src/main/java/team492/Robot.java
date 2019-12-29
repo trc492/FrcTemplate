@@ -229,7 +229,7 @@ public class Robot extends FrcRobotBase
 
         driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
         setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
-        driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
+        driveBase.setOdometryScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
         driveMode = DriveMode.HOLONOMIC_MODE;
         driveInverted = false;
         //

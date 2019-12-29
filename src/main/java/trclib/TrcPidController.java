@@ -57,10 +57,10 @@ public class TrcPidController
         /**
          * Constructor: Create an instance of the object.
          *
-         * @param kP    specifies the Proportional constant.
-         * @param kI    specifies the Integral constant.
-         * @param kD    specifies the Differential constant.
-         * @param kF    specifies the Feed forward constant.
+         * @param kP specifies the Proportional constant.
+         * @param kI specifies the Integral constant.
+         * @param kD specifies the Differential constant.
+         * @param kF specifies the Feed forward constant.
          * @param iZone specifies the integral zone.
          */
         public PidCoefficients(double kP, double kI, double kD, double kF, double iZone)
@@ -70,7 +70,7 @@ public class TrcPidController
             this.kD = Math.abs(kD);
             this.kF = Math.abs(kF);
             this.iZone = Math.abs(iZone);
-        }
+        }   //PidCoefficients
 
         /**
          * Constructor: Create an instance of the object.
@@ -864,15 +864,15 @@ public class TrcPidController
         synchronized (this)
         {
             final String funcName = "getOutput";
+            double prevError = currError;
+            double currTime = TrcUtil.getCurrentTime();
+            double deltaTime = currTime - prevTime;
 
             if (debugEnabled)
             {
                 dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
             }
 
-            double prevError = currError;
-            double currTime = TrcUtil.getCurrentTime();
-            double deltaTime = currTime - prevTime;
             prevTime = currTime;
             currInput = currentInputValue;
             currError = setPoint - currInput;

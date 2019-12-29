@@ -313,7 +313,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                robot.driveBase.clearReferencePose();
+                robot.driveBase.clearReferenceOdometry();
                 robot.driveBase.resetOdometry(true, false);
                 processedInput = true;
                 break;

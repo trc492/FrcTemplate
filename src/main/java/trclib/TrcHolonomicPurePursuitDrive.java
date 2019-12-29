@@ -52,7 +52,13 @@ public class TrcHolonomicPurePursuitDrive
 {
     public enum InterpolationType
     {
-        LINEAR(1), QUADRATIC(2), CUBIC(3), QUARTIC(4), QUADRATIC_INV(2), CUBIC_INV(3), QUARTIC_INV(4);
+        LINEAR(1),
+        QUADRATIC(2),
+        CUBIC(3),
+        QUARTIC(4),
+        QUADRATIC_INV(2),
+        CUBIC_INV(3),
+        QUARTIC_INV(4);
 
         private int value;
 
@@ -87,8 +93,10 @@ public class TrcHolonomicPurePursuitDrive
     private double moveOutputLimit = Double.POSITIVE_INFINITY;
     private double rotOutputLimit = Double.POSITIVE_INFINITY;
 
-    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-        double turnTolerance, TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(
+            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
+            double turnTolerance, TrcPidController.PidCoefficients posPidCoeff,
+            TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
     {
         if (driveBase.supportsHolonomicDrive())
         {
@@ -104,9 +112,12 @@ public class TrcHolonomicPurePursuitDrive
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
         setPositionToleranceAndFollowingDistance(posTolerance, followingDistance);
 
-        this.posPidCtrl = new TrcPidController(instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
-        this.turnPidCtrl = new TrcPidController(instanceName + ".turnPid", turnPidCoeff, turnTolerance, driveBase::getHeading);
-        this.velPidCtrl = new TrcPidController(instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
+        this.posPidCtrl = new TrcPidController(
+                instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
+        this.turnPidCtrl = new TrcPidController(
+                instanceName + ".turnPid", turnPidCoeff, turnTolerance, driveBase::getHeading);
+        this.velPidCtrl = new TrcPidController(
+                instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
 
         posPidCtrl.setAbsoluteSetPoint(true);
         turnPidCtrl.setAbsoluteSetPoint(true);
@@ -117,10 +128,13 @@ public class TrcHolonomicPurePursuitDrive
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
     }   //TrcHolonomicPurePursuitDrive
 
-    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-        TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(
+            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
+            TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff,
+            TrcPidController.PidCoefficients velPidCoeff)
     {
-        this(instanceName, driveBase, followingDistance, posTolerance, 5.0, posPidCoeff, turnPidCoeff, velPidCoeff);
+        this(instanceName, driveBase, followingDistance, posTolerance, 5.0,
+                posPidCoeff, turnPidCoeff, velPidCoeff);
         setMaintainHeading(true);
     }   //TrcHolonomicPurePursuitDrive
 
@@ -169,7 +183,7 @@ public class TrcHolonomicPurePursuitDrive
     /**
      * Set both the position tolerance and following distance.
      *
-     * @param posTolerance      The distance at which the controller will stop itself.
+     * @param posTolerance         The distance at which the controller will stop itself.
      * @param followingDistance The distance between the robot and following point.
      */
     public void setPositionToleranceAndFollowingDistance(double posTolerance, double followingDistance)
@@ -237,12 +251,12 @@ public class TrcHolonomicPurePursuitDrive
     public void setMoveOutputLimit(double limit)
     {
         moveOutputLimit = Math.abs(limit);
-    }
+    }   //setMoveOutputLimit
 
     public void setRotOutputLimit(double limit)
     {
         rotOutputLimit = Math.abs(limit);
-    }
+    }   //setRotOutputLimit
 
     /**
      * Start following the supplied path using a pure pursuit controller.
@@ -290,7 +304,7 @@ public class TrcHolonomicPurePursuitDrive
         posPidCtrl.setTarget(0.0);
         turnPidCtrl.setTarget(startHeading); // Maintain heading to start
 
-        referencePose = driveBase.getAbsolutePose();
+        referencePose = driveBase.getFieldPosition();
         driveTaskObj.registerTask(TrcTaskMgr.TaskType.OUTPUT_TASK);
     }   //start
 
@@ -338,7 +352,7 @@ public class TrcHolonomicPurePursuitDrive
 
     private synchronized void driveTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        TrcPose2D pose = driveBase.getAbsolutePose().relativeTo(referencePose, false);
+        TrcPose2D pose = driveBase.getPositionRelativeTo(referencePose, false);
         double robotX = pose.x;
         double robotY = pose.y;
         TrcWaypoint point = getFollowingPoint(robotX, robotY);
@@ -365,7 +379,7 @@ public class TrcHolonomicPurePursuitDrive
 
         TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitDrive.driveTask",
             "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
-            robotX, robotY, velocity, pose.heading, point.x, point.y, point.velocity, point.heading,
+            robotX, robotY, velocity, pose.angle, point.x, point.y, point.velocity, point.heading,
             pathIndex, r, theta);
 
         // If we have timed out or finished, stop the operation.
@@ -382,7 +396,7 @@ public class TrcHolonomicPurePursuitDrive
         }
         else
         {
-            driveBase.holonomicDrive_Polar(r, theta, turnPower, pose.heading - startHeading);
+            driveBase.holonomicDrive_Polar(r, theta, turnPower, pose.angle - startHeading);
         }
     }   //driveTask
 
