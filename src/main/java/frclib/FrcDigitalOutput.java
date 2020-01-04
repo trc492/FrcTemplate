@@ -66,7 +66,9 @@ public class FrcDigitalOutput extends TrcDigitalOutput
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
+        if (setOutputElapsedTimer != null) setOutputElapsedTimer.recordStartTime();
         digitalOutput.set(state);
+        if (setOutputElapsedTimer != null) setOutputElapsedTimer.recordEndTime();
     }   //setState
 
 }   //class FrcDigitalOutput

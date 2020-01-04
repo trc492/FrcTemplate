@@ -243,11 +243,11 @@ public class FrcTest extends FrcTeleOp
             case Y_TIMED_DRIVE:
                 double lfEnc = robot.leftFrontWheel.getPosition();
                 double rfEnc = robot.rightFrontWheel.getPosition();
-                double lrEnc = robot.leftRearWheel.getPosition();
-                double rrEnc = robot.rightRearWheel.getPosition();
+                double lbEnc = robot.leftBackWheel.getPosition();
+                double rbEnc = robot.rightBackWheel.getPosition();
                 robot.dashboard.displayPrintf(2, "Enc:lf=%.0f,rf=%.0f", lfEnc, rfEnc);
-                robot.dashboard.displayPrintf(3, "Enc:lr=%.0f,rr=%.0f", lrEnc, rrEnc);
-                robot.dashboard.displayPrintf(4, "average=%f", (lfEnc + rfEnc + lrEnc + rrEnc) / 4.0);
+                robot.dashboard.displayPrintf(3, "Enc:lb=%.0f,rb=%.0f", lbEnc, rbEnc);
+                robot.dashboard.displayPrintf(4, "average=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
                 robot.dashboard.displayPrintf(5, "xPos=%.1f,yPos=%.1f,heading=%.1f",
                     robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading());
                 timedDriveCommand.cmdPeriodic(elapsedTime);
@@ -259,10 +259,10 @@ public class FrcTest extends FrcTeleOp
             case TUNE_X_PID:
             case TUNE_Y_PID:
             case TUNE_TURN_PID:
-                robot.dashboard.displayPrintf(2, "xPos=%.1f,yPos=%.1f,heading=%.1f, lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f",
+                robot.dashboard.displayPrintf(2, "xPos=%.1f,yPos=%.1f,heading=%.1f, lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
                     robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
                     robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
-                    robot.leftRearWheel.getPosition(), robot.rightRearWheel.getPosition());
+                    robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
                 robot.encoderXPidCtrl.displayPidInfo(3);
                 robot.encoderYPidCtrl.displayPidInfo(5);
                 robot.gyroTurnPidCtrl.displayPidInfo(7);
@@ -439,13 +439,13 @@ public class FrcTest extends FrcTeleOp
     {
         double lfPos = robot.leftFrontWheel.getPosition();
         double rfPos = robot.rightFrontWheel.getPosition();
-        double lrPos = robot.leftRearWheel.getPosition();
-        double rrPos = robot.rightRearWheel.getPosition();
-        double driveBaseAverage = (lfPos + rfPos + lrPos + rrPos) / 4.0;
+        double lbPos = robot.leftBackWheel.getPosition();
+        double rbPos = robot.rightBackWheel.getPosition();
+        double driveBaseAverage = (lfPos + rfPos + lbPos + rbPos) / 4.0;
         robot.dashboard.displayPrintf(1, "Sensors Test (Batt=%.1f/%.1f):", robot.battery.getVoltage(),
             robot.battery.getLowestVoltage());
         robot.dashboard
-            .displayPrintf(2, "DriveBase: lf=%.3f,rf=%.3f,lr=%.3f,rr=%.3f,avg=%.3f", lfPos, rfPos, lrPos, rrPos,
+            .displayPrintf(2, "DriveBase: lf=%.3f,rf=%.3f,lb=%.3f,rb=%.3f,avg=%.3f", lfPos, rfPos, lbPos, rbPos,
                 driveBaseAverage);
         robot.dashboard
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
@@ -479,8 +479,8 @@ public class FrcTest extends FrcTeleOp
     private void doDriveMotorsTest()
     {
         robot.dashboard.displayPrintf(1, "Motors Test: index=%d", motorIndex);
-        robot.dashboard.displayPrintf(2, "Enc: lf=%.0f, rf=%.0f, lr=%.0f, rr=%.0f", robot.leftFrontWheel.getPosition(),
-            robot.rightFrontWheel.getPosition(), robot.leftRearWheel.getPosition(), robot.rightRearWheel.getPosition());
+        robot.dashboard.displayPrintf(2, "Enc: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f", robot.leftFrontWheel.getPosition(),
+            robot.rightFrontWheel.getPosition(), robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
 
         State state = sm.checkReadyAndGetState();
         if (state != null)
@@ -499,8 +499,8 @@ public class FrcTest extends FrcTeleOp
                             //
                             robot.leftFrontWheel.set(robot.drivePower);
                             robot.rightFrontWheel.set(0.0);
-                            robot.leftRearWheel.set(0.0);
-                            robot.rightRearWheel.set(0.0);
+                            robot.leftBackWheel.set(0.0);
+                            robot.rightBackWheel.set(0.0);
                             break;
 
                         case 1:
@@ -509,28 +509,28 @@ public class FrcTest extends FrcTeleOp
                             //
                             robot.leftFrontWheel.set(0.0);
                             robot.rightFrontWheel.set(robot.drivePower);
-                            robot.leftRearWheel.set(0.0);
-                            robot.rightRearWheel.set(0.0);
+                            robot.leftBackWheel.set(0.0);
+                            robot.rightBackWheel.set(0.0);
                             break;
 
                         case 2:
                             //
-                            // Run the left rear wheel.
+                            // Run the left back wheel.
                             //
                             robot.leftFrontWheel.set(0.0);
                             robot.rightFrontWheel.set(0.0);
-                            robot.leftRearWheel.set(robot.drivePower);
-                            robot.rightRearWheel.set(0.0);
+                            robot.leftBackWheel.set(robot.drivePower);
+                            robot.rightBackWheel.set(0.0);
                             break;
 
                         case 3:
                             //
-                            // Run the right rear wheel.
+                            // Run the right back wheel.
                             //
                             robot.leftFrontWheel.set(0.0);
                             robot.rightFrontWheel.set(0.0);
-                            robot.leftRearWheel.set(0.0);
-                            robot.rightRearWheel.set(robot.drivePower);
+                            robot.leftBackWheel.set(0.0);
+                            robot.rightBackWheel.set(robot.drivePower);
                             break;
                     }
                     motorIndex = motorIndex + 1;

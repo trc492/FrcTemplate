@@ -39,12 +39,15 @@ import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import hallib.HalDashboard;
+import trclib.TrcDigitalInput;
 import trclib.TrcMecanumDriveBase;
+import trclib.TrcMotor;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
+import trclib.TrcServo;
 import trclib.TrcUtil;
 
 import java.util.Date;
@@ -109,9 +112,9 @@ public class Robot extends FrcRobotBase
     // DriveBase subsystem.
     //
     public FrcCANSparkMax leftFrontWheel;
-    public FrcCANSparkMax leftRearWheel;
+    public FrcCANSparkMax leftBackWheel;
     public FrcCANSparkMax rightFrontWheel;
-    public FrcCANSparkMax rightRearWheel;
+    public FrcCANSparkMax rightBackWheel;
 
     public TrcMecanumDriveBase driveBase;
 
@@ -202,32 +205,32 @@ public class Robot extends FrcRobotBase
         // DriveBase subsystem.
         //
         leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
-        leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
+        leftBackWheel = new FrcCANSparkMax("LeftBackWheel", RobotInfo.CANID_LEFTBACKWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
-        rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
+        rightBackWheel = new FrcCANSparkMax("RightBackWheel", RobotInfo.CANID_RIGHTBACKWHEEL, true);
 
         leftFrontWheel.setInverted(false);
-        leftRearWheel.setInverted(false);
+        leftBackWheel.setInverted(false);
         rightFrontWheel.setInverted(true);
-        rightRearWheel.setInverted(true);
+        rightBackWheel.setInverted(true);
 
         leftFrontWheel.setPositionSensorInverted(false);
-        leftRearWheel.setPositionSensorInverted(false);
+        leftBackWheel.setPositionSensorInverted(false);
         rightFrontWheel.setPositionSensorInverted(false);
-        rightRearWheel.setPositionSensorInverted(false);
+        rightBackWheel.setPositionSensorInverted(false);
 
         leftFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         rightFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        leftRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rightRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        leftBackWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rightBackWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
 
         pdp.registerEnergyUsed(
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
-            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_BACK_WHEEL, "LeftBackWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
-            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel"));
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_BACK_WHEEL, "RightBackWheel"));
 
-        driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
+        driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel, gyro);
         setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
         driveBase.setOdometryScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
         driveMode = DriveMode.HOLONOMIC_MODE;
@@ -351,6 +354,11 @@ public class Robot extends FrcRobotBase
                         HalDashboard.getNumber("Test/TuneKf", 0.0));
                 }
             }
+
+            gyro.setElapsedTimerEnabled(true);
+            TrcDigitalInput.setElapsedTimerEnabled(true);
+            TrcMotor.setElapsedTimerEnabled(true);
+            TrcServo.setElapsedTimerEnabled(true);
         }
     }   //robotStartMode
 
@@ -360,6 +368,15 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
+            gyro.printElapsedTime(globalTracer);
+            gyro.setElapsedTimerEnabled(false);
+            TrcDigitalInput.printElapsedTime(globalTracer);
+            TrcDigitalInput.setElapsedTimerEnabled(false);
+            TrcMotor.printElapsedTime(globalTracer);
+            TrcMotor.setElapsedTimerEnabled(false);
+            TrcServo.printElapsedTime(globalTracer);
+            TrcServo.setElapsedTimerEnabled(false);
+
             globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
             driveBase.setOdometryEnabled(false);
             setVisionEnabled(false);
@@ -517,12 +534,12 @@ public class Robot extends FrcRobotBase
                 //
                 double lfEnc = leftFrontWheel.getPosition();
                 double rfEnc = rightFrontWheel.getPosition();
-                double lrEnc = leftRearWheel.getPosition();
-                double rrEnc = rightRearWheel.getPosition();
+                double lbEnc = leftBackWheel.getPosition();
+                double rbEnc = rightBackWheel.getPosition();
 
                 dashboard
-                    .displayPrintf(8, "DriveBase: lf=%.0f, rf=%.0f, lr=%.0f, rr=%.0f, avg=%.0f", lfEnc, rfEnc, lrEnc,
-                        rrEnc, (lfEnc + rfEnc + lrEnc + rrEnc) / 4.0);
+                    .displayPrintf(8, "DriveBase: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f", lfEnc, rfEnc, lbEnc,
+                        rbEnc, (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
                 dashboard.displayPrintf(9, "DriveBase: X=%.1f, Y=%.1f, Heading=%.1f", xPos, yPos, heading);
 
                 if (preferences.debugPidDrive)
@@ -588,8 +605,8 @@ public class Robot extends FrcRobotBase
                 builder.setSmartDashboardType("MecanumDrive");
                 builder.addDoubleProperty("Front Left Motor Speed", leftFrontWheel::getPower, null);
                 builder.addDoubleProperty("Front Right Motor Speed", rightFrontWheel::getPower, null);
-                builder.addDoubleProperty("Rear Left Motor Speed", leftRearWheel::getPower, null);
-                builder.addDoubleProperty("Rear Right Motor Speed", rightRearWheel::getPower, null);
+                builder.addDoubleProperty("Back Left Motor Speed", leftBackWheel::getPower, null);
+                builder.addDoubleProperty("Back Right Motor Speed", rightBackWheel::getPower, null);
             }
         };
     }
@@ -638,15 +655,15 @@ public class Robot extends FrcRobotBase
         {
             leftFrontWheel.setBrakeModeEnabled(driveInverted);
             rightFrontWheel.setBrakeModeEnabled(driveInverted);
-            leftRearWheel.setBrakeModeEnabled(!driveInverted);
-            rightRearWheel.setBrakeModeEnabled(!driveInverted);
+            leftBackWheel.setBrakeModeEnabled(!driveInverted);
+            rightBackWheel.setBrakeModeEnabled(!driveInverted);
         }
         else
         {
             leftFrontWheel.setBrakeModeEnabled(true);
             rightFrontWheel.setBrakeModeEnabled(true);
-            leftRearWheel.setBrakeModeEnabled(true);
-            rightRearWheel.setBrakeModeEnabled(true);
+            leftBackWheel.setBrakeModeEnabled(true);
+            rightBackWheel.setBrakeModeEnabled(true);
         }
     }
 
