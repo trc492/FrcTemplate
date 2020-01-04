@@ -375,15 +375,7 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        double currVel;
-        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-        {
-            currVel = motor.getSensorCollection().getQuadratureVelocity();
-        }
-        else
-        {
-            currVel = motor.getSelectedSensorVelocity();
-        }
+        double currVel = motor.getSelectedSensorVelocity();
 
         if (debugEnabled)
         {
@@ -504,15 +496,7 @@ public class FrcCANTalon extends TrcMotor
         //
         // The sensor velocity is in the raw sensor unit per 100 msec, adjust it to sensor unit per second.
         //
-        double velocity;
-        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-        {
-            velocity = motor.getSensorCollection().getQuadratureVelocity() / 0.1;
-        }
-        else
-        {
-            velocity = motor.getSelectedSensorVelocity(0) / 0.1;
-        }
+        double velocity = motor.getSelectedSensorVelocity(0) / 0.1;
         recordResponseCode(motor.getLastError());
 
         if (debugEnabled)
