@@ -25,7 +25,7 @@ package team492;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
-import trclib.TrcLoopPerformanceMonitor;
+import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -39,7 +39,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     protected final Robot robot;
     private DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
     private boolean gyroAssist = false;
-    private TrcLoopPerformanceMonitor loopPerformanceMonitor;
+    private TrcElapsedTimer elapsedTimer = null;
 
     public FrcTeleOp(Robot robot)
     {
@@ -78,7 +78,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (robot.preferences.debugLoopTime)
         {
-            loopPerformanceMonitor = new TrcLoopPerformanceMonitor("TeleOpLoop", 1.0);
+            elapsedTimer = new TrcElapsedTimer("TeleOpLoop", 2.0);
         }
     }   // startMode
 
@@ -220,13 +220,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runContinuous(double elapsedTime)
     {
-        if (robot.preferences.debugLoopTime)
+        if (elapsedTimer != null)
         {
-            loopPerformanceMonitor.update();
-            robot.dashboard.displayPrintf(1, "Period: %.3f/%.3f/%3f, Frequency: %.2f/%.2f/%.2f",
-                loopPerformanceMonitor.getMinPeriod(), loopPerformanceMonitor.getAveragePeriod(),
-                loopPerformanceMonitor.getMaxPeriod(), loopPerformanceMonitor.getMinFrequency(),
-                loopPerformanceMonitor.getAverageFrequency(), loopPerformanceMonitor.getMaxFrequency());
+            elapsedTimer.recordPeriodTime();
+            robot.dashboard.displayPrintf(
+                    6, "Period: %.3f(%.3f/%.3f)",
+                    elapsedTimer.getAverageElapsedTime(), elapsedTimer.getMinElapsedTime(),
+                    elapsedTimer.getMaxElapsedTime());
         }
     } // runContinuous
 

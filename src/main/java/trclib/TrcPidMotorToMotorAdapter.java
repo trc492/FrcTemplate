@@ -39,6 +39,12 @@ public class TrcPidMotorToMotorAdapter extends TrcMotor
     }
 
     @Override
+    public double getMotorVelocity()
+    {
+        throw new UnsupportedOperationException("PidMotor does not support getVelocity.");
+    }
+
+    @Override
     public void setMotorPower(double power)
     {
         pidMotor.setPower(power);

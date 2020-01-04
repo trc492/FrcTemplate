@@ -73,7 +73,9 @@ public class FrcDigitalInput extends TrcDigitalInput
     {
         final String funcName = "isActive";
 
+        if (getInputElapsedTimer != null) getInputElapsedTimer.recordStartTime();
         state = digitalInput.get() ^ inverted;
+        if (getInputElapsedTimer != null) getInputElapsedTimer.recordEndTime();
 
         if (debugEnabled)
         {

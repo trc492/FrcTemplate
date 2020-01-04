@@ -52,8 +52,8 @@ public class RobotInfo
     //
     public static final int CANID_LEFTFRONTWHEEL                = 3;    // 40A: Orange
     public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
-    public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
-    public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
+    public static final int CANID_LEFTBACKWHEEL                 = 5;    // 40A: Green
+    public static final int CANID_RIGHTBACKWHEEL                = 6;    // 40A: Blue
 
     public static final int CANID_PIGEON                        = 15;
     public static final int CANID_PDP                           = 16;
@@ -63,13 +63,13 @@ public class RobotInfo
     //
     // PDP Channels.
     //
-    public static final int PDP_CHANNEL_RIGHT_REAR_WHEEL        = 0;
+    public static final int PDP_CHANNEL_RIGHT_BACK_WHEEL        = 0;
     public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL       = 3;
     public static final int PDP_CHANNEL_PIGEON                  = 8;
     public static final int PDP_CHANNEL_BLINKIN                 = 9;
     public static final int PDP_CHANNEL_RING_LIGHT              = 10;
     public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 12;
-    public static final int PDP_CHANNEL_LEFT_REAR_WHEEL         = 15;
+    public static final int PDP_CHANNEL_LEFT_BACK_WHEEL         = 15;
 
     //
     // Analog Input ports.

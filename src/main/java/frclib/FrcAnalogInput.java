@@ -88,6 +88,7 @@ public class FrcAnalogInput extends TrcAnalogInput
         final String funcName = "getRawData";
         SensorData<Double> data;
 
+        if (getInputElapsedTimer != null) getInputElapsedTimer.recordStartTime();
         if (dataType == DataType.RAW_DATA)
         {
             sensorData = sensor.getVoltage();
@@ -105,6 +106,7 @@ public class FrcAnalogInput extends TrcAnalogInput
             throw new UnsupportedOperationException(
                     "AnalogInput sensor only support INPUT_DATA/NORMALIZED_DATA types.");
         }
+        if (getInputElapsedTimer != null) getInputElapsedTimer.recordEndTime();
         data = new SensorData<>(TrcUtil.getCurrentTime(), sensorData);
 
         if (debugEnabled)
