@@ -27,6 +27,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import trclib.TrcDbgTrace;
 import trclib.TrcGyro;
 import trclib.TrcUtil;
@@ -35,38 +36,6 @@ public class FrcAHRSGyro extends TrcGyro
 {
     private class GyroInfo implements Sendable
     {
-        private String subsystem;
-        private String name;
-
-        public GyroInfo(String name)
-        {
-            this.name = name;
-        }   //GyroInfo
-
-        @Override
-        public String getName()
-        {
-            return name;
-        }   //getName
-
-        @Override
-        public void setName(String name)
-        {
-            this.name = name;
-        }   //setName
-
-        @Override
-        public String getSubsystem()
-        {
-            return subsystem;
-        }   //getSubsystem
-
-        @Override
-        public void setSubsystem(String subsystem)
-        {
-            this.subsystem = subsystem;
-        }   //setSubsystem
-
         @Override
         public void initSendable(SendableBuilder builder)
         {
@@ -94,7 +63,9 @@ public class FrcAHRSGyro extends TrcGyro
      */
     public Sendable getGyroSendable()
     {
-        return new GyroInfo(toString());
+        GyroInfo gyroInfo = new GyroInfo();
+        SendableRegistry.setName(gyroInfo, toString());
+        return gyroInfo;
     }   //getGyroSendable
 
     //

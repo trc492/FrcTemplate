@@ -557,6 +557,15 @@ public abstract class FrcRobotBase extends RobotBase
     }   //startCompetition
 
     /**
+     * Called to end the competition loop. I don't think we need to implement this.
+     */
+    @Override
+    public void endCompetition()
+    {
+        // empty
+    }
+
+    /**
      * This method returns the host name of the RobotRIO.
      *
      * @return host name.

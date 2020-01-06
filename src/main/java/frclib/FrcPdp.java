@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.SensorUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import trclib.TrcDbgTrace;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
@@ -364,43 +365,13 @@ public class FrcPdp extends PowerDistributionPanel
 
     public Sendable getPdpSendable()
     {
-        return new PdpInfo(moduleName);
+        PdpInfo pdpInfo = new PdpInfo();
+        SendableRegistry.setName(pdpInfo, moduleName);
+        return pdpInfo;
     }
 
     private class PdpInfo implements Sendable
     {
-        private String name;
-        private String subsystem;
-
-        public PdpInfo(String name)
-        {
-            this.name = name;
-        }
-
-        @Override
-        public String getName()
-        {
-            return name;
-        }
-
-        @Override
-        public void setName(String name)
-        {
-            this.name = name;
-        }
-
-        @Override
-        public String getSubsystem()
-        {
-            return subsystem;
-        }
-
-        @Override
-        public void setSubsystem(String subsystem)
-        {
-            this.subsystem = subsystem;
-        }
-
         @Override
         public void initSendable(SendableBuilder builder)
         {
@@ -413,5 +384,4 @@ public class FrcPdp extends PowerDistributionPanel
             builder.addDoubleProperty("TotalCurrent", FrcPdp.this::getTotalCurrent, null);
         }
     }
-
 }   //class FrcPdp

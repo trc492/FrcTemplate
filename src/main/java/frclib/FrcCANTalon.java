@@ -31,6 +31,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import trclib.TrcDbgTrace;
 import trclib.TrcMotor;
 import trclib.TrcPidController;
@@ -44,37 +45,6 @@ public class FrcCANTalon extends TrcMotor
 {
     private class EncoderInfo implements Sendable
     {
-        private String name, subsystem;
-
-        public EncoderInfo(String name)
-        {
-            this.name = name;
-        }   //EncoderInfo
-
-        @Override
-        public String getName()
-        {
-            return name;
-        }   //getName
-
-        @Override
-        public void setName(String name)
-        {
-            this.name = name;
-        }   //setName
-
-        @Override
-        public String getSubsystem()
-        {
-            return subsystem;
-        }   //getSubsystem
-
-        @Override
-        public void setSubsystem(String subsystem)
-        {
-            this.subsystem = subsystem;
-        }   //setSubsystem
-
         @Override
         public void initSendable(SendableBuilder builder)
         {
@@ -88,7 +58,6 @@ public class FrcCANTalon extends TrcMotor
             builder.addDoubleProperty("Distance", FrcCANTalon.this::getPosition, null);
             builder.addDoubleProperty("DistancePerCount", () -> 1, null);
         }   //initSendable
-
     }   //class EncoderInfo
 
     public TalonSRX motor;
@@ -131,7 +100,9 @@ public class FrcCANTalon extends TrcMotor
      */
     public Sendable getEncoderSendable()
     {
-        return new EncoderInfo(toString());
+        EncoderInfo encoderInfo = new EncoderInfo();
+        SendableRegistry.setName(encoderInfo, toString());
+        return encoderInfo;
     }   //getEncoderSendable
 
     /**

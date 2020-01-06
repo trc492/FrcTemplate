@@ -27,6 +27,7 @@ import java.util.Set;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Sendable;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import trclib.TrcDbgTrace;
 
@@ -217,7 +218,7 @@ public class HalDashboard
 
     /**
      * Maps the specified key (where the key is the name of the
-     * {@link NamedSendable} to the specified value in this table. The value can
+     * {@link Sendable} to the specified value in this table. The value can
      * be retrieved by calling the get method with a key that is equal to the
      * original key.
      *
@@ -228,7 +229,7 @@ public class HalDashboard
      */
     public static void putData(Sendable value)
     {
-        putData(value.getName(), value);
+        SmartDashboard.putData(value);
     }
 
     /**

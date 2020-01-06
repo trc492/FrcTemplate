@@ -471,7 +471,7 @@ public class FrcCANSparkMax extends TrcMotor
         if (hardware)
         {
             CANError error = encoder.setPosition(0.0);
-            if (error != CANError.kOK)
+            if (error != CANError.kOk)
             {
                 TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on SparkMax %d failed with error %s!", motor.getDeviceId(),
                     error.name());

@@ -29,8 +29,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Sendable;
-import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import frclib.FrcAHRSGyro;
 import frclib.FrcCANSparkMax;
 import frclib.FrcJoystick;
@@ -527,8 +525,6 @@ public class Robot extends FrcRobotBase
                 HalDashboard.putNumber("DriveBase/yPos", yPos);
                 HalDashboard.putData("DriveBase/heading", gyro.getGyroSendable());
 
-                HalDashboard.putData("DriveBase/Mecanum_Drive", createMecanumDriveInfo());
-
                 //
                 // DriveBase debug info.
                 //
@@ -568,48 +564,6 @@ public class Robot extends FrcRobotBase
             }
         }
     }   //updateDashboard
-
-    private Sendable createMecanumDriveInfo()
-    {
-        return new Sendable()
-        {
-            private String name, subsystem;
-
-            @Override
-            public String getName()
-            {
-                return name;
-            }
-
-            @Override
-            public void setName(String name)
-            {
-                this.name = name;
-            }
-
-            @Override
-            public String getSubsystem()
-            {
-                return subsystem;
-            }
-
-            @Override
-            public void setSubsystem(String subsystem)
-            {
-                this.subsystem = subsystem;
-            }
-
-            @Override
-            public void initSendable(SendableBuilder builder)
-            {
-                builder.setSmartDashboardType("MecanumDrive");
-                builder.addDoubleProperty("Front Left Motor Speed", leftFrontWheel::getPower, null);
-                builder.addDoubleProperty("Front Right Motor Speed", rightFrontWheel::getPower, null);
-                builder.addDoubleProperty("Back Left Motor Speed", leftBackWheel::getPower, null);
-                builder.addDoubleProperty("Back Right Motor Speed", rightBackWheel::getPower, null);
-            }
-        };
-    }
 
     /**
      * Checks if any auto processes are running, be it auto mode or auto assist, etc.
