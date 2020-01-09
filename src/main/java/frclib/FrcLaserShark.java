@@ -85,8 +85,8 @@ public class FrcLaserShark extends Lasershark
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", distance);
             dbgTrace.traceInfo(funcName, "%s: distanceMillimeters=%f", instanceName, distance);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", distance);
         }
 
         return distance;
@@ -106,8 +106,8 @@ public class FrcLaserShark extends Lasershark
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", distance);
             dbgTrace.traceInfo(funcName, "%s: distanceInches=%f", instanceName, distance);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", distance);
         }
 
         return distance;
