@@ -23,18 +23,17 @@
 package team492;
 
 import frclib.FrcLimeLightVisionProcessor;
-import frclib.FrcRaspiVisionProcessor;
 import frclib.FrcRemoteVisionProcessor;
 
 public class VisionTargeting
 {
-    private FrcRemoteVisionProcessor vision;
+    private FrcLimeLightVisionProcessor vision;
 
     public VisionTargeting(Robot.Preferences preferences)
     {
         // This equation is the best fit line for a few data points to convert target height -> depth
         vision = new FrcLimeLightVisionProcessor("LimeLight");
-        ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(height -> -0.341895 * height + 81.4745);
+        vision.setDepthApproximator(height -> -0.341895 * height + 81.4745);
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }

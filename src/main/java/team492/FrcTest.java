@@ -133,8 +133,6 @@ public class FrcTest extends FrcTeleOp
                 //
                 // Make sure no joystick controls on sensors test.
                 //
-                robot.leftDriveStick.setButtonHandler(null);
-                robot.rightDriveStick.setButtonHandler(null);
                 robot.operatorStick.setButtonHandler(null);
                 robot.buttonPanel.setButtonHandler(null);
                 robot.switchPanel.setButtonHandler(null);

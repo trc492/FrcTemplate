@@ -22,6 +22,7 @@
 
 package team492;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
@@ -56,12 +57,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
-        robot.leftDriveStick.setButtonHandler(this::leftDriveStickButtonEvent);
-        robot.leftDriveStick.setYInverted(true);
-
-        robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
-        robot.rightDriveStick.setYInverted(true);
-
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
 
@@ -114,107 +109,52 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
     }
 
+    private double deadband(double d) {
+        return Math.abs(d) > 0.1 ? d : 0.0;
+    }
+
     @Override
     public void runPeriodic(double elapsedTime)
     {
         showStatus();
 
-        double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
-        double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
-        double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
-        double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
-
         robot.updateDashboard(RunMode.TELEOP_MODE);
+
         //
         // DriveBase operation.
         //
-        switch (robot.driveMode)
+        double x = deadband(robot.driverController.getX(GenericHID.Hand.kLeft));
+        double y = deadband(-robot.driverController.getY(GenericHID.Hand.kLeft));
+        double rightTrigger = deadband(robot.driverController.getTriggerAxis(GenericHID.Hand.kRight));
+        double leftTrigger = deadband(robot.driverController.getTriggerAxis(GenericHID.Hand.kLeft));
+        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+        x = Math.copySign(Math.pow(x, 3), x);
+        y = Math.copySign(Math.pow(y, 3), y);
+        rot = Math.copySign(Math.pow(rot, 2), rot);
+        boolean fieldOriented = robot.driverController.getXButton();
+
+        switch (driveSpeed)
         {
-            case HOLONOMIC_MODE:
-                double x = leftDriveX;
-                double y = rightDriveY;
-                double rot = rightTwist;
-                switch (driveSpeed)
-                {
-                    case SLOW:
-                        x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                        y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                        break;
-
-                    case MEDIUM:
-                        x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
-                        y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                        rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                        break;
-
-                    case FAST:
-                        x *= RobotInfo.DRIVE_FAST_XSCALE;
-                        y *= RobotInfo.DRIVE_FAST_YSCALE;
-                        rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                        break;
-                }
-
-                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                {
-                    robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
-                }
+            case SLOW:
+                x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 break;
 
-            case TANK_MODE:
-                double leftPower = leftDriveY;
-                double rightPower = rightDriveY;
-                switch (driveSpeed)
-                {
-                    case SLOW:
-                        leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        break;
-
-                    case MEDIUM:
-                        leftPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                        rightPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                        break;
-
-                    case FAST:
-                        leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
-                        rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
-                        break;
-                }
-
-                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                {
-                    robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
-                }
+            case MEDIUM:
+                x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
+                y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
                 break;
 
-            case ARCADE_MODE:
-                double drivePower = rightDriveY;
-                double turnPower = rightTwist;
-                switch (driveSpeed)
-                {
-                    case SLOW:
-                        drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                        break;
-
-                    case MEDIUM:
-                        drivePower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                        turnPower *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                        break;
-
-                    case FAST:
-                        drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
-                        turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                        break;
-                }
-
-                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                {
-                    robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
-                }
+            case FAST:
+                x *= RobotInfo.DRIVE_FAST_XSCALE;
+                y *= RobotInfo.DRIVE_FAST_YSCALE;
+                rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
                 break;
         }
+
+        robot.driveBase.holonomicDrive(x, y, rot, fieldOriented ? robot.driveBase.getHeading() : 0.0);
     }   // runPeriodic
 
     @Override
