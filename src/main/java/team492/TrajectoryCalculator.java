@@ -25,7 +25,7 @@ public class TrajectoryCalculator
     {
         vertex = vertex.mapMultiply(METERS_PER_INCH);
         double y = vertex.getEntry(0);
-        double z = vertex.getEntry(0);
+        double z = vertex.getEntry(1);
         // derived from basic kinematic equations
         double theta = Math.atan2(2 * z, y);
         double v = Math.sqrt(G * y * y / (2 * z * Math.pow(Math.cos(theta), 2)));
@@ -47,7 +47,7 @@ public class TrajectoryCalculator
         // math used from this research paper: https://www.hindawi.com/journals/ijcgt/2014/463489/
         vertex = vertex.mapMultiply(METERS_PER_INCH);
         double y = vertex.getEntry(0);
-        double z = vertex.getEntry(0);
+        double z = vertex.getEntry(1);
         double terminalVel = Math.sqrt(2 * M * G / (C * A * P)); // mg=1/2capv^2
         double k = G / (2 * terminalVel);
         double t = Math.sqrt(2 * z / G);
