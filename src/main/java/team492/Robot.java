@@ -41,6 +41,7 @@ import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import frclib.FrcTalonServo;
+import frclib.FrcXboxController;
 import hallib.HalDashboard;
 import trclib.TrcDigitalInput;
 import trclib.TrcEnhancedServo;
@@ -93,6 +94,7 @@ public class Robot extends FrcRobotBase
     {
         HOLONOMIC_MODE, TANK_MODE, ARCADE_MODE
     }   // enum DriveMode
+
     //
     // Global constants.
     //
@@ -107,7 +109,7 @@ public class Robot extends FrcRobotBase
     //
     // Inputs.
     //
-    public XboxController driverController;
+    public FrcXboxController driverController;
     public FrcJoystick operatorStick;
     public FrcJoystick buttonPanel;
     public FrcJoystick switchPanel;
@@ -225,7 +227,9 @@ public class Robot extends FrcRobotBase
         steer.motor.setSelectedSensorPosition(pos, 0, 10);
         TrcUtil.sleep(50);
 
-        System.out.printf("Module=%s, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name, steer.motor.getSensorCollection().getPulseWidthPosition(), steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
+        System.out.printf("Module=%s, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name,
+            steer.motor.getSensorCollection().getPulseWidthPosition(),
+            steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
 
         FrcTalonServo servo = new FrcTalonServo(name + ".servo", steer, RobotInfo.magicSteerCoeff,
             RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_REQ_VEL, RobotInfo.STEER_MAX_ACCEL);
@@ -274,7 +278,7 @@ public class Robot extends FrcRobotBase
         //
         // Inputs.
         //
-        driverController = new XboxController(RobotInfo.XBOX_DRIVERCONTROLLER);
+        driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
         operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
@@ -283,7 +287,7 @@ public class Robot extends FrcRobotBase
         //
         pdp = new FrcPdp(RobotInfo.CANID_PDP);
         battery = new FrcRobotBattery(pdp);
-        gyro = preferences.useNavX? new FrcAHRSGyro("NavX", SPI.Port.kMXP): null;
+        gyro = preferences.useNavX ? new FrcAHRSGyro("NavX", SPI.Port.kMXP) : null;
         pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
         //
         // DriveBase subsystem.
@@ -304,8 +308,7 @@ public class Robot extends FrcRobotBase
         leftBackWheel = createModule("LeftRearWheel", lrDriveMotor, lrSteerMotor, zeros[2]);
         rightBackWheel = createModule("RightRearWheel", rrDriveMotor, rrSteerMotor, zeros[3]);
 
-        pdp.registerEnergyUsed(
-            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
+        pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_BACK_WHEEL, "LeftBackWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_BACK_WHEEL, "RightBackWheel"));
@@ -319,12 +322,11 @@ public class Robot extends FrcRobotBase
         // Create PID controllers for DriveBase PID drive.
         //
         encoderXPidCtrl = new TrcPidController("encoderXPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI,
-                RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF), RobotInfo.ENCODER_TOLERANCE,
-            driveBase::getXPosition);
+            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getXPosition);
         encoderYPidCtrl = new TrcPidController("encoderYPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD,
-                RobotInfo.ENCODER_KF), RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
+            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
         gyroTurnPidCtrl = new TrcPidController("gyroTurnPidCtrl",
             new PidCoefficients(RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD,
                 RobotInfo.GYRO_TURN_KF), RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
@@ -381,12 +383,12 @@ public class Robot extends FrcRobotBase
         if (runMode != RunMode.DISABLED_MODE)
         {
             openTraceLog(
-                runMode == RunMode.AUTO_MODE? "FrcAuto": runMode == RunMode.TELEOP_MODE? "FrcTeleOp": "FrcTest");
+                runMode == RunMode.AUTO_MODE ? "FrcAuto" : runMode == RunMode.TELEOP_MODE ? "FrcTeleOp" : "FrcTest");
             setTraceLogEnabled(true);
 
             Date now = new Date();
-            globalTracer.traceInfo(
-                funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(), now.toString(), runMode);
+            globalTracer.traceInfo(funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(), now.toString(),
+                runMode);
 
             driveInverted = false;
 
@@ -451,8 +453,8 @@ public class Robot extends FrcRobotBase
                 String channelName = pdp.getChannelName(i);
                 if (channelName != null)
                 {
-                    globalTracer.traceInfo(
-                        funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
+                    globalTracer
+                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
                 }
             }
 
@@ -629,12 +631,10 @@ public class Robot extends FrcRobotBase
         final String funcName = "traceStateInfo";
         StringBuilder msg = new StringBuilder();
 
-        msg.append(String.format(
-                "[%5.3f] >>>>> %s: xPos=%6.2f/%6.2f,yPos=%6.2f/%6.2f,heading=%6.1f/%6.1f",
-                elapsedTime, stateName,
-                driveBase.getXPosition(), xTarget,
-                driveBase.getYPosition(), yTarget,
-                driveBase.getHeading(), turnTarget));
+        msg.append(String
+            .format("[%5.3f] >>>>> %s: xPos=%6.2f/%6.2f,yPos=%6.2f/%6.2f,heading=%6.1f/%6.1f", elapsedTime, stateName,
+                driveBase.getXPosition(), xTarget, driveBase.getYPosition(), yTarget, driveBase.getHeading(),
+                turnTarget));
 
         if (battery != null)
         {
@@ -643,24 +643,6 @@ public class Robot extends FrcRobotBase
 
         globalTracer.traceInfo(funcName, "%s", msg);
     }   //traceStateInfo
-
-    public void setHalfBrakeModeEnabled(boolean enabled)
-    {
-        if (enabled)
-        {
-            leftFrontWheel.setBrakeModeEnabled(driveInverted);
-            rightFrontWheel.setBrakeModeEnabled(driveInverted);
-            leftBackWheel.setBrakeModeEnabled(!driveInverted);
-            rightBackWheel.setBrakeModeEnabled(!driveInverted);
-        }
-        else
-        {
-            leftFrontWheel.setBrakeModeEnabled(true);
-            rightFrontWheel.setBrakeModeEnabled(true);
-            leftBackWheel.setBrakeModeEnabled(true);
-            rightBackWheel.setBrakeModeEnabled(true);
-        }
-    }
 
     //
     // Getters for sensor data.

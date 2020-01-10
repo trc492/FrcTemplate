@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
+import frclib.FrcXboxController;
 import trclib.TrcEvent;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
@@ -122,7 +123,6 @@ public class FrcTest extends FrcTeleOp
 
         if (test != Test.SUBSYSTEMS_TEST)
         {
-            robot.setHalfBrakeModeEnabled(false);
             robot.driveBase.resetOdometry(true, false);
         }
 
@@ -280,55 +280,46 @@ public class FrcTest extends FrcTeleOp
     } // runContinuous
 
     @Override
-    public void leftDriveStickButtonEvent(int button, boolean pressed)
+    public void driverControllerButtonEvent(int button, boolean pressed)
     {
         boolean processedInput = false;
 
         switch (button)
         {
-            case FrcJoystick.LOGITECH_TRIGGER:
+            case FrcXboxController.BUTTON_A:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON2:
+            case FrcXboxController.BUTTON_B:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
+            case FrcXboxController.BUTTON_X:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON4:
+            case FrcXboxController.BUTTON_Y:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON5:
+            case FrcXboxController.LEFT_BUMPER:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON6:
+            case FrcXboxController.RIGHT_BUMPER:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON7:
+            case FrcXboxController.BACK:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON8:
+            case FrcXboxController.START:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON9:
-                robot.driveBase.clearReferenceOdometry();
-                robot.driveBase.resetOdometry(true, false);
-                processedInput = true;
+            case FrcXboxController.LEFT_STICK_BUTTON:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
+            case FrcXboxController.RIGHT_STICK_BUTTON:
                 break;
         }
 
         if (!processedInput)
         {
-            super.leftDriveStickButtonEvent(button, pressed);
+            super.driverControllerButtonEvent(button, pressed);
         }
     } // operatorStickButtonEvent
 

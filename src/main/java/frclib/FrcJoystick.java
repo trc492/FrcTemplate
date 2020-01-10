@@ -89,18 +89,6 @@ public class FrcJoystick extends Joystick
     public static final int SIDEWINDER_BUTTON8  = 8;
     public static final int SIDEWINDER_BUTTON9  = 9;
     //
-    // Microsoft XBox Game Controller:
-    // UsagePage=0x01, Usage=0x05
-    //
-    public static final int XBOX_BUTTONA        = 1;
-    public static final int XBOX_BUTTONB        = 2;
-    public static final int XBOX_BUTTONX        = 3;
-    public static final int XBOX_BUTTONY        = 4;
-    public static final int XBOX_LB             = 5;
-    public static final int XBOX_RB             = 6;
-    public static final int XBOX_BACK           = 7;
-    public static final int XBOX_START          = 8;
-    //
     // Generic USB Button Panel:
     // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
     //
@@ -129,22 +117,6 @@ public class FrcJoystick extends Joystick
     public static final int PANEL_SWITCH_BLUE2  = 9;
     public static final int PANEL_SWITCH_YELLOW2= 10;
 
-    /**
-     * This interface, if provided, will allow this class to do a notification callback when there are button
-     * activities.
-     */
-    public interface ButtonHandler
-    {
-        /**
-         * This method is called when button event is detected.
-         *
-         * @param buttonNum specifies the button number (1-based) that generates the event
-         * @param pressed specifies true if the button is pressed, false otherwise.
-         */
-        void joystickButtonEvent(int buttonNum, boolean pressed);
-
-    }   //interface ButonHandler
-
     private static final double DEF_DEADBAND_THRESHOLD = 0.15;
     private static final double DEF_SAMPLING_PERIOD = 0.02;     //Sampling at 50Hz.
     private double samplingPeriod = DEF_SAMPLING_PERIOD;
@@ -155,7 +127,7 @@ public class FrcJoystick extends Joystick
     private final int port;
     private final DriverStation ds;
     private int prevButtons;
-    private ButtonHandler buttonHandler = null;
+    private FrcButtonHandler buttonHandler = null;
     private int ySign = 1;
     private TrcDbgTrace buttonEventTracer = null;
 
@@ -236,7 +208,7 @@ public class FrcJoystick extends Joystick
      * @param buttonHandler specifies the object that will handle the button events. Set to null clear previously
      *                      set handler.
      */
-    public void setButtonHandler(ButtonHandler buttonHandler)
+    public void setButtonHandler(FrcButtonHandler buttonHandler)
     {
         final String funcName = "setButtonHandler";
 
@@ -254,7 +226,7 @@ public class FrcJoystick extends Joystick
      *
      * @return current button event handler, null if none.
      */
-    public ButtonHandler getButtonHandler()
+    public FrcButtonHandler getButtonHandler()
     {
         return buttonHandler;
     }   //getButtonHandler
@@ -654,7 +626,7 @@ public class FrcJoystick extends Joystick
                         {
                             dbgTrace.traceInfo(funcName, "Button %x pressed", buttonNum);
                         }
-                        buttonHandler.joystickButtonEvent(buttonNum, true);
+                        buttonHandler.buttonEvent(buttonNum, true);
                     }
                     else
                     {
@@ -665,7 +637,7 @@ public class FrcJoystick extends Joystick
                         {
                             dbgTrace.traceInfo(funcName, "Button %x released", buttonNum);
                         }
-                        buttonHandler.joystickButtonEvent(buttonNum, false);
+                        buttonHandler.buttonEvent(buttonNum, false);
                     }
                     //
                     // Clear the least significant set bit.

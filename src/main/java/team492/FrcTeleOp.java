@@ -22,9 +22,9 @@
 
 package team492;
 
-import edu.wpi.first.wpilibj.GenericHID;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
+import frclib.FrcXboxController;
 import hallib.HalDashboard;
 import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
@@ -57,6 +57,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
+        robot.driverController.setButtonHandler(this::driverControllerButtonEvent);
+        robot.driverController.setLeftYInverted(true);
+
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
 
@@ -109,10 +112,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
     }
 
-    private double deadband(double d) {
-        return Math.abs(d) > 0.1 ? d : 0.0;
-    }
-
     @Override
     public void runPeriodic(double elapsedTime)
     {
@@ -123,14 +122,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // DriveBase operation.
         //
-        double x = deadband(robot.driverController.getX(GenericHID.Hand.kLeft));
-        double y = deadband(-robot.driverController.getY(GenericHID.Hand.kLeft));
-        double rightTrigger = deadband(robot.driverController.getTriggerAxis(GenericHID.Hand.kRight));
-        double leftTrigger = deadband(robot.driverController.getTriggerAxis(GenericHID.Hand.kLeft));
+        double x = robot.driverController.getLeftXWithDeadband(false);
+        double y = robot.driverController.getLeftYWithDeadband(false);
+        double rightTrigger = robot.driverController.getRightTriggerWithDeadband(true);
+        double leftTrigger = robot.driverController.getLeftTriggerWithDeadband(true);
         double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
         x = Math.copySign(Math.pow(x, 3), x);
         y = Math.copySign(Math.pow(y, 3), y);
-        rot = Math.copySign(Math.pow(rot, 2), rot);
         boolean fieldOriented = robot.driverController.getXButton();
 
         switch (driveSpeed)
@@ -171,54 +169,45 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     } // runContinuous
 
     //
-    // Implements TrcJoystick.ButtonHandler.
+    // Implements FrcButtonHandler.
     //
 
-    public void leftDriveStickButtonEvent(int button, boolean pressed)
+    public void driverControllerButtonEvent(int button, boolean pressed)
     {
         boolean isAutoActive = robot.isAutoActive();
-        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s, auto=%b",
+        robot.dashboard.displayPrintf(8, " DriverController: button=0x%04x %s, auto=%b",
             button, pressed ? "pressed" : "released", isAutoActive);
 
         switch (button)
         {
-            case FrcJoystick.LOGITECH_TRIGGER:
-                robot.driveInverted = pressed;
-                robot.setHalfBrakeModeEnabled(true);
+            case FrcXboxController.BUTTON_A:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON2:
+            case FrcXboxController.BUTTON_B:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
-                driveSpeed = pressed ? DriveSpeed.FAST : DriveSpeed.MEDIUM;
+            case FrcXboxController.BUTTON_X:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON4:
+            case FrcXboxController.BUTTON_Y:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON5:
+            case FrcXboxController.LEFT_BUMPER:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON6:
+            case FrcXboxController.RIGHT_BUMPER:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON7:
+            case FrcXboxController.BACK:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON8:
+            case FrcXboxController.START:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON9:
+            case FrcXboxController.LEFT_STICK_BUTTON:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
+            case FrcXboxController.RIGHT_STICK_BUTTON:
                 break;
         }
     }   // leftDriveStickButtonEvent
