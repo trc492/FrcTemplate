@@ -167,6 +167,9 @@ public class Robot extends FrcRobotBase
     //
     // Other robot subystems.
     //
+    public WallAlignment alignment;
+    public Conveyor conveyor;
+    public Shooter shooter;
 
     //
     // Define our subsystems for Auto and TeleOp modes.
@@ -353,6 +356,9 @@ public class Robot extends FrcRobotBase
         // Miscellaneous subsystems.
         //
         ledIndicator = new LEDIndicator(this);
+        shooter = new Shooter();
+        conveyor = new Conveyor();
+        alignment = new WallAlignment();
 
         if (preferences.useStreamCamera)
         {

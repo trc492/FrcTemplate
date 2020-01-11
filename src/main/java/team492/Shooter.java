@@ -13,6 +13,7 @@ import trclib.TrcUtil;
 
 public class Shooter
 {
+    // TODO: tune this
     private static final double FLYWHEEL_kP = 0;
     private static final double FLYWHEEL_kI = 0;
     private static final double FLYWHEEL_kD = 0;
@@ -20,6 +21,7 @@ public class Shooter
     private static final double FLYWHEEL_IZONE = 0;
     private static final double FLYWHEEL_ROT_PER_TICK = 0;
 
+    // TODO: tune this
     private static final double PITCH_kP = 0;
     private static final double PITCH_kI = 0;
     private static final double PITCH_kD = 0;
@@ -29,6 +31,8 @@ public class Shooter
     private static final int PITCH_MAX_ACCEL = 0;
     private static final double PITCH_DEGREES_PER_COUNT = 0;
     private static final double PITCH_TOLERANCE = 0;
+
+    private static final double PITCH_CAL_POWER = -0.1;
 
     private FrcCANSparkMax flywheel;
     private FrcCANTalon pitchMotor;
@@ -127,7 +131,7 @@ public class Shooter
     public void zeroCalibratePitch()
     {
         zeroCalibrating = true;
-        pitchMotor.set(-0.1); // limit switch will stop it and encoder will auto reset
+        pitchMotor.set(PITCH_CAL_POWER); // limit switch will stop it and encoder will auto reset
     }
 
     public boolean pitchOnTarget()
@@ -157,6 +161,6 @@ public class Shooter
 
     private double getPitchGravityComp()
     {
-        return 0;
+        return 0; // TODO: tune this
     }
 }

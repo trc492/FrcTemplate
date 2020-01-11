@@ -11,6 +11,7 @@ import trclib.TrcTaskMgr;
 
 public class Conveyor
 {
+    // TODO: tune this
     private static final double CONVEYOR_kP = 0;
     private static final double CONVEYOR_kI = 0;
     private static final double CONVEYOR_kD = 0;

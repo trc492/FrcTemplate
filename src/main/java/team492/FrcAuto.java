@@ -97,6 +97,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         final String funcName = moduleName + ".startMode";
 
         robot.driveBase.resetOdometry(true, true);
+        robot.shooter.init();
 
         robot.getGameInfo();
         robot.globalTracer.traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s",
