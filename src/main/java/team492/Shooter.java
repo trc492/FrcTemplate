@@ -92,6 +92,7 @@ public class Shooter
         if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
         {
             pitchEvent.set(true);
+            pitchEvent = null;
         }
     }
 

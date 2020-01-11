@@ -67,6 +67,7 @@ public class RobotInfo
     public static final int CANID_FLYWHEEL = 7;
     public static final int CANID_FLYWHEEL_SLAVE = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
+    public static final int CANID_CONVEYOR = 10;
 
     public static final int CANID_PDP                           = 19;
 
@@ -87,6 +88,7 @@ public class RobotInfo
     //
     // Digital Input/Output ports.
     //
+    public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
 
     //
     // PWM Channels.
