@@ -30,13 +30,12 @@ import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
 
-public class FrcAuto extends FrcTeleOp
+public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = "FrcAuto";
 
     public enum AutoStrategy
     {
-        VIDEO_DRIVE,
         X_TIMED_DRIVE,
         Y_TIMED_DRIVE,
         X_DISTANCE_DRIVE,
@@ -57,8 +56,6 @@ public class FrcAuto extends FrcTeleOp
 
     public FrcAuto(Robot robot)
     {
-        super(robot);
-
         this.robot = robot;
         //
         // Create Autonomous Mode specific menus.
@@ -67,8 +64,7 @@ public class FrcAuto extends FrcTeleOp
         //
         // Populate Autonomous Mode menus.
         //
-        autoStrategyMenu.addChoice("Video Stream Drive", AutoStrategy.VIDEO_DRIVE, true, false);
-        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
+        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE, true, false);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
         autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE);
@@ -100,8 +96,6 @@ public class FrcAuto extends FrcTeleOp
     {
         final String funcName = moduleName + ".startMode";
 
-        // Init teleop since we're in sandstorm mode
-        super.startMode(prevMode, nextMode);
         robot.driveBase.resetOdometry(true, true);
 
         robot.getGameInfo();
@@ -140,7 +134,6 @@ public class FrcAuto extends FrcTeleOp
                 break;
 
             default:
-            case VIDEO_DRIVE:
             case DO_NOTHING:
                 autoCommand = null;
                 break;
@@ -163,11 +156,6 @@ public class FrcAuto extends FrcTeleOp
         if (robot.preferences.doAutoUpdates)
         {
             robot.updateDashboard(RunMode.AUTO_MODE);
-        }
-
-        if (autoStrategy == AutoStrategy.VIDEO_DRIVE || !robot.isAutoActive())
-        {
-            super.runPeriodic(elapsedTime);
         }
     } // runPeriodic
 
