@@ -89,6 +89,8 @@ public class RobotInfo
     // Digital Input/Output ports.
     //
     public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
+    public static final int LEFT_LIDAR = 2;
+    public static final int RIGHT_LIDAR = 3;
 
     //
     // PWM Channels.
@@ -116,6 +118,8 @@ public class RobotInfo
     //
     // public static final double SONAR_INCHES_PER_VOLT            = 1.0/0.0098; //9.8mV per inch
     // public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
+
+    public static final double LIDAR_INTER_SENSOR_DIST = 28; // TODO: tune
 
     //
     // DriveBase subsystem.
