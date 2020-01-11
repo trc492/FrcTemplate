@@ -121,6 +121,8 @@ public class RobotInfo
 
     public static final double LIDAR_INTER_SENSOR_DIST = 28; // TODO: tune
 
+    public static final double SHOOTER_BARREL_LENGTH = 30; // inches TODO: tune
+
     //
     // DriveBase subsystem.
     //

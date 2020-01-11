@@ -13,6 +13,80 @@ public class TrajectoryCalculator
     public static final double P = 1.225; // kg/m^3, density of air at sea level
     public static final double M = 0.14; // kg, mass of ball pulled from FIRST website
 
+    public static final int MAX_ITER = 10;
+    public static final double ITER_MAX_ERROR = 0.5; // degrees
+    public static final double ITER_OVERRUN_MAX_ERROR = 5; // degrees
+
+    private static RealVector getVertexFromShooter(RealVector vertexFromPivot, double thetaRad)
+    {
+        return vertexFromPivot.subtract(
+            TrcUtil.createVector(Math.cos(thetaRad), Math.sin(thetaRad)).mapMultiply(RobotInfo.SHOOTER_BARREL_LENGTH));
+    }
+
+    /**
+     * Calculate the trajectory to place the vertex at a given point using a linear drag model. This method accounts for
+     * an arm with the shooter at the end of the arm. Rotating the arm to match the trajectory angle will change the
+     * y and z displacement of the target from the shooter, making analytical calculation of the optimal angle impossible.
+     * This is solved by using iterative calculations. The end result should have the arm angle be the same as the
+     * shooter angle. The initial arm angle is given as a straight line from the pivot to the target. The trajectory
+     * angle is calculated from this, which must be larger, due to the negative concavity of the path due to gravity.
+     * As the arm angle increases, the trajectory angle must decrease, and at some point they intersect. This point is
+     * the optimal arm angle. We find this point by continually averaging the arm angle and its corresponding trajectory
+     * angle.
+     *
+     * @param vertexFromPivot The y and z displacement of the vertex of the path from the pivot of the arm,
+     *                        in the robot reference frame.
+     * @return 2d vector where the first entry is initial speed and the second entry is pitch in degrees.
+     * If the algorithm failed to converge, null is returned instead.
+     */
+    public static RealVector calculateWithArmWithDrag(RealVector vertexFromPivot)
+    {
+        // initial angle should be pointing right at the target
+        double theta = Math.atan2(vertexFromPivot.getEntry(1), vertexFromPivot.getEntry(0));
+        RealVector relVertex = getVertexFromShooter(vertexFromPivot, theta);
+        // Get trajectory from the tip of the arm using the initial angle
+        RealVector traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+        int i = 0;
+        while (Math.abs(traj.getEntry(1) - Math.toDegrees(theta)) > ITER_MAX_ERROR)
+        {
+            // Keep averaging the arm angle and the trajectory angle until they converge
+            double trajTheta = traj.getEntry(1);
+            i++;
+            double lastTheta = theta;
+            // the new arm angle is the average between the trajectory angle and the arm angle
+            theta = TrcUtil.average(theta, Math.toRadians(trajTheta));
+            // recalculate the trajectory using the new arm angle
+            relVertex = getVertexFromShooter(vertexFromPivot, theta);
+            traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+            // If the path is invalid or the new target angle is less than the last arm angle, use weighted average with binary fractions
+            // Essentially, the theta must always be less than trajTheta. If it's not, the update increment must be smaller.
+            // Since two continuous functions are heading in opposite directions and have points at either end, they must intersect at some point.
+            int pow = 2; // start with weights of 3/4 and 1/4, since equal weights is just the average
+            while (Double.isNaN(traj.getEntry(1)) || Math.toRadians(traj.getEntry(1)) < lastTheta)
+            {
+                // theta is the weighted average of the last arm angle and the trajectory angle of that arm angle
+                theta = (1 - Math.pow(2, -pow)) * lastTheta + Math.pow(2, -pow) * Math.toRadians(trajTheta);
+                // recalculate the new trajectory angle from the new arm angle
+                relVertex = getVertexFromShooter(vertexFromPivot, theta);
+                traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+                // If this angle is still invalid, the update must be smaller
+                pow++;
+            }
+            // Prevent infinite loop
+            if (i > MAX_ITER)
+            {
+                if (Math.abs(traj.getEntry(1) - Math.toDegrees(theta)) > ITER_OVERRUN_MAX_ERROR)
+                {
+                    System.err.println("Didn't converge fast enough!");
+                    return null;
+                }
+                System.out.println("Overrun iteration count! Exiting early...");
+                break;
+            }
+        }
+        return traj;
+    }
+
     /**
      * Calculate initial velocity and pitch in order to place the vertex of the trajectory at the supplied point.
      * This model does not account for air resistance.

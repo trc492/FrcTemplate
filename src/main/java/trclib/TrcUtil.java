@@ -22,6 +22,7 @@
 
 package trclib;
 
+import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -594,7 +595,7 @@ public class TrcUtil
     /**
      * Convert a point from a polar coordinate system to a cartesian coordinate system.
      *
-     * @param r Magnitude of vector
+     * @param r     Magnitude of vector
      * @param theta Direction of vector, in degrees clockwise from 0 (+y)
      * @return Vector in a cartesian coordinate system representing the same point.
      */
@@ -603,6 +604,17 @@ public class TrcUtil
         double thetaRad = Math.toRadians(theta);
         return MatrixUtils.createRealVector(new double[] { r * Math.sin(thetaRad), r * Math.cos(thetaRad) });
     }   //polarToCartesian
+
+    /**
+     * Create an {@link ArrayRealVector} with the supplied numbers. This is just quality of life to reduce typing.
+     *
+     * @param vector The data to put in the vector.
+     * @return A new vector instance with the data.
+     */
+    public static RealVector createVector(double... vector)
+    {
+        return new ArrayRealVector(vector);
+    } //createVector
 
     /**
      * Rotate a point counter-clockwise about the origin.
