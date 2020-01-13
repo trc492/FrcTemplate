@@ -206,6 +206,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private boolean gyroAssistEnabled = false;
     private Stack<Odometry> referenceOdometryStack = new Stack<>();
     private Odometry referenceOdometry = null;
+    private boolean synchronizeOdometries = true;
     // Change of basis matrices to convert between coordinate systems
     private final RealMatrix enuToNwuChangeOfBasis = MatrixUtils
         .createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
@@ -258,6 +259,16 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     {
         this(motors, null);
     }   //TrcDriveBase
+
+    public boolean isSynchronizeOdometriesEnabled()
+    {
+        return synchronizeOdometries;
+    }
+
+    public void setSynchronizeOdometriesEnabled(boolean synchronizeOdometries)
+    {
+        this.synchronizeOdometries = synchronizeOdometries;
+    }
 
     /**
      * This method is called to enable/disable the odometry task that keeps track of the robot position and orientation.
@@ -1552,7 +1563,10 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                     }
                 }
 
-                synchronizeOdometries(motorsState.currMotorOdometries);
+                if (synchronizeOdometries)
+                {
+                    synchronizeOdometries(motorsState.currMotorOdometries);
+                }
                 //
                 // Calculate pose delta from last pose and update odometry accordingly.
                 //
