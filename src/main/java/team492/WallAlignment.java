@@ -1,16 +1,28 @@
 package team492;
 
+import frclib.FrcCANTimeOfFlight;
 import frclib.FrcLaserShark;
+import trclib.TrcDistanceSensor;
 import trclib.TrcUtil;
 
 public class WallAlignment
 {
-    private FrcLaserShark leftLidar, rightLidar;
+    private static boolean USE_LASER_SHARK = false;
+
+    private TrcDistanceSensor leftLidar, rightLidar;
 
     public WallAlignment()
     {
-        leftLidar = new FrcLaserShark("LeftLidar", RobotInfo.LEFT_LIDAR);
-        rightLidar = new FrcLaserShark("RightLidar", RobotInfo.RIGHT_LIDAR);
+        if (USE_LASER_SHARK)
+        {
+            leftLidar = new FrcLaserShark("LeftLidar", RobotInfo.LEFT_LIDAR);
+            rightLidar = new FrcLaserShark("RightLidar", RobotInfo.RIGHT_LIDAR);
+        }
+        else
+        {
+            leftLidar = new FrcCANTimeOfFlight("LeftLidar", 11);
+            rightLidar = new FrcCANTimeOfFlight("RightLidar", 12);
+        }
     }
 
     public double getShortestDistanceToWall()
