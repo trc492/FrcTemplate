@@ -25,6 +25,16 @@ public class WallAlignment
         }
     }
 
+    public double getLeftDistance()
+    {
+        return leftLidar.getDistanceInches() + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
+    }
+
+    public double getRightDistance()
+    {
+        return rightLidar.getDistanceInches() + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
+    }
+
     public double getShortestDistanceToWall()
     {
         return Math.cos(Math.toRadians(getAngleToWall())) * getForwardDistanceToWall();
@@ -32,14 +42,14 @@ public class WallAlignment
 
     public double getForwardDistanceToWall()
     {
-        return TrcUtil.average(leftLidar.getDistanceInches(), rightLidar.getDistanceInches());
+        return TrcUtil.average(getLeftDistance(), getRightDistance());
     }
 
     public double getAngleToWall()
     {
-        double l = leftLidar.getDistanceInches();
-        double r = rightLidar.getDistanceInches();
+        double l = getLeftDistance();
+        double r = getRightDistance();
         double theta = Math.atan2(l - r, RobotInfo.LIDAR_INTER_SENSOR_DIST);
-        return 90 - Math.toDegrees(theta);
+        return Math.toDegrees(theta);
     }
 }

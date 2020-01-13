@@ -170,6 +170,8 @@ public class Robot extends FrcRobotBase
     public WallAlignment alignment;
     public Conveyor conveyor;
     public Shooter shooter;
+    public TaskAutoShooter autoShooter;
+    public TaskAutoAlign autoAlign;
 
     public enum DriveSpeed
     {
@@ -365,6 +367,8 @@ public class Robot extends FrcRobotBase
         shooter = new Shooter();
         conveyor = new Conveyor();
         alignment = new WallAlignment();
+        autoAlign = new TaskAutoAlign(this);
+        autoShooter = new TaskAutoShooter(this);
 
         if (preferences.useStreamCamera)
         {

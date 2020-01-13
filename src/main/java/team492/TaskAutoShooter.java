@@ -23,6 +23,7 @@ public class TaskAutoShooter
     private RealVector traj;
     private int ballsToShoot;
     private TrcPidController headingPid;
+    private boolean align;
 
     public TaskAutoShooter(Robot robot)
     {
@@ -30,18 +31,18 @@ public class TaskAutoShooter
         taskObject = TrcTaskMgr.getInstance().createTask(instanceName + ".shooterTask", this::shooterTask);
 
         event = new TrcEvent(instanceName + ".event");
-        TrcPidController.PidCoefficients headingPidCoeff = new TrcPidController.PidCoefficients(
-            RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD);
+        TrcPidController.PidCoefficients headingPidCoeff = new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP,
+            RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD);
         headingPid = new TrcPidController(instanceName + "HeadingController", headingPidCoeff, HEADING_TOLERANCE,
-            this::getHeadingError);
+            this::getAngleFromWall);
         headingPid.setAbsoluteSetPoint(true);
         headingPid.setTarget(0.0);
     }
 
-    private double getHeadingError()
+    private double getAngleFromWall()
     {
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-        return pose != null ? pose.theta : 0.0;
+        return pose != null ? -pose.theta : 0.0; // make negative so control effort is positive
     }
 
     private void stop()
@@ -49,10 +50,15 @@ public class TaskAutoShooter
         if (onFinishedEvent != null)
         {
             onFinishedEvent.set(true);
+            onFinishedEvent = null;
         }
         taskObject.unregisterTask();
         robot.shooter.stopFlywheel();
-        robot.driveBase.releaseExclusiveAccess(instanceName);
+        if (align)
+        {
+            robot.driveBase.stop();
+            robot.driveBase.releaseExclusiveAccess(instanceName);
+        }
     }
 
     private void shooterTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
@@ -74,8 +80,11 @@ public class TaskAutoShooter
                 robot.shooter.setPitch(traj.getEntry(1));
             }
         }
-        robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
-            robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+        if (align)
+        {
+            robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
+                robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+        }
         if (traj != null)
         {
             if (event.isSignaled())
@@ -101,27 +110,49 @@ public class TaskAutoShooter
         return velReady && pitchReady && headingReady;
     }
 
-    public void shoot(int numBalls, double timeout)
+    public boolean isActive()
     {
-        shoot(numBalls, timeout, null);
+        return taskObject.isRegistered();
     }
 
-    public void shoot(int numBalls, double timeout, TrcEvent event)
+    public void cancel()
     {
-        if (!robot.driveBase.acquireExclusiveAccess(instanceName))
+        if (isActive())
         {
-            if (event != null)
+            stop();
+        }
+    }
+
+    public void shoot(int numBalls, double timeout)
+    {
+        shoot(numBalls, timeout, true, null);
+    }
+
+    public void shoot(int numBalls, double timeout, boolean align, TrcEvent onFinishedEvent)
+    {
+        if (onFinishedEvent != null)
+        {
+            onFinishedEvent.clear();
+        }
+        if (isActive())
+        {
+            return; // don't interrupt a current operation
+        }
+        if (align && !robot.driveBase.acquireExclusiveAccess(instanceName))
+        {
+            if (onFinishedEvent != null)
             {
-                event.cancel();
+                onFinishedEvent.cancel();
             }
             return;
         }
+        this.align = align;
         ballsToShoot = numBalls;
-        timedOutTime = TrcUtil.getCurrentTime() + timeout;
-        onFinishedEvent = event;
-        if (event != null)
+        timedOutTime = timeout == 0.0 ? Double.POSITIVE_INFINITY : TrcUtil.getCurrentTime() + timeout;
+        this.onFinishedEvent = onFinishedEvent;
+        if (onFinishedEvent != null)
         {
-            event.clear();
+            onFinishedEvent.clear();
         }
         this.event.clear();
         headingPid.setTarget(0.0);
