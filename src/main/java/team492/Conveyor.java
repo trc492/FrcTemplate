@@ -136,13 +136,23 @@ public class Conveyor
         {
             event.clear();
         }
-        this.readyEvent = event;
 
-        shootTrigger.setEnabled(false);
-        readyTrigger.setEnabled(true);
-        advanceTask.unregisterTask();
+        if (proximitySensor.isActive())
+        {
+            if (event != null)
+            {
+                event.set(true);
+            }
+        }
+        else
+        {
+            this.readyEvent = event;
+            shootTrigger.setEnabled(false);
+            readyTrigger.setEnabled(true);
+            advanceTask.unregisterTask();
 
-        motor.set(READY_POWER);
+            motor.set(READY_POWER);
+        }
     }
 
     /**

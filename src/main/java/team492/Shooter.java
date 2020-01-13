@@ -19,7 +19,7 @@ public class Shooter
     private static final double FLYWHEEL_kD = 0;
     private static final double FLYWHEEL_kF = 0;
     private static final double FLYWHEEL_IZONE = 0;
-    private static final double FLYWHEEL_ROT_PER_TICK = 0;
+    private static final double FLYWHEEL_INCHES_PER_TICK = 0;
 
     // TODO: tune this
     private static final double PITCH_kP = 0;
@@ -108,15 +108,23 @@ public class Shooter
         motor.motor.getPIDController().setFF(FLYWHEEL_kF);
         motor.motor.getPIDController().setIZone(FLYWHEEL_IZONE);
         motor.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        motor.motor.getEncoder().setPositionConversionFactor(FLYWHEEL_ROT_PER_TICK);
-        motor.motor.getEncoder().setVelocityConversionFactor(FLYWHEEL_ROT_PER_TICK / 60.0);
+        motor.motor.getEncoder().setPositionConversionFactor(FLYWHEEL_INCHES_PER_TICK);
+        motor.motor.getEncoder().setVelocityConversionFactor(FLYWHEEL_INCHES_PER_TICK / 60.0);
         motor.setBrakeModeEnabled(false);
     }
 
     /**
-     * Set rotation speed in rps
+     * Let the flywheel coast without applying power.
+     */
+    public void stopFlywheel()
+    {
+        flywheel.set(0.0);
+    }
+
+    /**
+     * Set tangential velocity in inches per second
      *
-     * @param velocity rps
+     * @param velocity in/s
      */
     public void setFlywheelVelocity(double velocity)
     {

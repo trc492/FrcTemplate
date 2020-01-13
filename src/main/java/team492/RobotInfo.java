@@ -23,6 +23,7 @@
 package team492;
 
 import trclib.TrcPidController;
+import trclib.TrcUtil;
 
 public class RobotInfo
 {
@@ -31,6 +32,10 @@ public class RobotInfo
     //
     public static final double FIELD_LENGTH                     = 54*12.0;
     public static final double FIELD_WIDTH                      = 27*12.0;
+
+    public static final double HIGH_TARGET_HEIGHT = 99;
+    public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(83, 99);
+    public static final double PIVOT_HEIGHT = 15.0; // in from ground
 
     public static final double ROBOT_WIDTH = 18.125;
     public static final double ROBOT_LENGTH = 18.5;
@@ -108,8 +113,9 @@ public class RobotInfo
     //
     // Vision subsystem.
     //
-    public static final double CAMERA_DEPTH                     = -17;  //Inches from center of EE to center of camera += forward
-    public static final double CAMERA_OFFSET                    = 3;    //Inches from center of EE to center of camera, += right
+    // TODO: tune this
+    public static final double CAMERA_Y_OFFSET = -17;  // in from pivot of arm + is forward
+    public static final double CAMERA_X_OFFSET = 0;    //Inches from pivot of arm to center of camera, + = right
     public static final double CAMERA_DATA_TIMEOUT              = 0.5;  //500ms
     public static final double CAMERA_CENTERED_THRESHOLD        = 2;    // +- 2 inches in x axis
 

@@ -26,19 +26,15 @@ import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
 import hallib.HalDashboard;
+import team492.Robot.DriveSpeed;
 import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
-    private enum DriveSpeed
-    {
-        SLOW, MEDIUM, FAST
-    }
 
     protected final Robot robot;
-    private DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
     private boolean gyroAssist = false;
     private TrcElapsedTimer elapsedTimer = null;
 
@@ -67,7 +63,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
-        driveSpeed = DriveSpeed.MEDIUM;
+        robot.driveSpeed = DriveSpeed.MEDIUM;
 
         if (robot.preferences.useVision)
         {
@@ -109,7 +105,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             }
         }
 
-        HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
+        HalDashboard.putString("Status/DriveSpeed", robot.driveSpeed.toString());
     }
 
     @Override
@@ -122,35 +118,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // DriveBase operation.
         //
-        double x = robot.driverController.getLeftXWithDeadband(false);
-        double y = robot.driverController.getLeftYWithDeadband(false);
-        double rightTrigger = robot.driverController.getRightTriggerWithDeadband(true);
-        double leftTrigger = robot.driverController.getLeftTriggerWithDeadband(true);
-        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
-        x = Math.copySign(Math.pow(x, 3), x);
-        y = Math.copySign(Math.pow(y, 3), y);
-        boolean fieldOriented = robot.driverController.getXButton();
-
-        switch (driveSpeed)
-        {
-            case SLOW:
-                x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                break;
-
-            case MEDIUM:
-                x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
-                y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                break;
-
-            case FAST:
-                x *= RobotInfo.DRIVE_FAST_XSCALE;
-                y *= RobotInfo.DRIVE_FAST_YSCALE;
-                rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                break;
-        }
+        double x = robot.getXInput();
+        double y = robot.getYInput();
+        double rot = robot.getRotInput();
+        boolean fieldOriented = robot.getFieldOriented();
 
         robot.driveBase.holonomicDrive(x, y, rot, fieldOriented ? robot.driveBase.getHeading() : 0.0);
     }   // runPeriodic
@@ -220,7 +191,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.MEDIUM;
+                robot.driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.MEDIUM;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:

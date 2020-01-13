@@ -171,9 +171,15 @@ public class Robot extends FrcRobotBase
     public Conveyor conveyor;
     public Shooter shooter;
 
+    public enum DriveSpeed
+    {
+        SLOW, MEDIUM, FAST
+    }
+
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
+    public DriveSpeed driveSpeed;
     public double driveTime;
     public double drivePower;
     public double driveDistance;
@@ -350,7 +356,7 @@ public class Robot extends FrcRobotBase
         //
         if (preferences.useVision)
         {
-            vision = new VisionTargeting(preferences);
+            vision = new VisionTargeting();
         }
         //
         // Miscellaneous subsystems.
@@ -613,6 +619,75 @@ public class Robot extends FrcRobotBase
             }
         }
     }   //updateDashboard
+
+    public double getXInput()
+    {
+        double x = driverController.getLeftXWithDeadband(false);
+        x = Math.copySign(Math.pow(x, 3), x);
+        switch (driveSpeed)
+        {
+            case SLOW:
+                x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                break;
+
+            case MEDIUM:
+                x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
+                break;
+
+            case FAST:
+                x *= RobotInfo.DRIVE_FAST_XSCALE;
+                break;
+        }
+        return x;
+    }
+
+    public double getYInput()
+    {
+        double y = driverController.getLeftYWithDeadband(false);
+        y = Math.copySign(Math.pow(y, 3), y);
+        switch (driveSpeed)
+        {
+            case SLOW:
+                y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                break;
+
+            case MEDIUM:
+                y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                break;
+
+            case FAST:
+                y *= RobotInfo.DRIVE_FAST_YSCALE;
+                break;
+        }
+        return y;
+    }
+
+    public double getRotInput()
+    {
+        double rightTrigger = driverController.getRightTriggerWithDeadband(true);
+        double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
+        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+        switch (driveSpeed)
+        {
+            case SLOW:
+                rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                break;
+
+            case MEDIUM:
+                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                break;
+
+            case FAST:
+                rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                break;
+        }
+        return rot;
+    }
+
+    public boolean getFieldOriented()
+    {
+        return driverController.getXButton();
+    }
 
     /**
      * Checks if any auto processes are running, be it auto mode or auto assist, etc.
