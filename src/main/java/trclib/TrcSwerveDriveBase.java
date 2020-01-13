@@ -381,7 +381,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
      */
     @Override
     protected Odometry getOdometryDelta(
-            TrcOdometrySensor.Odometry prevOdometries[], TrcOdometrySensor.Odometry currOdometries[])
+            TrcOdometrySensor.Odometry[] prevOdometries, TrcOdometrySensor.Odometry[] currOdometries)
     {
         final String funcName = "getOdometryDelta";
         Odometry delta = new Odometry();
@@ -411,7 +411,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             posSum = posSum.add(wheelPosVectors[i]);
             velSum = velSum.add(wheelVelVectors[i]);
         }
-        double multiplier = 1 / numMotors;
+        double multiplier = 1.0 / numMotors;
         posSum.mapMultiplyToSelf(multiplier);
         velSum.mapMultiplyToSelf(multiplier);
         //

@@ -37,12 +37,12 @@ public interface TrcOdometrySensor
      */
     public class Odometry
     {
-        Object sensor;
-        double prevTimestamp;
-        double currTimestamp;
-        double prevPos;
-        double currPos;
-        double velocity;
+        public Object sensor;
+        public double prevTimestamp;
+        public double currTimestamp;
+        public double prevPos;
+        public double currPos;
+        public double velocity;
 
         /**
          * Constructor: Create an instance of the object.
