@@ -244,7 +244,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         resetStallTimers();
         xScale = yScale = angleScale = 1.0;
 
-        TrcTaskMgr taskMgr = TrcTaskMgr.getInstance();
+            TrcTaskMgr taskMgr = TrcTaskMgr.getInstance();
         odometryTaskObj = taskMgr.createTask(moduleName + ".odometryTask", this::odometryTask);
         stopTaskObj = taskMgr.createTask(moduleName + ".stopTask", this::stopTask);
         stopTaskObj.registerTask(TrcTaskMgr.TaskType.STOP_TASK);
@@ -260,15 +260,31 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         this(motors, null);
     }   //TrcDriveBase
 
+    /**
+     * This method checks if synchronize odometries is enabled.
+     *
+     * @return true if it is enabled, false if it is disabled.
+     */
     public boolean isSynchronizeOdometriesEnabled()
     {
-        return synchronizeOdometries;
-    }
+        synchronized (odometry)
+        {
+            return synchronizeOdometries;
+        }
+    }   //isSynchronizeOdometriesEnabled
 
+    /**
+     * This method enables/disables synchronize odometries.
+     *
+     * @param synchronizeOdometries specifies true to enable, false to disable.
+     */
     public void setSynchronizeOdometriesEnabled(boolean synchronizeOdometries)
     {
-        this.synchronizeOdometries = synchronizeOdometries;
-    }
+        synchronized (odometry)
+        {
+            this.synchronizeOdometries = synchronizeOdometries;
+        }
+    }   //setSynchronizeOdometriesEnabled
 
     /**
      * This method is called to enable/disable the odometry task that keeps track of the robot position and orientation.
