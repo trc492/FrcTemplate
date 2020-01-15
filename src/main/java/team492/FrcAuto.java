@@ -99,6 +99,8 @@ public class FrcAuto implements TrcRobot.RobotMode
         robot.driveBase.resetOdometry(true, true);
         robot.shooter.init();
 
+        robot.numBalls = 3; // start the game with 3 balls
+
         robot.getGameInfo();
         robot.globalTracer.traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s",
             robot.eventName, robot.matchType, robot.matchNumber, robot.alliance.toString(), robot.location,

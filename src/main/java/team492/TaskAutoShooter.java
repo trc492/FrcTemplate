@@ -123,6 +123,11 @@ public class TaskAutoShooter
         }
     }
 
+    public void shoot()
+    {
+        shoot(robot.numBalls, robot.numBalls); // 1 sec per ball
+    }
+
     public void shoot(int numBalls, double timeout)
     {
         shoot(numBalls, timeout, true, null);

@@ -181,58 +181,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcXboxController.RIGHT_STICK_BUTTON:
                 break;
         }
-    }   // leftDriveStickButtonEvent
-
-    public void rightDriveStickButtonEvent(int button, boolean pressed)
-    {
-        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b",
-            button, pressed ? "pressed" : "released", robot.isAutoActive());
-
-            switch (button)
-        {
-            case FrcJoystick.SIDEWINDER_TRIGGER:
-                robot.driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.MEDIUM;
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON2:
-                robot.vision.setRingLightEnabled(!pressed);
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON3:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON4:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON5:
-                if (pressed)
-                {
-                    gyroAssist = !gyroAssist;
-                    if (gyroAssist)
-                    {
-                        robot.driveBase.enableGyroAssist(
-                            RobotInfo.DRIVE_MAX_ROTATION_RATE, RobotInfo.DRIVE_GYRO_ASSIST_KP);
-                    }
-                    else
-                    {
-                        robot.driveBase.disableGyroAssist();
-                    }
-                }
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON6:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON7:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON8:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON9:
-                break;
-        }
-    }   // rightDriveStickButtonEvent
+    }   // driverControllerButtonEvent
 
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
@@ -241,9 +190,25 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                if (pressed)
+                {
+                    robot.intake.intake();
+                }
+                else
+                {
+                    robot.intake.stopIntake();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                if (pressed)
+                {
+                    robot.intake.setIntakePower(-0.2);
+                }
+                else
+                {
+                    robot.intake.stopIntake();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:

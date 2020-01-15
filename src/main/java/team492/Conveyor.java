@@ -8,6 +8,7 @@ import trclib.TrcDigitalInputTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 public class Conveyor
 {
@@ -30,10 +31,14 @@ public class Conveyor
     private TrcTaskMgr.TaskObject advanceTask;
     private TrcEvent advanceEvent, readyEvent, shootEvent;
     private FrcDigitalInput proximitySensor;
+    private final TrcDigitalInputTrigger exitMonitor;
     private TrcDigitalInputTrigger readyTrigger, shootTrigger;
+    private int targetPosTicks = 0;
+    private Robot robot;
 
-    public Conveyor()
+    public Conveyor(Robot robot)
     {
+        this.robot = robot;
         motor = new FrcCANTalon("Conveyor", RobotInfo.CANID_CONVEYOR);
 
         motor.motor.config_kP(0, CONVEYOR_kP, 10);
@@ -57,8 +62,27 @@ public class Conveyor
         proximitySensor = new FrcDigitalInput("Proximity", RobotInfo.CONVEYOR_PROXIMITY_SENSOR);
         readyTrigger = new TrcDigitalInputTrigger("ReadyTrigger", proximitySensor, this::readyTriggerEvent);
         shootTrigger = new TrcDigitalInputTrigger("ShootTrigger", proximitySensor, this::shootTriggerEvent);
+        exitMonitor = new TrcDigitalInputTrigger("ExitMonitorTrigger", proximitySensor, this::exitMonitorEvent);
+        exitMonitor.setEnabled(true);
 
         advanceTask = TrcTaskMgr.getInstance().createTask("ConveyorAdvanceTask", this::advanceTask);
+
+        targetPosTicks = motor.motor.getSelectedSensorPosition();
+    }
+
+    private void exitMonitorEvent(boolean value)
+    {
+        if (!value)
+        {
+            robot.numBalls--;
+            if (robot.numBalls < 0)
+            {
+                robot.globalTracer
+                    .traceErr("Conveyor.exitMonitorEvent", "Invalid number of balls: %d! Resetting to zero.",
+                        robot.numBalls);
+                robot.numBalls = 0;
+            }
+        }
     }
 
     private void shootTriggerEvent(boolean value)
@@ -175,8 +199,8 @@ public class Conveyor
             event.clear();
         }
         this.advanceEvent = event;
-        int currPos = motor.motor.getSelectedSensorPosition();
-        motor.motor.set(ControlMode.MotionMagic, currPos + INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
+        targetPosTicks += TrcUtil.round(INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
+        motor.motor.set(ControlMode.MotionMagic, targetPosTicks);
 
         advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         readyTrigger.setEnabled(false);

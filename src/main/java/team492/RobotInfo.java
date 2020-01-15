@@ -73,8 +73,10 @@ public class RobotInfo
     public static final int CANID_FLYWHEEL_SLAVE = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
     public static final int CANID_CONVEYOR = 10;
+    public static final int CANID_INTAKE = 11;
 
     public static final int CANID_PDP                           = 19;
+    public static final int CANID_PCM                           = 20;
 
     //
     // PDP Channels.
@@ -94,8 +96,9 @@ public class RobotInfo
     // Digital Input/Output ports.
     //
     public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
-    public static final int LEFT_LIDAR = 2;
-    public static final int RIGHT_LIDAR = 3;
+    public static final int INTAKE_PROXIMITY_SENSOR = 2;
+    public static final int LEFT_LIDAR = 3;
+    public static final int RIGHT_LIDAR = 4;
 
     //
     // PWM Channels.
@@ -109,6 +112,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
+    public static final int SOL_INTAKE_EXTEND = 0;
+    public static final int SOL_INTAKE_RETRACT = 1;
 
     //
     // Vision subsystem.

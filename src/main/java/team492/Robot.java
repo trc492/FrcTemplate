@@ -170,6 +170,7 @@ public class Robot extends FrcRobotBase
     public WallAlignment alignment;
     public Conveyor conveyor;
     public Shooter shooter;
+    public Intake intake;
     public TaskAutoShooter autoShooter;
     public TaskAutoAlign autoAlign;
 
@@ -182,6 +183,7 @@ public class Robot extends FrcRobotBase
     // Define our subsystems for Auto and TeleOp modes.
     //
     public DriveSpeed driveSpeed;
+    public int numBalls;
     public double driveTime;
     public double drivePower;
     public double driveDistance;
@@ -365,23 +367,21 @@ public class Robot extends FrcRobotBase
         //
         ledIndicator = new LEDIndicator(this);
         shooter = new Shooter();
-        conveyor = new Conveyor();
+        conveyor = new Conveyor(this);
+        intake = new Intake(this);
         alignment = new WallAlignment();
-        autoAlign = new TaskAutoAlign(this);
-        autoShooter = new TaskAutoShooter(this);
 
         if (preferences.useStreamCamera)
         {
             UsbCamera camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", 0);
             camera.setResolution(160, 120);
         }
-        //
-        // Other robot subsystems.
-        //
 
         //
         // AutoAssist commands.
         //
+        autoAlign = new TaskAutoAlign(this);
+        autoShooter = new TaskAutoShooter(this);
 
         //
         // Create Robot Modes.
