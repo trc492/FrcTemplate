@@ -14,10 +14,8 @@ public class TrajectoryCalculatorTest
     private void testSingleVertexConvergence(double y, double z)
     {
         RealVector vertexFromPivot = TrcUtil.createVector(y, z);
-        System.out.println("\nVertexFromPivot=" + vertexFromPivot.toString());
         RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(vertexFromPivot);
-        assertNotNull(traj);
-        System.out.println(traj.toString());
+        assertNotNull(String.format("Failed for vertex: %s", vertexFromPivot.toString()), traj);
     }
 
     @Test

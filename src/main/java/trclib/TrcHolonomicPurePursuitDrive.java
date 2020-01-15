@@ -32,17 +32,17 @@ import org.apache.commons.math3.linear.RealVector;
  * "furthest" intersection. The smaller the radius is, the more "tightly" the robot will follow a path, but it will be
  * more prone to oscillation and sharp turns. A larger radius will tend to smooth out turns and corners. Note that the
  * error tolerance must be less than the following distance, so choose them accordingly.
- *
+ * <p>
  * A path consists of an array of waypoints, specifying position, velocity, and optionally heading. All other properties
  * of the TrcWaypoint object may be ignored.The path may be low resolution, as this automatically interpolates between
  * waypoints. If you want the robot to maintain heading, call setMaintainHeading(true) and it will ignore all the
  * heading values. Otherwise, call setMaintainHeading(false), ensure that the heading tolerance and pid coefficients
  * are set, and it will follow the heading values specified by the path.
- *
+ * <p>
  * A somewhat similar idea is here:
  * https://www.chiefdelphi.com/t/paper-implementation-of-the-adaptive-pure-pursuit-controller/166552 or
  * https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
- *
+ * <p>
  * Note that this paper is for non-holonomic robots. This means that all the turning radius stuff isn't very relevant.
  * Technically, we could impose limits on the turning radius as a function of robot velocity and max rot vel, but that's
  * unnecessarily complicated, in my view. Additionally, it does point injection instead of interpolation, and path
@@ -50,15 +50,11 @@ import org.apache.commons.math3.linear.RealVector;
  */
 public class TrcHolonomicPurePursuitDrive
 {
+    private static final boolean debugEnabled = false;
+
     public enum InterpolationType
     {
-        LINEAR(1),
-        QUADRATIC(2),
-        CUBIC(3),
-        QUARTIC(4),
-        QUADRATIC_INV(2),
-        CUBIC_INV(3),
-        QUARTIC_INV(4);
+        LINEAR(1), QUADRATIC(2), CUBIC(3), QUARTIC(4), QUADRATIC_INV(2), CUBIC_INV(3), QUARTIC_INV(4);
 
         private int value;
 
@@ -93,10 +89,9 @@ public class TrcHolonomicPurePursuitDrive
     private double moveOutputLimit = Double.POSITIVE_INFINITY;
     private double rotOutputLimit = Double.POSITIVE_INFINITY;
 
-    public TrcHolonomicPurePursuitDrive(
-            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-            double turnTolerance, TrcPidController.PidCoefficients posPidCoeff,
-            TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance,
+        double posTolerance, double turnTolerance, TrcPidController.PidCoefficients posPidCoeff,
+        TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
     {
         if (driveBase.supportsHolonomicDrive())
         {
@@ -112,12 +107,10 @@ public class TrcHolonomicPurePursuitDrive
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
         setPositionToleranceAndFollowingDistance(posTolerance, followingDistance);
 
-        this.posPidCtrl = new TrcPidController(
-                instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
-        this.turnPidCtrl = new TrcPidController(
-                instanceName + ".turnPid", turnPidCoeff, turnTolerance, driveBase::getHeading);
-        this.velPidCtrl = new TrcPidController(
-                instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
+        this.posPidCtrl = new TrcPidController(instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
+        this.turnPidCtrl = new TrcPidController(instanceName + ".turnPid", turnPidCoeff, turnTolerance,
+            driveBase::getHeading);
+        this.velPidCtrl = new TrcPidController(instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
 
         posPidCtrl.setAbsoluteSetPoint(true);
         turnPidCtrl.setAbsoluteSetPoint(true);
@@ -128,13 +121,11 @@ public class TrcHolonomicPurePursuitDrive
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
     }   //TrcHolonomicPurePursuitDrive
 
-    public TrcHolonomicPurePursuitDrive(
-            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-            TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff,
-            TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance,
+        double posTolerance, TrcPidController.PidCoefficients posPidCoeff,
+        TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
     {
-        this(instanceName, driveBase, followingDistance, posTolerance, 5.0,
-                posPidCoeff, turnPidCoeff, velPidCoeff);
+        this(instanceName, driveBase, followingDistance, posTolerance, 5.0, posPidCoeff, turnPidCoeff, velPidCoeff);
         setMaintainHeading(true);
     }   //TrcHolonomicPurePursuitDrive
 
@@ -183,7 +174,7 @@ public class TrcHolonomicPurePursuitDrive
     /**
      * Set both the position tolerance and following distance.
      *
-     * @param posTolerance         The distance at which the controller will stop itself.
+     * @param posTolerance      The distance at which the controller will stop itself.
      * @param followingDistance The distance between the robot and following point.
      */
     public void setPositionToleranceAndFollowingDistance(double posTolerance, double followingDistance)
@@ -377,10 +368,13 @@ public class TrcHolonomicPurePursuitDrive
 
         double velocity = TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity());
 
-        TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitDrive.driveTask",
-            "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
-            robotX, robotY, velocity, pose.angle, point.x, point.y, point.velocity, point.heading,
-            pathIndex, r, theta);
+        if (debugEnabled)
+        {
+            TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitDrive.driveTask",
+                "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
+                robotX, robotY, velocity, pose.angle, point.x, point.y, point.velocity, point.heading, pathIndex, r,
+                theta);
+        }
 
         // If we have timed out or finished, stop the operation.
         boolean timedOut = TrcUtil.getCurrentTime() >= timedOutTime;
