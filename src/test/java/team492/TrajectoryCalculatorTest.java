@@ -27,5 +27,6 @@ public class TrajectoryCalculatorTest
             testSingleVertexConvergence(r.nextInt(200) + 30, r.nextInt(60) + 30);
         }
         testSingleVertexConvergence(30, 20);
+        testSingleVertexConvergence(48, 31);
     }
 }

@@ -16,11 +16,20 @@ public class TrajectoryCalculator
     public static final int MAX_ITER = 10;
     public static final double ITER_MAX_ERROR = 0.5; // degrees
     public static final double ITER_OVERRUN_MAX_ERROR = 5; // degrees
+    public static final boolean debugEnabled = true;
 
     private static RealVector getVertexFromShooter(RealVector vertexFromPivot, double thetaRad)
     {
         return vertexFromPivot.subtract(
             TrcUtil.createVector(Math.cos(thetaRad), Math.sin(thetaRad)).mapMultiply(RobotInfo.SHOOTER_BARREL_LENGTH));
+    }
+
+    private static void debug(String format, Object... args)
+    {
+        if (debugEnabled)
+        {
+            System.out.printf(format, args);
+        }
     }
 
     /**
@@ -46,6 +55,8 @@ public class TrajectoryCalculator
         RealVector relVertex = getVertexFromShooter(vertexFromPivot, theta);
         // Get trajectory from the tip of the arm using the initial angle
         RealVector traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+        debug("Vertex=%s, theta=%.2f, trajTheta=%.2f\n", vertexFromPivot.toString(), Math.toDegrees(theta),
+            traj.getEntry(1));
         int i = 0;
         while (Math.abs(traj.getEntry(1) - Math.toDegrees(theta)) > ITER_MAX_ERROR)
         {
@@ -53,24 +64,32 @@ public class TrajectoryCalculator
             double trajTheta = traj.getEntry(1);
             i++;
             double lastTheta = theta;
+            debug("%.2f, %.2f", Math.toDegrees(lastTheta), trajTheta);
             // the new arm angle is the average between the trajectory angle and the arm angle
             theta = TrcUtil.average(theta, Math.toRadians(trajTheta));
             // recalculate the trajectory using the new arm angle
             relVertex = getVertexFromShooter(vertexFromPivot, theta);
             traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+            debug(" -> %.2f, %.2f\n", Math.toDegrees(theta), traj.getEntry(1));
             // If the path is invalid or the new target angle is less than the last arm angle, use weighted average with binary fractions
             // Essentially, the theta must always be less than trajTheta. If it's not, the update increment must be smaller.
             // Since two continuous functions are heading in opposite directions and have points at either end, they must intersect at some point.
             int pow = 2; // start with weights of 3/4 and 1/4, since equal weights is just the average
-            while (Double.isNaN(traj.getEntry(1)) || Math.toRadians(traj.getEntry(1)) < lastTheta)
+            while (Double.isNaN(traj.getEntry(1)) || Math.toRadians(traj.getEntry(1)) < theta)
             {
                 // theta is the weighted average of the last arm angle and the trajectory angle of that arm angle
                 theta = (1 - Math.pow(2, -pow)) * lastTheta + Math.pow(2, -pow) * Math.toRadians(trajTheta);
                 // recalculate the new trajectory angle from the new arm angle
                 relVertex = getVertexFromShooter(vertexFromPivot, theta);
                 traj = TrajectoryCalculator.calculateWithVertexWithDrag(relVertex);
+                debug("pow=%d,theta=%.2f,trajTheta=%.2f\n", pow, Math.toDegrees(theta), traj.getEntry(1));
                 // If this angle is still invalid, the update must be smaller
                 pow++;
+                if (pow >= 5)
+                {
+                    System.err.println("Pow is getting too small! Something went wrong!");
+                    return null;
+                }
             }
             // Prevent infinite loop
             if (i > MAX_ITER)
