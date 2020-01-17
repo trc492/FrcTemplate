@@ -54,6 +54,7 @@ public class TaskAutoShooter
         }
         taskObject.unregisterTask();
         robot.shooter.stopFlywheel();
+        headingPid.reset();
         if (align)
         {
             robot.driveBase.stop();

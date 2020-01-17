@@ -127,6 +127,9 @@ public class TaskAutoAlign
         robot.autoShooter.cancel();
         robot.driveBase.stop();
         robot.driveBase.releaseExclusiveAccess(instanceName);
+        xPid.reset();
+        yPid.reset();
+        rotPid.reset();
     }
 
     private void alignTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
