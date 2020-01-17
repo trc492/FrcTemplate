@@ -18,7 +18,7 @@ public class Intake
 
     private enum State
     {
-        Intake, Wait, Advance
+        INTAKE, WAIT, ADVANCE
     }
 
     private FrcDigitalInput proximitySensor;
@@ -29,6 +29,7 @@ public class Intake
     private TrcDigitalInputTrigger proximityTrigger;
     private TrcTimer timer;
     private FrcPneumatic intakeExtension;
+    private boolean singular = false;
 
     public Intake(Robot robot)
     {
@@ -42,7 +43,8 @@ public class Intake
         intakeMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         intakeMotor.motor.enableVoltageCompensation(true);
 
-        intakeExtension = new FrcPneumatic("IntakeExtension", RobotInfo.CANID_PCM, RobotInfo.SOL_INTAKE_EXTEND, RobotInfo.SOL_INTAKE_RETRACT);
+        intakeExtension = new FrcPneumatic("IntakeExtension", RobotInfo.CANID_PCM, RobotInfo.SOL_INTAKE_EXTEND,
+            RobotInfo.SOL_INTAKE_RETRACT);
 
         sm = new TrcStateMachine<>("Intake.sm");
         event = new TrcEvent("Intake.event");
@@ -68,26 +70,34 @@ public class Intake
         {
             switch (state)
             {
-                case Intake:
+                case INTAKE:
+                    event.clear();
                     setIntakePower(INTAKE_POWER);
                     proximityTrigger.setEnabled(true);
                     extendIntake();
-                    sm.waitForSingleEvent(event, State.Wait);
+                    sm.waitForSingleEvent(event, State.WAIT);
                     break;
 
-                case Wait:
+                case WAIT:
                     timer.set(INTAKE_DELAY, event);
-                    sm.waitForSingleEvent(event, State.Advance);
+                    sm.waitForSingleEvent(event, State.ADVANCE);
                     break;
 
-                case Advance:
-                    setIntakePower(0.0);
-                    // TODO: Start another intake operation?
+                case ADVANCE:
                     robot.conveyor.advance();
                     robot.numBalls++;
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);
+                        onFinishedEvent = null;
+                    }
+                    if (singular)
+                    {
+                        stopIntake(); // if only picking up one, stop now
+                    }
+                    else
+                    {
+                        sm.setState(State.INTAKE); // reset state machine to prepare for another pickup
                     }
                     break;
             }
@@ -105,12 +115,22 @@ public class Intake
         return sm.isEnabled();
     }
 
-    public void intake()
+    public void intakeMultiple()
     {
-        intake(null);
+        intake(false, null);
     }
 
-    public void intake(TrcEvent onFinishedEvent)
+    public void intakeOnce()
+    {
+        intakeOnce(null);
+    }
+
+    public void intakeOnce(TrcEvent onFinishedEvent)
+    {
+        intake(true, onFinishedEvent);
+    }
+
+    private void intake(boolean singular, TrcEvent onFinishedEvent)
     {
         if (isActive())
         {
@@ -120,10 +140,11 @@ public class Intake
         {
             onFinishedEvent.clear();
         }
+        this.singular = singular;
         this.onFinishedEvent = onFinishedEvent;
         event.clear();
         intakeTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        sm.start(State.Intake);
+        sm.start(State.INTAKE);
     }
 
     public void extendIntake()

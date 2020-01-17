@@ -192,7 +192,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 if (pressed)
                 {
-                    robot.intake.intake();
+                    robot.intake.intakeMultiple();
                 }
                 else
                 {
