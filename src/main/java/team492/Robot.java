@@ -173,6 +173,7 @@ public class Robot extends FrcRobotBase
     public Intake intake;
     public TaskAutoShooter autoShooter;
     public TaskAutoAlign autoAlign;
+    public TaskSnapToAngle snapToAngle;
 
     public enum DriveSpeed
     {
@@ -382,6 +383,7 @@ public class Robot extends FrcRobotBase
         //
         autoAlign = new TaskAutoAlign(this);
         autoShooter = new TaskAutoShooter(this);
+        snapToAngle = new TaskSnapToAngle(this);
 
         //
         // Create Robot Modes.

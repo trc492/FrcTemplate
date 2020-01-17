@@ -152,12 +152,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcXboxController.BUTTON_A:
+                if (pressed)
+                {
+                    robot.snapToAngle.snapToNearestAngle();
+                }
+                else
+                {
+                    robot.snapToAngle.cancel();
+                }
                 break;
 
             case FrcXboxController.BUTTON_B:
+                if (pressed)
+                {
+                    robot.autoAlign.start(null, 0.0);
+                }
+                else
+                {
+                    robot.autoAlign.cancel();
+                }
                 break;
 
             case FrcXboxController.BUTTON_X:
+                // reserved for field oriented drive in Robot.java
                 break;
 
             case FrcXboxController.BUTTON_Y:
@@ -221,6 +238,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
+                if (pressed)
+                {
+                    robot.autoShooter.shoot();
+                }
+                else
+                {
+                    robot.autoShooter.cancel();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:

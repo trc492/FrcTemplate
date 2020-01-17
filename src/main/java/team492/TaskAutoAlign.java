@@ -116,6 +116,11 @@ public class TaskAutoAlign
         robot.shooter.setPitch(SHOOTER_ANGLE);
     }
 
+    public void cancel()
+    {
+        stop();
+    }
+
     private void stop()
     {
         if (onFinishedEvent != null)
