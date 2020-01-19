@@ -1,11 +1,5 @@
 # Created by https://www.gitignore.io/api/c++,java,linux,macos,gradle,windows,visualstudiocode
 
-### IDEA Stuff ###
-.idea/*
-*.iml
-*.ipr
-*.iws
-
 ### C++ ###
 # Prerequisites
 *.d
@@ -142,7 +136,7 @@ $RECYCLE.BIN/
 
 ### Gradle ###
 .gradle
-build/
+/build/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -161,10 +155,7 @@ gradle-app.setting
 .project
 .settings/
 bin/
+imgui.ini
 
 
 # End of https://www.gitignore.io/api/c++,java,linux,macos,gradle,windows,visualstudiocode
-
-# Exceptions for libraries
-!vision/libs/*.jar
-!robot/libs/*.jar

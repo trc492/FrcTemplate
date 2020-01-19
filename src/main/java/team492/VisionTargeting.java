@@ -27,7 +27,7 @@ import frclib.FrcRemoteVisionProcessor;
 
 public class VisionTargeting
 {
-    private static final double CAMERA_HEIGHT = 15.0;
+    private static final double CAMERA_HEIGHT = 19.0;
     private static final double CAMERA_ANGLE = 45.0;
 
     private FrcLimeLightVisionProcessor vision;

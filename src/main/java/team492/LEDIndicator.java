@@ -22,6 +22,8 @@
 
 package team492;
 
+import frclib.FrcAddressableLED;
+import frclib.FrcColor;
 import frclib.FrcRevBlinkin;
 import trclib.TrcRevBlinkin.LEDPattern;
 
@@ -34,50 +36,48 @@ public class LEDIndicator
     private final LEDPattern[] normalPriorities = new LEDPattern[]
         { normalPattern, visionLeftPattern, visionRightPattern, visionCenteredPattern };
 
-    private FrcRevBlinkin blinkin;
+    private FrcAddressableLED led;
 
     public LEDIndicator(Robot robot)
     {
-        blinkin = new FrcRevBlinkin("LEDIndicator", RobotInfo.PWM_REV_BLINKIN);
-        blinkin.setPatternPriorities(normalPriorities);
-        blinkin.setPatternState(normalPattern, true);
-        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_BLINKIN, "Blinkin");
+        led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
+        led.setColor(new FrcColor(255,0,0));
     }
 
-    public void enableNormalPriorities()
-    {
-        blinkin.setPatternPriorities(normalPriorities);
-    }
+//    public void enableNormalPriorities()
+//    {
+//        blinkin.setPatternPriorities(normalPriorities);
+//    }
 
     public void reset()
     {
-        blinkin.resetAllPatternStates();
-        blinkin.setPatternPriorities(normalPriorities);
-        blinkin.setPatternState(normalPattern, true);
+//        blinkin.resetAllPatternStates();
+//        blinkin.setPatternPriorities(normalPriorities);
+//        blinkin.setPatternState(normalPattern, true);
     }
 
     public void signalNoVisionDetected()
     {
-        blinkin.setPatternState(visionLeftPattern, false);
-        blinkin.setPatternState(visionRightPattern, false);
-        blinkin.setPatternState(visionCenteredPattern, false);
+//        blinkin.setPatternState(visionLeftPattern, false);
+//        blinkin.setPatternState(visionRightPattern, false);
+//        blinkin.setPatternState(visionCenteredPattern, false);
     }
 
     public void signalVisionLeft()
     {
         signalNoVisionDetected();
-        blinkin.setPatternState(visionLeftPattern, true);
+//        blinkin.setPatternState(visionLeftPattern, true);
     }
 
     public void signalVisionRight()
     {
         signalNoVisionDetected();
-        blinkin.setPatternState(visionRightPattern, true);
+//        blinkin.setPatternState(visionRightPattern, true);
     }
 
     public void signalVisionCentered()
     {
         signalNoVisionDetected();
-        blinkin.setPatternState(visionCenteredPattern, true);
+//        blinkin.setPatternState(visionCenteredPattern, true);
     }
 }

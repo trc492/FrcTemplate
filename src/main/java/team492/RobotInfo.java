@@ -33,8 +33,8 @@ public class RobotInfo
     public static final double FIELD_LENGTH                     = 54*12.0;
     public static final double FIELD_WIDTH                      = 27*12.0;
 
-    public static final double HIGH_TARGET_HEIGHT = 99;
-    public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(83, 99);
+    public static final double HIGH_TARGET_HEIGHT = 98;
+    public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81, HIGH_TARGET_HEIGHT);
     public static final double PIVOT_HEIGHT = 15.0; // in from ground
 
     public static final double ROBOT_WIDTH = 18.125;
@@ -75,17 +75,26 @@ public class RobotInfo
     public static final int CANID_CONVEYOR = 10;
     public static final int CANID_INTAKE = 11;
 
-    public static final int CANID_PDP                           = 19;
-    public static final int CANID_PCM                           = 20;
+    public static final int CANID_PDP = 26;
+    public static final int CANID_PCM = 17;
 
     //
     // PDP Channels.
     //
-    public static final int PDP_CHANNEL_RIGHT_BACK_WHEEL        = 0;
-    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL       = 3;
-    public static final int PDP_CHANNEL_BLINKIN                 = 9;
-    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 12;
-    public static final int PDP_CHANNEL_LEFT_BACK_WHEEL         = 15;
+    public static final int PDP_CHANNEL_RIGHT_BACK_WHEEL = 0;
+    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL = 3;
+    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL = 12;
+    public static final int PDP_CHANNEL_LEFT_BACK_WHEEL = 15;
+
+    //
+    // Pickup
+    //
+    // TODO: tune this garbage
+    public static final double PICKUP_BLIND_PERIOD = 0.1; //seconds
+    public static final double PICKUP_POWER = 1.0;
+    public static final double DEPLOY_POWER = -1.0;
+    public static final double[] PICKUP_CURR_THRESH = new double[] { 25.0 };
+    public static final double[] DEPLOY_CURR_THRESH = new double[] { 0.7 };
 
     //
     // Analog Input ports.
@@ -100,10 +109,8 @@ public class RobotInfo
     public static final int LEFT_LIDAR = 3;
     public static final int RIGHT_LIDAR = 4;
 
-    //
-    // PWM Channels.
-    //
-    public static final int PWM_REV_BLINKIN                     = 0;
+    public static final int PWM_CHANNEL_LED = 0;
+    public static final int NUM_LEDS = 27;
 
     //
     // Relay channels.
@@ -119,7 +126,7 @@ public class RobotInfo
     // Vision subsystem.
     //
     // TODO: tune this
-    public static final double CAMERA_Y_OFFSET = -17;  // in from pivot of arm + is forward
+    public static final double CAMERA_Y_OFFSET = -32.5;  // in from pivot of arm + is forward
     public static final double CAMERA_X_OFFSET = 0;    //Inches from pivot of arm to center of camera, + = right
     public static final double CAMERA_DATA_TIMEOUT              = 0.5;  //500ms
     public static final double CAMERA_CENTERED_THRESHOLD        = 2;    // +- 2 inches in x axis
