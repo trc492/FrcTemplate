@@ -42,6 +42,22 @@ public class FrcColor extends Color
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     private TrcDbgTrace dbgTrace = null;
 
+    public static final FrcColor BLACK = new FrcColor(0, 0, 0);
+    public static final FrcColor FULL_RED = new FrcColor(255, 0, 0);
+    public static final FrcColor FULL_GREEN = new FrcColor(0, 255, 0);
+    public static final FrcColor FULL_BLUE = new FrcColor(0, 0, 255);
+    public static final FrcColor FULL_YELLOW = new FrcColor(255, 255, 0);
+    public static final FrcColor FULL_CYAN = new FrcColor(0, 255, 255);
+    public static final FrcColor FULL_MAGENTA = new FrcColor(255, 0, 255);
+    public static final FrcColor FULL_WHITE = new FrcColor(255, 255, 255);
+    public static final FrcColor HALF_RED = new FrcColor(127, 0, 0);
+    public static final FrcColor HALF_GREEN = new FrcColor(0, 127, 0);
+    public static final FrcColor HALF_BLUE = new FrcColor(0, 0, 127);
+    public static final FrcColor HALF_YELLOW = new FrcColor(127, 127, 0);
+    public static final FrcColor HALF_CYAN = new FrcColor(0, 127, 127);
+    public static final FrcColor HALF_MAGENTA = new FrcColor(127, 0, 127);
+    public static final FrcColor HALF_WHITE = new FrcColor(127, 127, 127);
+
     private final double[] hsv;
 
     /**
