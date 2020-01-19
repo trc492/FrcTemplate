@@ -24,24 +24,28 @@ package team492;
 
 import frclib.FrcAddressableLED;
 import frclib.FrcColor;
-import frclib.FrcRevBlinkin;
-import trclib.TrcRevBlinkin.LEDPattern;
+// import frclib.FrcRevBlinkin;
+// import trclib.TrcRevBlinkin.LEDPattern;
 
 public class LEDIndicator
 {
-    private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
-    private final LEDPattern visionCenteredPattern = LEDPattern.SolidGreen;
-    private final LEDPattern visionLeftPattern = LEDPattern.SolidHotPink;
-    private final LEDPattern visionRightPattern = LEDPattern.SolidBlue;
-    private final LEDPattern[] normalPriorities = new LEDPattern[]
-        { normalPattern, visionLeftPattern, visionRightPattern, visionCenteredPattern };
+    private final FrcColor colorDefault = new FrcColor(0, 0, 0);
+    private final FrcColor colorVisionLeft = new FrcColor(255, 0, 0);
+    private final FrcColor colorVisionCenter = new FrcColor(0, 255, 0);
+    private final FrcColor colorVisionRight = new FrcColor(0, 0, 255);
+    // private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
+    // private final LEDPattern visionCenteredPattern = LEDPattern.SolidGreen;
+    // private final LEDPattern visionLeftPattern = LEDPattern.SolidHotPink;
+    // private final LEDPattern visionRightPattern = LEDPattern.SolidBlue;
+    // private final LEDPattern[] normalPriorities = new LEDPattern[]
+    //     { normalPattern, visionLeftPattern, visionRightPattern, visionCenteredPattern };
 
     private FrcAddressableLED led;
 
     public LEDIndicator(Robot robot)
     {
         led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
-        led.setColor(new FrcColor(255,0,0));
+        reset();
     }
 
 //    public void enableNormalPriorities()
@@ -51,6 +55,7 @@ public class LEDIndicator
 
     public void reset()
     {
+        led.setColor(colorDefault);
 //        blinkin.resetAllPatternStates();
 //        blinkin.setPatternPriorities(normalPriorities);
 //        blinkin.setPatternState(normalPattern, true);
@@ -58,6 +63,7 @@ public class LEDIndicator
 
     public void signalNoVisionDetected()
     {
+        reset();
 //        blinkin.setPatternState(visionLeftPattern, false);
 //        blinkin.setPatternState(visionRightPattern, false);
 //        blinkin.setPatternState(visionCenteredPattern, false);
@@ -65,19 +71,19 @@ public class LEDIndicator
 
     public void signalVisionLeft()
     {
-        signalNoVisionDetected();
+        led.setColor(colorVisionLeft);
 //        blinkin.setPatternState(visionLeftPattern, true);
     }
 
     public void signalVisionRight()
     {
-        signalNoVisionDetected();
+        led.setColor(colorVisionRight);
 //        blinkin.setPatternState(visionRightPattern, true);
     }
 
     public void signalVisionCentered()
     {
-        signalNoVisionDetected();
+        led.setColor(colorVisionCenter);
 //        blinkin.setPatternState(visionCenteredPattern, true);
     }
 }
