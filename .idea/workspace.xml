@@ -3,24 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="bcec93ca-a562-46ed-9231-3a7dbd9cb5e5" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.wpilib/wpilib_preferences.json" beforeDir="false" afterPath="$PROJECT_DIR$/.wpilib/wpilib_preferences.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/team492/LEDIndicator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/team492/LEDIndicator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/team492/RobotInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/team492/RobotInfo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/team492/VisionTargeting.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/team492/VisionTargeting.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/LibCu.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/LibCu.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/Phoenix.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/Phoenix.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/REVColorSensorV3.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/REVColorSensorV3.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/REVRobotics.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/REVRobotics.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/WPILibNewCommands.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/WPILibNewCommands.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/WPILibOldCommands.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/WPILibOldCommands.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/navx_frc.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendordeps/navx_frc.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
