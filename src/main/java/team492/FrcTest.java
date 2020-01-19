@@ -447,7 +447,7 @@ public class FrcTest extends FrcTeleOp
             if (pose != null)
             {
                 robot.dashboard
-                    .displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y, pose.objectYaw);
+                    .displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f,depth=%.1f", pose.x, pose.y, pose.objectYaw, pose.r);
             }
             else
             {
