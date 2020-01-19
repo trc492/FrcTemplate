@@ -29,10 +29,10 @@ import frclib.FrcColor;
 
 public class LEDIndicator
 {
-    private final FrcColor colorDefault = new FrcColor(0, 0, 0);
-    private final FrcColor colorVisionLeft = new FrcColor(255, 0, 0);
-    private final FrcColor colorVisionCenter = new FrcColor(0, 255, 0);
-    private final FrcColor colorVisionRight = new FrcColor(0, 0, 255);
+    private final FrcColor colorDefault = FrcColor.BLACK;
+    private final FrcColor colorVisionLeft = FrcColor.FULL_RED;
+    private final FrcColor colorVisionCenter = FrcColor.FULL_GREEN;
+    private final FrcColor colorVisionRight = FrcColor.FULL_BLUE;
     // private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
     // private final LEDPattern visionCenteredPattern = LEDPattern.SolidGreen;
     // private final LEDPattern visionLeftPattern = LEDPattern.SolidHotPink;
