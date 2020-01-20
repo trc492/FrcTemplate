@@ -6,6 +6,9 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.revrobotics.ControlType;
 import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
+import trclib.TrcAnalogInput;
+import trclib.TrcAnalogSensor;
+import trclib.TrcAnalogSensorTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
@@ -16,9 +19,11 @@ public class Shooter
     // TODO: tune this
     private static final double FLYWHEEL_kP = 0;
     private static final double FLYWHEEL_kI = 0;
-    private static final double FLYWHEEL_kD = 0;
-    private static final double FLYWHEEL_kF = 0;
     private static final double FLYWHEEL_IZONE = 0;
+    private static final double FLYWHEEL_kD = 0;
+    private static final double FLYWHEEL_kD_THRESH_UPPER = 20; // in/s
+    private static final double FLYWHEEL_kD_THRESH_LOWER = 15; // in/s
+    private static final double FLYWHEEL_kF = 0;
     private static final double FLYWHEEL_INCHES_PER_TICK = 0;
 
     // TODO: tune this
@@ -33,6 +38,7 @@ public class Shooter
     private static final double PITCH_TOLERANCE = 0;
 
     private static final double PITCH_CAL_POWER = -0.1;
+    private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
     private FrcCANSparkMax flywheel;
     private FrcCANTalon pitchMotor;
@@ -41,11 +47,13 @@ public class Shooter
     private int pitchTicksTarget;
     private boolean zeroCalibrating = false;
     private boolean zeroCalibrated = false;
+    private double targetVelocity;
 
     public Shooter()
     {
         flywheel = new FrcCANSparkMax("Shooter.flywheel", RobotInfo.CANID_FLYWHEEL, true);
-        FrcCANSparkMax flywheelSlave = new FrcCANSparkMax("Shooter.flywheelSlave", RobotInfo.CANID_FLYWHEEL_SLAVE, true);
+        FrcCANSparkMax flywheelSlave = new FrcCANSparkMax("Shooter.flywheelSlave", RobotInfo.CANID_FLYWHEEL_SLAVE,
+            true);
         pitchMotor = new FrcCANTalon("Shooter.pitchMotor", RobotInfo.CANID_SHOOTER_PITCH);
 
         configureFlywheel(flywheel);
@@ -70,12 +78,32 @@ public class Shooter
         pitchMotor.configFwdLimitSwitchNormallyOpen(true);
         pitchMotor.motor.overrideLimitSwitchesEnable(true);
 
+        TrcAnalogSensor flywheelError = new TrcAnalogSensor("Error",
+            () -> Math.abs(getFlywheelVelocity() - targetVelocity));
+        flywheelTrigger = new TrcAnalogSensorTrigger<>("", flywheelError, 0, TrcAnalogInput.DataType.RAW_DATA,
+            new double[] { FLYWHEEL_kD_THRESH_LOWER }, this::flywheelErrorTrigger, false);
+
         pitchControlTaskObj = TrcTaskMgr.getInstance().createTask("PitchControlTask", this::pitchControlTask);
+    }
+
+    private void flywheelErrorTrigger(int currZone, int prevZone, double value)
+    {
+        if (value <= FLYWHEEL_kD_THRESH_LOWER)
+        {
+            flywheel.motor.getPIDController().setD(FLYWHEEL_kD);
+            flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_UPPER });
+        }
+        else if (value > FLYWHEEL_kD_THRESH_UPPER)
+        {
+            flywheel.motor.getPIDController().setD(0.0);
+            flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_LOWER });
+        }
     }
 
     public void init()
     {
         pitchControlTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+        flywheelTrigger.setEnabled(true);
         zeroCalibratePitch();
     }
 
@@ -83,14 +111,16 @@ public class Shooter
     {
         if (zeroCalibrating)
         {
-            if (pitchMotor.isLowerLimitSwitchActive()) {
+            if (pitchMotor.isLowerLimitSwitchActive())
+            {
                 zeroCalibrating = false;
                 zeroCalibrated = true;
                 pitchMotor.set(0.0);
             }
             return;
         }
-        if (!zeroCalibrated) return; // don't do anything if not calibrated
+        if (!zeroCalibrated)
+            return; // don't do anything if not calibrated
         pitchMotor.motor
             .set(ControlMode.MotionMagic, pitchTicksTarget, DemandType.ArbitraryFeedForward, getPitchGravityComp());
         if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
@@ -104,9 +134,9 @@ public class Shooter
     {
         motor.motor.getPIDController().setP(FLYWHEEL_kP);
         motor.motor.getPIDController().setI(FLYWHEEL_kI);
-        motor.motor.getPIDController().setD(FLYWHEEL_kD);
-        motor.motor.getPIDController().setFF(FLYWHEEL_kF);
         motor.motor.getPIDController().setIZone(FLYWHEEL_IZONE);
+        motor.motor.getPIDController().setD(0.0); // kD is only enabled when close to target
+        motor.motor.getPIDController().setFF(FLYWHEEL_kF);
         motor.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         motor.motor.getEncoder().setPositionConversionFactor(FLYWHEEL_INCHES_PER_TICK);
         motor.motor.getEncoder().setVelocityConversionFactor(FLYWHEEL_INCHES_PER_TICK / 60.0);
@@ -118,6 +148,7 @@ public class Shooter
      */
     public void stopFlywheel()
     {
+        targetVelocity = 0;
         flywheel.set(0.0);
     }
 
@@ -128,6 +159,7 @@ public class Shooter
      */
     public void setFlywheelVelocity(double velocity)
     {
+        targetVelocity = velocity;
         flywheel.motor.getPIDController().setReference(velocity, ControlType.kVelocity);
     }
 
