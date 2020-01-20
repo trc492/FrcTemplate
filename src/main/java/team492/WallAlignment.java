@@ -2,7 +2,11 @@ package team492;
 
 import frclib.FrcCANTimeOfFlight;
 import frclib.FrcLaserShark;
+import frclib.FrcMedianFilter;
 import trclib.TrcDistanceSensor;
+import trclib.TrcFilter;
+import trclib.TrcRobot;
+import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
 public class WallAlignment
@@ -10,6 +14,8 @@ public class WallAlignment
     private static boolean USE_LASER_SHARK = false;
 
     private TrcDistanceSensor leftLidar, rightLidar;
+    private TrcFilter leftFilter, rightFilter;
+    private TrcTaskMgr.TaskObject lidarTaskObj;
 
     public WallAlignment()
     {
@@ -23,16 +29,52 @@ public class WallAlignment
             leftLidar = new FrcCANTimeOfFlight("LeftLidar", 11);
             rightLidar = new FrcCANTimeOfFlight("RightLidar", 12);
         }
+
+        leftFilter = new FrcMedianFilter("LeftLidarFilter", 5);
+        rightFilter = new FrcMedianFilter("RightLidarFilter", 5);
+
+        lidarTaskObj = TrcTaskMgr.getInstance().createTask("LidarTask", this::lidarTask);
+    }
+
+    private void lidarTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
+    {
+        // Don't cache the data, just keep reading to keep the filters up to date
+        leftFilter.filterData(leftLidar.getDistanceInches());
+        rightFilter.filterData(rightLidar.getDistanceInches());
+    }
+
+    public void enableRanging()
+    {
+        lidarTaskObj.registerTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);
+        leftFilter.reset();
+        rightFilter.reset();
+    }
+
+    public void disableRanging()
+    {
+        lidarTaskObj.unregisterTask();
+        leftFilter.reset();
+        rightFilter.reset();
     }
 
     public double getLeftDistance()
     {
-        return leftLidar.getDistanceInches() + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
+        double distance = leftLidar.getDistanceInches();
+        if (lidarTaskObj.isRegistered())
+        {
+            distance = leftFilter.filterData(distance);
+        }
+        return distance + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
     }
 
     public double getRightDistance()
     {
-        return rightLidar.getDistanceInches() + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
+        double distance = rightLidar.getDistanceInches();
+        if (lidarTaskObj.isRegistered())
+        {
+            distance = rightFilter.filterData(distance);
+        }
+        return distance + RobotInfo.LIDAR_SENSOR_Y_OFFSET;
     }
 
     public double getShortestDistanceToWall()

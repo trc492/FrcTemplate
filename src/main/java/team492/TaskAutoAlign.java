@@ -114,6 +114,8 @@ public class TaskAutoAlign
         // set initial values so the shooter takes less time
         robot.shooter.setFlywheelVelocity(SHOOTER_SPEED);
         robot.shooter.setPitch(SHOOTER_ANGLE);
+
+        robot.alignment.enableRanging();
     }
 
     public void cancel()
@@ -135,6 +137,7 @@ public class TaskAutoAlign
         xPid.reset();
         yPid.reset();
         rotPid.reset();
+        robot.alignment.disableRanging();
     }
 
     private void alignTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
