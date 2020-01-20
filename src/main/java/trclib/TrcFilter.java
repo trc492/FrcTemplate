@@ -44,6 +44,11 @@ public abstract class TrcFilter
      */
     public abstract double filterData(double data);
 
+    /**
+     * This method resets the filter.
+     */
+    public abstract void reset();
+
     private final String instanceName;
 
     /**

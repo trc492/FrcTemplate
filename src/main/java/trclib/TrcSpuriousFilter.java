@@ -77,6 +77,12 @@ public class TrcSpuriousFilter extends TrcFilter
     // Implements TrcFilter abstract methods.
     //
 
+    @Override
+    public void reset()
+    {
+        prevData = null;
+    }
+
     /**
      * This method returns the filtered data.
      *

@@ -81,6 +81,14 @@ public class TrcKalmanFilter extends TrcFilter
     // Implements TrcFilter abstract methods.
     //
 
+    @Override
+    public void reset()
+    {
+        prevP = 0.0;
+        prevXEst = 0.0;
+        initialized = false;
+    }
+
     /**
      * This method returns the filtered data.
      *

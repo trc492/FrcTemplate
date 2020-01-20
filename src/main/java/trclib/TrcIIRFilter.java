@@ -78,6 +78,12 @@ public class TrcIIRFilter extends TrcFilter
     // Implements TrcFilter abstract methods.
     //
 
+    @Override
+    public void reset()
+    {
+        filteredData = 0.0;
+    }
+
     /**
      * This method returns the filtered data.
      *
