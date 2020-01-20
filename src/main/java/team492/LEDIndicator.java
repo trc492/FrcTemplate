@@ -28,7 +28,6 @@ import frclib.FrcColor;
 
 public class LEDIndicator
 {
-
     private static final FrcColor visionLeftForeground = FrcColor.FULL_MAGENTA;
     private static final FrcColor visionLeftBackground = FrcColor.HALF_MAGENTA;
     private static final FrcColor visionRightForeground = FrcColor.FULL_GREEN;
@@ -86,34 +85,34 @@ public class LEDIndicator
         return new FrcColor[]{foreGround, backGround};
     }
 
+    private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
     public void updateLED()
     {
         FrcColor[] colors = getColors();
         FrcColor foreGround = colors[0];
         FrcColor backGround = colors[1];
 
-        AddressableLEDBuffer buffer = new AddressableLEDBuffer(RobotInfo.NUM_LEDS);
         int border = RobotInfo.NUM_LEDS % 5;
         int index = 0;
         for (int i = 0; i < border/2 + (border % 2 != 0 ? 1 : 0); i++)
         {
-            buffer.setLED(index++, backGround);
+            ledColors[index++] = backGround;
         }
         int ledsPerBall = RobotInfo.NUM_LEDS / 5;
         for (int i = 0; i < robot.getNumBalls() * ledsPerBall; i++)
         {
-            buffer.setLED(index++, foreGround);
+            ledColors[index++] = foreGround;
         }
         for (int i = 0; i < (5 - robot.getNumBalls()) * ledsPerBall; i++)
         {
-            buffer.setLED(index++, backGround);
+            ledColors[index++] = backGround;
         }
         for (int i = 0; i < border/2; i++)
         {
-            buffer.setLED(index++, backGround);
+            ledColors[index++] = backGround;
         }
 
-        led.setPattern(buffer);
+        led.setPattern(new FrcAddressableLED.Pattern(ledColors));
     }
 
     public void signalVision(Direction direction)

@@ -28,7 +28,7 @@ import java.util.Arrays;
  * This class implements a platform independent REV Blinkin device. This class is intended to be extended by a
  * platform dependent device class which provides the abstract methods required by this class.
  */
-public abstract class TrcRevBlinkin
+public abstract class TrcRevBlinkin extends TrcPriorityIndicator<TrcRevBlinkin.LEDPattern>
 {
     protected static final String moduleName = "TrcRevBlinkin";
     protected static final boolean debugEnabled = false;
@@ -232,6 +232,7 @@ public abstract class TrcRevBlinkin
      */
     public TrcRevBlinkin(final String instanceName)
     {
+        super(instanceName);
         if (debugEnabled)
         {
             dbgTrace = useGlobalTracer?
@@ -467,5 +468,4 @@ public abstract class TrcRevBlinkin
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.FUNC, "! (pattern=%s)", pattern);
         }
     }   //updateLED
-
 }   //class TrcRevBlinkin
