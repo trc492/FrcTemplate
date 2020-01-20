@@ -22,68 +22,61 @@
 
 package team492;
 
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import frclib.FrcAddressableLED;
 import frclib.FrcColor;
-// import frclib.FrcRevBlinkin;
-// import trclib.TrcRevBlinkin.LEDPattern;
 
 public class LEDIndicator
 {
-    private final FrcColor colorDefault = FrcColor.BLACK;
-    private final FrcColor colorVisionLeft = FrcColor.FULL_RED;
-    private final FrcColor colorVisionCenter = FrcColor.FULL_GREEN;
-    private final FrcColor colorVisionRight = FrcColor.FULL_BLUE;
-    // private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
-    // private final LEDPattern visionCenteredPattern = LEDPattern.SolidGreen;
-    // private final LEDPattern visionLeftPattern = LEDPattern.SolidHotPink;
-    // private final LEDPattern visionRightPattern = LEDPattern.SolidBlue;
-    // private final LEDPattern[] normalPriorities = new LEDPattern[]
-    //     { normalPattern, visionLeftPattern, visionRightPattern, visionCenteredPattern };
+
+    private final AddressableLEDBuffer defaultPattern = getBuffer(FrcColor.BLACK);
+    private final AddressableLEDBuffer visionLeftPattern = getBuffer(FrcColor.FULL_RED);
+    private final AddressableLEDBuffer visionCenteredPattern = getBuffer(FrcColor.FULL_GREEN);
+    private final AddressableLEDBuffer visionRightPattern = getBuffer(FrcColor.FULL_BLUE);
+    private final AddressableLEDBuffer[] priorities = { defaultPattern, visionLeftPattern, visionRightPattern,
+        visionCenteredPattern };
+
+    private static AddressableLEDBuffer getBuffer(FrcColor color)
+    {
+        return FrcAddressableLED.getBufferForColor(color, RobotInfo.NUM_LEDS);
+    }
 
     private FrcAddressableLED led;
 
-    public LEDIndicator(Robot robot)
+    public LEDIndicator()
     {
         led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
+        led.setPatternPriorities(priorities);
         reset();
     }
 
-//    public void enableNormalPriorities()
-//    {
-//        blinkin.setPatternPriorities(normalPriorities);
-//    }
-
     public void reset()
     {
-        led.setColor(colorDefault);
-//        blinkin.resetAllPatternStates();
-//        blinkin.setPatternPriorities(normalPriorities);
-//        blinkin.setPatternState(normalPattern, true);
+        led.resetAllPatternStates();
+        led.setPatternPriorities(priorities);
+        led.setPatternState(defaultPattern, true);
     }
 
     public void signalNoVisionDetected()
     {
         reset();
-//        blinkin.setPatternState(visionLeftPattern, false);
-//        blinkin.setPatternState(visionRightPattern, false);
-//        blinkin.setPatternState(visionCenteredPattern, false);
+        led.setPatternState(visionLeftPattern, false);
+        led.setPatternState(visionRightPattern, false);
+        led.setPatternState(visionCenteredPattern, false);
     }
 
     public void signalVisionLeft()
     {
-        led.setColor(colorVisionLeft);
-//        blinkin.setPatternState(visionLeftPattern, true);
+        led.setPatternState(visionLeftPattern, true);
     }
 
     public void signalVisionRight()
     {
-        led.setColor(colorVisionRight);
-//        blinkin.setPatternState(visionRightPattern, true);
+        led.setPatternState(visionRightPattern, true);
     }
 
     public void signalVisionCentered()
     {
-        led.setColor(colorVisionCenter);
-//        blinkin.setPatternState(visionCenteredPattern, true);
+        led.setPatternState(visionCenteredPattern, true);
     }
 }
