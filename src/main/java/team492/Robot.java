@@ -184,7 +184,7 @@ public class Robot extends FrcRobotBase
     // Define our subsystems for Auto and TeleOp modes.
     //
     public DriveSpeed driveSpeed;
-    public int numBalls;
+    private int numBalls;
     public double driveTime;
     public double drivePower;
     public double driveDistance;
@@ -366,7 +366,7 @@ public class Robot extends FrcRobotBase
         //
         // Miscellaneous subsystems.
         //
-        ledIndicator = new LEDIndicator();
+        ledIndicator = new LEDIndicator(this);
         shooter = new Shooter();
         conveyor = new Conveyor(this);
         intake = new Intake(this);
@@ -625,6 +625,27 @@ public class Robot extends FrcRobotBase
             }
         }
     }   //updateDashboard
+
+    public int getNumBalls()
+    {
+        return numBalls;
+    }
+
+    public void incNumBalls()
+    {
+        setNumBalls(getNumBalls()+1);
+    }
+
+    public void decNumBalls()
+    {
+        setNumBalls(getNumBalls()-1);
+    }
+
+    public void setNumBalls(int numBalls)
+    {
+        this.numBalls = numBalls;
+        ledIndicator.updateLED();
+    }
 
     public double getXInput()
     {
