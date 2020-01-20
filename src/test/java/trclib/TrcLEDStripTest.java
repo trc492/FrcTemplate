@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 public class TrcLEDStripTest
 {
 
-    private TrcLEDStrip<Object> strip;
+    private TrcPriorityIndicator<Object> strip;
     private Object[] priority;
 
     @Before
@@ -81,7 +81,7 @@ public class TrcLEDStripTest
         assertEquals(priority[2], strip.getPattern());
     }
 
-    public static class MockLEDStrip extends TrcLEDStrip<Object>
+    public static class MockLEDStrip extends TrcPriorityIndicator<Object>
     {
         private Object pattern;
 

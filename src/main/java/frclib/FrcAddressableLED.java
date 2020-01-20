@@ -28,7 +28,7 @@ import java.util.Locale;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import trclib.TrcDbgTrace;
-import trclib.TrcPriorityIndicator;;
+import trclib.TrcPriorityIndicator;
 
 /**
  * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class and
