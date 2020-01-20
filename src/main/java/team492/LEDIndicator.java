@@ -29,54 +29,95 @@ import frclib.FrcColor;
 public class LEDIndicator
 {
 
-    private final AddressableLEDBuffer defaultPattern = getBuffer(FrcColor.BLACK);
-    private final AddressableLEDBuffer visionLeftPattern = getBuffer(FrcColor.FULL_RED);
-    private final AddressableLEDBuffer visionCenteredPattern = getBuffer(FrcColor.FULL_GREEN);
-    private final AddressableLEDBuffer visionRightPattern = getBuffer(FrcColor.FULL_BLUE);
-    private final AddressableLEDBuffer[] priorities = { defaultPattern, visionLeftPattern, visionRightPattern,
-        visionCenteredPattern };
+    private static final FrcColor visionLeftForeground = FrcColor.FULL_MAGENTA;
+    private static final FrcColor visionLeftBackground = FrcColor.HALF_MAGENTA;
+    private static final FrcColor visionRightForeground = FrcColor.FULL_GREEN;
+    private static final FrcColor visionRightBackground = FrcColor.HALF_GREEN;
+    private static final FrcColor visionCenteredForeground = FrcColor.FULL_BLUE;
+    private static final FrcColor visionCenteredBackground = FrcColor.HALF_BLUE;
+    private static final FrcColor noVisionForeground = FrcColor.FULL_RED;
+    private static final FrcColor noVisionBackground = FrcColor.HALF_RED;
 
-    private static AddressableLEDBuffer getBuffer(FrcColor color)
+    public enum Direction
     {
-        return FrcAddressableLED.getBufferForColor(color, RobotInfo.NUM_LEDS);
+        LEFT, CENTERED, RIGHT;
     }
 
+    private Direction direction;
+    private Robot robot;
     private FrcAddressableLED led;
 
-    public LEDIndicator()
+    public LEDIndicator(Robot robot)
     {
+        this.robot = robot;
         led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
-        led.setPatternPriorities(priorities);
-        reset();
     }
 
     public void reset()
     {
-        led.resetAllPatternStates();
-        led.setPatternPriorities(priorities);
-        led.setPatternState(defaultPattern, true);
+        signalVision(null);
+        led.setColor(noVisionBackground);
     }
 
-    public void signalNoVisionDetected()
+    private FrcColor[] getColors()
     {
-        reset();
-        led.setPatternState(visionLeftPattern, false);
-        led.setPatternState(visionRightPattern, false);
-        led.setPatternState(visionCenteredPattern, false);
+        FrcColor foreGround;
+        FrcColor backGround;
+        if (direction == null)
+        {
+            foreGround = noVisionForeground;
+            backGround = noVisionBackground;
+        }
+        else if (direction == Direction.LEFT)
+        {
+            foreGround = visionLeftForeground;
+            backGround = visionLeftBackground;
+        }
+        else if (direction == Direction.RIGHT)
+        {
+            foreGround = visionRightForeground;
+            backGround = visionRightBackground;
+        }
+        else // centered
+        {
+            foreGround = visionCenteredForeground;
+            backGround = visionCenteredBackground;
+        }
+        return new FrcColor[]{foreGround, backGround};
     }
 
-    public void signalVisionLeft()
+    public void updateLED()
     {
-        led.setPatternState(visionLeftPattern, true);
+        FrcColor[] colors = getColors();
+        FrcColor foreGround = colors[0];
+        FrcColor backGround = colors[1];
+
+        AddressableLEDBuffer buffer = new AddressableLEDBuffer(RobotInfo.NUM_LEDS);
+        int border = RobotInfo.NUM_LEDS % 5;
+        int index = 0;
+        for (int i = 0; i < border/2 + (border % 2 != 0 ? 1 : 0); i++)
+        {
+            buffer.setLED(index++, backGround);
+        }
+        int ledsPerBall = RobotInfo.NUM_LEDS / 5;
+        for (int i = 0; i < robot.getNumBalls() * ledsPerBall; i++)
+        {
+            buffer.setLED(index++, foreGround);
+        }
+        for (int i = 0; i < (5 - robot.getNumBalls()) * ledsPerBall; i++)
+        {
+            buffer.setLED(index++, backGround);
+        }
+        for (int i = 0; i < border/2; i++)
+        {
+            buffer.setLED(index++, backGround);
+        }
+
+        led.setPattern(buffer);
     }
 
-    public void signalVisionRight()
+    public void signalVision(Direction direction)
     {
-        led.setPatternState(visionRightPattern, true);
-    }
-
-    public void signalVisionCentered()
-    {
-        led.setPatternState(visionCenteredPattern, true);
+        this.direction = direction;
     }
 }

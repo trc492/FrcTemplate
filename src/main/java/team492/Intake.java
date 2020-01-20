@@ -85,7 +85,7 @@ public class Intake
 
                 case ADVANCE:
                     robot.conveyor.advance();
-                    robot.numBalls++;
+                    robot.incNumBalls();
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);

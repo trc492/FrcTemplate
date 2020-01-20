@@ -74,13 +74,13 @@ public class Conveyor
     {
         if (!value)
         {
-            robot.numBalls--;
-            if (robot.numBalls < 0)
+            robot.decNumBalls();
+            if (robot.getNumBalls() < 0)
             {
                 robot.globalTracer
                     .traceErr("Conveyor.exitMonitorEvent", "Invalid number of balls: %d! Resetting to zero.",
-                        robot.numBalls);
-                robot.numBalls = 0;
+                        robot.getNumBalls());
+                robot.setNumBalls(0);
             }
         }
     }

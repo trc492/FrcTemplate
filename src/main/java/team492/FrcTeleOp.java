@@ -89,19 +89,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             HalDashboard.putBoolean("Status/TapeDetected", pose != null);
             if (pose == null)
             {
-                robot.ledIndicator.signalNoVisionDetected();
+                robot.ledIndicator.signalVision(null);
             }
             else if (pose.x > RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
-                robot.ledIndicator.signalVisionRight();
+                robot.ledIndicator.signalVision(LEDIndicator.Direction.RIGHT);
             }
             else if (pose.x < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
-                robot.ledIndicator.signalVisionLeft();
+                robot.ledIndicator.signalVision(LEDIndicator.Direction.LEFT);
             }
             else
             {
-                robot.ledIndicator.signalVisionCentered();
+                robot.ledIndicator.signalVision(LEDIndicator.Direction.CENTERED);
             }
         }
 
