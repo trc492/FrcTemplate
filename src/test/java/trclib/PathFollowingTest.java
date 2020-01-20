@@ -1,17 +1,10 @@
-package team492;
+package trclib;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import team492.simulator.SimulatedHolonomicDrivebase;
-import team492.simulator.Simulator;
-import trclib.TrcEvent;
-import trclib.TrcHolonomicPurePursuitDrive;
-import trclib.TrcPath;
-import trclib.TrcPidController;
-import trclib.TrcPidDrive;
-import trclib.TrcPose2D;
-import trclib.TrcWaypoint;
+import trclib.simulator.SimulatedHolonomicDrivebase;
+import trclib.simulator.Simulator;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;

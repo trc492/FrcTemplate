@@ -1,4 +1,4 @@
-package team492.simulator;
+package trclib.simulator;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
