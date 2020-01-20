@@ -1,4 +1,4 @@
-package team492.simulator;
+package trclib.simulator;
 
 import trclib.TrcDriveBase;
 import trclib.TrcOdometrySensor;
