@@ -22,38 +22,112 @@
 
 package frclib;
 
+import java.util.Arrays;
+import java.util.Locale;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import trclib.TrcDbgTrace;
-import trclib.TrcLEDStrip;
+import trclib.TrcPriorityIndicator;;
 
 /**
  * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class and
  * provides methods to set the color and pattern of the LED strip.
  */
-public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
+public class FrcAddressableLED extends TrcPriorityIndicator<FrcAddressableLED.Pattern>
 {
-    private static final String moduleName = "FrcAddressableLED";
-    private static final boolean debugEnabled = false;
-    private static final boolean tracingEnabled = false;
-    private static final boolean useGlobalTracer = false;
-    private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
-    private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
-
-    public static AddressableLEDBuffer getBufferForColor(FrcColor color, int length)
+    /**
+     * This class contains information about an LED pattern. An LED pattern contains a pattern type, an array of colors
+     * and a time interval between color changes for moving patterns.
+     */
+    public static class Pattern
     {
-        AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(length);
-        for (int i = 0; i < ledBuffer.getLength(); i++)
+        public enum Type
         {
-            ledBuffer.setLED(i, color);
-        }
-        return ledBuffer;
-    }
+            SolidColor, FixedPattern, MovingColor, RotatingColor
+        }   //enum PatternType
 
-    private TrcDbgTrace dbgTrace = null;
+        Type type;
+        FrcColor[] colors;
+        double interval;
+
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param red specifies the red value of the color in SolidColor pattern.
+         * @param green specifies the green value of the color in SolidColor pattern.
+         * @param blue specifies the blue value of the color in SolidColor pattern.
+         */
+        public Pattern(int red, int green, int blue)
+        {
+            this.type = Type.SolidColor;
+            this.colors = new FrcColor[1];
+            this.colors[0] = new FrcColor(red, green, blue);
+            this.interval = 0.0;
+        }   //Pattern
+
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param color specifies the color in SolidColor pattern.
+         */
+        public Pattern(FrcColor color)
+        {
+            this.type = Type.SolidColor;
+            this.colors = new FrcColor[1];
+            this.colors[0] = color;
+            this.interval = 0.0;
+        }   //Pattern
+
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param colors specifies an array of colors, one for each pixel in the LED strip in FixedPattern.
+         */
+        public Pattern(FrcColor[] colors)
+        {
+            this.type = Type.FixedPattern;
+            this.colors = colors;
+            this.interval = 0.0;
+        }
+
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param color specifies the color in MovingColor pattern.
+         * @param interval specifies the time interval in seconds between color movements.
+         */
+        public Pattern(FrcColor color, double interval)
+        {
+            this.type = Type.MovingColor;
+            this.colors = new FrcColor[1];
+            this.colors[0] = color;
+            this.interval = interval;
+        }   //Pattern
+
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param interval specifies the time interval in seconds between color rotation.
+         */
+        public Pattern(double interval)
+        {
+            this.type = Type.RotatingColor;
+            this.colors = null;
+            this.interval = interval;
+        }   //Pattern
+
+        @Override
+        public String toString()
+        {
+            return String.format(Locale.US, "type=%s,color=%s,interval=%.3f", type, Arrays.toString(colors), interval);
+        }   //toString
+
+    }   //class Pattern
+
     private final AddressableLED led;
-    private final int length;
-    private AddressableLEDBuffer currPattern;
+    private final AddressableLEDBuffer ledBuffer;
+    private Pattern currPattern;
 
     /**
      * Constructor: Create an instance of the object.
@@ -66,55 +140,45 @@ public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
     {
         super(instanceName);
 
-        if (debugEnabled)
-        {
-            dbgTrace = useGlobalTracer ?
-                TrcDbgTrace.getGlobalTracer() :
-                new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
-        }
-
         led = new AddressableLED(channel);
         led.setLength(numLEDs);
-        length = numLEDs;
+        ledBuffer = new AddressableLEDBuffer(numLEDs);
+        setRGB(0, 0, 0);
     }   //FrcAddressableLED
 
-    @Override
-    public void setPattern(AddressableLEDBuffer pattern)
+    /**
+     * This method update the LED strip to the current pattern.
+     */
+    private void updateLED()
     {
-        final String funcName = "setPattern";
-
-        if (debugEnabled)
+        switch (currPattern.type)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
+            case SolidColor:
+                for (int i = 0; i < ledBuffer.getLength(); i++)
+                {
+                    ledBuffer.setLED(i, currPattern.colors[0]);
+                }
+                led.setData(ledBuffer);
+                break;
+
+            case FixedPattern:
+                int len = Math.min(currPattern.colors.length, ledBuffer.getLength());
+                for (int i = 0; i < len; i++)
+                {
+                    ledBuffer.setLED(i, currPattern.colors[i]);
+                }
+                led.setData(ledBuffer);
+                break;
+
+            case MovingColor:
+                // TODO: implement moving color.
+                break;
+
+            case RotatingColor:
+                // TODO: implement rotating color.
+                break;
         }
-
-        if (pattern == null)
-        {
-            pattern = new AddressableLEDBuffer(length); // automatically all off
-        }
-
-        this.currPattern = pattern;
-        led.setData(pattern);
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
-    }
-
-    @Override
-    public AddressableLEDBuffer getPattern()
-    {
-        final String funcName = "getPattern";
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", currPattern);
-        }
-
-        return currPattern;
-    }
+    }   //updateLED
 
     /**
      * This method sets the RGB color for the whole LED strip.
@@ -133,7 +197,8 @@ public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        setColor(new FrcColor(red, green, blue));
+        currPattern = new Pattern(red, green, blue);
+        updateLED();
     }   //setRGB
 
     /**
@@ -153,13 +218,14 @@ public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(length);
-        for (int i = 0; i < ledBuffer.getLength(); i++)
-        {
-            ledBuffer.setHSV(i, hue, sat, value);
-        }
+        // TODO: Implement FrcColor.hsvToRgb
+        updateLED();
+        // for (int i = 0; i < currPattern.getLength(); i++)
+        // {
+        //     currPattern.setHSV(i, hue, sat, value);
+        // }
 
-        setPattern(ledBuffer);
+        // led.setData(currPattern);
     }   //setHSV
 
     /**
@@ -177,7 +243,65 @@ public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-       setPattern(getBufferForColor(color, length));
+        currPattern = new Pattern(color);
+        updateLED();
     }   //setColor
+
+    //
+    // Implements TrcPriorityIndicator abstract methods.
+    //
+
+    /**
+     * This method gets the current set pattern.
+     *
+     * @return currently set pattern.
+     */
+    @Override
+    public Pattern getPattern()
+    {
+        final String funcName = "getPattern";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", currPattern);
+        }
+
+        return currPattern;
+    }   //getPattern
+
+    /**
+     * This method sets the pattern to the physical indicator device in a device dependent way.
+     *
+     * @param pattern specifies the indicator pattern. If null, turn off the indicator pattern.
+     */
+    @Override
+    public void setPattern(Pattern pattern)
+    {
+        final String funcName = "setPattern";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
+        }
+
+        if (pattern == null)
+        {
+            //
+            // None specified, default to off pattern.
+            //
+            setRGB(0, 0, 0);
+        }
+        else
+        {
+            this.currPattern = pattern;
+            updateLED();
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //setPattern
 
 }   //class FrcAddressableLED

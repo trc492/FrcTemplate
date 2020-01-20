@@ -26,7 +26,7 @@ package trclib;
  * This class implements a platform independent REV Blinkin device. This class is intended to be extended by a
  * platform dependent device class which provides the abstract methods required by this class.
  */
-public abstract class TrcRevBlinkin extends TrcLEDStrip<TrcRevBlinkin.LEDPattern>
+public abstract class TrcRevBlinkin extends TrcPriorityIndicator<TrcRevBlinkin.LEDPattern>
 {
     public enum LEDPattern
     {
@@ -173,4 +173,5 @@ public abstract class TrcRevBlinkin extends TrcLEDStrip<TrcRevBlinkin.LEDPattern
     {
         super(instanceName);
     }   //TrcRevBlinkin
+
 }   //class TrcRevBlinkin

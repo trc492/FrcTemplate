@@ -23,6 +23,7 @@
 package frclib;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
@@ -80,6 +81,17 @@ public class FrcColor extends Color
 
         hsv = rgbToHsv(redValue/255.0, greenValue/255.0, blueValue/255.0);
     }   //FrcColor
+
+    /**
+     * This method returns the string form of the RGB color values.
+     *
+     * @return the string form of the RGB color values.
+     */
+    @Override
+    public String toString()
+    {
+        return String.format(Locale.US, "(r=%d,g=%d,b=%d", (int)(red*255), (int)(green*255), (int)(blue*255));
+    }   //toString
 
     /**
      * This method returns the HSV color values in an array of doubles.

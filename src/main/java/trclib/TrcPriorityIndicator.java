@@ -25,51 +25,107 @@ package trclib;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-public abstract class TrcLEDStrip<T>
+/**
+ * This class implements a priority indicator device that supports priority list. A priority list specifies a list of
+ * indicator patterns in priority order. This means that if the indicator is set to a given pattern, it will be updated
+ * only if the pattern being set has a higher priority than the pattern that is already active. This allows the
+ * indicator to be used to display important status that will not be overwritten by unimportant status change. This
+ * class is intended to be extended by a device dependent subclass that provides device dependent methods to set and
+ * get indicator patterns.
+ *
+ * @param <T> specifies the device dependent indicator pattern type.
+ */
+public abstract class TrcPriorityIndicator<T>
 {
-    protected static final String moduleName = "TrcRevBlinkin";
+    private static final String moduleName = "TrcPriorityIndicator";
     protected static final boolean debugEnabled = false;
-    protected static final boolean tracingEnabled = false;
-    protected static final boolean useGlobalTracer = false;
-    protected static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
-    protected static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
+    private static final boolean tracingEnabled = false;
+    private static final boolean useGlobalTracer = false;
+    private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
+    private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     protected TrcDbgTrace dbgTrace = null;
+
+    /**
+     * This method gets the current set pattern.
+     *
+     * @return currently set pattern.
+     */
+    public abstract T getPattern();
+
+    /**
+     * This method sets the pattern to the physical indicator device in a device dependent way.
+     *
+     * @param pattern specifies the indicator pattern. If null, turn off the indicator pattern.
+     */
+    public abstract void setPattern(T pattern);
+
+    /**
+     * This class implements the pattern state. It contains the pattern and the state if the pattern is active or not.
+     */
+    private class PatternState
+    {
+        final T pattern;
+        boolean enabled;
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param pattern specifies the pattern.
+         * @param enabled specifies the initial state of the pattern.
+         */
+        public PatternState(T pattern, boolean enabled)
+        {
+            this.pattern = pattern;
+            this.enabled = enabled;
+        }   //PatternState
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param pattern specifies the indicator pattern.
+         */
+        public PatternState(T pattern)
+        {
+            this(pattern, false);
+        }   //PatternState
+
+    }   //class PatternState
 
     private final String instanceName;
     private PatternState[] patternPriorities = null;
 
-    public TrcLEDStrip(String instanceName)
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     */
+    public TrcPriorityIndicator(String instanceName)
     {
-        this.instanceName = instanceName;
-
         if (debugEnabled)
         {
             dbgTrace = useGlobalTracer ?
                 TrcDbgTrace.getGlobalTracer() :
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
-    }
+
+        this.instanceName = instanceName;
+    }   //TrcPriorityIndicator
 
     /**
-     * This method is provided by the platform dependent subclass that extends this class. It sets the LED pattern
-     * to the physical LED strip in a platform dependent way.
+     * This method returns the instance name.
      *
-     * @param pattern specifies the color pattern. If null, turn off all LEDs.
+     * @return instance name.
      */
-    public abstract void setPattern(T pattern);
+    @Override
+    public String toString()
+    {
+        return instanceName;
+    }   //toString
 
     /**
-     * This method is provided by the platform dependent subclass that extends this class. It gets the current set
-     * LED pattern.
+     * This method enables/disables the pattern in the priority list.
      *
-     * @return currently set LED pattern.
-     */
-    public abstract T getPattern();
-
-    /**
-     * This method enables/disables the LED pattern in the priority list.
-     *
-     * @param pattern specifies the LED pattern in the priority list.
+     * @param pattern specifies the pattern in the priority list.
      * @param enabled specifies true to turn the pattern ON, false to turn it OFF.
      */
     public void setPatternState(T pattern, boolean enabled)
@@ -79,14 +135,14 @@ public abstract class TrcLEDStrip<T>
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s,state=%s,index=%d", pattern, enabled,
-                index);
+            dbgTrace.traceEnter(
+                funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s,enabled=%s,index=%d", pattern, enabled, index);
         }
 
         if (index != -1)
         {
             patternPriorities[index].enabled = enabled;
-            updateLED();
+            updateIndicator();
         }
 
         if (debugEnabled)
@@ -96,11 +152,11 @@ public abstract class TrcLEDStrip<T>
     }   //setPatternState
 
     /**
-     * This method returns the LED pattern state if it is in the priority list. If the pattern is not in the list,
+     * This method returns the pattern state if it is in the priority list. If the pattern is not in the list,
      * it returns false.
      *
-     * @param pattern specifies the LED pattern in the priority list.
-     * @return true if the LED pattern is ON, false if it is OFF.
+     * @param pattern specifies the pattern in the priority list.
+     * @return true if the pattern is ON, false if it is OFF.
      */
     public boolean getPatternState(T pattern)
     {
@@ -127,7 +183,8 @@ public abstract class TrcLEDStrip<T>
     }   //getPatternState
 
     /**
-     * This method resets all pattern states in the pattern priority list and turns off the LED strip.
+     * This method resets all pattern states in the pattern priority list and set the indicator device to non-active
+     * state.
      */
     public void resetAllPatternStates()
     {
@@ -159,7 +216,7 @@ public abstract class TrcLEDStrip<T>
      * the priority and will be returned. If the pattern is not found in the array, -1 will be return which also
      * means the lowest priority.
      *
-     * @param pattern specifies the LED pattern to be searched in the pattern priorities array.
+     * @param pattern specifies the indicator pattern to be searched in the pattern priorities array.
      * @return the pattern priority if found, -1 if not found.
      */
     public int getPatternPriority(T pattern)
@@ -193,7 +250,7 @@ public abstract class TrcLEDStrip<T>
     }   //getPatternPriority
 
     /**
-     * This method sets the LED pattern priority list for operations that need it.
+     * This method sets the pattern priority list for operations that need it.
      *
      * @param priorities specifies the pattern priority list or null to disregard the previously set list.
      */
@@ -230,7 +287,7 @@ public abstract class TrcLEDStrip<T>
                     }
                 }
             }
-            updateLED();
+            updateIndicator();
         }
         else
         {
@@ -242,27 +299,16 @@ public abstract class TrcLEDStrip<T>
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
-    }
+    }   //setPatternPriorities
 
     /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
+     * This method is called to update the pattern according to the patternPriorities list. It will turn on the
+     * highest priority pattern if enabled. If none of the patterns in the priority list is enabled, it will set
+     * the indicator device to non-active state.
      */
-    @Override
-    public String toString()
+    private void updateIndicator()
     {
-        return instanceName;
-    }   //toString
-
-    /**
-     * This method is called to update the LED pattern according to the patternPriorities list. It will turn on the
-     * highest priority pattern if enabled. If none of the patterns in the priority list is enabled, it will turn
-     * off the LED strip.
-     */
-    private void updateLED()
-    {
-        final String funcName = "updateLED";
+        final String funcName = "updateIndicator";
         T pattern = null;
 
         if (debugEnabled)
@@ -290,37 +336,6 @@ public abstract class TrcLEDStrip<T>
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.FUNC, "! (pattern=%s)", pattern);
         }
-    }   //updateLED
+    }   //updateIndicator
 
-    /**
-     * This class implements the LED pattern state.
-     */
-    public class PatternState
-    {
-        final T pattern;
-        boolean enabled;
-
-        /**
-         * Constructor: Create an instance of the object.
-         *
-         * @param pattern specifies the LED pattern.
-         * @param enabled specifies the initial state of the pattern.
-         */
-        public PatternState(T pattern, boolean enabled)
-        {
-            this.pattern = pattern;
-            this.enabled = enabled;
-        }   //PatternState
-
-        /**
-         * Constructor: Create an instance of the object.
-         *
-         * @param pattern specifies the LED pattern.
-         */
-        public PatternState(T pattern)
-        {
-            this(pattern, false);
-        }   //PatternState
-
-    }   //class PatternState
-}
+}   //class TrcPriorityIndicator
