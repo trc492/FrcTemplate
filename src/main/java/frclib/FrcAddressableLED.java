@@ -25,12 +25,13 @@ package frclib;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import trclib.TrcDbgTrace;
+import trclib.TrcLEDStrip;
 
 /**
- * This class implements a platform dependent Addressable LED device. It extends the WPILib AddressableLED class and
- * provides methods to set the color of the LED strip.
+ * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class and
+ * provides methods to set the color and pattern of the LED strip.
  */
-public class FrcAddressableLED extends AddressableLED
+public class FrcAddressableLED extends TrcLEDStrip<AddressableLEDBuffer>
 {
     private static final String moduleName = "FrcAddressableLED";
     private static final boolean debugEnabled = false;
@@ -38,21 +39,32 @@ public class FrcAddressableLED extends AddressableLED
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
-    private TrcDbgTrace dbgTrace = null;
 
-    private final String instanceName;
-    private final AddressableLEDBuffer ledBuffer;
+    public static AddressableLEDBuffer getBufferForColor(FrcColor color, int length)
+    {
+        AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(length);
+        for (int i = 0; i < ledBuffer.getLength(); i++)
+        {
+            ledBuffer.setLED(i, color);
+        }
+        return ledBuffer;
+    }
+
+    private TrcDbgTrace dbgTrace = null;
+    private final AddressableLED led;
+    private final int length;
+    private AddressableLEDBuffer currPattern;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param channel specifies the PWM channel the device is on.
-     * @param numLEDs specifies the number of LEDs on the strip.
+     * @param channel      specifies the PWM channel the device is on.
+     * @param numLEDs      specifies the number of LEDs on the strip.
      */
     public FrcAddressableLED(String instanceName, int channel, int numLEDs)
     {
-        super(channel);
+        super(instanceName);
 
         if (debugEnabled)
         {
@@ -61,28 +73,55 @@ public class FrcAddressableLED extends AddressableLED
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        this.instanceName = instanceName;
-        ledBuffer = new AddressableLEDBuffer(numLEDs);
-        setLength(numLEDs);
+        led = new AddressableLED(channel);
+        led.setLength(numLEDs);
+        length = numLEDs;
     }   //FrcAddressableLED
 
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
     @Override
-    public String toString()
+    public void setPattern(AddressableLEDBuffer pattern)
     {
-        return instanceName;
-    }   //toString
+        final String funcName = "setPattern";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
+        }
+
+        if (pattern == null)
+        {
+            pattern = new AddressableLEDBuffer(length); // automatically all off
+        }
+
+        this.currPattern = pattern;
+        led.setData(pattern);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }
+
+    @Override
+    public AddressableLEDBuffer getPattern()
+    {
+        final String funcName = "getPattern";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", currPattern);
+        }
+
+        return currPattern;
+    }
 
     /**
      * This method sets the RGB color for the whole LED strip.
      *
-     * @param red specifies the red value (0-255).
+     * @param red   specifies the red value (0-255).
      * @param green specifies the green value (0-255).
-     * @param blue specifies the blue value (0-255).
+     * @param blue  specifies the blue value (0-255).
      */
     public void setRGB(int red, int green, int blue)
     {
@@ -94,19 +133,14 @@ public class FrcAddressableLED extends AddressableLED
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        for (int i = 0; i < ledBuffer.getLength(); i++)
-        {
-            ledBuffer.setRGB(i, red, green, blue);
-        }
-
-        setData(ledBuffer);
+        setColor(new FrcColor(red, green, blue));
     }   //setRGB
 
     /**
      * This method sets the HSV color for the whole LED strip.
      *
-     * @param hue specifies the hue (0-180).
-     * @param sat specifies the saturation (0-255).
+     * @param hue   specifies the hue (0-180).
+     * @param sat   specifies the saturation (0-255).
      * @param value specifies the value (0-255).
      */
     public void setHSV(int hue, int sat, int value)
@@ -119,12 +153,13 @@ public class FrcAddressableLED extends AddressableLED
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
+        AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(length);
         for (int i = 0; i < ledBuffer.getLength(); i++)
         {
             ledBuffer.setHSV(i, hue, sat, value);
         }
 
-        setData(ledBuffer);
+        setPattern(ledBuffer);
     }   //setHSV
 
     /**
@@ -142,12 +177,7 @@ public class FrcAddressableLED extends AddressableLED
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        for (int i = 0; i < ledBuffer.getLength(); i++)
-        {
-            ledBuffer.setLED(i, color);
-        }
-
-        setData(ledBuffer);
+       setPattern(getBufferForColor(color, length));
     }   //setColor
 
 }   //class FrcAddressableLED
