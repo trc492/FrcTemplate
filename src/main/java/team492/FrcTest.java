@@ -30,6 +30,7 @@ import frclib.FrcColor;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
+import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
@@ -444,6 +445,9 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
+
+        HalDashboard.putNumber("FlywheelVel", robot.shooter.getFlywheelVelocity());
+        HalDashboard.putNumber("FlywheelPower", robot.shooter.flywheel.motor.getAppliedOutput());
 
         if (robot.vision != null)
         {

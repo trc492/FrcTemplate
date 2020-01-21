@@ -40,7 +40,7 @@ public class Shooter
     private static final double PITCH_CAL_POWER = -0.1;
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
-    private FrcCANSparkMax flywheel;
+    public FrcCANSparkMax flywheel;
     private FrcCANTalon pitchMotor;
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
@@ -52,13 +52,9 @@ public class Shooter
     public Shooter()
     {
         flywheel = new FrcCANSparkMax("Shooter.flywheel", RobotInfo.CANID_FLYWHEEL, true);
-        FrcCANSparkMax flywheelSlave = new FrcCANSparkMax("Shooter.flywheelSlave", RobotInfo.CANID_FLYWHEEL_SLAVE,
-            true);
         pitchMotor = new FrcCANTalon("Shooter.pitchMotor", RobotInfo.CANID_SHOOTER_PITCH);
 
         configureFlywheel(flywheel);
-        configureFlywheel(flywheelSlave);
-        flywheelSlave.motor.follow(flywheel.motor);
 
         pitchMotor.motor.config_kP(0, PITCH_kP, 10);
         pitchMotor.motor.config_kI(0, PITCH_kI, 10);
