@@ -26,16 +26,13 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import frclib.FrcAddressableLED;
 import frclib.FrcColor;
 
+import java.util.Arrays;
+
 public class LEDIndicator
 {
-    private static final FrcColor visionLeftForeground = FrcColor.FULL_MAGENTA;
-    private static final FrcColor visionLeftBackground = FrcColor.HALF_MAGENTA;
-    private static final FrcColor visionRightForeground = FrcColor.FULL_GREEN;
-    private static final FrcColor visionRightBackground = FrcColor.HALF_GREEN;
-    private static final FrcColor visionCenteredForeground = FrcColor.FULL_BLUE;
-    private static final FrcColor visionCenteredBackground = FrcColor.HALF_BLUE;
-    private static final FrcColor noVisionForeground = FrcColor.FULL_RED;
-    private static final FrcColor noVisionBackground = FrcColor.HALF_RED;
+    private static final FrcColor visionColor = FrcColor.FULL_GREEN;
+    private static final FrcColor ballColor = FrcColor.FULL_RED;
+    private static final FrcColor backGround = FrcColor.FULL_WHITE;
 
     public enum Direction
     {
@@ -45,78 +42,74 @@ public class LEDIndicator
     private Direction direction;
     private Robot robot;
     private FrcAddressableLED led;
+    private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
 
     public LEDIndicator(Robot robot)
     {
         this.robot = robot;
         led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
+        Arrays.fill(ledColors, backGround);
     }
 
     public void reset()
     {
         signalVision(null);
-        led.setColor(noVisionBackground);
+        led.init();
+        led.setColor(backGround);
     }
 
-    private FrcColor[] getColors()
-    {
-        FrcColor foreGround;
-        FrcColor backGround;
-        if (direction == null)
-        {
-            foreGround = noVisionForeground;
-            backGround = noVisionBackground;
-        }
-        else if (direction == Direction.LEFT)
-        {
-            foreGround = visionLeftForeground;
-            backGround = visionLeftBackground;
-        }
-        else if (direction == Direction.RIGHT)
-        {
-            foreGround = visionRightForeground;
-            backGround = visionRightBackground;
-        }
-        else // centered
-        {
-            foreGround = visionCenteredForeground;
-            backGround = visionCenteredBackground;
-        }
-        return new FrcColor[]{foreGround, backGround};
-    }
-
-    private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
     public void updateLED()
     {
-        FrcColor[] colors = getColors();
-        FrcColor foreGround = colors[0];
-        FrcColor backGround = colors[1];
-
-        int border = RobotInfo.NUM_LEDS % 5;
         int index = 0;
-        for (int i = 0; i < border/2 + (border % 2 != 0 ? 1 : 0); i++)
-        {
-            ledColors[index++] = backGround;
-        }
         int ledsPerBall = RobotInfo.NUM_LEDS / 5;
         for (int i = 0; i < robot.getNumBalls() * ledsPerBall; i++)
         {
-            ledColors[index++] = foreGround;
+            ledColors[index++] = ballColor;
         }
-        for (int i = 0; i < (5 - robot.getNumBalls()) * ledsPerBall; i++)
+        for (int i = 0; i < RobotInfo.NUM_LEDS - robot.getNumBalls() * ledsPerBall; i++)
         {
             ledColors[index++] = backGround;
         }
-        for (int i = 0; i < border/2; i++)
+
+        if (direction != null)
         {
-            ledColors[index++] = backGround;
+            int visionWidth = RobotInfo.NUM_LEDS / 8;
+            int start, end;
+            switch (direction)
+            {
+                case LEFT:
+                    start = 0;
+                    end = visionWidth;
+                    break;
+
+                case RIGHT:
+                    start = RobotInfo.NUM_LEDS - visionWidth;
+                    end = RobotInfo.NUM_LEDS;
+                    break;
+
+                default:
+                case CENTERED:
+                    start = RobotInfo.NUM_LEDS / 2 - visionWidth / 2;
+                    end = RobotInfo.NUM_LEDS / 2 + visionWidth / 2;
+                    break;
+            }
+            for (int i = start; i < end; i++)
+            {
+                ledColors[i] = visionColor;
+            }
         }
 
         led.setPattern(new FrcAddressableLED.Pattern(ledColors));
     }
 
+    public void setColor(FrcColor color)
+    {
+        led.setColor(color);
+    }
+
     public void signalVision(Direction direction)
     {
         this.direction = direction;
+        updateLED();
     }
 }

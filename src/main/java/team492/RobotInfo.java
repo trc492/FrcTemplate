@@ -110,7 +110,7 @@ public class RobotInfo
     public static final int RIGHT_LIDAR = 4;
 
     public static final int PWM_CHANNEL_LED = 0;
-    public static final int NUM_LEDS = 27;
+    public static final int NUM_LEDS = 26;
 
     //
     // Relay channels.

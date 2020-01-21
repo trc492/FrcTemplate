@@ -36,12 +36,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     public enum AutoStrategy
     {
-        X_TIMED_DRIVE,
-        Y_TIMED_DRIVE,
-        X_DISTANCE_DRIVE,
-        Y_DISTANCE_DRIVE,
-        TURN_DEGREES,
-        DO_NOTHING
+        X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
     private final Robot robot;
@@ -99,12 +94,20 @@ public class FrcAuto implements TrcRobot.RobotMode
         robot.driveBase.resetOdometry(true, true);
         robot.shooter.init();
 
+        robot.ledIndicator.reset();
+
+        if (robot.preferences.useVision)
+        {
+            robot.vision.setRingLightEnabled(true);
+        }
+
         robot.setNumBalls(3);
 
         robot.getGameInfo();
-        robot.globalTracer.traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s",
-            robot.eventName, robot.matchType, robot.matchNumber, robot.alliance.toString(), robot.location,
-            robot.ds.isFMSAttached(), robot.gameSpecificMessage);
+        robot.globalTracer
+            .traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s", robot.eventName, robot.matchType,
+                robot.matchNumber, robot.alliance.toString(), robot.location, robot.ds.isFMSAttached(),
+                robot.gameSpecificMessage);
         //
         // Retrieve menu choice values.
         //
@@ -122,18 +125,18 @@ public class FrcAuto implements TrcRobot.RobotMode
                 break;
 
             case X_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, false, false);
+                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, false, false);
+                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case TURN_DEGREES:
-                autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, false, false);
+                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
+                    robot.drivePowerLimit, false, false);
                 break;
 
             default:

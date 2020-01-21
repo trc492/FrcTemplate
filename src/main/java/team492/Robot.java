@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.XboxController;
 import frclib.FrcAHRSGyro;
 import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
@@ -79,7 +78,7 @@ public class Robot extends FrcRobotBase
         public final boolean useNavX = true;
         public final boolean useGyroAssist = false;
         public final boolean useVision = true;
-        public final boolean useStreamCamera = true;
+        public final boolean useStreamCamera = false;
         public final boolean doAutoUpdates = false;
 
         public final boolean debugPowerConsumption = false;
@@ -208,6 +207,7 @@ public class Robot extends FrcRobotBase
         spark.setInverted(false);
         spark.setPositionSensorInverted(false);
         spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        spark.setOdometryEnabled(true);
         return spark;
     }
 

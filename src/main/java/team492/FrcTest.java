@@ -26,6 +26,7 @@ import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
+import frclib.FrcColor;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
@@ -113,6 +114,9 @@ public class FrcTest extends FrcTeleOp
         // Call TeleOp startMode.
         //
         super.startMode(prevMode, nextMode);
+
+        robot.ledIndicator.reset();
+
         //
         // Retrieve menu choice values.
         //
