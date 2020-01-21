@@ -579,7 +579,9 @@ public class TrcSwerveModule implements TrcMotorController
     @Override
     public Odometry getOdometry()
     {
-        return driveMotor.getOdometry();
+        Odometry odometry = driveMotor.getOdometry();
+        odometry.sensor = this;
+        return odometry;
     }   //getOdometry
 
 }   //class TrcSwerveModule
