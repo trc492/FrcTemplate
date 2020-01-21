@@ -22,7 +22,6 @@
 
 package team492;
 
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import frclib.FrcAddressableLED;
 import frclib.FrcColor;
 
@@ -39,22 +38,22 @@ public class LEDIndicator
         LEFT, CENTERED, RIGHT;
     }
 
-    private Direction direction;
     private Robot robot;
     private FrcAddressableLED led;
     private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
+    private Direction direction;
 
     public LEDIndicator(Robot robot)
     {
         this.robot = robot;
-        led = new FrcAddressableLED("LED", RobotInfo.PWM_CHANNEL_LED, RobotInfo.NUM_LEDS);
+        led = new FrcAddressableLED("LED", RobotInfo.NUM_LEDS, RobotInfo.PWM_CHANNEL_LED);
         Arrays.fill(ledColors, backGround);
     }
 
     public void reset()
     {
         signalVision(null);
-        led.init();
+        led.setEnabled(true);
         led.setColor(backGround);
     }
 
