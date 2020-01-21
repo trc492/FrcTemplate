@@ -412,7 +412,6 @@ public class Robot extends FrcRobotBase
 
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
-            setVisionEnabled(true);
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
 
@@ -461,7 +460,6 @@ public class Robot extends FrcRobotBase
 
             globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
             driveBase.setOdometryEnabled(false);
-            setVisionEnabled(false);
             cancelAllAuto();
             battery.setEnabled(false);
             pdp.setTaskEnabled(false);
@@ -549,10 +547,6 @@ public class Robot extends FrcRobotBase
         pidDrive.cancel();
         driveBase.stop();
     }
-
-    public void setVisionEnabled(boolean enabled)
-    {
-    }   //setVisionEnabled
 
     public void updateDashboard(RunMode runMode)
     {

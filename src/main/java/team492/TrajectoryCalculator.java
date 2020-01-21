@@ -16,7 +16,7 @@ public class TrajectoryCalculator
     public static final int MAX_ITER = 10;
     public static final double ITER_MAX_ERROR = 0.5; // degrees
     public static final double ITER_OVERRUN_MAX_ERROR = 5; // degrees
-    public static final boolean debugEnabled = true;
+    public static final boolean debugEnabled = false;
 
     private static RealVector getVertexFromShooter(RealVector vertexFromPivot, double thetaRad)
     {
