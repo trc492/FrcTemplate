@@ -388,12 +388,24 @@ public class TrcUtil
     /**
      * This method rounds a double to the nearest integer.
      *
-     * @param num Number to round.
-     * @return Rounded to the nearest integer.
+     * @param num specifies the number to round.
+     * @return number rounded to the nearest integer.
      */
     public static int round(double num)
     {
         return (int) Math.floor(num + 0.5);
+    }   //round
+
+    /**
+     * This method rounds a double to the specified precision.
+     *
+     * @param num specifies the number to round.
+     * @param precision specifies the precision to round to.
+     * @return number rounded to the specified precision.
+     */
+    public static double round(double num, double precision)
+    {
+        return Math.round(num / precision) * precision;
     }   //round
 
     /**

@@ -50,7 +50,7 @@ public class TrcIIRFilter extends TrcFilter
 
         this.instanceName = instanceName;
         this.weight = weight;
-        filteredData = 0.0;
+        reset();
     }   //TrcIIRFilter
 
     /**
@@ -78,11 +78,14 @@ public class TrcIIRFilter extends TrcFilter
     // Implements TrcFilter abstract methods.
     //
 
+    /**
+     * This method resets the filter.
+     */
     @Override
     public void reset()
     {
         filteredData = 0.0;
-    }
+    }   //reset
 
     /**
      * This method returns the filtered data.

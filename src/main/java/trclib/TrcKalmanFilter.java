@@ -51,9 +51,7 @@ public class TrcKalmanFilter extends TrcFilter
         this.instanceName = instanceName;
         this.kQ = kQ;
         this.kR = kR;
-        prevP = 0.0;
-        prevXEst = 0.0;
-        initialized = false;
+        reset();
     }   //TrcKalmanFilter
 
     /**
@@ -81,13 +79,16 @@ public class TrcKalmanFilter extends TrcFilter
     // Implements TrcFilter abstract methods.
     //
 
+    /**
+     * This method resets the filter.
+     */
     @Override
     public void reset()
     {
         prevP = 0.0;
         prevXEst = 0.0;
         initialized = false;
-    }
+    }   //reset
 
     /**
      * This method returns the filtered data.
