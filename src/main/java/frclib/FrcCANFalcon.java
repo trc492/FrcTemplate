@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@ package frclib;
 
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
@@ -37,32 +37,22 @@ import trclib.TrcMotor;
 import trclib.TrcPidController;
 import trclib.TrcUtil;
 
-/**
- * This class implements a CANTalon motor controller. It extends the TrcMotor class and
- * implements the standard TrcMotorController interface to be compatible with the TRC library.
- */
-public class FrcCANTalon extends TrcMotor
+public class FrcCANFalcon extends TrcMotor
 {
     private class EncoderInfo implements Sendable
     {
         @Override
         public void initSendable(SendableBuilder builder)
         {
-            if (feedbackDeviceType != FeedbackDevice.QuadEncoder)
-            {
-                throw new IllegalStateException("Only QuadEncoder supported for Shuffleboard!");
-            }
-
             builder.setSmartDashboardType("Quadrature Encoder");
-            builder.addDoubleProperty("Speed", FrcCANTalon.this::getVelocity, null);
-            builder.addDoubleProperty("Distance", FrcCANTalon.this::getPosition, null);
+            builder.addDoubleProperty("Speed", FrcCANFalcon.this::getVelocity, null);
+            builder.addDoubleProperty("Distance", FrcCANFalcon.this::getPosition, null);
             builder.addDoubleProperty("DistancePerCount", () -> 1, null);
         }   //initSendable
     }   //class EncoderInfo
 
-    public TalonSRX motor;
+    public final TalonFX motor;
     private double maxVelocity = 0.0;
-    private boolean feedbackDeviceIsPot = false;
     private boolean limitSwitchesSwapped = false;
     private boolean revLimitSwitchNormalOpen = false;
     private boolean fwdLimitSwitchNormalOpen = false;
@@ -72,7 +62,7 @@ public class FrcCANTalon extends TrcMotor
     private boolean softUpperLimitEnabled = false;
     private double softLowerLimit = 0.0;
     private double softUpperLimit = 0.0;
-    private FeedbackDevice feedbackDeviceType;
+    private TalonFXFeedbackDevice feedbackDeviceType;
 
     /**
      * The number of non-success error codes reported by the device after sending a command.
@@ -86,12 +76,13 @@ public class FrcCANTalon extends TrcMotor
      * @param instanceName specifies the instance name.
      * @param deviceNumber specifies the CAN ID of the device.
      */
-    public FrcCANTalon(final String instanceName, int deviceNumber)
+    public FrcCANFalcon(final String instanceName, int deviceNumber)
     {
         super(instanceName);
-        motor = new TalonSRX(deviceNumber);
+        motor = new TalonFX(deviceNumber);
+        setFeedbackDevice(TalonFXFeedbackDevice.IntegratedSensor);
         resetPosition(true);
-    }   //FrcCANTalon
+    }   //FrcCANFalcon500
 
     /**
      * This method creates an EncoderInfo object and returns it.
@@ -117,9 +108,9 @@ public class FrcCANTalon extends TrcMotor
     } //getErrorCount
 
     /**
-     * The method returns the last CANTalon error code. If there is none, null is returned.
+     * The method returns the last error code. If there is none, null is returned.
      *
-     * @return last CAN Talon error code.
+     * @return last error code.
      */
     public ErrorCode getLastError()
     {
@@ -140,7 +131,7 @@ public class FrcCANTalon extends TrcMotor
             errorCount++;
             if (debugEnabled)
             {
-                dbgTrace.traceErr("CANTalonError", "ErrorCode=%s", errorCode);
+                dbgTrace.traceErr("recordResponseCode", "ErrorCode=%s", errorCode);
             }
         }
         return errorCode;
@@ -150,7 +141,7 @@ public class FrcCANTalon extends TrcMotor
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
      *
      * @param maxVelocity     specifies the maximum velocity the motor can run, in sensor units per second.
-     * @param pidCoefficients specifies the PIDF coefficients to send to the Talon to use for velocity control.
+     * @param pidCoefficients specifies the PIDF coefficients to send to the Falcon to use for velocity control.
      */
     @Override
     public void enableVelocityMode(double maxVelocity, TrcPidController.PidCoefficients pidCoefficients)
@@ -232,7 +223,7 @@ public class FrcCANTalon extends TrcMotor
     }   //follow
 
     //
-    // Overriding CANTalon specific methods.
+    // Overriding Falcon specific methods.
     //
 
     /**
@@ -280,7 +271,7 @@ public class FrcCANTalon extends TrcMotor
      *
      * @param devType specifies the feedback device type.
      */
-    public void setFeedbackDevice(FeedbackDevice devType)
+    public void setFeedbackDevice(TalonFXFeedbackDevice devType)
     {
         final String funcName = "setFeedbackDevice";
 
@@ -292,8 +283,17 @@ public class FrcCANTalon extends TrcMotor
 
         this.feedbackDeviceType = devType;
         recordResponseCode(motor.configSelectedFeedbackSensor(devType, 0, 10));
-        feedbackDeviceIsPot = devType == FeedbackDevice.Analog;
     }   //setFeedbackDevice
+
+    /**
+     * This method gets the feedback device type.
+     *
+     * @return feedback device type.
+     */
+    public TalonFXFeedbackDevice getFeedbackDevice()
+    {
+        return feedbackDeviceType;
+    } //getFeedbackDevice
 
     //
     // Implements TrcMotor abstract methods.
@@ -484,8 +484,8 @@ public class FrcCANTalon extends TrcMotor
     {
         final String funcName = "isLowerLimitSwitchActive";
         boolean isActive = limitSwitchesSwapped ?
-            fwdLimitSwitchNormalOpen == motor.getSensorCollection().isFwdLimitSwitchClosed() :
-            revLimitSwitchNormalOpen == motor.getSensorCollection().isRevLimitSwitchClosed();
+            fwdLimitSwitchNormalOpen == (motor.getSensorCollection().isFwdLimitSwitchClosed() == 0) :
+            revLimitSwitchNormalOpen == (motor.getSensorCollection().isRevLimitSwitchClosed() == 0);
 
         if (debugEnabled)
         {
@@ -506,8 +506,8 @@ public class FrcCANTalon extends TrcMotor
     {
         final String funcName = "isUpperLimitSwitchActive";
         boolean isActive = limitSwitchesSwapped ?
-            revLimitSwitchNormalOpen == motor.getSensorCollection().isRevLimitSwitchClosed() :
-            fwdLimitSwitchNormalOpen == motor.getSensorCollection().isFwdLimitSwitchClosed();
+            revLimitSwitchNormalOpen == (motor.getSensorCollection().isRevLimitSwitchClosed() == 0) :
+            fwdLimitSwitchNormalOpen == (motor.getSensorCollection().isFwdLimitSwitchClosed() == 0);
 
         if (debugEnabled)
         {
@@ -535,21 +535,22 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        if (feedbackDeviceIsPot || !hardware)
+        if (!hardware)
         {
             //
-            // Potentiometer has no hardware position to reset. So clear the software one.
+            // Clear the software position.
             //
             zeroPosition = motor.getSelectedSensorPosition(0);
             recordResponseCode(motor.getLastError());
         }
-        else if (hardware)
+        else
         {
             ErrorCode error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
             if (error != ErrorCode.OK)
             {
-                TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on TalonSRX %d failed with error %s!", motor.getDeviceID(),
-                    error.name());
+                TrcDbgTrace.getGlobalTracer()
+                    .traceErr(funcName, "resetPosition() on Falcon %d failed with error %s!", motor.getDeviceID(),
+                        error.name());
             }
             zeroPosition = 0.0;
         }
@@ -565,9 +566,9 @@ public class FrcCANTalon extends TrcMotor
     }   //resetPosition
 
     /**
-     * This method checks if the TalonSRX is connected to the robot.
+     * This method checks if the Falcon is connected to the robot.
      *
-     * @return True if the talon is connected, false otherwise.
+     * @return True if the falcon is connected, false otherwise.
      */
     @Override
     public boolean isConnected()
@@ -749,5 +750,4 @@ public class FrcCANTalon extends TrcMotor
 
         softUpperLimit = position;
     }   //setSoftUpperLimit
-
-}   //class FrcCANTalon
+}
