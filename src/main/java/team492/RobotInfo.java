@@ -70,7 +70,6 @@ public class RobotInfo
     public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
 
     public static final int CANID_FLYWHEEL = 7;
-    public static final int CANID_FLYWHEEL_SLAVE = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
     public static final int CANID_CONVEYOR = 10;
     public static final int CANID_INTAKE = 11;
@@ -198,35 +197,10 @@ public class RobotInfo
     public static final double PURE_PURSUIT_MAX_VEL = 0.8 * ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MAX_ACCEL = 240; // in/sec^2
 
-    // Comp robot: 0.015/0.0/0.001
-    // practice robot: 0.008/0.0/0.0007
-    // 3/24 comp robot: 0.0055/0.0/0.00008
     public static final double GYRO_TURN_KP                     = 0.0055;
     public static final double GYRO_TURN_KI                     = 0.0;
     public static final double GYRO_TURN_KD                     = 0.00008;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
-
-    // 3/24 compr robot: 0.0085/0.0/0.0
-    public static final double GYRO_TURN_KP_SMALL               = 0.0085;
-    public static final double GYRO_TURN_KI_SMALL               = 0.0;
-    public static final double GYRO_TURN_KD_SMALL               = 0.0;
-    public static final double GYRO_TURN_KF_SMALL               = 0.0;
-    public static final double GYRO_TURN_TOLERANCE_SMALL        = 1.5;
-
-    public static final double VISION_X_KP                      = 0.022;    //TODO: Need to tune this
-    public static final double VISION_X_KI                      = 0.0;
-    public static final double VISION_X_KD                      = 0.001;
-    public static final double VISION_X_TOLERANCE               = 1.0;
-
-    public static final double VISION_Y_KP                      = 0.011;    //TODO: Need to tune this
-    public static final double VISION_Y_KI                      = 0.0;
-    public static final double VISION_Y_KD                      = 0.0;
-    public static final double VISION_Y_TOLERANCE               = 1.0;
-
-    public static final double VISION_TURN_KP                   = 0.0085;   //TODO: Need to tune this
-    public static final double VISION_TURN_KI                   = 0.0;
-    public static final double VISION_TURN_KD                   = 0.0;
-    public static final double VISION_TURN_TOLERANCE            = 1.0;
 
 }   // class RobotInfo
