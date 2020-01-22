@@ -163,7 +163,6 @@ public class FrcAddressableLED extends TrcPriorityIndicator<FrcAddressableLED.Pa
                 {
                     ledBuffer.setLED(i, currPattern.colors[0]);
                 }
-                System.out.println("Setting led: " + currPattern.colors[0].toString());
                 led.setData(ledBuffer);
                 break;
 
@@ -173,7 +172,6 @@ public class FrcAddressableLED extends TrcPriorityIndicator<FrcAddressableLED.Pa
                 {
                     ledBuffer.setLED(i, currPattern.colors[i]);
                 }
-                System.out.println("Setting pattern: " + Arrays.toString(currPattern.colors));
                 led.setData(ledBuffer);
                 break;
 
