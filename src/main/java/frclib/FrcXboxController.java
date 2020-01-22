@@ -284,7 +284,7 @@ public class FrcXboxController extends XboxController
                 Boolean.toString(squared), deadbandThreshold);
         }
 
-        double value = adjustValueWithDeadband(getY(Hand.kLeft), squared, deadbandThreshold);
+        double value = leftYSign * adjustValueWithDeadband(getY(Hand.kLeft), squared, deadbandThreshold);
 
         if (debugEnabled)
         {
@@ -310,7 +310,7 @@ public class FrcXboxController extends XboxController
                 Boolean.toString(squared), deadbandThreshold);
         }
 
-        double value = adjustValueWithDeadband(getY(Hand.kRight), squared, deadbandThreshold);
+        double value = rightYSign * adjustValueWithDeadband(getY(Hand.kRight), squared, deadbandThreshold);
 
         if (debugEnabled)
         {
