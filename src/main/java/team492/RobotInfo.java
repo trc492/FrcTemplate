@@ -86,16 +86,6 @@ public class RobotInfo
     public static final int PDP_CHANNEL_LEFT_BACK_WHEEL = 15;
 
     //
-    // Pickup
-    //
-    // TODO: tune this garbage
-    public static final double PICKUP_BLIND_PERIOD = 0.1; //seconds
-    public static final double PICKUP_POWER = 1.0;
-    public static final double DEPLOY_POWER = -1.0;
-    public static final double[] PICKUP_CURR_THRESH = new double[] { 25.0 };
-    public static final double[] DEPLOY_CURR_THRESH = new double[] { 0.7 };
-
-    //
     // Analog Input ports.
     //
     public static final int AIN_PRESSURE_SENSOR                 = 0;
@@ -203,4 +193,13 @@ public class RobotInfo
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
+    //
+    // Shooter
+    //
+
+    public static final double FLYWHEEL_DIAMETER = 4.0; // in
+    public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;
+    public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO;
+    public static final double LOSS_PERCENTAGE = 0.05; // 5% frictional loss TODO: tune this
+    public static final double FLYWHEEL_TOP_SPEED = 5880 / 60.0 * FLYWHEEL_INCHES_PER_TICK * (1.0 - LOSS_PERCENTAGE);
 }   // class RobotInfo
