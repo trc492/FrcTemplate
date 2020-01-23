@@ -200,6 +200,5 @@ public class RobotInfo
     public static final double FLYWHEEL_DIAMETER = 4.0; // in
     public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;
     public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO;
-    public static final double LOSS_PERCENTAGE = 0.05; // 5% frictional loss TODO: tune this
-    public static final double FLYWHEEL_TOP_SPEED = 5880 / 60.0 * FLYWHEEL_INCHES_PER_TICK * (1.0 - LOSS_PERCENTAGE);
+    public static final double FLYWHEEL_TOP_SPEED = 720;
 }   // class RobotInfo

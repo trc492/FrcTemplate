@@ -18,12 +18,12 @@ import trclib.TrcUtil;
 public class Shooter
 {
     // TODO: tune this
-    private static final double FLYWHEEL_kP = 0;
-    private static final double FLYWHEEL_kI = 0;
-    private static final double FLYWHEEL_IZONE = 0;
-    private static final double FLYWHEEL_kD = 0;
-    private static final double FLYWHEEL_kD_THRESH_UPPER = 20; // in/s
-    private static final double FLYWHEEL_kD_THRESH_LOWER = 15; // in/s
+    private static final double FLYWHEEL_kP = 0.002;
+    private static final double FLYWHEEL_kI = 0.000009;
+    private static final double FLYWHEEL_IZONE = 10;
+    private static final double FLYWHEEL_kD = 0.00025;
+    private static final double FLYWHEEL_kD_THRESH_UPPER = 100; // in/s
+    private static final double FLYWHEEL_kD_THRESH_LOWER = 80; // in/s
     private static final double FLYWHEEL_kF = 1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     // TODO: tune this
@@ -212,6 +212,7 @@ public class Shooter
         flywheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         flywheel.motor.getEncoder().setPositionConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK);
         flywheel.motor.getEncoder().setVelocityConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK / 60.0);
-        flywheel.setBrakeModeEnabled(false);
+        flywheel.setBrakeModeEnabled(true); // TODO: remove after drive tryouts
+        flywheel.setInverted(true);
     }
 }

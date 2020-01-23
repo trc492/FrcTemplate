@@ -209,11 +209,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 if (pressed)
                 {
-                    robot.intake.intakeMultiple();
+                    // TODO: remove after tryouts
+//                    robot.intake.intakeMultiple();
+                    robot.shooter.flywheel.set(0.8);
                 }
                 else
                 {
-                    robot.intake.stopIntake();
+//                    robot.intake.stopIntake();
+                    robot.shooter.flywheel.set(0.0);
                 }
                 break;
 
@@ -229,6 +232,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                if (pressed)
+                {
+                    // TODO: remove after tryouts
+                    robot.shooter.flywheel.set(-0.7);
+                }
+                else
+                {
+                    robot.shooter.flywheel.set(0.0);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
