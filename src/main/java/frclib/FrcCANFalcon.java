@@ -22,13 +22,11 @@
 
 package frclib;
 
-import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
-public class FrcCANFalcon extends FrcCANPhoenixController
+public class FrcCANFalcon extends FrcCANPhoenixController<TalonFX>
 {
-    public final TalonFX motor;
-
     /**
      * Constructor: Create an instance of the object.
      *
@@ -38,21 +36,6 @@ public class FrcCANFalcon extends FrcCANPhoenixController
     public FrcCANFalcon(final String instanceName, int deviceNumber)
     {
         super(instanceName, new TalonFX(deviceNumber));
-        motor = (TalonFX) super.motor;
-        setFeedbackDevice(TalonFXFeedbackDevice.IntegratedSensor);
+        setFeedbackDevice(FeedbackDevice.IntegratedSensor);
     }   //FrcCANFalcon500
-
-    //
-    // Overriding Falcon specific methods.
-    //
-
-    /**
-     * This method sets the feedback device type.
-     *
-     * @param devType specifies the feedback device type.
-     */
-    public void setFeedbackDevice(TalonFXFeedbackDevice devType)
-    {
-        super.setFeedbackDevice(devType.toFeedbackDevice());
-    }   //setFeedbackDevice
 }

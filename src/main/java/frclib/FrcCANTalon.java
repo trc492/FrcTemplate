@@ -28,10 +28,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * This class implements a CANTalon motor controller. It extends the TrcMotor class and
  * implements the standard TrcMotorController interface to be compatible with the TRC library.
  */
-public class FrcCANTalon extends FrcCANPhoenixController
+public class FrcCANTalon extends FrcCANPhoenixController<TalonSRX>
 {
-    public final TalonSRX motor;
-
     /**
      * Constructor: Create an instance of the object.
      *
@@ -41,6 +39,5 @@ public class FrcCANTalon extends FrcCANPhoenixController
     public FrcCANTalon(final String instanceName, int deviceNumber)
     {
         super(instanceName, new TalonSRX(deviceNumber));
-        this.motor = (TalonSRX) super.motor;
     }   //FrcCANTalon
 }   //class FrcCANTalon

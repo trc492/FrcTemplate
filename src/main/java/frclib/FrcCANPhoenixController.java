@@ -37,7 +37,7 @@ import trclib.TrcMotor;
 import trclib.TrcPidController;
 import trclib.TrcUtil;
 
-public abstract class FrcCANPhoenixController extends TrcMotor
+public abstract class FrcCANPhoenixController<T extends BaseTalon> extends TrcMotor
 {
     private class EncoderInfo implements Sendable
     {
@@ -56,7 +56,7 @@ public abstract class FrcCANPhoenixController extends TrcMotor
         }   //initSendable
     }   //class EncoderInfo
 
-    public final BaseTalon motor;
+    public final T motor;
     private double maxVelocity = 0.0;
     private boolean feedbackDeviceIsPot = false;
     private boolean limitSwitchesSwapped = false;
@@ -82,7 +82,7 @@ public abstract class FrcCANPhoenixController extends TrcMotor
      * @param instanceName specifies the instance name.
      * @param baseTalon the base talon object.
      */
-    public FrcCANPhoenixController(final String instanceName, BaseTalon baseTalon)
+    public FrcCANPhoenixController(final String instanceName, T baseTalon)
     {
         super(instanceName);
         motor = baseTalon;
