@@ -414,6 +414,7 @@ public class Robot extends FrcRobotBase
             battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
+            shooter.setEnabled(true);
 
             dashboard.clearDisplay();
 
@@ -463,6 +464,7 @@ public class Robot extends FrcRobotBase
             cancelAllAuto();
             battery.setEnabled(false);
             pdp.setTaskEnabled(false);
+            shooter.setEnabled(false);
 
             for (int i = 0; i < FrcPdp.kPDPChannels; i++)
             {

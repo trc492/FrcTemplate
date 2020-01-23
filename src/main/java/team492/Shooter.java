@@ -9,6 +9,7 @@ import frclib.FrcCANTalon;
 import trclib.TrcAnalogInput;
 import trclib.TrcAnalogSensor;
 import trclib.TrcAnalogSensorTrigger;
+import trclib.TrcDbgTrace;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
@@ -66,23 +67,34 @@ public class Shooter
 
     private void flywheelErrorTrigger(int currZone, int prevZone, double value)
     {
+        final String funcName = "flywheelErrorTrigger";
+        TrcDbgTrace debug = TrcDbgTrace.getGlobalTracer();
+        debug.traceInfo(funcName, "Edge event: curr=%d,prev=%d,val=%.2f", currZone, prevZone, value);
         if (value <= FLYWHEEL_kD_THRESH_LOWER)
         {
+            debug.traceInfo(funcName, "Enabling D term!");
             flywheel.motor.getPIDController().setD(FLYWHEEL_kD);
             flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_UPPER });
         }
         else if (value > FLYWHEEL_kD_THRESH_UPPER)
         {
+            debug.traceInfo(funcName, "Disabling D term!");
             flywheel.motor.getPIDController().setD(0.0);
             flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_LOWER });
         }
     }
 
-    public void init()
+    public void setEnabled(boolean enabled)
     {
-        pitchControlTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        flywheelTrigger.setEnabled(true);
-        zeroCalibratePitch();
+        if (enabled)
+        {
+            pitchControlTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+        }
+        else
+        {
+            pitchControlTaskObj.unregisterTask();
+        }
+        flywheelTrigger.setEnabled(enabled);
     }
 
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)

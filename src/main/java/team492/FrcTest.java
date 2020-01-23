@@ -305,9 +305,19 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BUTTON_Y:
+                processedInput = true;
+                if (pressed)
+                {
+                    robot.shooter.setFlywheelVelocity(360); //in/s
+                }
+                else
+                {
+                    robot.shooter.stopFlywheel();
+                }
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
+                processedInput = true;
                 if (pressed)
                 {
                     robot.saveSteerZeroPositions();
