@@ -53,8 +53,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
-        robot.driverController.setButtonHandler(this::driverControllerButtonEvent);
-        robot.driverController.setLeftYInverted(true);
+        //TODO: fix after tryouts
+//        robot.driverController.setButtonHandler(this::driverControllerButtonEvent);
+//        robot.driverController.setLeftYInverted(true);
+
+        robot.driverStick.setYInverted(true);
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
