@@ -108,8 +108,7 @@ public class Robot extends FrcRobotBase
     //
     // Inputs.
     //
-//    public FrcXboxController driverController; //TODO: fix after tryouts
-    public FrcJoystick driverStick;
+    public FrcXboxController driverController;
     public FrcJoystick operatorStick;
     public FrcJoystick buttonPanel;
     public FrcJoystick switchPanel;
@@ -293,9 +292,7 @@ public class Robot extends FrcRobotBase
         //
         // Inputs.
         //
-        //TODO: fix after tryouts
-//        driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
-        driverStick = new FrcJoystick("DriverStick", RobotInfo.XBOX_DRIVERCONTROLLER);
+        driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
         operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
@@ -648,10 +645,8 @@ public class Robot extends FrcRobotBase
 
     public double getXInput()
     {
-        //TODO: fix after tryouts
-//        double x = driverController.getLeftXWithDeadband(false);
-        double x = driverStick.getXWithDeadband(true);
-//        x = Math.copySign(Math.pow(x, 3), x);
+        double x = driverController.getLeftXWithDeadband(false);
+        x = Math.copySign(Math.pow(x, 3), x);
         switch (driveSpeed)
         {
             case SLOW:
@@ -671,10 +666,8 @@ public class Robot extends FrcRobotBase
 
     public double getYInput()
     {
-        //TODO: fix after tryouts
-//        double y = driverController.getLeftYWithDeadband(false);
-        double y = driverStick.getYWithDeadband(true);
-//        y = Math.copySign(Math.pow(y, 3), y);
+        double y = driverController.getLeftYWithDeadband(false);
+        y = Math.copySign(Math.pow(y, 3), y);
         switch (driveSpeed)
         {
             case SLOW:
@@ -694,11 +687,9 @@ public class Robot extends FrcRobotBase
 
     public double getRotInput()
     {
-        //TODO: fix after tryouts
-//        double rightTrigger = driverController.getRightTriggerWithDeadband(true);
-//        double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
-//        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
-        double rot = driverStick.getZWithDeadband(true);
+        double rightTrigger = driverController.getRightTriggerWithDeadband(true);
+        double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
+        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
         switch (driveSpeed)
         {
             case SLOW:
@@ -718,9 +709,7 @@ public class Robot extends FrcRobotBase
 
     public boolean getFieldOriented()
     {
-        //TODO: fix after tryouts
-//        return driverController.getXButton();
-        return driverStick.getTrigger();
+        return driverController.getXButton();
     }
 
     /**
