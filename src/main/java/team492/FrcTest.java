@@ -464,6 +464,10 @@ public class FrcTest extends FrcTeleOp
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
 
+        robot.dashboard.displayPrintf(5, "Alignment: left=%.2f,right=%.2f,angle=%.1f,shortestDist=%.2f",
+            robot.alignment.getLeftDistance(), robot.alignment.getRightDistance(), robot.alignment.getAngleToWall(),
+            robot.alignment.getShortestDistanceToWall());
+
         HalDashboard.putNumber("FlywheelVel", robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber("FlywheelPower", robot.shooter.flywheel.motor.getAppliedOutput());
 

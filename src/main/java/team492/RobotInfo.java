@@ -74,6 +74,9 @@ public class RobotInfo
     public static final int CANID_CONVEYOR = 10;
     public static final int CANID_INTAKE = 11;
 
+    public static final int CANID_LEFT_LIDAR = 21;
+    public static final int CANID_RIGHT_LIDAR = 22;
+
     public static final int CANID_PDP = 26;
     public static final int CANID_PCM = 17;
 
@@ -95,8 +98,8 @@ public class RobotInfo
     //
     public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
     public static final int INTAKE_PROXIMITY_SENSOR = 2;
-    public static final int LEFT_LIDAR = 3;
-    public static final int RIGHT_LIDAR = 4;
+    public static final int DIO_LEFT_LIDAR = 3;
+    public static final int DIO_RIGHT_LIDAR = 4;
 
     public static final int PWM_CHANNEL_LED = 0;
     public static final int NUM_LEDS = 26;
@@ -127,7 +130,7 @@ public class RobotInfo
     // public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
 
     public static final double LIDAR_INTER_SENSOR_DIST = 28; // TODO: tune
-    public static final double LIDAR_SENSOR_Y_OFFSET = -3; // in from bumper edge. + is forward TODO: tune
+    public static final double LIDAR_SENSOR_Y_OFFSET = 0; // in from bumper edge. + is forward TODO: tune
 
     public static final double SHOOTER_BARREL_LENGTH = 30; // inches TODO: tune
 

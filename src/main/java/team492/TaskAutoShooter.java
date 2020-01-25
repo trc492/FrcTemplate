@@ -3,6 +3,7 @@ package team492;
 import frclib.FrcRemoteVisionProcessor;
 import org.apache.commons.math3.linear.RealVector;
 import trclib.TrcEvent;
+import trclib.TrcOwnershipManager;
 import trclib.TrcPidController;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
@@ -150,6 +151,9 @@ public class TaskAutoShooter
             {
                 onFinishedEvent.cancel();
             }
+            robot.globalTracer
+                .traceErr("TaskAutoShooter.shoot", "Unable to acquire exclusive access of drivebase! CurrOwner=%s",
+                    TrcOwnershipManager.getInstance().getOwner(robot.driveBase));
             return;
         }
         this.align = align;

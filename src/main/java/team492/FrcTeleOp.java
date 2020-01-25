@@ -184,6 +184,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
+                if (pressed)
+                {
+                    robot.autoShooter.shoot(2, 0);
+                }
+                else
+                {
+                    robot.autoShooter.cancel();
+                }
                 break;
 
             case FrcXboxController.BACK:
