@@ -37,6 +37,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     protected final Robot robot;
     private boolean gyroAssist = false;
     private TrcElapsedTimer elapsedTimer = null;
+    private boolean lowGoal = false;
 
     public FrcTeleOp(Robot robot)
     {
@@ -64,6 +65,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
+        lowGoal = false;
 
         if (robot.preferences.useVision)
         {
@@ -224,7 +226,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 if (pressed)
                 {
-                    robot.conveyor.shoot();
+                    if (lowGoal)
+                    {
+                        // if we're doing low goal, just dump the balls, we don't care about speed
+                        robot.conveyor.setPower(0.8);
+                    }
+                    else
+                    {
+                        robot.conveyor.shoot();
+                    }
                 }
                 else
                 {
@@ -261,10 +271,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-
+                if (pressed)
+                {
+                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
+                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
+                if (lowGoal = pressed)
+                {
+                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_LOW_ANGLE);
+                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_LOW_SPEED);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:

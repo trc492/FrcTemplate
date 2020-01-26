@@ -114,6 +114,20 @@ public class Conveyor implements TrcExclusiveSubsystem
         }
     }
 
+    public void setPower(double power)
+    {
+        setPower(null, power);
+    }
+
+    public void setPower(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            stop(owner);
+            motor.set(power);
+        }
+    }
+
     /**
      * Run the conveyor until a ball leaves the conveyor. The ball doesn't have to be readied.
      */
