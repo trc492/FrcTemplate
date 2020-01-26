@@ -15,6 +15,11 @@ public class TaskAutoShooter
     private static final double PITCH_TOLERANCE = 5; // deg
     private static final double HEADING_TOLERANCE = 5; // deg
 
+    public enum Mode
+    {
+        ALIGN_ONLY, SHOOT_ONLY, BOTH
+    }
+
     private final String instanceName = "AutoShooter";
 
     private Robot robot;
@@ -24,7 +29,7 @@ public class TaskAutoShooter
     private RealVector traj;
     private int ballsToShoot;
     private TrcPidController headingPid;
-    private boolean align;
+    private Mode mode;
 
     public TaskAutoShooter(Robot robot)
     {
@@ -56,16 +61,21 @@ public class TaskAutoShooter
         taskObject.unregisterTask();
         robot.shooter.stopFlywheel();
         headingPid.reset();
-        if (align)
+        if (shouldAlign())
         {
-            robot.driveBase.stop();
+            robot.driveBase.stop(instanceName);
             robot.driveBase.releaseExclusiveAccess(instanceName);
+        }
+        if (shouldShoot())
+        {
+            robot.conveyor.stop(instanceName);
+            robot.conveyor.releaseExclusiveAccess(instanceName);
         }
     }
 
     private void shooterTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        if (TrcUtil.getCurrentTime() >= timedOutTime || ballsToShoot <= 0)
+        if (TrcUtil.getCurrentTime() >= timedOutTime || (shouldShoot() && ballsToShoot <= 0))
         {
             stop();
             return;
@@ -82,7 +92,7 @@ public class TaskAutoShooter
                 robot.shooter.setPitch(traj.getEntry(1));
             }
         }
-        if (align)
+        if (shouldAlign())
         {
             robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
                 robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
@@ -96,7 +106,15 @@ public class TaskAutoShooter
             }
             if (readyToShoot(traj))
             {
-                robot.conveyor.shoot(event);
+                robot.ledIndicator.setShooterReady(true);
+                if (shouldShoot())
+                {
+                    robot.conveyor.shoot(instanceName, event);
+                }
+            }
+            else
+            {
+                robot.ledIndicator.setShooterReady(false);
             }
         }
     }
@@ -125,6 +143,21 @@ public class TaskAutoShooter
         }
     }
 
+    private boolean shouldAlign()
+    {
+        return mode == Mode.ALIGN_ONLY || mode == Mode.BOTH;
+    }
+
+    private boolean shouldShoot()
+    {
+        return mode == Mode.SHOOT_ONLY || mode == Mode.BOTH;
+    }
+
+    public void trackTarget()
+    {
+        shoot(0, 0, Mode.ALIGN_ONLY, null);
+    }
+
     public void shoot()
     {
         shoot(robot.getNumBalls(), robot.getNumBalls()); // 1 sec per ball
@@ -132,10 +165,10 @@ public class TaskAutoShooter
 
     public void shoot(int numBalls, double timeout)
     {
-        shoot(numBalls, timeout, true, null);
+        shoot(numBalls, timeout, Mode.BOTH, null);
     }
 
-    public void shoot(int numBalls, double timeout, boolean align, TrcEvent onFinishedEvent)
+    public void shoot(int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
     {
         if (onFinishedEvent != null)
         {
@@ -145,7 +178,8 @@ public class TaskAutoShooter
         {
             return; // don't interrupt a current operation
         }
-        if (align && !robot.driveBase.acquireExclusiveAccess(instanceName))
+        this.mode = mode;
+        if (shouldAlign() && !robot.driveBase.acquireExclusiveAccess(instanceName))
         {
             if (onFinishedEvent != null)
             {
@@ -156,9 +190,19 @@ public class TaskAutoShooter
                     TrcOwnershipManager.getInstance().getOwner(robot.driveBase));
             return;
         }
-        this.align = align;
-        ballsToShoot = numBalls;
+        if (shouldShoot() && !robot.conveyor.acquireExclusiveAccess(instanceName))
+        {
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.cancel();
+            }
+            robot.globalTracer
+                .traceErr("TaskAutoShooter.shoot", "Unable to acquire exclusive access of conveyor! CurrOwner=%s",
+                    TrcOwnershipManager.getInstance().getOwner(robot.conveyor));
+            return;
+        }
         timedOutTime = timeout == 0.0 ? Double.POSITIVE_INFINITY : TrcUtil.getCurrentTime() + timeout;
+        ballsToShoot = numBalls;
         this.onFinishedEvent = onFinishedEvent;
         if (onFinishedEvent != null)
         {

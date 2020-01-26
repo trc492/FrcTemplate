@@ -29,11 +29,12 @@ import java.util.Arrays;
 
 public class LEDIndicator
 {
-    private static final FrcColor visionColor = FrcColor.FULL_GREEN;
+    private static final FrcColor visionColor = FrcColor.FULL_YELLOW;
+    private static final FrcColor visionColorReady = FrcColor.FULL_GREEN;
     private static final FrcColor ballColor = FrcColor.FULL_RED;
     private static final FrcColor backGround = FrcColor.FULL_WHITE;
 
-    public enum Direction
+    public enum VisionDirection
     {
         LEFT, CENTERED, RIGHT;
     }
@@ -41,7 +42,8 @@ public class LEDIndicator
     private Robot robot;
     private FrcAddressableLED led;
     private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
-    private Direction direction;
+    private VisionDirection visionDirection;
+    private boolean isShooterReady = false;
 
     public LEDIndicator(Robot robot)
     {
@@ -52,7 +54,8 @@ public class LEDIndicator
 
     public void reset()
     {
-        signalVision(null);
+        visionDirection = null;
+        isShooterReady = false;
         led.setEnabled(true);
         led.setColor(backGround);
     }
@@ -70,11 +73,11 @@ public class LEDIndicator
             ledColors[index++] = backGround;
         }
 
-        if (direction != null)
+        if (visionDirection != null)
         {
             int visionWidth = RobotInfo.NUM_LEDS / 8;
             int start, end;
-            switch (direction)
+            switch (visionDirection)
             {
                 case LEFT:
                     start = 0;
@@ -94,11 +97,17 @@ public class LEDIndicator
             }
             for (int i = start; i < end; i++)
             {
-                ledColors[i] = visionColor;
+                ledColors[i] = isShooterReady ? visionColorReady : visionColor;
             }
         }
 
         led.setPattern(new FrcAddressableLED.Pattern(ledColors));
+    }
+
+    public void setShooterReady(boolean shooterReady)
+    {
+        isShooterReady = shooterReady;
+        updateLED();
     }
 
     public void setColor(FrcColor color)
@@ -106,9 +115,9 @@ public class LEDIndicator
         led.setColor(color);
     }
 
-    public void signalVision(Direction direction)
+    public void signalVision(VisionDirection visionDirection)
     {
-        this.direction = direction;
+        this.visionDirection = visionDirection;
         updateLED();
     }
 }

@@ -93,15 +93,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             }
             else if (pose.x > RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
-                robot.ledIndicator.signalVision(LEDIndicator.Direction.RIGHT);
+                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.RIGHT);
             }
             else if (pose.x < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
-                robot.ledIndicator.signalVision(LEDIndicator.Direction.LEFT);
+                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.LEFT);
             }
             else
             {
-                robot.ledIndicator.signalVision(LEDIndicator.Direction.CENTERED);
+                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.CENTERED);
             }
         }
 
@@ -132,10 +132,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (elapsedTimer != null)
         {
             elapsedTimer.recordPeriodTime();
-            robot.dashboard.displayPrintf(
-                    6, "Period: %.3f(%.3f/%.3f)",
-                    elapsedTimer.getAverageElapsedTime(), elapsedTimer.getMinElapsedTime(),
-                    elapsedTimer.getMaxElapsedTime());
+            robot.dashboard.displayPrintf(6, "Period: %.3f(%.3f/%.3f)", elapsedTimer.getAverageElapsedTime(),
+                elapsedTimer.getMinElapsedTime(), elapsedTimer.getMaxElapsedTime());
         }
     } // runContinuous
 
@@ -146,30 +144,31 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public void driverControllerButtonEvent(int button, boolean pressed)
     {
         boolean isAutoActive = robot.isAutoActive();
-        robot.dashboard.displayPrintf(8, " DriverController: button=0x%04x %s, auto=%b",
-            button, pressed ? "pressed" : "released", isAutoActive);
+        robot.dashboard
+            .displayPrintf(8, " DriverController: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
 
         switch (button)
         {
             case FrcXboxController.BUTTON_A:
-                if (pressed)
-                {
-                    robot.snapToAngle.snapToNearestAngle();
-                }
-                else
-                {
-                    robot.snapToAngle.cancel();
-                }
                 break;
 
             case FrcXboxController.BUTTON_B:
-                if (pressed)
+                String name = "AntiDefense";
+                if (pressed && robot.driveBase.acquireExclusiveAccess(name))
                 {
-                    robot.autoAlign.start(null, 0.0);
+                    robot.leftFrontWheel.setSteerAngle(-45);
+                    robot.rightFrontWheel.setSteerAngle(45);
+                    robot.leftBackWheel.setSteerAngle(-135);
+                    robot.rightBackWheel.setSteerAngle(135);
                 }
                 else
                 {
-                    robot.autoAlign.cancel();
+                    robot.driveBase.releaseExclusiveAccess(name);
+                    robot.leftFrontWheel.setSteerAngle(0);
+                    robot.rightFrontWheel.setSteerAngle(0);
+                    robot.leftBackWheel.setSteerAngle(0);
+                    robot.rightBackWheel.setSteerAngle(0);
                 }
                 break;
 
@@ -181,12 +180,20 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
+                if (pressed)
+                {
+                    robot.snapToAngle.snapToNearestAngle();
+                }
+                else
+                {
+                    robot.snapToAngle.cancel();
+                }
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
                 if (pressed)
                 {
-                    robot.autoShooter.shoot(2, 0);
+                    robot.autoShooter.trackTarget();
                 }
                 else
                 {
@@ -217,14 +224,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 if (pressed)
                 {
-                    // TODO: remove after tryouts
-//                    robot.intake.intakeMultiple();
-                    robot.shooter.flywheel.set(0.8);
+                    robot.conveyor.shoot();
                 }
                 else
                 {
-//                    robot.intake.stopIntake();
-                    robot.shooter.flywheel.set(0.0);
+                    robot.conveyor.stop();
                 }
                 break;
 
@@ -242,12 +246,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON3:
                 if (pressed)
                 {
-                    // TODO: remove after tryouts
-                    robot.shooter.flywheel.set(-0.7);
+                    robot.intake.intakeMultiple();
                 }
                 else
                 {
-                    robot.shooter.flywheel.set(0.0);
+                    robot.intake.stopIntake();
                 }
                 break;
 
@@ -258,14 +261,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                if (pressed)
-                {
-                    robot.autoShooter.shoot();
-                }
-                else
-                {
-                    robot.autoShooter.cancel();
-                }
+
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
