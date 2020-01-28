@@ -204,10 +204,12 @@ public class Robot extends FrcRobotBase
     private FrcCANSparkMax createSparkMax(String name, int id)
     {
         FrcCANSparkMax spark = new FrcCANSparkMax(name, id, true);
+        spark.motor.restoreFactoryDefaults();
         spark.setInverted(false);
         spark.setPositionSensorInverted(false);
         spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         spark.setOdometryEnabled(true);
+        spark.motor.burnFlash();
         return spark;
     }
 

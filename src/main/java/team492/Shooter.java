@@ -204,6 +204,7 @@ public class Shooter
 
     private void configureFlywheel()
     {
+        flywheel.motor.restoreFactoryDefaults();
         flywheel.motor.getPIDController().setP(FLYWHEEL_kP);
         flywheel.motor.getPIDController().setI(FLYWHEEL_kI);
         flywheel.motor.getPIDController().setIZone(FLYWHEEL_IZONE);
@@ -212,7 +213,8 @@ public class Shooter
         flywheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         flywheel.motor.getEncoder().setPositionConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK);
         flywheel.motor.getEncoder().setVelocityConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK / 60.0);
-        flywheel.setBrakeModeEnabled(true); // TODO: remove after drive tryouts
+        flywheel.setBrakeModeEnabled(false);
         flywheel.setInverted(true);
+        flywheel.motor.burnFlash(); // save to non-volatile memory, this way if the motor is reset the settings persist
     }
 }
