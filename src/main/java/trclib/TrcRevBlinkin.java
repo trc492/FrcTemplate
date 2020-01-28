@@ -173,5 +173,4 @@ public abstract class TrcRevBlinkin extends TrcPriorityIndicator<TrcRevBlinkin.L
     {
         super(instanceName);
     }   //TrcRevBlinkin
-
 }   //class TrcRevBlinkin

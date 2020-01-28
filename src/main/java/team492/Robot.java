@@ -241,7 +241,7 @@ public class Robot extends FrcRobotBase
         steer.motor.setSelectedSensorPosition(pos, 0, 10);
         TrcUtil.sleep(50);
 
-        System.out.printf("Module=%s, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name,
+        System.out.printf("Module=%s, Zero=%d, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name, steerZero,
             steer.motor.getSensorCollection().getPulseWidthPosition(),
             steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
 
@@ -414,6 +414,7 @@ public class Robot extends FrcRobotBase
             battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
+            shooter.setEnabled(true);
 
             dashboard.clearDisplay();
 
@@ -463,6 +464,7 @@ public class Robot extends FrcRobotBase
             cancelAllAuto();
             battery.setEnabled(false);
             pdp.setTaskEnabled(false);
+            shooter.setEnabled(false);
 
             for (int i = 0; i < FrcPdp.kPDPChannels; i++)
             {

@@ -4,6 +4,7 @@ import trclib.TrcPidController;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
+import trclib.TrcWarpSpace;
 
 public class TaskSnapToAngle
 {
@@ -15,6 +16,7 @@ public class TaskSnapToAngle
     private Robot robot;
     private TrcPidController headingPid;
     private TrcTaskMgr.TaskObject taskObj;
+    private TrcWarpSpace warpSpace;
 
     public TaskSnapToAngle(Robot robot)
     {
@@ -24,6 +26,7 @@ public class TaskSnapToAngle
         headingPid = new TrcPidController(instanceName + ".HeadingController", headingPidCoeff, HEADING_TOLERANCE,
             robot.driveBase::getHeading);
         headingPid.setAbsoluteSetPoint(true);
+        warpSpace = new TrcWarpSpace("SnapToAngle.warpSpace", 0, 360);
 
         taskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".TaskObj", this::controlTask);
     }
@@ -56,7 +59,8 @@ public class TaskSnapToAngle
                     targetHeading);
             return;
         }
-        robot.globalTracer.traceInfo(instanceName + ".snapToAngle", "Snapping to angle=%.1f", targetHeading);
+        targetHeading = warpSpace.getOptimizedTarget(targetHeading, robot.driveBase.getHeading());
+        robot.globalTracer.traceInfo(instanceName + ".snapToAngle", "Snapping to angle=%.1f, currAngle=%.1f", targetHeading, robot.driveBase.getHeading());
         headingPid.setTarget(targetHeading);
         taskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
     }

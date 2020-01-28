@@ -92,7 +92,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         final String funcName = moduleName + ".startMode";
 
         robot.driveBase.resetOdometry(true, true);
-        robot.shooter.init();
+        robot.shooter.zeroCalibratePitch();
 
         robot.ledIndicator.reset();
 

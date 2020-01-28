@@ -22,13 +22,10 @@
 
 package frclib;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
-/**
- * This class implements a CANTalon motor controller. It extends the TrcMotor class and
- * implements the standard TrcMotorController interface to be compatible with the TRC library.
- */
-public class FrcCANTalon extends FrcCANPhoenixController<TalonSRX>
+public class FrcCANFalcon extends FrcCANPhoenixController<TalonFX>
 {
     /**
      * Constructor: Create an instance of the object.
@@ -36,8 +33,9 @@ public class FrcCANTalon extends FrcCANPhoenixController<TalonSRX>
      * @param instanceName specifies the instance name.
      * @param deviceNumber specifies the CAN ID of the device.
      */
-    public FrcCANTalon(final String instanceName, int deviceNumber)
+    public FrcCANFalcon(final String instanceName, int deviceNumber)
     {
-        super(instanceName, new TalonSRX(deviceNumber));
-    }   //FrcCANTalon
-}   //class FrcCANTalon
+        super(instanceName, new TalonFX(deviceNumber));
+        setFeedbackDevice(FeedbackDevice.IntegratedSensor);
+    }   //FrcCANFalcon500
+}

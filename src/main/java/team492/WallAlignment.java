@@ -1,5 +1,6 @@
 package team492;
 
+import com.playingwithfusion.TimeOfFlight;
 import frclib.FrcCANTimeOfFlight;
 import frclib.FrcLaserShark;
 import frclib.FrcMedianFilter;
@@ -21,13 +22,16 @@ public class WallAlignment
     {
         if (USE_LASER_SHARK)
         {
-            leftLidar = new FrcLaserShark("LeftLidar", RobotInfo.LEFT_LIDAR);
-            rightLidar = new FrcLaserShark("RightLidar", RobotInfo.RIGHT_LIDAR);
+            leftLidar = new FrcLaserShark("LeftLidar", RobotInfo.DIO_LEFT_LIDAR);
+            rightLidar = new FrcLaserShark("RightLidar", RobotInfo.DIO_RIGHT_LIDAR);
         }
         else
         {
-            leftLidar = new FrcCANTimeOfFlight("LeftLidar", 11);
-            rightLidar = new FrcCANTimeOfFlight("RightLidar", 12);
+            FrcCANTimeOfFlight leftCan = new FrcCANTimeOfFlight("LeftLidar", RobotInfo.CANID_LEFT_LIDAR);
+            leftCan.identifySensor();
+            this.leftLidar = leftCan;
+            System.out.println("LeftCAN Firmware: " + leftCan.getFirmwareVersion());
+            rightLidar = new FrcCANTimeOfFlight("RightLidar", RobotInfo.CANID_RIGHT_LIDAR);
         }
 
         leftFilter = new FrcMedianFilter("LeftLidarFilter", 5);

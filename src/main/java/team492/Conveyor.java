@@ -6,11 +6,12 @@ import frclib.FrcCANTalon;
 import frclib.FrcDigitalInput;
 import trclib.TrcDigitalInputTrigger;
 import trclib.TrcEvent;
+import trclib.TrcExclusiveSubsystem;
 import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
-public class Conveyor
+public class Conveyor implements TrcExclusiveSubsystem
 {
     // TODO: tune this
     private static final double CONVEYOR_kP = 0;
@@ -113,32 +114,51 @@ public class Conveyor
         }
     }
 
+    public void setPower(double power)
+    {
+        setPower(null, power);
+    }
+
+    public void setPower(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            stop(owner);
+            motor.set(power);
+        }
+    }
+
     /**
      * Run the conveyor until a ball leaves the conveyor. The ball doesn't have to be readied.
      */
     public void shoot()
     {
-        shoot(null);
+        shoot(null, null);
     }
 
     /**
      * Run the conveyor until a ball leaves the conveyor.  The ball doesn't have to be readied.
      *
+     * @param owner The name of the routine calling this subsystem.
+     *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
      * @param event The event to signal when the ball leaves.
      */
-    public void shoot(TrcEvent event)
+    public void shoot(String owner, TrcEvent event)
     {
-        if (event != null)
+        if (validateOwnership(owner))
         {
-            event.clear();
+            if (event != null)
+            {
+                event.clear();
+            }
+            shootEvent = event;
+
+            shootTrigger.setEnabled(true);
+            readyTrigger.setEnabled(false);
+            advanceTask.unregisterTask();
+
+            motor.set(SHOOT_POWER);
         }
-        shootEvent = event;
-
-        shootTrigger.setEnabled(true);
-        readyTrigger.setEnabled(false);
-        advanceTask.unregisterTask();
-
-        motor.set(SHOOT_POWER);
     }
 
     /**
@@ -146,36 +166,41 @@ public class Conveyor
      */
     public void readyShot()
     {
-        readyShot(null);
+        readyShot(null, null);
     }
 
     /**
      * Run the conveyor until a ball is on the edge of the conveyor.
      *
+     * @param owner The name of the routine calling this subsystem.
+     *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
      * @param event The event to signal when done.
      */
-    public void readyShot(TrcEvent event)
+    public void readyShot(String owner, TrcEvent event)
     {
-        if (event != null)
-        {
-            event.clear();
-        }
-
-        if (proximitySensor.isActive())
+        if (validateOwnership(owner))
         {
             if (event != null)
             {
-                event.set(true);
+                event.clear();
             }
-        }
-        else
-        {
-            this.readyEvent = event;
-            shootTrigger.setEnabled(false);
-            readyTrigger.setEnabled(true);
-            advanceTask.unregisterTask();
 
-            motor.set(READY_POWER);
+            if (proximitySensor.isActive())
+            {
+                if (event != null)
+                {
+                    event.set(true);
+                }
+            }
+            else
+            {
+                this.readyEvent = event;
+                shootTrigger.setEnabled(false);
+                readyTrigger.setEnabled(true);
+                advanceTask.unregisterTask();
+
+                motor.set(READY_POWER);
+            }
         }
     }
 
@@ -184,27 +209,48 @@ public class Conveyor
      */
     public void advance()
     {
-        advance(null);
+        advance(null, null);
     }
 
     /**
      * Advance the conveyor belt to allow for more intake.
      *
+     * @param owner The name of the routine calling this subsystem.
+     *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
      * @param event The event to signal when done.
      */
-    public void advance(TrcEvent event)
+    public void advance(String owner, TrcEvent event)
     {
-        if (event != null)
+        if (validateOwnership(owner))
         {
-            event.clear();
-        }
-        this.advanceEvent = event;
-        targetPosTicks += TrcUtil.round(INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
-        motor.motor.set(ControlMode.MotionMagic, targetPosTicks);
+            if (event != null)
+            {
+                event.clear();
+            }
+            this.advanceEvent = event;
+            targetPosTicks += TrcUtil.round(INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
+            motor.motor.set(ControlMode.MotionMagic, targetPosTicks);
 
-        advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        readyTrigger.setEnabled(false);
-        shootTrigger.setEnabled(false);
+            advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            readyTrigger.setEnabled(false);
+            shootTrigger.setEnabled(false);
+        }
+    }
+
+    public void stop()
+    {
+        stop(null);
+    }
+
+    public void stop(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            motor.set(0.0);
+            advanceTask.unregisterTask();
+            readyTrigger.setEnabled(false);
+            shootTrigger.setEnabled(false);
+        }
     }
 
     private void advanceTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)

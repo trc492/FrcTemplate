@@ -70,10 +70,12 @@ public class RobotInfo
     public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
 
     public static final int CANID_FLYWHEEL = 7;
-    public static final int CANID_FLYWHEEL_SLAVE = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
     public static final int CANID_CONVEYOR = 10;
     public static final int CANID_INTAKE = 11;
+
+    public static final int CANID_LEFT_LIDAR = 21;
+    public static final int CANID_RIGHT_LIDAR = 22;
 
     public static final int CANID_PDP = 26;
     public static final int CANID_PCM = 17;
@@ -87,16 +89,6 @@ public class RobotInfo
     public static final int PDP_CHANNEL_LEFT_BACK_WHEEL = 15;
 
     //
-    // Pickup
-    //
-    // TODO: tune this garbage
-    public static final double PICKUP_BLIND_PERIOD = 0.1; //seconds
-    public static final double PICKUP_POWER = 1.0;
-    public static final double DEPLOY_POWER = -1.0;
-    public static final double[] PICKUP_CURR_THRESH = new double[] { 25.0 };
-    public static final double[] DEPLOY_CURR_THRESH = new double[] { 0.7 };
-
-    //
     // Analog Input ports.
     //
     public static final int AIN_PRESSURE_SENSOR                 = 0;
@@ -106,8 +98,8 @@ public class RobotInfo
     //
     public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
     public static final int INTAKE_PROXIMITY_SENSOR = 2;
-    public static final int LEFT_LIDAR = 3;
-    public static final int RIGHT_LIDAR = 4;
+    public static final int DIO_LEFT_LIDAR = 3;
+    public static final int DIO_RIGHT_LIDAR = 4;
 
     public static final int PWM_CHANNEL_LED = 0;
     public static final int NUM_LEDS = 26;
@@ -138,7 +130,7 @@ public class RobotInfo
     // public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
 
     public static final double LIDAR_INTER_SENSOR_DIST = 28; // TODO: tune
-    public static final double LIDAR_SENSOR_Y_OFFSET = -3; // in from bumper edge. + is forward TODO: tune
+    public static final double LIDAR_SENSOR_Y_OFFSET = 0; // in from bumper edge. + is forward TODO: tune
 
     public static final double SHOOTER_BARREL_LENGTH = 30; // inches TODO: tune
 
@@ -198,35 +190,23 @@ public class RobotInfo
     public static final double PURE_PURSUIT_MAX_VEL = 0.8 * ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MAX_ACCEL = 240; // in/sec^2
 
-    // Comp robot: 0.015/0.0/0.001
-    // practice robot: 0.008/0.0/0.0007
-    // 3/24 comp robot: 0.0055/0.0/0.00008
     public static final double GYRO_TURN_KP                     = 0.0055;
     public static final double GYRO_TURN_KI                     = 0.0;
     public static final double GYRO_TURN_KD                     = 0.00008;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
-    // 3/24 compr robot: 0.0085/0.0/0.0
-    public static final double GYRO_TURN_KP_SMALL               = 0.0085;
-    public static final double GYRO_TURN_KI_SMALL               = 0.0;
-    public static final double GYRO_TURN_KD_SMALL               = 0.0;
-    public static final double GYRO_TURN_KF_SMALL               = 0.0;
-    public static final double GYRO_TURN_TOLERANCE_SMALL        = 1.5;
+    //
+    // Shooter
+    //
 
-    public static final double VISION_X_KP                      = 0.022;    //TODO: Need to tune this
-    public static final double VISION_X_KI                      = 0.0;
-    public static final double VISION_X_KD                      = 0.001;
-    public static final double VISION_X_TOLERANCE               = 1.0;
-
-    public static final double VISION_Y_KP                      = 0.011;    //TODO: Need to tune this
-    public static final double VISION_Y_KI                      = 0.0;
-    public static final double VISION_Y_KD                      = 0.0;
-    public static final double VISION_Y_TOLERANCE               = 1.0;
-
-    public static final double VISION_TURN_KP                   = 0.0085;   //TODO: Need to tune this
-    public static final double VISION_TURN_KI                   = 0.0;
-    public static final double VISION_TURN_KD                   = 0.0;
-    public static final double VISION_TURN_TOLERANCE            = 1.0;
-
+    public static final double FLYWHEEL_DIAMETER = 4.0; // in
+    public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;
+    public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO;
+    public static final double FLYWHEEL_TOP_SPEED = 720;
+    // TODO: tune
+    public static final double FLYWHEEL_LOW_ANGLE = 30; // angle when right up against goal
+    public static final double FLYWHEEL_LOW_SPEED = 300;
+    public static final double FLYWHEEL_HIGH_ANGLE = 70; // angle when right up against wall
+    public static final double FLYWHEEL_HIGH_SPEED = 300;
 }   // class RobotInfo
