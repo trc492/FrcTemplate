@@ -43,7 +43,6 @@ public class TrcSwerveModule implements TrcMotorController
     public final TrcPidMotor steerMotor;
     public final TrcEnhancedServo steerServo;
     private TrcWarpSpace warpSpace;
-    private double prevSteerAngle;
     private double optimizedWheelDir = 1.0;
     private boolean steerLimitsEnabled = false;
     private double steerLowLimit = 0.0;
@@ -73,7 +72,6 @@ public class TrcSwerveModule implements TrcMotorController
         this.steerMotor = steerMotor;
         this.steerServo = steerServo;
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
-        this.prevSteerAngle = getSteerAngle();
     }   //TrcSwerveModule
 
     /**
@@ -207,6 +205,7 @@ public class TrcSwerveModule implements TrcMotorController
     public void setSteerAngle(double angle, boolean optimize, boolean hold)
     {
         final String funcName = "setSteerAngle";
+        double prevSteerAngle = getSteerAngle();
         angle = warpSpace.getOptimizedTarget(angle, prevSteerAngle);
         double angleDelta = angle - prevSteerAngle;
         double newAngle = angle;
@@ -258,7 +257,6 @@ public class TrcSwerveModule implements TrcMotorController
             steerServo.setPosition(newAngle / 360.0);
 //            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
         }
-        prevSteerAngle = newAngle;
 
         if (debugEnabled)
         {
