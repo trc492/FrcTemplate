@@ -8,7 +8,8 @@ import org.junit.Test;
 public class TrcPathTest 
 {
     @Test
-    public void getSizeTest() {
+    public void getSizeTest() 
+    {
         TrcWaypoint waypoint1 = new TrcWaypoint(1, 1, 1, 1, 1, 1, 1, 1);
         TrcWaypoint waypoint2 = new TrcWaypoint(2, 2, 2, 2, 2, 2, 2, 2);
         TrcPath path = new TrcPath(waypoint1,waypoint2);
@@ -17,7 +18,8 @@ public class TrcPathTest
     
     /*
     @Test
-    public void mathToRadiansTest() {
+    public void mathToRadiansTest() 
+    {
         assertEquals(Math.toRadians(0), 0, 1e-6);
         assertEquals(Math.toRadians(90), Math.PI/2, 1e-6);
         assertEquals(Math.toRadians(180), Math.PI, 1e-6);
@@ -27,7 +29,8 @@ public class TrcPathTest
     */
 
     @Test
-    public void toRadiansTest() {
+    public void toRadiansTest() 
+    {
         TrcWaypoint waypointDeg1 = new TrcWaypoint(1, 1, 1, 1, 1, 1, 1, 90);
         TrcWaypoint waypointDeg2 = new TrcWaypoint(2, 2, 2, 2, 2, 2, 2, 180);
         TrcPath pathDeg = new TrcPath(waypointDeg1,waypointDeg2);
@@ -40,7 +43,8 @@ public class TrcPathTest
 
     /*
     @Test
-    public void mathToDegreesTest() {
+    public void mathToDegreesTest() 
+    {
         assertEquals(Math.toDegrees(0), 0, 1e-6);
         assertEquals(Math.toDegrees(Math.PI/2), 90, 1e-6);
         assertEquals(Math.toDegrees(Math.PI), 180, 1e-6);
@@ -50,7 +54,8 @@ public class TrcPathTest
     */
 
     @Test
-    public void toDegreesTest() {
+    public void toDegreesTest() 
+    {
         TrcWaypoint waypointRad1 = new TrcWaypoint(1, 1, 1, 1, 1, 1, 1, Math.PI/2);
         TrcWaypoint waypointRad2 = new TrcWaypoint(2, 2, 2, 2, 2, 2, 2, Math.PI);
         TrcPath pathRad = new TrcPath(false, waypointRad1, waypointRad2);
