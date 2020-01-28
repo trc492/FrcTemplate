@@ -129,8 +129,8 @@ public class RobotInfo
     // public static final double SONAR_INCHES_PER_VOLT            = 1.0/0.0098; //9.8mV per inch
     // public static final double SONAR_ERROR_THRESHOLD            = 50.0; //value should not jump 50-in per time slice.
 
-    public static final double LIDAR_INTER_SENSOR_DIST = 28; // TODO: tune
-    public static final double LIDAR_SENSOR_Y_OFFSET = 0; // in from bumper edge. + is forward TODO: tune
+    public static final double LIDAR_INTER_SENSOR_DIST = 19.375;
+    public static final double LIDAR_SENSOR_Y_OFFSET = -3.5; // in from bumper edge. + is forward TODO: tune
 
     public static final double SHOOTER_BARREL_LENGTH = 30; // inches TODO: tune
 
