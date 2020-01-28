@@ -10,45 +10,47 @@ import static org.junit.Assert.*;
 
 public class TrcLEDStripTest
 {
-
     private TrcPriorityIndicator<Object> strip;
-    private Object[] priority;
+    private Object[] priorities;
 
     @Before
     public void setup()
     {
         strip = new MockLEDStrip();
-        priority = new Object[10];
-        for (int i = 0; i < priority.length; i++) {
-            priority[i] = new Object();
+        priorities = new Object[10];
+        for (int i = 0; i < priorities.length; i++)
+        {
+            priorities[i] = new Object();
         }
-        strip.setPatternPriorities(priority);
+        strip.setPatternPriorities(priorities);
     }
 
     @Test
     public void getPatternPriorityTest()
     {
-        for (int i = 0; i < priority.length; i++) {
-            assertEquals(i, strip.getPatternPriority(priority[i]));
+        for (int i = 0; i < priorities.length; i++)
+        {
+            assertEquals(i, strip.getPatternPriority(priorities[i]));
         }
     }
 
     @Test
     public void setPatternPrioritiesTest()
     {
-        strip.setPatternState(priority[0], true);
-        strip.setPatternState(priority[3], true);
-        strip.setPatternState(priority[7], true);
-        assertEquals(priority[7], strip.getPattern());
+        strip.setPatternState(priorities[0], true);
+        strip.setPatternState(priorities[3], true);
+        strip.setPatternState(priorities[7], true);
+        assertEquals(priorities[7], strip.getPattern());
 
         Object[] newPriorities = new Object[7];
-        System.arraycopy(priority, 0, newPriorities, 0, 4);
-        for (int i = 4; i < newPriorities.length; i++){
+        System.arraycopy(priorities, 0, newPriorities, 0, 4);
+        for (int i = 4; i < newPriorities.length; i++)
+        {
             newPriorities[i] = new Object();
         }
 
         strip.setPatternPriorities(newPriorities);
-        assertEquals(priority[3], strip.getPattern());
+        assertEquals(priorities[3], strip.getPattern());
     }
 
     @Test
@@ -60,10 +62,10 @@ public class TrcLEDStripTest
     @Test
     public void resetAllPatternStatesTest()
     {
-        int[] nums = new Random().ints(5, 0, priority.length).toArray();
-        Arrays.stream(nums).forEach(i -> strip.setPatternState(priority[i], true));
+        int[] nums = new Random().ints(5, 0, priorities.length).toArray();
+        Arrays.stream(nums).forEach(i -> strip.setPatternState(priorities[i], true));
         int max = Arrays.stream(nums).max().orElse(0);
-        assertEquals(priority[max], strip.getPattern());
+        assertEquals(priorities[max], strip.getPattern());
         strip.resetAllPatternStates();
         assertNull(strip.getPattern());
     }
@@ -71,14 +73,14 @@ public class TrcLEDStripTest
     @Test
     public void setPatternStateTest()
     {
-        strip.setPatternState(priority[0], true);
-        assertEquals(priority[0], strip.getPattern());
-        strip.setPatternState(priority[4], true);
-        assertEquals(priority[4], strip.getPattern());
-        strip.setPatternState(priority[2], true);
-        assertEquals(priority[4], strip.getPattern());
-        strip.setPatternState(priority[4], false);
-        assertEquals(priority[2], strip.getPattern());
+        strip.setPatternState(priorities[0], true);
+        assertEquals(priorities[0], strip.getPattern());
+        strip.setPatternState(priorities[4], true);
+        assertEquals(priorities[4], strip.getPattern());
+        strip.setPatternState(priorities[2], true);
+        assertEquals(priorities[4], strip.getPattern());
+        strip.setPatternState(priorities[4], false);
+        assertEquals(priorities[2], strip.getPattern());
     }
 
     public static class MockLEDStrip extends TrcPriorityIndicator<Object>

@@ -4,11 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class TrcWaypointTest 
+public class TrcWaypointTest
 {
-
     @Test
-    public void distanceToTest() 
+    public void distanceToTest()
     {
         TrcWaypoint p1 = new TrcWaypoint(1, 0, 0, 1, 1, 1, 1, 1);
         TrcWaypoint p2 = new TrcWaypoint(2, 3, 4, 2, 2, 2, 2, 2);
