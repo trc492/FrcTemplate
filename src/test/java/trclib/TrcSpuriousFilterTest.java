@@ -7,7 +7,8 @@ import org.junit.Test;
 public class TrcSpuriousFilterTest
 {
     @Test
-    public void toStringTest() {
+    public void toStringTest()
+    {
         TrcSpuriousFilter Test1 = new TrcSpuriousFilter("TestFilter", 10.0);
         assertEquals("TestFilter", Test1.toString());
         TrcSpuriousFilter Test2 = new TrcSpuriousFilter("qwertyuiop", 10.0);
@@ -15,7 +16,8 @@ public class TrcSpuriousFilterTest
     }
 
     @Test
-    public void filterDataTest() {
+    public void filterDataTest()
+    {
         //Threshold is 5.0
         TrcSpuriousFilter Test1 = new TrcSpuriousFilter("TestFilter", 5.0);
         //Starting data (will return itself)
