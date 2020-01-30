@@ -209,6 +209,7 @@ public class Robot extends FrcRobotBase
         spark.setPositionSensorInverted(false);
         spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         spark.setOdometryEnabled(true);
+        spark.motor.setOpenLoopRampRate(0.2);
         spark.motor.burnFlash();
         return spark;
     }

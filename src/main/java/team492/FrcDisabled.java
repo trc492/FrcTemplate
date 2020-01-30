@@ -56,6 +56,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     public void runPeriodic(double elapsedTime)
     {
         robot.updateDashboard(RunMode.DISABLED_MODE);
+        if (robot.preferences.useVision)
+        {
+            robot.vision.setRingLightEnabled(false);
+        }
     }   // runPeriodic
 
     @Override
