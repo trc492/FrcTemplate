@@ -157,7 +157,7 @@ public class RobotInfo
 
     public static final double DRIVE_MEDIUM_XSCALE              = 0.75;
     public static final double DRIVE_MEDIUM_YSCALE              = 0.75;
-    public static final double DRIVE_MEDIUM_TURNSCALE           = 0.6;
+    public static final double DRIVE_MEDIUM_TURNSCALE           = 0.3;
 
     public static final double DRIVE_FAST_XSCALE                = 1.0;
     public static final double DRIVE_FAST_YSCALE                = 1.0;
