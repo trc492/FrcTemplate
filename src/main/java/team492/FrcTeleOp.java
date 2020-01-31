@@ -210,6 +210,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.LEFT_STICK_BUTTON:
+                if (pressed)
+                {
+                    robot.fieldOriented = !robot.fieldOriented;
+                }
                 break;
 
             case FrcXboxController.RIGHT_STICK_BUTTON:

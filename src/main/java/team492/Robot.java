@@ -163,6 +163,7 @@ public class Robot extends FrcRobotBase
     public int location = 1;
     public String gameSpecificMessage = null;
     public boolean traceLogOpened = false;
+    public boolean fieldOriented = false;
     //
     // Other robot subystems.
     //
@@ -400,6 +401,8 @@ public class Robot extends FrcRobotBase
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
         final String funcName = "robotStartMode";
+
+        fieldOriented = false;
 
         if (runMode != RunMode.DISABLED_MODE)
         {
@@ -712,7 +715,7 @@ public class Robot extends FrcRobotBase
 
     public boolean getFieldOriented()
     {
-        return driverController.getXButton();
+        return fieldOriented;
     }
 
     /**
