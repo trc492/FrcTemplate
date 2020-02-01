@@ -214,7 +214,7 @@ public class Shooter
         flywheel.motor.getEncoder().setPositionConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK);
         flywheel.motor.getEncoder().setVelocityConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK / 60.0);
         flywheel.setBrakeModeEnabled(false);
-        flywheel.setInverted(true);
+        flywheel.setInverted(false);
         flywheel.motor.burnFlash(); // save to non-volatile memory, this way if the motor is reset the settings persist
     }
 }

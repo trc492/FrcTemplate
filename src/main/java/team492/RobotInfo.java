@@ -190,11 +190,11 @@ public class RobotInfo
     public static final double PURE_PURSUIT_MAX_VEL = 0.8 * ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MAX_ACCEL = 240; // in/sec^2
 
-    public static final double GYRO_TURN_KP                     = 0.0055;
+    public static final double GYRO_TURN_KP                     = 0.0067;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.00008;
+    public static final double GYRO_TURN_KD                     = 0.00094;
     public static final double GYRO_TURN_KF                     = 0.0;
-    public static final double GYRO_TURN_TOLERANCE              = 2.0;
+    public static final double GYRO_TURN_TOLERANCE              = 3.0;
 
     //
     // Shooter

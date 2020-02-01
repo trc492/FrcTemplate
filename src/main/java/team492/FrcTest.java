@@ -90,6 +90,8 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
         testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
+
+        HalDashboard.putNumber("FlywheelTarget", HalDashboard.getNumber("FlywheelTarget", 400));
     } // FrcTest
 
     //
@@ -308,7 +310,7 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.shooter.setFlywheelVelocity(600); //in/s
+                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber("FlywheelTarget", 0)); //in/s
                 }
                 else
                 {
