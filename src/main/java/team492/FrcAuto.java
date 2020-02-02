@@ -45,7 +45,8 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     private enum StartPosition
     {
-        LEFT_BUMPER_FEEDER(106.66 + RobotInfo.ROBOT_WIDTH / 2), IN_VISION(0), CUSTOM(0);
+        LEFT_BUMPER_FEEDER(RobotInfo.FEEDER_STATION_RIGHT_X_POS + RobotInfo.ROBOT_WIDTH / 2), IN_VISION(
+        RobotInfo.TARGET_X_POS), CUSTOM(0);
 
         private double xPos;
 
@@ -214,15 +215,12 @@ public class FrcAuto implements TrcRobot.RobotMode
         double angle = -robot.alignment.getAngleToWall();
         if (startPosMenu.getCurrentChoiceObject() == StartPosition.IN_VISION)
         {
+            // if no vision, assume perfectly centered to goal
             FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
             if (pose != null)
             {
                 TrcPose2D p = new TrcPose2D(pose.x, pose.y);
                 x = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - p.relativeTo(new TrcPose2D(0, 0, -angle)).x;
-            }
-            else
-            {
-                x = RobotInfo.TARGET_X_POS;
             }
         }
         TrcPose2D pose = new TrcPose2D(x, y, angle);

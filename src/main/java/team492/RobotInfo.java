@@ -30,12 +30,13 @@ public class RobotInfo
     //
     // Field dimensions in inches.
     //
-    public static final double FIELD_LENGTH                     = 54*12.0;
-    public static final double FIELD_WIDTH                      = 27*12.0;
+    public static final double FIELD_LENGTH                     = 52*12 + 5.25;
+    public static final double FIELD_WIDTH                      = 26*12 + 11.25;
 
     // origin is on the initiation line, all the way to the left
     public static final double INITIATION_LINE_TO_ALLIANCE_WALL = 120;
-    public static final double TARGET_X_POS = 210;// TODO: this isn't correct. calculate/find out
+    public static final double TARGET_X_POS = FIELD_WIDTH - 94.66;
+    public static final double FEEDER_STATION_RIGHT_X_POS = 130.66;
 
     public static final double HIGH_TARGET_HEIGHT = 98;
     public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81, HIGH_TARGET_HEIGHT);

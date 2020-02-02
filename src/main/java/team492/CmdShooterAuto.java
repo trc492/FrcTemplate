@@ -109,6 +109,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case MOVE_TO_SHOOT_2:
+                    robot.intake.stopIntake();
                     robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
                     robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
                     path = createToShoot2Path();
