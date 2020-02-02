@@ -190,12 +190,11 @@ public class RobotInfo
 
     public static final double ROBOT_TOP_SPEED = 192.6; // in/sec
 
-    public static final double PURE_PURSUIT_KP = 0.02;
-    public static final double PURE_PURSUIT_KI = 0.0;
-    public static final double PURE_PURSUIT_KD = 0.002;
+    public static final double PURE_PURSUIT_FOLLOWING_DISTANCE = 10.0;
+    public static final double PURE_PURSUIT_POS_TOLERANCE = 3.0;
+    public static final double PURE_PURSUIT_HEADING_TOLERANCE = 4.0;
     public static final double PURE_PURSUIT_KF = 1.0 / ROBOT_TOP_SPEED;
-    public static final double PURE_PURSUIT_MAX_VEL = 0.8 * ROBOT_TOP_SPEED;
-    public static final double PURE_PURSUIT_MAX_ACCEL = 240; // in/sec^2
+    public static final double PURE_PURSUIT_MOVE_OUTPUT_LIMIT = 0.6;
 
     public static final double GYRO_TURN_KP                     = 0.0067;
     public static final double GYRO_TURN_KI                     = 0.0;

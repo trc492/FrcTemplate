@@ -155,7 +155,7 @@ public class TaskAutoShooter
 
     public void trackTarget()
     {
-        shoot(0, 0, Mode.ALIGN_ONLY, null);
+        shoot(instanceName, 0, 0, Mode.ALIGN_ONLY, null);
     }
 
     public void shoot()
@@ -165,10 +165,10 @@ public class TaskAutoShooter
 
     public void shoot(int numBalls, double timeout)
     {
-        shoot(numBalls, timeout, Mode.BOTH, null);
+        shoot(instanceName, numBalls, timeout, Mode.BOTH, null);
     }
 
-    public void shoot(int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
+    public void shoot(String instanceName, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
     {
         if (onFinishedEvent != null)
         {

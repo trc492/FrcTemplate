@@ -44,6 +44,7 @@ import frclib.FrcXboxController;
 import hallib.HalDashboard;
 import trclib.TrcDigitalInput;
 import trclib.TrcEnhancedServo;
+import trclib.TrcHolonomicPurePursuitDrive;
 import trclib.TrcMotor;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
@@ -137,6 +138,7 @@ public class Robot extends FrcRobotBase
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
+    public TrcHolonomicPurePursuitDrive purePursuit;
     //
     // Vision subsystem.
     //
@@ -360,6 +362,13 @@ public class Robot extends FrcRobotBase
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotInfo.DRIVE_STALL_TIMEOUT);
         pidDrive.setMsgTracer(globalTracer);
+
+        purePursuit = new TrcHolonomicPurePursuitDrive("purePursuit", driveBase,
+            RobotInfo.PURE_PURSUIT_FOLLOWING_DISTANCE, RobotInfo.PURE_PURSUIT_POS_TOLERANCE,
+            RobotInfo.PURE_PURSUIT_HEADING_TOLERANCE, encoderYPidCtrl.getPidCoefficients(),
+            gyroTurnPidCtrl.getPidCoefficients(),
+            new TrcPidController.PidCoefficients(0, 0, 0, RobotInfo.PURE_PURSUIT_KF));
+        purePursuit.setMoveOutputLimit(RobotInfo.PURE_PURSUIT_MOVE_OUTPUT_LIMIT);
         //
         // Vision subsystem.
         //
@@ -635,12 +644,12 @@ public class Robot extends FrcRobotBase
 
     public void incNumBalls()
     {
-        setNumBalls(getNumBalls()+1);
+        setNumBalls(getNumBalls() + 1);
     }
 
     public void decNumBalls()
     {
-        setNumBalls(getNumBalls()-1);
+        setNumBalls(getNumBalls() - 1);
     }
 
     public void setNumBalls(int numBalls)

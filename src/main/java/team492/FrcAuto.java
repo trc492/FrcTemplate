@@ -40,7 +40,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     public enum AutoStrategy
     {
-        X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        SHOOTER_AUTO, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
     private enum StartPosition
@@ -66,6 +66,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
     private FrcChoiceMenu<StartPosition> startPosMenu;
+    private FrcChoiceMenu<CmdShooterAuto.AfterAction> shooterAutoAfterMenu;
     private AutoStrategy autoStrategy;
     private double delay;
     private TrcTaskMgr.TaskObject populateTask;
@@ -83,7 +84,8 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         // Populate Autonomous Mode menus.
         //
-        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE, true, false);
+        autoStrategyMenu.addChoice("High Goal Auto", AutoStrategy.SHOOTER_AUTO, true, false);
+        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
         autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE);
@@ -94,6 +96,11 @@ public class FrcAuto implements TrcRobot.RobotMode
         startPosMenu.addChoice("Left Bumper Feeder", StartPosition.LEFT_BUMPER_FEEDER, true, false);
         startPosMenu.addChoice("In Vision", StartPosition.IN_VISION);
         startPosMenu.addChoice("Custom", StartPosition.CUSTOM, false, true);
+
+        shooterAutoAfterMenu = new FrcChoiceMenu<>("Auto/ShooterAutoAfterAction");
+        shooterAutoAfterMenu.addChoice("Intake and Shoot", CmdShooterAuto.AfterAction.INTAKE_AND_SHOOT, true, false);
+        shooterAutoAfterMenu.addChoice("Intake Only", CmdShooterAuto.AfterAction.INTAKE);
+        shooterAutoAfterMenu.addChoice("Nothing", CmdShooterAuto.AfterAction.NOTHING, false, true);
 
         HalDashboard.refreshKey(CUSTOM_XPOS_KEY, 0.0);
         populateTask = TrcTaskMgr.getInstance().createTask("PopulateTask", this::populateTask);
@@ -163,32 +170,38 @@ public class FrcAuto implements TrcRobot.RobotMode
 
         switch (autoStrategy)
         {
+            case SHOOTER_AUTO:
+                CmdShooterAuto shooterAuto = new CmdShooterAuto(robot);
+                shooterAuto.start(delay, shooterAutoAfterMenu.getCurrentChoiceObject());
+                this.autoCommand = shooterAuto;
+                break;
+
             case X_TIMED_DRIVE:
-                autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
+                this.autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
                 break;
 
             case Y_TIMED_DRIVE:
-                autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, 0.0, robot.drivePower, 0.0);
+                this.autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, 0.0, robot.drivePower, 0.0);
                 break;
 
             case X_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
+                this.autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
                     robot.drivePowerLimit, false, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
+                this.autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
                     robot.drivePowerLimit, false, false);
                 break;
 
             case TURN_DEGREES:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
+                this.autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
                     robot.drivePowerLimit, false, false);
                 break;
 
             default:
             case DO_NOTHING:
-                autoCommand = null;
+                this.autoCommand = null;
                 break;
         }
     }   // startMode
