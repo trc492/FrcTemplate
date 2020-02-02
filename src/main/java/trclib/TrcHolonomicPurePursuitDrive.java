@@ -261,7 +261,7 @@ public class TrcHolonomicPurePursuitDrive
 
     /**
      * Start following the supplied path using a pure pursuit controller. The velocity must always be positive, and
-     * the path must start at (0,0).
+     * the path must start at (0,0). Heading is absolute and position is relative in the starting robot reference frame.
      *
      * @param path            The path to follow. Must start at (0,0).
      * @param onFinishedEvent When finished, signal this event.

@@ -212,7 +212,9 @@ public class FrcAuto implements TrcRobot.RobotMode
                 x = RobotInfo.TARGET_X_POS;
             }
         }
-        robot.driveBase.setFieldPosition(new TrcPose2D(x, y, angle));
+        TrcPose2D pose = new TrcPose2D(x, y, angle);
+        robot.globalTracer.traceInfo("FrcAuto.relocalizeAtStart", "Relocalizing to pose: %s", pose.toString());
+        robot.driveBase.setFieldPosition(pose);
     }
 
     @Override
