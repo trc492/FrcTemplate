@@ -30,6 +30,19 @@ package trclib;
  */
 public class TrcPath
 {
+    /**
+     * This method loads waypoints from a CSV file and create a path with them.
+     *
+     * @param inDegrees         specifies true if the heading values are in degrees, false if they are radians.
+     * @param path              specifies the file path or the resource name where we load the waypoints.
+     * @param loadFromResources specifies true if waypoints are loaded from resources, false if from file path.
+     * @return created path with the loaded waypoints.
+     */
+    public static TrcPath loadPathFromCsv(boolean inDegrees, String path, boolean loadFromResources)
+    {
+        return new TrcPath(inDegrees, TrcWaypoint.loadPointsFromCsv(path, loadFromResources));
+    }   //loadPathFromCsv
+
     private TrcWaypoint[] waypoints;
     private boolean inDegrees;
 
@@ -63,17 +76,40 @@ public class TrcPath
     }   //TrcPath
 
     /**
-     * This method loads waypoints from a CSV file and create a path with them.
+     * Translate the path by an x and y offset.
      *
-     * @param inDegrees specifies true if the heading values are in degrees, false if they are radians.
-     * @param path specifies the file path or the resource name where we load the waypoints.
-     * @param loadFromResources specifies true if waypoints are loaded from resources, false if from file path.
-     * @return created path with the loaded waypoints.
+     * @param x Amount to offset in x axis.
+     * @param y Amount to offset in y axis.
+     * @return new {@link TrcPath} object which is this path with an offset.
      */
-    public static TrcPath loadPathFromCsv(boolean inDegrees, String path, boolean loadFromResources)
+    public TrcPath translate(double x, double y)
     {
-        return new TrcPath(inDegrees, TrcWaypoint.loadPointsFromCsv(path, loadFromResources));
-    }   //loadPathFromCsv
+        TrcWaypoint[] points = new TrcWaypoint[waypoints.length];
+        for (int i = 0; i < waypoints.length; i++)
+        {
+            TrcWaypoint wp = new TrcWaypoint(waypoints[i]);
+            wp.x += x;
+            wp.y += y;
+            points[i] = wp;
+        }
+        return new TrcPath(inDegrees, points);
+    }
+
+    /**
+     * Insert a waypoint in the middle of the path.
+     *
+     * @param index The index to insert the new point, in the range [0, <code>getSize()</code>]
+     * @param waypoint The waypoint to insert.
+     * @return A new {@link TrcPath} object with the waypoint inserted.
+     */
+    public TrcPath insertWaypoint(int index, TrcWaypoint waypoint)
+    {
+        TrcWaypoint[] newPoints = new TrcWaypoint[waypoints.length + 1];
+        System.arraycopy(waypoints, 0, newPoints, 0, index);
+        newPoints[index] = waypoint;
+        System.arraycopy(waypoints, index, newPoints, index+1, waypoints.length - index);
+        return new TrcPath(inDegrees, newPoints);
+    }
 
     /**
      * This method returns the waypoint at the given index of the path.

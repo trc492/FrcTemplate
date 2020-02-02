@@ -212,11 +212,7 @@ public class Simulator
                     int point2Y = getHeight() - round((points[i+1].y+ySize/2) * scaleFactor);
                     g.drawLine(pointX, pointY, point2X, point2Y);
                     g.fillOval(point2X - pointSize / 2, point2Y - pointSize / 2, pointSize, pointSize);
-
                 }
-                int pointX = round(points[points.length - 1].x * scaleFactor);
-                int pointY = getHeight() - round(points[points.length - 1].y * scaleFactor);
-                g.fillOval(pointX - pointSize / 2, pointY - pointSize / 2, pointSize, pointSize);
             }
         }
     }
