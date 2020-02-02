@@ -33,12 +33,19 @@ public class RobotInfo
     public static final double FIELD_LENGTH                     = 54*12.0;
     public static final double FIELD_WIDTH                      = 27*12.0;
 
+    // origin is on the initiation line, all the way to the left
+    public static final double INITIATION_LINE_TO_ALLIANCE_WALL = 120;
+    public static final double TARGET_X_POS = 210;// TODO: this isn't correct. calculate/find out
+
     public static final double HIGH_TARGET_HEIGHT = 98;
     public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81, HIGH_TARGET_HEIGHT);
     public static final double PIVOT_HEIGHT = 15.0; // in from ground
 
-    public static final double ROBOT_WIDTH = 18.125;
-    public static final double ROBOT_LENGTH = 18.5;
+    public static final double ROBOT_WIDTH = 28;
+    public static final double ROBOT_LENGTH = 28;
+
+    public static final double ROBOT_DRIVE_WIDTH = 18.125;
+    public static final double ROBOT_DRIVE_LENGTH = 18.5;
 
     public static final double BATTERY_CAPACITY_WATT_HOUR       = 18.0*12.0;
 

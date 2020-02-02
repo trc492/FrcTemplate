@@ -50,9 +50,9 @@ public class VisionTargeting
         return vision.getLastPose();
     }
 
-    public void setRingLightEnabled(boolean enabled)
+    public void setEnabled(boolean enabled)
     {
-        vision.setRingLightEnabled(enabled);
+        vision.setEnabled(enabled);
     }
 
     public FrcRemoteVisionProcessor.RelativePose getMedianPose(int numFrames, boolean requireAll)

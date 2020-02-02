@@ -69,7 +69,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (robot.preferences.useVision)
         {
-            robot.vision.setRingLightEnabled(true);
+            robot.vision.setEnabled(true);
         }
 
         if (robot.preferences.debugLoopTime)

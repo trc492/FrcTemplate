@@ -25,27 +25,51 @@ package team492;
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
+import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
+import trclib.TrcPose2D;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = "FrcAuto";
+    private static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
 
     public enum AutoStrategy
     {
         X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
+    private enum StartPosition
+    {
+        LEFT_BUMPER_FEEDER(106.66 + RobotInfo.ROBOT_WIDTH / 2), IN_VISION(0), CUSTOM(0);
+
+        private double xPos;
+
+        StartPosition(double xPos)
+        {
+            this.xPos = xPos;
+        }
+
+        public double getXPos()
+        {
+            return xPos;
+        }
+    }
+
     private final Robot robot;
     //
     // Menus.
     //
     private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
+    private FrcChoiceMenu<StartPosition> startPosMenu;
     private AutoStrategy autoStrategy;
     private double delay;
+    private TrcTaskMgr.TaskObject populateTask;
+    private StartPosition lastPos = null;
 
     private TrcRobot.RobotCommand autoCommand;
 
@@ -65,7 +89,26 @@ public class FrcAuto implements TrcRobot.RobotMode
         autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE);
         autoStrategyMenu.addChoice("Turn Degrees", AutoStrategy.TURN_DEGREES);
         autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
+
+        startPosMenu = new FrcChoiceMenu<>("Auto/StartPositions");
+        startPosMenu.addChoice("Left Bumper Feeder", StartPosition.LEFT_BUMPER_FEEDER, true, false);
+        startPosMenu.addChoice("In Vision", StartPosition.IN_VISION);
+        startPosMenu.addChoice("Custom", StartPosition.CUSTOM, false, true);
+
+        HalDashboard.refreshKey(CUSTOM_XPOS_KEY, 0.0);
+        populateTask = TrcTaskMgr.getInstance().createTask("PopulateTask", this::populateTask);
+        populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
     }   // FrcAuto
+
+    private void populateTask(TrcTaskMgr.TaskType taskType, RunMode runMode)
+    {
+        StartPosition currChoice = startPosMenu.getCurrentChoiceObject();
+        if (currChoice != lastPos)
+        {
+            HalDashboard.putNumber(CUSTOM_XPOS_KEY, currChoice.getXPos());
+            lastPos = currChoice;
+        }
+    }
 
     public boolean isAutoActive()
     {
@@ -91,6 +134,8 @@ public class FrcAuto implements TrcRobot.RobotMode
     {
         final String funcName = moduleName + ".startMode";
 
+        populateTask.unregisterTask();
+
         robot.driveBase.resetOdometry(true, true);
         robot.shooter.zeroCalibratePitch();
 
@@ -98,10 +143,12 @@ public class FrcAuto implements TrcRobot.RobotMode
 
         if (robot.preferences.useVision)
         {
-            robot.vision.setRingLightEnabled(true);
+            robot.vision.setEnabled(true);
         }
 
         robot.setNumBalls(3);
+
+        relocalizeAtStart();
 
         robot.getGameInfo();
         robot.globalTracer
@@ -146,6 +193,28 @@ public class FrcAuto implements TrcRobot.RobotMode
         }
     }   // startMode
 
+    private void relocalizeAtStart()
+    {
+        double x = HalDashboard.getNumber(CUSTOM_XPOS_KEY, 0);
+        double y = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - robot.alignment.getShortestDistanceToWall()
+            - RobotInfo.ROBOT_LENGTH / 2;
+        double angle = -robot.alignment.getAngleToWall();
+        if (startPosMenu.getCurrentChoiceObject() == StartPosition.IN_VISION)
+        {
+            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
+            if (pose != null)
+            {
+                TrcPose2D p = new TrcPose2D(pose.x, pose.y);
+                x = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - p.relativeTo(new TrcPose2D(0, 0, -angle)).x;
+            }
+            else
+            {
+                x = RobotInfo.TARGET_X_POS;
+            }
+        }
+        robot.driveBase.setFieldPosition(new TrcPose2D(x, y, angle));
+    }
+
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
@@ -153,6 +222,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             autoCommand.cancel();
         }
+        populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
         TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
     }   // stopMode
 

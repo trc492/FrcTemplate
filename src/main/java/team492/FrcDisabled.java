@@ -22,11 +22,14 @@
 
 package team492;
 
+import hallib.HalDashboard;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
 public class FrcDisabled implements TrcRobot.RobotMode
 {
+    private static final String disableSensorsKey = "DisableSensorsToggle";
+
     private final Robot robot;
 
     public FrcDisabled(Robot robot)
@@ -41,9 +44,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
+        robot.alignment.enableRanging();
         if (robot.preferences.useVision)
         {
-            robot.vision.setRingLightEnabled(false);
+            robot.vision.setEnabled(true);
         }
     }   // startMode
 
@@ -56,9 +60,21 @@ public class FrcDisabled implements TrcRobot.RobotMode
     public void runPeriodic(double elapsedTime)
     {
         robot.updateDashboard(RunMode.DISABLED_MODE);
-        if (robot.preferences.useVision)
+        if (HalDashboard.getBoolean(disableSensorsKey, false))
         {
-            robot.vision.setRingLightEnabled(false);
+            robot.alignment.disableRanging();
+            if (robot.preferences.useVision)
+            {
+                robot.vision.setEnabled(false);
+            }
+        }
+        else
+        {
+            robot.alignment.enableRanging();
+            if (robot.preferences.useVision)
+            {
+                robot.vision.setEnabled(true);
+            }
         }
     }   // runPeriodic
 

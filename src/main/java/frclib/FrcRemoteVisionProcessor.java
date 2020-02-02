@@ -58,8 +58,7 @@ public abstract class FrcRemoteVisionProcessor
         networkTable = instance.getTable(networkTableName);
         instance.addConnectionListener(this::connectionListener, false);
         visionTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".visionTask", this::updateTargetInfo);
-        // TODO: Maybe make this standalone? We'll see.
-        visionTaskObj.registerTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);
+        setEnabled(false);
     }
 
     public FrcRemoteVisionProcessor(String instanceName, String networkTableName, int relayPort)
@@ -72,6 +71,24 @@ public abstract class FrcRemoteVisionProcessor
     public String toString()
     {
         return instanceName;
+    }
+
+    /**
+     * Enables or disables the remote vision processor. The ring light is also enabled or disabled accordingly.
+     *
+     * @param enabled If true, enable the ring light and processor. Disable both otherwise.
+     */
+    public void setEnabled(boolean enabled)
+    {
+        setRingLightEnabled(enabled);
+        if (enabled)
+        {
+            visionTaskObj.registerTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);
+        }
+        else
+        {
+            visionTaskObj.unregisterTask();
+        }
     }
 
     /**

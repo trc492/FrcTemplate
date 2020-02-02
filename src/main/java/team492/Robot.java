@@ -332,7 +332,7 @@ public class Robot extends FrcRobotBase
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_BACK_WHEEL, "RightBackWheel"));
 
         driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel, gyro,
-            RobotInfo.ROBOT_WIDTH, RobotInfo.ROBOT_LENGTH);
+            RobotInfo.ROBOT_DRIVE_WIDTH, RobotInfo.ROBOT_DRIVE_LENGTH);
         driveBase.setOdometryScales(RobotInfo.ENCODER_INCHES_PER_COUNT);
         driveMode = DriveMode.HOLONOMIC_MODE;
         driveInverted = false;
