@@ -1,18 +1,22 @@
 package team492;
 
+import frclib.FrcRemoteVisionProcessor;
 import trclib.TrcEvent;
 import trclib.TrcPath;
+import trclib.TrcPose2D;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;
+import trclib.TrcUtil;
 
 public class CmdShooterAuto implements TrcRobot.RobotCommand
 {
     private static final String instanceName = "CmdShooterAuto";
+    private static final double relocalizationTimeout = 0.5;
 
     private enum State
     {
-        DELAY, MOVE_TO_SHOOT, SHOOT, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, DONE
+        DELAY, MOVE_TO_SHOOT, SHOOT, RELOCALIZE, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, DONE
     }
 
     public enum AfterAction
@@ -22,6 +26,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private Robot robot;
     private TrcStateMachine<State> sm;
+    private double relocalizationTimedOutTime;
     private TrcEvent event;
     private TrcTimer timer;
     private double delay;
@@ -97,7 +102,15 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case SHOOT:
                     robot.autoShooter.shoot(instanceName, robot.getNumBalls(), 2, TaskAutoShooter.Mode.BOTH, event);
-                    sm.waitForSingleEvent(event, afterAction == AfterAction.NOTHING ? State.DONE : State.PICKUP);
+                    relocalizationTimedOutTime = TrcUtil.getCurrentTime() + relocalizationTimeout;
+                    sm.waitForSingleEvent(event, State.RELOCALIZE);
+                    break;
+
+                case RELOCALIZE:
+                    if (relocalizeWithVision() || TrcUtil.getCurrentTime() >= relocalizationTimedOutTime)
+                    {
+                        sm.setState(afterAction == AfterAction.NOTHING ? State.DONE : State.PICKUP);
+                    }
                     break;
 
                 case PICKUP:
@@ -105,7 +118,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     path = createPickupPath();
                     robot.intake.intakeMultiple();
                     robot.purePursuit.start(path, event, 5);
-                    sm.waitForSingleEvent(event, afterAction == AfterAction.INTAKE ? State.DONE : State.MOVE_TO_SHOOT_2);
+                    sm.waitForSingleEvent(event,
+                        afterAction == AfterAction.INTAKE ? State.DONE : State.MOVE_TO_SHOOT_2);
                     break;
 
                 case MOVE_TO_SHOOT_2:
@@ -128,6 +142,18 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             }
         }
         return false;
+    }
+
+    private boolean relocalizeWithVision()
+    {
+        FrcRemoteVisionProcessor.RelativePose relPose = robot.vision.getLastPose();
+        if (relPose == null) return false;
+        TrcPose2D p = new TrcPose2D(relPose.x, relPose.y);
+        double heading = robot.driveBase.getHeading();
+        TrcPose2D inFieldFrame = p.relativeTo(new TrcPose2D(0, 0, -heading));
+        TrcPose2D pose = new TrcPose2D(RobotInfo.TARGET_X_POS - inFieldFrame.x, RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - inFieldFrame.y, heading);
+        robot.driveBase.setFieldPosition(pose);
+        return true;
     }
 
     @Override
