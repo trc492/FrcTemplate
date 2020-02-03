@@ -98,7 +98,7 @@ public class TrcPath
     /**
      * Insert a waypoint in the middle of the path.
      *
-     * @param index The index to insert the new point, in the range [0, <code>getSize()</code>]
+     * @param index    The index to insert the new point, in the range [0, <code>getSize()</code>]
      * @param waypoint The waypoint to insert.
      * @return A new {@link TrcPath} object with the waypoint inserted.
      */
@@ -107,9 +107,126 @@ public class TrcPath
         TrcWaypoint[] newPoints = new TrcWaypoint[waypoints.length + 1];
         System.arraycopy(waypoints, 0, newPoints, 0, index);
         newPoints[index] = waypoint;
-        System.arraycopy(waypoints, index, newPoints, index+1, waypoints.length - index);
+        System.arraycopy(waypoints, index, newPoints, index + 1, waypoints.length - index);
         return new TrcPath(inDegrees, newPoints);
     }
+
+    public TrcPath clone()
+    {
+        TrcWaypoint[] points = new TrcWaypoint[waypoints.length];
+        for (int i = 0; i < points.length; i++)
+        {
+            points[i] = new TrcWaypoint(waypoints[i]);
+        }
+        return new TrcPath(inDegrees, points);
+    }
+
+    /**
+     * Set the velocity and accelerations of the waypoints in the path to follow a trapezoidal velocity profile.
+     * This is characterized by maxVel and maxAccel. Up to two points will be inserted into the path to make the
+     * robot accelerate at maxAccel. Between those two points, the robot velocity will be maxVel.
+     *
+     * @param maxVel   The maximum velocity of the path, with matching units.
+     * @param maxAccel The maximum acceleration of the path, with matching units.
+     * @return A new {@link TrcPath} object, with the velocities and accelerations matching the profile.
+     */
+    public TrcPath trapezoidVelocity(double maxVel, double maxAccel)
+    {
+        maxVel = Math.abs(maxVel);
+        maxAccel = Math.abs(maxAccel);
+        TrcPath path = clone();
+        for (TrcWaypoint waypoint : path.getAllWaypoints())
+        {
+            waypoint.velocity = maxVel;
+            waypoint.acceleration = 0;
+        }
+        path.waypoints[0].velocity = 0;
+        path.waypoints[0].acceleration = maxAccel;
+
+        // v/t = a, v*t/2 = d (constant acceleration from rest is a triangle)
+        // d = v^2/(2*a)
+        double dist = Math.pow(maxVel, 2) / (2 * maxAccel); // this is the distance required to get up to speed
+        double length = 0;
+        // Iterate forwards, ramping up the velocity to maxVel, at the rate maxAccel
+        // Stop when the partial arclength exceeds the speed up distance
+        // This creates the first "ramp up" of the trapezoid
+        for (int i = 0; i < path.getSize() - 1; i++)
+        {
+            TrcWaypoint from = path.waypoints[i];
+            TrcWaypoint to = path.waypoints[i + 1];
+            double segLength = from.distanceTo(to);
+            length += segLength;
+            if (length <= dist)
+            {
+                to.velocity = Math.sqrt(2 * length * maxAccel);
+                to.acceleration = maxAccel;
+            }
+            else
+            {
+                double prevDist = length - segLength;
+                TrcWaypoint inserted = interpolate(from, to, (dist - prevDist) / segLength);
+                inserted.velocity = maxVel;
+                inserted.acceleration = 0;
+                path = path.insertWaypoint(i + 1, inserted);
+                break;
+            }
+        }
+
+        // End at rest
+        path.waypoints[path.getSize() - 1].velocity = 0;
+        path.waypoints[path.getSize() - 1].acceleration = 0;
+        length = 0;
+        // Same as before, but backwards from the end. This creates the "ramp down" of the trapezoid.
+        for (int i = path.getSize() - 1; i > 0; i--)
+        {
+            TrcWaypoint from = path.waypoints[i - 1];
+            TrcWaypoint to = path.waypoints[i];
+            double segLength = from.distanceTo(to);
+            length += segLength;
+            if (length <= dist)
+            {
+                double vel = Math.sqrt(2 * length * maxAccel);
+                if (vel >= from.velocity)
+                    break;
+                from.velocity = vel;
+                from.acceleration = -maxAccel;
+            }
+            else
+            {
+                double prevDist = length - segLength;
+                TrcWaypoint inserted = interpolate(to, from, (dist - prevDist) / segLength);
+                inserted.velocity = maxVel;
+                inserted.acceleration = -maxAccel;
+                path = path.insertWaypoint(i, inserted);
+                break;
+            }
+        }
+        path.inferTimeSteps();
+        return path;
+    }
+
+    private TrcWaypoint interpolate(TrcWaypoint point1, TrcWaypoint point2, double weight)
+    {
+        double timestep = interpolate(point1.timeStep, point2.timeStep, weight);
+        double x = interpolate(point1.x, point2.x, weight);
+        double y = interpolate(point1.y, point2.y, weight);
+        double position = interpolate(point1.encoderPosition, point2.encoderPosition, weight);
+        double velocity = interpolate(point1.velocity, point2.velocity, weight);
+        double acceleration = interpolate(point1.acceleration, point2.acceleration, weight);
+        double jerk = interpolate(point1.jerk, point2.jerk, weight);
+        double heading = interpolate(point1.heading,
+            TrcWarpSpace.getOptimizedTarget(point2.heading, point1.heading, 360), weight);
+        return new TrcWaypoint(timestep, x, y, position, velocity, acceleration, jerk, heading);
+    }   //interpolate
+
+    private double interpolate(double start, double end, double weight)
+    {
+        if (!TrcUtil.inRange(weight, 0.0, 1.0))
+        {
+            throw new IllegalArgumentException("Weight must be in range [0,1]!");
+        }
+        return (1.0 - weight) * start + weight * end;
+    }   //interpolate
 
     /**
      * This method returns the waypoint at the given index of the path.

@@ -2,11 +2,26 @@ package trclib;
 
 import static org.junit.Assert.assertEquals;
 
-//import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 public class TrcPathTest
 {
+    @Test
+    public void trapezoidVelocityTest()
+    {
+        TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(), new TrcPose2D(0, 0.5), new TrcPose2D(0, 5), new TrcPose2D(-5, 10) };
+        TrcPath path = new TrcPath(
+            Arrays.stream(poses).map(pose -> new TrcWaypoint(pose, null)).toArray(TrcWaypoint[]::new));
+        TrcPath trapezoid = path.trapezoidVelocity(10, 50);
+        for (TrcWaypoint point : trapezoid.getAllWaypoints())
+        {
+            System.out.println(point);
+        }
+        assertEquals(poses.length + 2, trapezoid.getSize());
+    }
+
     @Test
     public void getSizeTest()
     {

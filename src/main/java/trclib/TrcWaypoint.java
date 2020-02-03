@@ -95,8 +95,8 @@ public class TrcWaypoint
      */
     public TrcWaypoint(TrcPose2D position, TrcPose2D velocity)
     {
-        this(0, position.x, position.y, 0,
-             velocity != null? TrcUtil.magnitude(velocity.x, velocity.y): 0.0, 0, 0, position.angle);
+        this(0, position.x, position.y, 0, velocity != null ? TrcUtil.magnitude(velocity.x, velocity.y) : 0.0, 0, 0,
+            position.angle);
     }   //TrcWaypoint
 
     /**
@@ -176,4 +176,11 @@ public class TrcWaypoint
         return TrcUtil.magnitude(point.x - x, point.y - y);
     }   //distanceTo
 
+    @Override
+    public String toString()
+    {
+        return String
+            .format("(timestep=%.3f, x=%.2f, y=%.2f, encPos=%.1f, vel=%.2f, accel=%.2f, jerk=%.2f, heading=%.1f",
+                timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading);
+    }
 }   //class TrcWaypoint

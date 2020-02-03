@@ -114,10 +114,9 @@ public class PathFollowingTest
     @Test
     public void purePursuitTest()
     {
-        TrcPose2D[][] poses = new TrcPose2D[][] { { new TrcPose2D(0, 0), null },
-            { new TrcPose2D(2, 2, 90), new TrcPose2D(3, 3) }, { new TrcPose2D(2, 5, 90), null } };
-        TrcPath path = new TrcPath(
-            Arrays.stream(poses).map(p -> new TrcWaypoint(p[0], p[1])).toArray(TrcWaypoint[]::new));
+        TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(0, 0), new TrcPose2D(2, 2, 90), new TrcPose2D(2, 5, 90) };
+        TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p, null)).toArray(TrcWaypoint[]::new));
+        path = path.trapezoidVelocity(5, 10);
         s.addPath(path);
         s.start();
 
@@ -127,7 +126,7 @@ public class PathFollowingTest
 
         assertTimeout(event, 5000);
 
-        TrcPose2D end = poses[poses.length - 1][0];
+        TrcPose2D end = poses[poses.length - 1];
         assertPosition(driveBase.getFieldPosition().relativeTo(ref), end);
     }
 }
