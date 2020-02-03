@@ -178,6 +178,10 @@ public class TaskAutoShooter
         {
             return; // don't interrupt a current operation
         }
+        if (instanceName == null)
+        {
+            instanceName = this.instanceName;
+        }
         this.mode = mode;
         if (shouldAlign() && !robot.driveBase.acquireExclusiveAccess(instanceName))
         {

@@ -156,7 +156,7 @@ public class TaskAutoAlign
         if (!robot.autoShooter.isActive() && Math.abs(xPid.getError()) <= X_TOLERANCE
             && Math.abs(yPid.getError()) <= Y_TOLERANCE && Math.abs(rotPid.getError()) <= ANGLE_TOLERANCE)
         {
-            robot.autoShooter.shoot(3, 5.0, TaskAutoShooter.Mode.SHOOT_ONLY, event);
+            robot.autoShooter.shoot(null, 3, 5.0, TaskAutoShooter.Mode.SHOOT_ONLY, event);
         }
     }
 }
