@@ -1,6 +1,7 @@
 package trclib;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -11,15 +12,31 @@ public class TrcPathTest
     @Test
     public void trapezoidVelocityTest()
     {
-        TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(), new TrcPose2D(0, 0.5), new TrcPose2D(0, 5), new TrcPose2D(-5, 10) };
+        TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(), new TrcPose2D(0, 0.5), new TrcPose2D(0, 5),
+            new TrcPose2D(-5, 10) };
         TrcPath path = new TrcPath(
             Arrays.stream(poses).map(pose -> new TrcWaypoint(pose, null)).toArray(TrcWaypoint[]::new));
-        TrcPath trapezoid = path.trapezoidVelocity(10, 50);
-        for (TrcWaypoint point : trapezoid.getAllWaypoints())
+        testTrapezoid(path, 10, 50);
+        testTrapezoid(path, 50, 10);
+    }
+
+    private void testTrapezoid(TrcPath path, double maxVel, double maxAccel)
+    {
+        TrcPath trapezoid = path.trapezoidVelocity(maxVel, maxAccel);
+        // up to two points inserted
+        assertTrue(TrcUtil.inRange(trapezoid.getSize(), path.getSize(), path.getSize() + 2, true));
+        for (int i = 0; i < trapezoid.getSize(); i++)
         {
-            System.out.println(point);
+            TrcWaypoint from = trapezoid.getWaypoint(0);
+            TrcWaypoint to = trapezoid.getWaypoint(1);
+            assertEquals(from.distanceTo(to), TrcUtil.average(from.velocity, to.velocity) * from.timeStep, 1e-3);
+            assertEquals(from.acceleration, Math.abs(to.velocity - from.velocity) / from.timeStep, 1e-3);
         }
-        assertEquals(poses.length + 2, trapezoid.getSize());
+        // average velocity must be less than the maximum velocity
+        assertTrue(trapezoid.getArcLength() / trapezoid.getPathDuration() < maxVel);
+        // The first and last points must have zero velocity
+        assertEquals(0, trapezoid.getWaypoint(0).velocity, 1e-6);
+        assertEquals(0, trapezoid.getWaypoint(trapezoid.getSize() - 1).velocity, 1e-6);
     }
 
     @Test
