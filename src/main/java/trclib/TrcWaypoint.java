@@ -180,7 +180,7 @@ public class TrcWaypoint
     public String toString()
     {
         return String
-            .format("(timestep=%.3f, x=%.2f, y=%.2f, encPos=%.1f, vel=%.2f, accel=%.2f, jerk=%.2f, heading=%.1f",
+            .format("(timestep=%.3f,x=%.2f,y=%.2f,encPos=%.1f,vel=%.2f,accel=%.2f,jerk=%.2f,heading=%.1f)",
                 timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading);
     }
 }   //class TrcWaypoint
