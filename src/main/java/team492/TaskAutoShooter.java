@@ -30,6 +30,8 @@ public class TaskAutoShooter
     private int ballsToShoot;
     private TrcPidController headingPid;
     private Mode mode;
+    private boolean releaseConveyor, releaseDriveBase;
+    private String owner;
 
     public TaskAutoShooter(Robot robot)
     {
@@ -63,13 +65,19 @@ public class TaskAutoShooter
         headingPid.reset();
         if (shouldAlign())
         {
-            robot.driveBase.stop(instanceName);
-            robot.driveBase.releaseExclusiveAccess(instanceName);
+            robot.driveBase.stop(owner);
+            if (releaseDriveBase)
+            {
+                robot.driveBase.releaseExclusiveAccess(owner);
+            }
         }
         if (shouldShoot())
         {
-            robot.conveyor.stop(instanceName);
-            robot.conveyor.releaseExclusiveAccess(instanceName);
+            robot.conveyor.stop(owner);
+            if (releaseConveyor)
+            {
+                robot.conveyor.releaseExclusiveAccess(owner);
+            }
         }
     }
 
@@ -94,7 +102,7 @@ public class TaskAutoShooter
         }
         if (shouldAlign())
         {
-            robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
+            robot.driveBase.holonomicDrive(owner, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
                 robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
         }
         if (traj != null)
@@ -109,7 +117,7 @@ public class TaskAutoShooter
                 robot.ledIndicator.setShooterReady(true);
                 if (shouldShoot())
                 {
-                    robot.conveyor.shoot(instanceName, event);
+                    robot.conveyor.shoot(owner, event);
                 }
             }
             else
@@ -168,7 +176,7 @@ public class TaskAutoShooter
         shoot(instanceName, numBalls, timeout, Mode.BOTH, null);
     }
 
-    public void shoot(String instanceName, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
+    public void shoot(String owner, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
     {
         if (onFinishedEvent != null)
         {
@@ -178,33 +186,36 @@ public class TaskAutoShooter
         {
             return; // don't interrupt a current operation
         }
-        if (instanceName == null)
+        if (owner == null)
         {
-            instanceName = this.instanceName;
+            owner = this.instanceName;
         }
         this.mode = mode;
-        if (shouldAlign() && !robot.driveBase.acquireExclusiveAccess(instanceName))
+        releaseDriveBase = !TrcOwnershipManager.getInstance().hasOwnership(owner, robot.driveBase);
+        releaseConveyor = !TrcOwnershipManager.getInstance().hasOwnership(owner, robot.conveyor);
+        if (shouldAlign() && !robot.driveBase.acquireExclusiveAccess(owner))
         {
             if (onFinishedEvent != null)
             {
                 onFinishedEvent.cancel();
             }
             robot.globalTracer
-                .traceErr("TaskAutoShooter.shoot", "Unable to acquire exclusive access of drivebase! CurrOwner=%s",
+                .traceErr(owner + ".shoot", "Unable to acquire exclusive access of drivebase! CurrOwner=%s",
                     TrcOwnershipManager.getInstance().getOwner(robot.driveBase));
             return;
         }
-        if (shouldShoot() && !robot.conveyor.acquireExclusiveAccess(instanceName))
+        if (shouldShoot() && !robot.conveyor.acquireExclusiveAccess(owner))
         {
             if (onFinishedEvent != null)
             {
                 onFinishedEvent.cancel();
             }
             robot.globalTracer
-                .traceErr("TaskAutoShooter.shoot", "Unable to acquire exclusive access of conveyor! CurrOwner=%s",
+                .traceErr(owner + ".shoot", "Unable to acquire exclusive access of conveyor! CurrOwner=%s",
                     TrcOwnershipManager.getInstance().getOwner(robot.conveyor));
             return;
         }
+        this.owner = owner;
         timedOutTime = timeout == 0.0 ? Double.POSITIVE_INFINITY : TrcUtil.getCurrentTime() + timeout;
         ballsToShoot = numBalls;
         this.onFinishedEvent = onFinishedEvent;

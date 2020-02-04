@@ -45,6 +45,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         this.delay = delay;
         this.afterAction = afterAction;
         sm.start(State.DELAY);
+        robot.globalTracer.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,afterAction=%s", delay,
+            afterAction.name());
     }
 
     private TrcPath createToShootPath()
@@ -72,6 +74,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
+            robot.globalTracer.traceInfo(instanceName + ".cmdPeriodic", "[%.3f] CurrState=%s", state.name());
             TrcPath path;
             switch (state)
             {
@@ -160,6 +163,9 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         TrcPose2D inFieldFrame = p.relativeTo(new TrcPose2D(0, 0, -heading));
         TrcPose2D pose = new TrcPose2D(RobotInfo.TARGET_X_POS - inFieldFrame.x,
             RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - inFieldFrame.y, heading);
+        robot.globalTracer
+            .traceInfo(instanceName + ".relocalizeWithVision", "CameraRelPose=%s,NewPose=%s", p.toString(),
+                pose.toString());
         robot.driveBase.setFieldPosition(pose);
         return true;
     }
