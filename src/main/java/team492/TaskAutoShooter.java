@@ -47,7 +47,7 @@ public class TaskAutoShooter
 
     private double getAngleFromWall()
     {
-        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
+        FrcRemoteVisionProcessor.RelativePose pose = robot.preferences.useVision ? robot.vision.getLastPose() : null;
         return pose != null ? -pose.theta : 0.0; // make negative so control effort is positive
     }
 

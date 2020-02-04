@@ -63,6 +63,7 @@ public class TaskAutoAlign
 
     private double getXDistanceFromTarget()
     {
+        if (!robot.preferences.useVision) return 0;
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
         if (pose == null)
             return 0.0;
