@@ -26,7 +26,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private Robot robot;
     private TrcStateMachine<State> sm;
-    private double relocalizationTimedOutTime;
+    private Double relocalizationTimedOutTime = null;
     private TrcEvent event;
     private TrcTimer timer;
     private double delay;
@@ -49,7 +49,9 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private TrcPath createToShootPath()
     {
-        throw new IllegalStateException("Not implemented yet!"); // TODO: implement
+        double targetY = -RobotInfo.ROBOT_LENGTH - 10;
+        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY, 0);
+        return null;
     }
 
     private TrcPath createPickupPath()
@@ -102,11 +104,15 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case SHOOT:
                     robot.autoShooter.shoot(instanceName, robot.getNumBalls(), 2, TaskAutoShooter.Mode.BOTH, event);
-                    relocalizationTimedOutTime = TrcUtil.getCurrentTime() + relocalizationTimeout;
+                    relocalizationTimedOutTime = null;
                     sm.waitForSingleEvent(event, State.RELOCALIZE);
                     break;
 
                 case RELOCALIZE:
+                    if (relocalizationTimedOutTime == null)
+                    {
+                        relocalizationTimedOutTime = TrcUtil.getCurrentTime() + relocalizationTimeout;
+                    }
                     if (relocalizeWithVision() || TrcUtil.getCurrentTime() >= relocalizationTimedOutTime)
                     {
                         sm.setState(afterAction == AfterAction.NOTHING ? State.DONE : State.PICKUP);
@@ -147,11 +153,13 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     private boolean relocalizeWithVision()
     {
         FrcRemoteVisionProcessor.RelativePose relPose = robot.vision.getLastPose();
-        if (relPose == null) return false;
+        if (relPose == null)
+            return false;
         TrcPose2D p = new TrcPose2D(relPose.x, relPose.y);
         double heading = robot.driveBase.getHeading();
         TrcPose2D inFieldFrame = p.relativeTo(new TrcPose2D(0, 0, -heading));
-        TrcPose2D pose = new TrcPose2D(RobotInfo.TARGET_X_POS - inFieldFrame.x, RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - inFieldFrame.y, heading);
+        TrcPose2D pose = new TrcPose2D(RobotInfo.TARGET_X_POS - inFieldFrame.x,
+            RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - inFieldFrame.y, heading);
         robot.driveBase.setFieldPosition(pose);
         return true;
     }
