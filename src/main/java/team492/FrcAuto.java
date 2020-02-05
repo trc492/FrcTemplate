@@ -104,6 +104,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         shooterAutoAfterMenu.addChoice("Nothing", CmdShooterAuto.AfterAction.NOTHING, false, true);
 
         HalDashboard.refreshKey(CUSTOM_XPOS_KEY, 0.0);
+        HalDashboard.refreshKey("Auto/Delay", 0.0);
         populateTask = TrcTaskMgr.getInstance().createTask("PopulateTask", this::populateTask);
         populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
     }   // FrcAuto

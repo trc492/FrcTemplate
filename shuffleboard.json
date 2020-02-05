@@ -212,8 +212,8 @@
         "tiles": {
           "0,0": {
             "size": [
-              4,
-              2
+              6,
+              3
             ],
             "content": {
               "_type": "ComboBox Chooser",
@@ -221,54 +221,10 @@
               "_title": "AutoStrategies"
             }
           },
-          "4,0": {
+          "17,0": {
             "size": [
               4,
-              2
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/StartPos",
-              "_title": "StartPos"
-            }
-          },
-          "8,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/FastDelivery",
-              "_title": "FastDelivery"
-            }
-          },
-          "12,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/Lanes",
-              "_title": "Lanes"
-            }
-          },
-          "16,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/ScaleOrSwitch",
-              "_title": "ScaleOrSwitch"
-            }
-          },
-          "0,3": {
-            "size": [
-              4,
-              2
+              3
             ],
             "content": {
               "_type": "Text View",
@@ -276,37 +232,37 @@
               "_title": "Delay"
             }
           },
-          "4,3": {
+          "0,4": {
             "size": [
-              4,
-              2
+              6,
+              3
             ],
             "content": {
               "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/GetSecondCube",
-              "_title": "GetSecondCube"
+              "_source0": "network_table:///SmartDashboard/Auto/ShooterAutoAfterAction",
+              "_title": "/ShooterAutoAfterAction"
             }
           },
-          "8,3": {
+          "6,0": {
+            "size": [
+              7,
+              3
+            ],
+            "content": {
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Auto/StartPositions",
+              "_title": "/StartPositions"
+            }
+          },
+          "13,0": {
             "size": [
               4,
-              2
+              3
             ],
             "content": {
               "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Auto/FwdDistance",
-              "_title": "FwdDistance"
-            }
-          },
-          "12,3": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto/UseSonar",
-              "_title": "UseSonar"
+              "_source0": "network_table:///SmartDashboard/Auto/CustomXPos",
+              "_title": "/CustomXPos"
             }
           }
         }
@@ -431,93 +387,6 @@
               "_source0": "network_table:///SmartDashboard/Test/TuneKf",
               "_title": "TuneKf"
             }
-          },
-          "0,12": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Test/GrabberHoldPower",
-              "_title": "GrabberHoldPower"
-            }
-          },
-          "0,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Test/DRIVEBASE",
-              "_title": "DRIVEBASE",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "4,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Test/ELEVATOR",
-              "_title": "ELEVATOR",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "8,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Test/SENSORS",
-              "_title": "SENSORS",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "12,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Test/PRESSURE",
-              "_title": "PRESSURE",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Test/GRABBER",
-              "_title": "GRABBER",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,0": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Test/PickupCurrent",
-              "_title": "/PickupCurrent"
-            }
           }
         }
       }
@@ -611,18 +480,6 @@
               "_title": "heading"
             }
           },
-          "12,0": {
-            "size": [
-              13,
-              8
-            ],
-            "content": {
-              "_type": "Mecanum Drivebase",
-              "_source0": "network_table:///SmartDashboard/DriveBase/Mecanum_Drive",
-              "_title": "/Mecanum_Drive",
-              "Visuals/Show velocity vectors": true
-            }
-          },
           "25,0": {
             "size": [
               6,
@@ -634,7 +491,8 @@
               "_title": "/SmartDashboard/RobotHeading",
               "Visuals/Major tick spacing": 45.0,
               "Visuals/Starting angle": 180.0,
-              "Visuals/Show tick mark ring": true
+              "Visuals/Show tick mark ring": true,
+              "Visuals/Counter clockwise": false
             }
           }
         }
@@ -696,7 +554,7 @@
             "content": {
               "_type": "Boolean Box",
               "_source0": "network_table:///SmartDashboard/Camera/AlignmentCenter",
-              "_title": "SmartDashboard/Camera/AlignmentCenter",
+              "_title": "/SmartDashboard/Camera/AlignmentCenter",
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
@@ -709,7 +567,7 @@
             "content": {
               "_type": "Boolean Box",
               "_source0": "network_table:///SmartDashboard/Camera/AlignmentLeft",
-              "_title": "SmartDashboard/Camera/AlignmentLeft",
+              "_title": "/SmartDashboard/Camera/AlignmentLeft",
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
@@ -722,7 +580,7 @@
             "content": {
               "_type": "Boolean Box",
               "_source0": "network_table:///SmartDashboard/Camera/AlignmentRight",
-              "_title": "SmartDashboard/Camera/AlignmentRight",
+              "_title": "/SmartDashboard/Camera/AlignmentRight",
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
@@ -732,7 +590,7 @@
     },
     {
       "title": "Diagnostics",
-      "autoPopulate": true,
+      "autoPopulate": false,
       "autoPopulatePrefix": "SmartDashboard/Diagnostics",
       "widgetPane": {
         "gridSize": 32.0,
@@ -742,301 +600,229 @@
         "tiles": {
           "0,0": {
             "size": [
-              4,
-              2
+              10,
+              6
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/lf encoder",
-              "_title": "lf encoder",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "List Layout",
+              "_title": "LFWheel",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvSparkConnLF",
+                  "_title": "SmartDashboard/Diagnostics/DrvSparkConnLF",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvMotorConnLF",
+                  "_title": "SmartDashboard/Diagnostics/DrvMotorConnLF",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
             }
           },
-          "4,0": {
+          "10,0": {
             "size": [
-              4,
-              2
+              10,
+              6
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/rf encoder",
-              "_title": "rf encoder",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "8,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/lf motor errors",
-              "_title": "lf motor errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "12,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/rf motor errors",
-              "_title": "rf motor errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,0": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Master grabber motor",
-              "_title": "Master grabber motor",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "List Layout",
+              "_title": "RFWheel",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvSparkConnRF",
+                  "_title": "SmartDashboard/Diagnostics/DrvSparkConnRF",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvMotorConnRF",
+                  "_title": "SmartDashboard/Diagnostics/DrvMotorConnRF",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
             }
           },
           "20,0": {
             "size": [
-              4,
-              2
+              10,
+              6
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Slave grabber motor",
-              "_title": "Slave grabber motor",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "List Layout",
+              "_title": "LRWheel",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvSparkConnLR",
+                  "_title": "SmartDashboard/Diagnostics/DrvSparkConnLR",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvMotorConnLR",
+                  "_title": "SmartDashboard/Diagnostics/DrvMotorConnLR",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
             }
           },
-          "0,3": {
+          "30,0": {
             "size": [
-              4,
-              2
+              10,
+              6
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/lr encoder",
-              "_title": "lr encoder",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "4,3": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/rr encoder",
-              "_title": "rr encoder",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "8,3": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/lr motor errors",
-              "_title": "lr motor errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "12,3": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/rr motor errors",
-              "_title": "rr motor errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,3": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Gyro connected",
-              "_title": "Gyro connected",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "List Layout",
+              "_title": "RRWheel",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvSparkConnRR",
+                  "_title": "SmartDashboard/Diagnostics/DrvSparkConnRR",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/DrvMotorConnRR",
+                  "_title": "SmartDashboard/Diagnostics/DrvMotorConnRR",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
             }
           },
           "0,6": {
             "size": [
-              4,
-              2
+              10,
+              8
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/LOWER elevator stuck",
-              "_title": "LOWER elevator stuck",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "4,6": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/UPPER elevator stuck",
-              "_title": "UPPER elevator stuck",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "8,6": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/elev L switch unchanged",
-              "_title": "elev L switch unchanged",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "12,6": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/elev U switch unchanged",
-              "_title": "elev U switch unchanged",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,6": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/elevator motor errors",
-              "_title": "elevator motor errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "List Layout",
+              "_title": "Elevator",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/ElevatorTalonConn",
+                  "_title": "SmartDashboard/Diagnostics/ElevatorTalonConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/ElevatorMotorConn",
+                  "_title": "SmartDashboard/Diagnostics/ElevatorMotorConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/ElevatorEncoder",
+                  "_title": "SmartDashboard/Diagnostics/ElevatorEncoder",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
             }
           },
           "20,6": {
             "size": [
-              4,
+              10,
+              6
+            ],
+            "content": {
+              "_type": "List Layout",
+              "_title": "Pickup",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/PickupTalonConn",
+                  "_title": "SmartDashboard/Diagnostics/PickupTalonConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/PickupMotorConn",
+                  "_title": "SmartDashboard/Diagnostics/PickupMotorConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
+            }
+          },
+          "10,6": {
+            "size": [
+              10,
+              8
+            ],
+            "content": {
+              "_type": "List Layout",
+              "_title": "List Layout",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/PitchTalonConn",
+                  "_title": "SmartDashboard/Diagnostics/PitchTalonConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/PitchMotorConn",
+                  "_title": "SmartDashboard/Diagnostics/PitchMotorConn",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                },
+                {
+                  "_type": "Boolean Box",
+                  "_source0": "network_table:///SmartDashboard/Diagnostics/PitchEncoder",
+                  "_title": "SmartDashboard/Diagnostics/PitchEncoder",
+                  "Colors/Color when true": "#7CFC00FF",
+                  "Colors/Color when false": "#8B0000FF"
+                }
+              ]
+            }
+          },
+          "30,6": {
+            "size": [
+              10,
               2
             ],
             "content": {
               "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Elevator position",
-              "_title": "Elevator position",
+              "_source0": "network_table:///SmartDashboard/Diagnostics/UsbCamConn",
+              "_title": "SmartDashboard/Diagnostics/UsbCamConn",
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
           },
-          "0,9": {
+          "30,10": {
             "size": [
-              4,
+              10,
               2
             ],
             "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/cube proximity sensor",
-              "_title": "cube proximity sensor",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "4,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/left sonar",
-              "_title": "left sonar",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "8,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/right sonar",
-              "_title": "right sonar",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "12,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Pixy errors",
-              "_title": "Pixy errors",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "16,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Pneumatics working",
-              "_title": "Pneumatics working",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "20,9": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Diagnostics/Pneumatics charged",
-              "_title": "Pneumatics charged",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Diagnostics/CurrState",
+              "_title": "SmartDashboard/Diagnostics/CurrState"
             }
           }
         }
@@ -1051,65 +837,14 @@
         "showGrid": true,
         "hgap": 1.0,
         "vgap": 1.0,
-        "tiles": {
-          "0,0": {
-            "size": [
-              10,
-              4
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Status/CargoDetected",
-              "_title": "CargoDetected",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "10,0": {
-            "size": [
-              10,
-              4
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Status/TurboEnabled",
-              "_title": "TurboEnabled",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "20,0": {
-            "size": [
-              4,
-              4
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Status/TapeDetected",
-              "_title": "/TapeDetected",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "24,0": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Status/DriveSpeed",
-              "_title": "/DriveSpeed"
-            }
-          }
-        }
+        "tiles": {}
       }
     }
   ],
   "windowGeometry": {
     "x": 0.0,
     "y": 0.0,
-    "width": 1366.0,
+    "width": 1366.4000244140625,
     "height": 728.0
   }
 }
