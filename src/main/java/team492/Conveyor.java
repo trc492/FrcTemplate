@@ -25,15 +25,15 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double CONVEYOR_TOLERANCE = 0;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
-    private static final double READY_POWER = 0.4;
-    private static final double SHOOT_POWER = 0.7;
+    private static final double SHOOT_POWER = 1.0;
+    private static final double INTAKE_POWER = 0.7;
 
+    public final FrcDigitalInput exitProximitySensor, entranceProximitySensor;
     private FrcCANTalon motor;
-    private TrcTaskMgr.TaskObject advanceTask;
-    private TrcEvent advanceEvent, readyEvent, shootEvent;
-    private FrcDigitalInput proximitySensor;
+    private TrcTaskMgr.TaskObject advanceTask, intakeTask;
+    private TrcEvent advanceEvent, shootEvent, intakeEvent;
     private final TrcDigitalInputTrigger exitMonitor;
-    private TrcDigitalInputTrigger readyTrigger, shootTrigger;
+    private TrcDigitalInputTrigger shootTrigger;
     private int targetPosTicks = 0;
     private Robot robot;
 
@@ -60,15 +60,34 @@ public class Conveyor implements TrcExclusiveSubsystem
         motor.motor.overrideLimitSwitchesEnable(false);
         motor.resetPosition(true);
 
-        proximitySensor = new FrcDigitalInput("Proximity", RobotInfo.CONVEYOR_PROXIMITY_SENSOR);
-        readyTrigger = new TrcDigitalInputTrigger("ReadyTrigger", proximitySensor, this::readyTriggerEvent);
-        shootTrigger = new TrcDigitalInputTrigger("ShootTrigger", proximitySensor, this::shootTriggerEvent);
-        exitMonitor = new TrcDigitalInputTrigger("ExitMonitorTrigger", proximitySensor, this::exitMonitorEvent);
+        exitProximitySensor = new FrcDigitalInput("ExitProximity", RobotInfo.CONVEYOR_PROXIMITY_SENSOR);
+        entranceProximitySensor = new FrcDigitalInput("EntranceProximity", RobotInfo.INTAKE_PROXIMITY_SENSOR);
+        shootTrigger = new TrcDigitalInputTrigger("ShootTrigger", exitProximitySensor, this::shootTriggerEvent);
+        exitMonitor = new TrcDigitalInputTrigger("ExitMonitorTrigger", exitProximitySensor, this::exitMonitorEvent);
         exitMonitor.setEnabled(true);
 
         advanceTask = TrcTaskMgr.getInstance().createTask("ConveyorAdvanceTask", this::advanceTask);
+        intakeTask = TrcTaskMgr.getInstance().createTask("ConveyorIntakeTask", this::intakeTask);
 
         targetPosTicks = motor.motor.getSelectedSensorPosition();
+    }
+
+    private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
+    {
+        if (exitProximitySensor.isActive() || !entranceProximitySensor.isActive())
+        {
+            motor.set(0);
+            if (intakeEvent != null)
+            {
+                intakeEvent.set(true);
+                intakeEvent = null;
+            }
+            intakeTask.unregisterTask();
+        }
+        else
+        {
+            motor.set(INTAKE_POWER);
+        }
     }
 
     private void exitMonitorEvent(boolean value)
@@ -100,20 +119,6 @@ public class Conveyor implements TrcExclusiveSubsystem
         }
     }
 
-    private void readyTriggerEvent(boolean value)
-    {
-        if (value)
-        {
-            if (readyEvent != null)
-            {
-                readyEvent.set(true);
-                readyEvent = null;
-            }
-            motor.set(0.0);
-            readyTrigger.setEnabled(false);
-        }
-    }
-
     public void setPower(double power)
     {
         setPower(null, power);
@@ -128,8 +133,31 @@ public class Conveyor implements TrcExclusiveSubsystem
         }
     }
 
+    public void intake()
+    {
+        intake(null, null);
+    }
+
+    public void intake(String owner, TrcEvent event)
+    {
+        if (validateOwnership(owner))
+        {
+            if (event != null)
+            {
+                event.clear();
+            }
+            intakeEvent = event;
+
+            intakeTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            shootTrigger.setEnabled(false);
+            advanceTask.unregisterTask();
+
+            motor.set(INTAKE_POWER);
+        }
+    }
+
     /**
-     * Run the conveyor until a ball leaves the conveyor. The ball doesn't have to be readied.
+     * Run the conveyor until a ball leaves the conveyor.
      */
     public void shoot()
     {
@@ -137,7 +165,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     }
 
     /**
-     * Run the conveyor until a ball leaves the conveyor.  The ball doesn't have to be readied.
+     * Run the conveyor until a ball leaves the conveyor.
      *
      * @param owner The name of the routine calling this subsystem.
      *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
@@ -154,53 +182,9 @@ public class Conveyor implements TrcExclusiveSubsystem
             shootEvent = event;
 
             shootTrigger.setEnabled(true);
-            readyTrigger.setEnabled(false);
             advanceTask.unregisterTask();
 
             motor.set(SHOOT_POWER);
-        }
-    }
-
-    /**
-     * Run the conveyor until a ball is on the edge of the conveyor.
-     */
-    public void readyShot()
-    {
-        readyShot(null, null);
-    }
-
-    /**
-     * Run the conveyor until a ball is on the edge of the conveyor.
-     *
-     * @param owner The name of the routine calling this subsystem.
-     *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
-     * @param event The event to signal when done.
-     */
-    public void readyShot(String owner, TrcEvent event)
-    {
-        if (validateOwnership(owner))
-        {
-            if (event != null)
-            {
-                event.clear();
-            }
-
-            if (proximitySensor.isActive())
-            {
-                if (event != null)
-                {
-                    event.set(true);
-                }
-            }
-            else
-            {
-                this.readyEvent = event;
-                shootTrigger.setEnabled(false);
-                readyTrigger.setEnabled(true);
-                advanceTask.unregisterTask();
-
-                motor.set(READY_POWER);
-            }
         }
     }
 
@@ -232,7 +216,6 @@ public class Conveyor implements TrcExclusiveSubsystem
             motor.motor.set(ControlMode.MotionMagic, targetPosTicks);
 
             advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-            readyTrigger.setEnabled(false);
             shootTrigger.setEnabled(false);
         }
     }
@@ -248,7 +231,6 @@ public class Conveyor implements TrcExclusiveSubsystem
         {
             motor.set(0.0);
             advanceTask.unregisterTask();
-            readyTrigger.setEnabled(false);
             shootTrigger.setEnabled(false);
         }
     }

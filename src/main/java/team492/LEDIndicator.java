@@ -36,7 +36,7 @@ public class LEDIndicator
 
     public enum VisionDirection
     {
-        LEFT, CENTERED, RIGHT;
+        LEFT, CENTERED, RIGHT
     }
 
     private Robot robot;

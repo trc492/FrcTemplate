@@ -382,8 +382,8 @@ public class Robot extends FrcRobotBase
         ledIndicator = new LEDIndicator(this);
         shooter = new Shooter();
         conveyor = new Conveyor(this);
-        intake = new Intake(this);
         alignment = new WallAlignment();
+        intake = new Intake(this); // must initialize after conveyor
 
         if (preferences.useStreamCamera)
         {
@@ -645,11 +645,21 @@ public class Robot extends FrcRobotBase
     public void incNumBalls()
     {
         setNumBalls(getNumBalls() + 1);
+        if (getNumBalls() > 5)
+        {
+            globalTracer.traceErr("incNumBalls", "Invalid number of balls: %d! Resetting to five.", getNumBalls());
+            setNumBalls(5);
+        }
     }
 
     public void decNumBalls()
     {
         setNumBalls(getNumBalls() - 1);
+        if (getNumBalls() < 0)
+        {
+            globalTracer.traceErr("decNumBalls", "Invalid number of balls: %d! Resetting to zero.", getNumBalls());
+            setNumBalls(0);
+        }
     }
 
     public void setNumBalls(int numBalls)

@@ -18,10 +18,9 @@ public class Intake
 
     private enum State
     {
-        INTAKE, WAIT, ADVANCE
+        INTAKE, ADVANCE
     }
 
-    private FrcDigitalInput proximitySensor;
     private FrcCANTalon intakeMotor;
     private TrcTaskMgr.TaskObject intakeTaskObj;
     private TrcStateMachine<State> sm;
@@ -34,9 +33,8 @@ public class Intake
     public Intake(Robot robot)
     {
         this.robot = robot;
-        proximitySensor = new FrcDigitalInput("IntakeProximity", RobotInfo.INTAKE_PROXIMITY_SENSOR);
 
-        proximityTrigger = new TrcDigitalInputTrigger("Intake.trigger", proximitySensor, this::proximityTriggerEvent);
+        proximityTrigger = new TrcDigitalInputTrigger("Intake.trigger", robot.conveyor.entranceProximitySensor, this::proximityTriggerEvent);
 
         intakeMotor = new FrcCANTalon("Intake", RobotInfo.CANID_INTAKE);
         intakeMotor.setInverted(false);
@@ -75,16 +73,11 @@ public class Intake
                     setIntakePower(INTAKE_POWER);
                     proximityTrigger.setEnabled(true);
                     extendIntake();
-                    sm.waitForSingleEvent(event, State.WAIT);
-                    break;
-
-                case WAIT:
-                    timer.set(INTAKE_DELAY, event);
                     sm.waitForSingleEvent(event, State.ADVANCE);
                     break;
 
                 case ADVANCE:
-                    robot.conveyor.advance();
+                    robot.conveyor.intake();
                     robot.incNumBalls();
                     if (onFinishedEvent != null)
                     {
