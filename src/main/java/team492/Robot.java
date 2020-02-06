@@ -430,6 +430,8 @@ public class Robot extends FrcRobotBase
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
             shooter.setEnabled(true);
+            shooter.setManualOverrideEnabled(false);
+            conveyor.setManualOverrideEnabled(false);
 
             dashboard.clearDisplay();
 
@@ -665,7 +667,6 @@ public class Robot extends FrcRobotBase
     public void setNumBalls(int numBalls)
     {
         this.numBalls = numBalls;
-        ledIndicator.updateLED();
     }
 
     public double getXInput()

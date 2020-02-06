@@ -64,11 +64,12 @@ public class LEDIndicator
     {
         int index = 0;
         int ledsPerBall = RobotInfo.NUM_LEDS / 5;
-        for (int i = 0; i < robot.getNumBalls() * ledsPerBall; i++)
+        int leds = robot.getNumBalls() * ledsPerBall;
+        for (int i = 0; i < leds; i++)
         {
             ledColors[index++] = ballColor;
         }
-        for (int i = 0; i < RobotInfo.NUM_LEDS - robot.getNumBalls() * ledsPerBall; i++)
+        for (int i = 0; i < RobotInfo.NUM_LEDS - leds; i++)
         {
             ledColors[index++] = backGround;
         }

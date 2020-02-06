@@ -36,6 +36,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private TrcDigitalInputTrigger shootTrigger;
     private int targetPosTicks = 0;
     private Robot robot;
+    private boolean manualOverride;
 
     public Conveyor(Robot robot)
     {
@@ -119,6 +120,16 @@ public class Conveyor implements TrcExclusiveSubsystem
         }
     }
 
+    public void setManualOverrideEnabled(boolean enabled)
+    {
+        manualOverride = enabled;
+    }
+
+    public boolean isManualOverrideEnabled()
+    {
+        return manualOverride;
+    }
+
     public void setPower(double power)
     {
         setPower(null, power);
@@ -140,7 +151,7 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     public void intake(String owner, TrcEvent event)
     {
-        if (validateOwnership(owner))
+        if (!manualOverride && validateOwnership(owner))
         {
             if (event != null)
             {
@@ -173,7 +184,7 @@ public class Conveyor implements TrcExclusiveSubsystem
      */
     public void shoot(String owner, TrcEvent event)
     {
-        if (validateOwnership(owner))
+        if (!manualOverride && validateOwnership(owner))
         {
             if (event != null)
             {
@@ -205,7 +216,7 @@ public class Conveyor implements TrcExclusiveSubsystem
      */
     public void advance(String owner, TrcEvent event)
     {
-        if (validateOwnership(owner))
+        if (validateOwnership(owner)) // doesn't require checking for manual override
         {
             if (event != null)
             {

@@ -48,6 +48,7 @@ public class Shooter
     private boolean zeroCalibrating = false;
     private boolean zeroCalibrated = false;
     private double targetVelocity;
+    private boolean manualOverride;
 
     public Shooter()
     {
@@ -82,6 +83,16 @@ public class Shooter
             flywheel.motor.getPIDController().setD(0.0);
             flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_LOWER });
         }
+    }
+
+    public void setManualOverrideEnabled(boolean enabled)
+    {
+        manualOverride = enabled;
+    }
+
+    public boolean isManualOverrideEnabled()
+    {
+        return manualOverride;
     }
 
     public void setEnabled(boolean enabled)
@@ -129,6 +140,11 @@ public class Shooter
         flywheel.set(0.0);
     }
 
+    public void setFlyWheelPower(double power)
+    {
+        flywheel.set(power);
+    }
+
     /**
      * Set tangential velocity in inches per second
      *
@@ -174,6 +190,16 @@ public class Shooter
         }
         pitchEvent = event;
         pitchTicksTarget = TrcUtil.round(pitch / PITCH_DEGREES_PER_COUNT);
+        setEnabled(true);
+    }
+
+    public void setPitchPower(double power)
+    {
+        if (manualOverride)
+        {
+            setEnabled(false);
+            pitchMotor.set(power);
+        }
     }
 
     private double getPitchGravityComp()

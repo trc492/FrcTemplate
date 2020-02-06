@@ -99,8 +99,16 @@ public class Intake
 
     public void stopIntake()
     {
+        stopIntake(true);
+    }
+
+    public void stopIntake(boolean retract)
+    {
         setIntakePower(0.0);
-        retractIntake();
+        if (retract)
+        {
+            retractIntake();
+        }
     }
 
     public boolean isActive()
