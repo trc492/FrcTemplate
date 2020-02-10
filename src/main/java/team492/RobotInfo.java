@@ -182,7 +182,7 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
-    public static final double ENCODER_INCHES_PER_COUNT = 2.5133;
+    public static final double ENCODER_INCHES_PER_COUNT = 2.5133; // TODO: retune for pneumatic wheels
     public static final double ENCODER_KP = 0.015;
     public static final double ENCODER_KI = 0.0;
     public static final double ENCODER_KD = 0.00;

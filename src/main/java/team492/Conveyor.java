@@ -19,10 +19,10 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double CONVEYOR_kD = 0;
     private static final double CONVEYOR_kF = 0;
     private static final int CONVEYOR_IZONE = 0;
-    private static final int CONVEYOR_MAX_VEL = 0;
-    private static final int CONVEYOR_MAX_ACCEL = 0;
-    private static final double CONVEYOR_INCHES_PER_COUNT = 0;
-    private static final double CONVEYOR_TOLERANCE = 0;
+    private static final int CONVEYOR_MAX_VEL = 180;
+    private static final int CONVEYOR_MAX_ACCEL = 200;
+    private static final double CONVEYOR_INCHES_PER_COUNT = 2 * Math.PI / 4096.0; // 2 in diameter wheels, 4096 cpr
+    private static final double CONVEYOR_TOLERANCE = 0.2;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
     private static final double SHOOT_POWER = 1.0;

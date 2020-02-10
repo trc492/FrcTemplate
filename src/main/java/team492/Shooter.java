@@ -34,8 +34,8 @@ public class Shooter
     private static final int PITCH_IZONE = 0;
     private static final int PITCH_MAX_VEL = 0;
     private static final int PITCH_MAX_ACCEL = 0;
-    private static final double PITCH_DEGREES_PER_COUNT = 0;
-    private static final double PITCH_TOLERANCE = 0;
+    private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 3.0; // 3:1 gear ratio, 4096 cpr
+    private static final double PITCH_TOLERANCE = 1.5;
 
     private static final double PITCH_CAL_POWER = -0.1;
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
