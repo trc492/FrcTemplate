@@ -54,8 +54,8 @@ public class Conveyor implements TrcExclusiveSubsystem
         motor.motor.enableVoltageCompensation(true);
         motor.setBrakeModeEnabled(true);
         motor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
-        motor.setPositionSensorInverted(false);
-        motor.setInverted(false);
+        motor.setPositionSensorInverted(true);
+        motor.setInverted(true);
         motor.configRevLimitSwitchNormallyOpen(true);
         motor.configFwdLimitSwitchNormallyOpen(true);
         motor.motor.overrideLimitSwitchesEnable(false);
