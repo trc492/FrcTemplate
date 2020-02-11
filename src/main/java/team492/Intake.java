@@ -34,7 +34,8 @@ public class Intake
     {
         this.robot = robot;
 
-        proximityTrigger = new TrcDigitalInputTrigger("Intake.trigger", robot.conveyor.entranceProximitySensor, this::proximityTriggerEvent);
+        proximityTrigger = new TrcDigitalInputTrigger("Intake.trigger", robot.conveyor.entranceProximitySensor,
+            this::proximityTriggerEvent);
 
         intakeMotor = new FrcCANTalon("Intake", RobotInfo.CANID_INTAKE);
         intakeMotor.setInverted(false);
@@ -54,6 +55,7 @@ public class Intake
 
     private void proximityTriggerEvent(boolean active)
     {
+        robot.globalTracer.traceInfo("Intake.proximityTriggerEvent", "Proximity Event! active=%b", active);
         if (active)
         {
             event.set(true);
