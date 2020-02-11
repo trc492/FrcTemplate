@@ -29,6 +29,25 @@ package trclib;
 public class TrcDigitalInputTrigger extends TrcTrigger
 {
     /**
+     * This enum type specifies the digital trigger mode.
+     */
+    public enum TriggerMode
+    {
+        /**
+         * Trigger on digital state transition from inactive to active.
+         */
+        TriggerOnActive,
+        /**
+         * Trigger on digital state transition from active to inactive.
+         */
+        TriggerOnInactive,
+        /**
+         * Trigger on both digital state transitions.
+         */
+        TriggerOnBoth
+    }   //TriggerMode
+
+    /**
      * This interface contains the method for the trigger event handler.
      */
     public interface TriggerHandler
@@ -45,6 +64,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
     private final TrcDigitalInput digitalInput;
     private final TriggerHandler eventHandler;
     private final TrcEvent triggerEvent;
+    private final TriggerMode triggerMode;
     private Boolean prevState = null;
 
     /**
@@ -54,8 +74,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
      * @param digitalInput specifies the digital input device.
      * @param eventHandler specifies the object that will be called to handle the digital input device state change.
      */
-    public TrcDigitalInputTrigger(
-        final String instanceName, final TrcDigitalInput digitalInput, final TriggerHandler eventHandler)
+    public TrcDigitalInputTrigger(String instanceName, TrcDigitalInput digitalInput, TriggerHandler eventHandler)
     {
         super(instanceName, null, null);
 
@@ -66,7 +85,8 @@ public class TrcDigitalInputTrigger extends TrcTrigger
 
         this.digitalInput = digitalInput;
         this.eventHandler = eventHandler;
-        this.triggerEvnet = null;
+        this.triggerEvent = null;
+        this.triggerMode = null;
     }   //TrcDigitalInputTrigger
 
     /**
@@ -75,9 +95,10 @@ public class TrcDigitalInputTrigger extends TrcTrigger
      * @param instanceName specifies the instance name.
      * @param digitalInput specifies the digital input device.
      * @param triggerEvent specifies the event to signal when the digital input device state change.
+     * @param triggerMode specifies the event will be signaled on active trigger, inactive trigger or both.
      */
     public TrcDigitalInputTrigger(
-        final String instanceName, final TrcDigitalInput digitalInput, final TrcEvent triggerEvent)
+        String instanceName, TrcDigitalInput digitalInput, TrcEvent triggerEvent, TriggerMode triggerMode)
     {
         super(instanceName, null, null);
 
@@ -89,6 +110,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
         this.digitalInput = digitalInput;
         this.eventHandler = null;
         this.triggerEvent = triggerEvent;
+        this.triggerMode = triggerMode;
     }   //TrcDigitalInputTrigger
 
     /**
@@ -141,7 +163,12 @@ public class TrcDigitalInputTrigger extends TrcTrigger
         }
         else if (triggerEvent != null)
         {
-            triggerEvent.set(true);
+            if (triggerMode == TriggerMode.TriggerOnBoth ||
+                triggerMode == TriggerMode.TriggerOnActive && prevState ||
+                !prevState)
+            {
+                triggerEvent.set(true);
+            }
         }
     }   //notifyEvent;
 
