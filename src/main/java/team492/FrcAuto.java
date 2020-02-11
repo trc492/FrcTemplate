@@ -146,7 +146,6 @@ public class FrcAuto implements TrcRobot.RobotMode
         populateTask.unregisterTask();
 
         robot.driveBase.resetOdometry(true, true);
-        robot.shooter.zeroCalibratePitch();
 
         robot.ledIndicator.reset();
 

@@ -36,8 +36,9 @@ public class Shooter
     private static final int PITCH_MAX_ACCEL = 0;
     private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 3.0; // 3:1 gear ratio, 4096 cpr
     private static final double PITCH_TOLERANCE = 1.5;
+    private static final int PITCH_OFFSET_TICKS = 3569;
+    private static final double PITCH_OFFSET_DEG = 40;
 
-    private static final double PITCH_CAL_POWER = -0.1;
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
     public FrcCANSparkMax flywheel;
@@ -45,8 +46,6 @@ public class Shooter
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
     private int pitchTicksTarget;
-    private boolean zeroCalibrating = false;
-    private boolean zeroCalibrated = false;
     private double targetVelocity;
     private boolean manualOverride;
 
@@ -57,6 +56,7 @@ public class Shooter
 
         configureFlywheel();
         configurePitchMotor();
+        offsetPitchPos();
 
         TrcAnalogSensor flywheelError = new TrcAnalogSensor("Error",
             () -> Math.abs(getFlywheelVelocity() - targetVelocity));
@@ -64,6 +64,23 @@ public class Shooter
             new double[] { FLYWHEEL_kD_THRESH_LOWER }, this::flywheelErrorTrigger, false);
 
         pitchControlTaskObj = TrcTaskMgr.getInstance().createTask("PitchControlTask", this::pitchControlTask);
+    }
+
+    private void offsetPitchPos()
+    {
+        pitchMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+        TrcUtil.sleep(50);
+        int currPos = pitchMotor.motor.getSensorCollection().getPulseWidthPosition();
+        int zeroPosTicks = TrcUtil.round(PITCH_OFFSET_TICKS - PITCH_OFFSET_DEG / PITCH_DEGREES_PER_COUNT);
+        int low = 4786;//(int) TrcUtil.modulo(zeroPosTicks, 4096);
+        int high = 2126;//(int) TrcUtil.modulo(low + TrcUtil.round(90 / PITCH_DEGREES_PER_COUNT), 4096);
+        boolean crossZero = high < low;
+        TrcDbgTrace.getGlobalTracer().traceInfo("Shooter.offsetPitchPos",
+            "Zeroing Shooter: currPos=%d, zeroPos=%d, low=%d, high=%d, crossZero=%b", currPos, zeroPosTicks, low, high,
+            crossZero);
+        pitchMotor.motor.getSensorCollection().syncQuadratureWithPulseWidth(low, high, crossZero, -low, 10);
+        TrcUtil.sleep(50);
+        System.out.printf("SHOOTER pos=%.2f\n", getPitch());
     }
 
     private void flywheelErrorTrigger(int currZone, int prevZone, double value)
@@ -110,18 +127,6 @@ public class Shooter
 
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        if (zeroCalibrating)
-        {
-            if (pitchMotor.isLowerLimitSwitchActive())
-            {
-                zeroCalibrating = false;
-                zeroCalibrated = true;
-                pitchMotor.set(0.0);
-            }
-            return;
-        }
-        if (!zeroCalibrated)
-            return; // don't do anything if not calibrated
         pitchMotor.motor
             .set(ControlMode.MotionMagic, pitchTicksTarget, DemandType.ArbitraryFeedForward, getPitchGravityComp());
         if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
@@ -161,12 +166,6 @@ public class Shooter
         return flywheel.motor.getEncoder().getVelocity();
     }
 
-    public void zeroCalibratePitch()
-    {
-        zeroCalibrating = true;
-        pitchMotor.set(PITCH_CAL_POWER); // limit switch will stop it and encoder will auto reset
-    }
-
     public boolean pitchOnTarget()
     {
         return Math.abs(pitchMotor.motor.getClosedLoopError()) * PITCH_DEGREES_PER_COUNT <= PITCH_TOLERANCE;
@@ -204,7 +203,7 @@ public class Shooter
 
     private double getPitchGravityComp()
     {
-        return 0; // TODO: tune this
+        return 0; // theoretically, it's gravity neutral
     }
 
     private void configurePitchMotor()
@@ -220,12 +219,12 @@ public class Shooter
         pitchMotor.motor.enableVoltageCompensation(true);
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
-        pitchMotor.motor.configClearPositionOnLimitR(true, 10);
-        pitchMotor.setPositionSensorInverted(false);
+        pitchMotor.motor.configClearPositionOnLimitR(false, 10);
+        pitchMotor.setPositionSensorInverted(true);
         pitchMotor.setInverted(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(true);
         pitchMotor.configFwdLimitSwitchNormallyOpen(true);
-        pitchMotor.motor.overrideLimitSwitchesEnable(true);
+        pitchMotor.motor.overrideLimitSwitchesEnable(false);
     }
 
     private void configureFlywheel()
