@@ -22,6 +22,8 @@
 
 package trclib;
 
+import java.util.Arrays;
+
 /**
  * This class implements a path. A path is consists of an array of waypoints, and can be used for path following,
  * such as motion profiling, pure pursuit, etc. Since heading could be in degrees or radians, each path object specifies
@@ -240,6 +242,16 @@ public class TrcPath
     }   //getWaypoint
 
     /**
+     * Check if this path defines heading using degrees.
+     *
+     * @return True if degrees are used, false if radians.
+     */
+    public boolean isInDegrees()
+    {
+        return inDegrees;
+    }
+
+    /**
      * This method returns the number of waypoints in this path.
      *
      * @return the number of waypoints in this path.
@@ -387,4 +399,9 @@ public class TrcPath
         waypoints[waypoints.length - 1].timeStep = waypoints[waypoints.length - 2].timeStep;
     }   //inferTimeSteps
 
+    @Override
+    public String toString()
+    {
+        return String.format("TrcPath(degrees=%b, %s)", isInDegrees(), Arrays.toString(waypoints));
+    }
 }   //class TrcPath

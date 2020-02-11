@@ -8,6 +8,9 @@ import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;
 import trclib.TrcUtil;
+import trclib.TrcWaypoint;
+
+import java.util.Arrays;
 
 public class CmdShooterAuto implements TrcRobot.RobotCommand
 {
@@ -49,16 +52,33 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             afterAction.name());
     }
 
+    private TrcPath createPath(TrcPose2D... poses)
+    {
+        TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p, null)).toArray(TrcWaypoint[]::new));
+        TrcPath ret = path.trapezoidVelocity(RobotInfo.ROBOT_MAX_REQ_SPEED, RobotInfo.ROBOT_MAX_ACCEL);
+        robot.globalTracer.traceInfo(instanceName + ".createPath", "TrcPath(degrees=%b)", ret.isInDegrees());
+        for (TrcWaypoint waypoint : ret.getAllWaypoints())
+        {
+            robot.globalTracer.traceInfo(instanceName + ".createPath", "\t%s", waypoint.toString());
+        }
+        return ret;
+    }
+
     private TrcPath createToShootPath()
     {
         double targetY = -RobotInfo.ROBOT_LENGTH - 10;
-        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY, 0);
-        return null;
+        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY);
+        TrcPose2D start = robot.driveBase.getFieldPosition();
+        TrcPose2D middle = new TrcPose2D(start.x, target.y);
+        return createPath(start, middle, target);
     }
 
     private TrcPath createPickupPath()
     {
-        throw new IllegalStateException("Not implemented yet!"); // TODO: implement
+        TrcPose2D start = robot.driveBase.getFieldPosition();
+        TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
+        TrcPose2D middle = new TrcPose2D(target.x, start.y);
+        return createPath(start, middle, target);
     }
 
     private TrcPath createToShoot2Path()

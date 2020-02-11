@@ -37,6 +37,8 @@ public class RobotInfo
     public static final double INITIATION_LINE_TO_ALLIANCE_WALL = 120;
     public static final double TARGET_X_POS = FIELD_WIDTH - 94.66;
     public static final double FEEDER_STATION_RIGHT_X_POS = 130.66;
+    public static final double TRENCH_RUN_X_POS = FIELD_WIDTH - 27.75;
+    public static final double LAST_TRENCH_BALL_Y_POS = -194.63;
 
     public static final double HIGH_TARGET_HEIGHT = 98;
     public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81, HIGH_TARGET_HEIGHT);
@@ -190,6 +192,9 @@ public class RobotInfo
     public static final double ENCODER_TOLERANCE = 2.0;
 
     public static final double ROBOT_TOP_SPEED = 192.6; // in/sec
+
+    public static final double ROBOT_MAX_REQ_SPEED = 0.7 * ROBOT_TOP_SPEED;
+    public static final double ROBOT_MAX_ACCEL = 300;
 
     public static final double PURE_PURSUIT_FOLLOWING_DISTANCE = 10.0;
     public static final double PURE_PURSUIT_POS_TOLERANCE = 3.0;
