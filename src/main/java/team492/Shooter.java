@@ -43,8 +43,8 @@ public class Shooter
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
-    public FrcCANSparkMax flywheel;
-    private FrcCANTalon pitchMotor;
+    public final FrcCANSparkMax flywheel;
+    public final FrcCANTalon pitchMotor;
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
     private int pitchTicksTarget;
@@ -178,6 +178,11 @@ public class Shooter
     public double getPitch()
     {
         return pitchMotor.getPosition() * PITCH_DEGREES_PER_COUNT;
+    }
+
+    public double getPitchVelocity()
+    {
+        return pitchMotor.getVelocity() * PITCH_DEGREES_PER_COUNT;
     }
 
     public void setPitch(double pitch)
