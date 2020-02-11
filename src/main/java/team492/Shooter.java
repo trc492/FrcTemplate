@@ -36,6 +36,8 @@ public class Shooter
     private static final int PITCH_MAX_ACCEL = 0;
     private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 3.0; // 3:1 gear ratio, 4096 cpr
     private static final double PITCH_TOLERANCE = 1.5;
+
+    // Measured
     private static final int PITCH_OFFSET_TICKS = 3569;
     private static final double PITCH_OFFSET_DEG = 40;
 
@@ -72,15 +74,17 @@ public class Shooter
         TrcUtil.sleep(50);
         int currPos = pitchMotor.motor.getSensorCollection().getPulseWidthPosition();
         int zeroPosTicks = TrcUtil.round(PITCH_OFFSET_TICKS - PITCH_OFFSET_DEG / PITCH_DEGREES_PER_COUNT);
-        int low = 4786;//(int) TrcUtil.modulo(zeroPosTicks, 4096);
-        int high = 2126;//(int) TrcUtil.modulo(low + TrcUtil.round(90 / PITCH_DEGREES_PER_COUNT), 4096);
-        boolean crossZero = high < low;
+        int low = (int) TrcUtil.modulo(zeroPosTicks, 4096);
+        // minus is because sensor phase is inverted
+        int high = (int) TrcUtil.modulo(low - TrcUtil.round(90 / PITCH_DEGREES_PER_COUNT), 4096);
+        boolean crossZero = high > low; // this is because the sensor phase in inverted
         TrcDbgTrace.getGlobalTracer().traceInfo("Shooter.offsetPitchPos",
             "Zeroing Shooter: currPos=%d, zeroPos=%d, low=%d, high=%d, crossZero=%b", currPos, zeroPosTicks, low, high,
             crossZero);
         pitchMotor.motor.getSensorCollection().syncQuadratureWithPulseWidth(low, high, crossZero, -low, 10);
         TrcUtil.sleep(50);
-        System.out.printf("SHOOTER pos=%.2f\n", getPitch());
+        System.out.printf("Shooter pos=%.2f\n", getPitch());
+        // TODO: remove the sleeps
     }
 
     private void flywheelErrorTrigger(int currZone, int prevZone, double value)
