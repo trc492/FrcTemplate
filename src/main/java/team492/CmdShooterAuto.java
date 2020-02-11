@@ -137,7 +137,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
                     path = createToShoot2Path();
                     robot.purePursuit.start(path, event, 4);
-                    sm.waitForSingleEvent(event, State.SHOOT);
+                    sm.waitForSingleEvent(event, State.SHOOT_2);
                     break;
 
                 case SHOOT_2:
