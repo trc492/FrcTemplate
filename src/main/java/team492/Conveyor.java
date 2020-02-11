@@ -14,14 +14,12 @@ import trclib.TrcUtil;
 public class Conveyor implements TrcExclusiveSubsystem
 {
     // TODO: tune this
-    private static final double CONVEYOR_kP = 0;
+    private static final double CONVEYOR_kP = 3.0;
     private static final double CONVEYOR_kI = 0;
     private static final double CONVEYOR_kD = 0;
     private static final double CONVEYOR_kF = 0;
     private static final int CONVEYOR_IZONE = 0;
-    private static final int CONVEYOR_MAX_VEL = 180;
-    private static final int CONVEYOR_MAX_ACCEL = 200;
-    private static final double CONVEYOR_INCHES_PER_COUNT = 2 * Math.PI / 4096.0; // 2 in diameter wheels, 4096 cpr
+    private static final double CONVEYOR_INCHES_PER_COUNT = (2 * Math.PI) / 4096.0 / 2.0; // divide by two bc it rolls 2x as fast
     private static final double CONVEYOR_TOLERANCE = 0.2;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
@@ -48,8 +46,6 @@ public class Conveyor implements TrcExclusiveSubsystem
         motor.motor.config_kD(0, CONVEYOR_kD, 10);
         motor.motor.config_kF(0, CONVEYOR_kF, 10);
         motor.motor.config_IntegralZone(0, CONVEYOR_IZONE, 10);
-        motor.motor.configMotionCruiseVelocity(CONVEYOR_MAX_VEL, 10);
-        motor.motor.configMotionAcceleration(CONVEYOR_MAX_ACCEL, 10);
         motor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         motor.motor.enableVoltageCompensation(true);
         motor.setBrakeModeEnabled(true);
@@ -224,7 +220,7 @@ public class Conveyor implements TrcExclusiveSubsystem
             }
             this.advanceEvent = event;
             targetPosTicks += TrcUtil.round(INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
-            motor.motor.set(ControlMode.MotionMagic, targetPosTicks);
+            motor.motor.set(ControlMode.Position, targetPosTicks);
 
             advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
             shootTrigger.setEnabled(false);
