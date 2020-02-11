@@ -63,7 +63,7 @@ public class Intake
 
     private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        State state = sm.getState();
+        State state = sm.checkReadyAndGetState();
         if (state != null)
         {
             switch (state)
