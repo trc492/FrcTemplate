@@ -78,7 +78,7 @@ public class Robot extends FrcRobotBase
         public final boolean useTraceLog = true;
         public final boolean useNavX = true;
         public final boolean useGyroAssist = false;
-        public final boolean useVision = true;
+        public final boolean useVision = false;
         public final boolean useStreamCamera = false;
         public final boolean doAutoUpdates = false;
 
