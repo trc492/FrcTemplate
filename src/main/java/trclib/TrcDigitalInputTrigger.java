@@ -44,6 +44,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
 
     private final TrcDigitalInput digitalInput;
     private final TriggerHandler eventHandler;
+    private final TrcEvent triggerEvent;
     private Boolean prevState = null;
 
     /**
@@ -65,6 +66,29 @@ public class TrcDigitalInputTrigger extends TrcTrigger
 
         this.digitalInput = digitalInput;
         this.eventHandler = eventHandler;
+        this.triggerEvnet = null;
+    }   //TrcDigitalInputTrigger
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param digitalInput specifies the digital input device.
+     * @param triggerEvent specifies the event to signal when the digital input device state change.
+     */
+    public TrcDigitalInputTrigger(
+        final String instanceName, final TrcDigitalInput digitalInput, final TrcEvent triggerEvent)
+    {
+        super(instanceName, null, null);
+
+        if (digitalInput == null || triggerEvent == null)
+        {
+            throw new NullPointerException("DigitalInput/TriggerEvent must be provided");
+        }
+
+        this.digitalInput = digitalInput;
+        this.eventHandler = null;
+        this.triggerEvent = triggerEvent;
     }   //TrcDigitalInputTrigger
 
     /**
@@ -111,7 +135,14 @@ public class TrcDigitalInputTrigger extends TrcTrigger
      */
     private synchronized void notifyEvent()
     {
-        eventHandler.triggerEvent(prevState);
+        if (eventHandler != null)
+        {
+            eventHandler.triggerEvent(prevState);
+        }
+        else if (triggerEvent != null)
+        {
+            triggerEvent.set(true);
+        }
     }   //notifyEvent;
 
 }   //class TrcDigitalInputTrigger
