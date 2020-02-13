@@ -38,8 +38,8 @@ public class Shooter
     private static final double PITCH_TOLERANCE = 1.5;
 
     // Measured
-    private static final int PITCH_OFFSET_TICKS = 3569;
-    private static final double PITCH_OFFSET_DEG = 40;
+    private static final int PITCH_OFFSET_TICKS = 178;
+    private static final double PITCH_OFFSET_DEG = 17.5;
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
@@ -73,7 +73,7 @@ public class Shooter
         pitchMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
         TrcUtil.sleep(50);
         int currPos = pitchMotor.motor.getSensorCollection().getPulseWidthPosition();
-        int zeroPosTicks = TrcUtil.round(PITCH_OFFSET_TICKS - PITCH_OFFSET_DEG / PITCH_DEGREES_PER_COUNT);
+        int zeroPosTicks = TrcUtil.round(PITCH_OFFSET_TICKS + PITCH_OFFSET_DEG / PITCH_DEGREES_PER_COUNT);
         int low = (int) TrcUtil.modulo(zeroPosTicks, 4096);
         // minus is because sensor phase is inverted
         int high = (int) TrcUtil.modulo(low - TrcUtil.round(90 / PITCH_DEGREES_PER_COUNT), 4096);
@@ -231,9 +231,9 @@ public class Shooter
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
         pitchMotor.setPositionSensorInverted(true);
         pitchMotor.setInverted(false);
-        pitchMotor.configRevLimitSwitchNormallyOpen(true);
-        pitchMotor.configFwdLimitSwitchNormallyOpen(true);
-        pitchMotor.motor.overrideLimitSwitchesEnable(false);
+        pitchMotor.configRevLimitSwitchNormallyOpen(false);
+        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
+        pitchMotor.motor.overrideLimitSwitchesEnable(true);
     }
 
     private void configureFlywheel()

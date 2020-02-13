@@ -142,7 +142,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (elapsedTimer != null)
         {
             elapsedTimer.recordPeriodTime();
-            robot.dashboard.displayPrintf(6, "Period: %.3f(%.3f/%.3f)", elapsedTimer.getAverageElapsedTime(),
+            robot.dashboard.displayPrintf(15, "Period: %.3f(%.3f/%.3f)", elapsedTimer.getAverageElapsedTime(),
                 elapsedTimer.getMinElapsedTime(), elapsedTimer.getMaxElapsedTime());
         }
     } // runContinuous
