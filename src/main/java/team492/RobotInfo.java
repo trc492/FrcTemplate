@@ -69,34 +69,34 @@ public class RobotInfo
     //
     // CAN IDs.
     //
-    public static final int CANID_LEFTFRONT_STEER = 3;    // 40A: Orange
-    public static final int CANID_RIGHTFRONT_STEER = 4;    // 40A: Yellow
-    public static final int CANID_LEFTREAR_STEER = 5;    // 40A: Green
-    public static final int CANID_RIGHTREAR_STEER = 6;    // 40A: Blue
+    public static final int CANID_LEFTFRONT_STEER = 23;    // 40A: Orange
+    public static final int CANID_RIGHTFRONT_STEER = 24;    // 40A: Yellow
+    public static final int CANID_LEFTREAR_STEER = 25;    // 40A: Green
+    public static final int CANID_RIGHTREAR_STEER = 26;    // 40A: Blue
 
-    public static final int CANID_LEFTFRONT_DRIVE = 13;    // 40A: Orange
-    public static final int CANID_RIGHTFRONT_DRIVE = 14;    // 40A: Yellow
-    public static final int CANID_LEFTREAR_DRIVE = 15;    // 40A: Green
-    public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
+    public static final int CANID_LEFTFRONT_DRIVE = 3;    // 40A: Orange
+    public static final int CANID_RIGHTFRONT_DRIVE = 4;    // 40A: Yellow
+    public static final int CANID_LEFTREAR_DRIVE = 5;    // 40A: Green
+    public static final int CANID_RIGHTREAR_DRIVE = 6;    // 40A: Blue
 
-    public static final int CANID_FLYWHEEL = 7;
+    public static final int CANID_INTAKE = 7;
+    public static final int CANID_CONVEYOR = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
-    public static final int CANID_CONVEYOR = 10;
-    public static final int CANID_INTAKE = 11;
+    public static final int CANID_FLYWHEEL = 10;
 
     public static final int CANID_LEFT_LIDAR = 21;
     public static final int CANID_RIGHT_LIDAR = 22;
 
-    public static final int CANID_PDP = 26;
+    public static final int CANID_PDP = 16;
     public static final int CANID_PCM = 17;
 
     //
     // PDP Channels.
     //
-    public static final int PDP_CHANNEL_RIGHT_BACK_WHEEL = 0;
-    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL = 3;
-    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL = 12;
-    public static final int PDP_CHANNEL_LEFT_BACK_WHEEL = 15;
+    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL = 3;
+    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL = 0;
+    public static final int PDP_CHANNEL_LEFT_BACK_WHEEL = 12;
+    public static final int PDP_CHANNEL_RIGHT_BACK_WHEEL = 15;
 
     //
     // Analog Input ports.
