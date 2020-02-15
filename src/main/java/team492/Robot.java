@@ -694,12 +694,12 @@ public class Robot extends FrcRobotBase
         if (preferences.useController)
         {
             x = driverController.getLeftXWithDeadband(false);
+            x = Math.copySign(Math.pow(x, 3), x);
         }
         else
         {
-            x = rightDriveStick.getXWithDeadband(false);
+            x = rightDriveStick.getXWithDeadband(true);
         }
-        x = Math.copySign(Math.pow(x, 3), x);
         switch (driveSpeed)
         {
             case SLOW:
@@ -723,12 +723,12 @@ public class Robot extends FrcRobotBase
         if (preferences.useController)
         {
             y = driverController.getLeftYWithDeadband(false);
+            y = Math.copySign(Math.pow(y, 3), y);
         }
         else
         {
-            y = rightDriveStick.getYWithDeadband(false);
+            y = rightDriveStick.getYWithDeadband(true);
         }
-        y = Math.copySign(Math.pow(y, 3), y);
         switch (driveSpeed)
         {
             case SLOW:
@@ -751,9 +751,10 @@ public class Robot extends FrcRobotBase
         double rot;
         if (preferences.useController)
         {
-            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
-            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
-            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+//            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
+//            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
+//            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+            rot = driverController.getRightXWithDeadband(true);
         }
         else
         {
