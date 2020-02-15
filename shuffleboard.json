@@ -395,24 +395,76 @@
             ],
             "content": {
               "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/FlywheelTarget",
-              "_title": "/SmartDashboard/FlywheelTarget"
+              "_source0": "network_table:///SmartDashboard/Test/FlywheelTarget",
+              "_title": "/FlywheelTarget"
             }
           },
-          "20,0": {
+          "21,0": {
             "size": [
-              12,
-              8
+              19,
+              18
             ],
             "content": {
-              "_type": "Graph",
-              "_source0": "network_table:///SmartDashboard/FlywheelVel",
-              "_title": "SmartDashboard/FlywheelVel",
-              "Graph/Visible time": 30.0,
-              "Y-axis/Automatic bounds": true,
-              "Y-axis/Upper bound": 1.0,
-              "Y-axis/Lower bound": -1.0,
-              "Visible data/SmartDashboard/FlywheelVel": true
+              "_type": "List Layout",
+              "_title": "Flywheel Graphs",
+              "Layout/Label position": "TOP",
+              "_children": [
+                {
+                  "_type": "Graph",
+                  "_source0": "network_table:///SmartDashboard/Test/FlywheelVel",
+                  "_title": "/FlywheelVel",
+                  "Graph/Visible time": 30.0,
+                  "Y-axis/Automatic bounds": true,
+                  "Y-axis/Upper bound": 1.0,
+                  "Y-axis/Lower bound": -1.0,
+                  "Visible data/SmartDashboard/Test/FlywheelVel": true
+                },
+                {
+                  "_type": "Graph",
+                  "_source0": "network_table:///SmartDashboard/Test/FlywheelPower",
+                  "_title": "/FlywheelPower",
+                  "Graph/Visible time": 30.0,
+                  "Y-axis/Automatic bounds": true,
+                  "Y-axis/Upper bound": 1.0,
+                  "Y-axis/Lower bound": -1.0,
+                  "Visible data/SmartDashboard/Test/FlywheelPower": true
+                }
+              ]
+            }
+          },
+          "0,9": {
+            "size": [
+              20,
+              5
+            ],
+            "content": {
+              "_type": "Grid Layout",
+              "_title": "Swerve Calibration",
+              "Layout/Number of columns": 4,
+              "Layout/Number of rows": 1,
+              "Layout/Label position": "TOP",
+              "_children": {
+                "0,0": {
+                  "_type": "Toggle Button",
+                  "_source0": "network_table:///SmartDashboard/Test/RunMotors",
+                  "_title": "/RunMotors"
+                },
+                "2,0": {
+                  "_type": "Text View",
+                  "_source0": "network_table:///SmartDashboard/Test/AngleTarget",
+                  "_title": "/AngleTarget"
+                },
+                "3,0": {
+                  "_type": "Toggle Button",
+                  "_source0": "network_table:///SmartDashboard/Test/SaveAngles",
+                  "_title": "/SaveAngles"
+                },
+                "1,0": {
+                  "_type": "Toggle Button",
+                  "_source0": "network_table:///SmartDashboard/Test/SetAngle",
+                  "_title": "/SetAngle"
+                }
+              }
             }
           }
         }

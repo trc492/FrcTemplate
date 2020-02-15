@@ -38,10 +38,17 @@ import trclib.TrcTimer;
 public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = "FrcTest";
+    public static final String FLYWHEEL_TARGET_KEY = "Test/FlywheelTarget";
+    public static final String ANGLE_TARGET_KEY = "Test/AngleTarget";
+    public static final String RUN_MOTORS_KEY = "Test/RunMotors";
+    public static final String SET_ANGLE_KEY = "Test/SetAngle";
+    public static final String SAVE_ANGLES_KEY = "Test/SaveAngles";
+    public static final String FLYWHEEL_VEL_KEY = "Test/FlywheelVel";
+    public static final String FLYWHEEL_POWER_KEY = "Test/FlywheelPower";
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, ARM_CHARACTERIZATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, ARM_CHARACTERIZATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
     }   // enum Test
 
     private enum State
@@ -80,6 +87,7 @@ public class FrcTest extends FrcTeleOp
         testMenu = new FrcChoiceMenu<>("Test/Tests");
         testMenu.addChoice("Sensors Test", FrcTest.Test.SENSORS_TEST, true, false);
         testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST);
+        testMenu.addChoice("Swerve Calibration", Test.SWERVE_CALIBRATION);
         testMenu.addChoice("Arm Characterization", Test.ARM_CHARACTERIZATION);
         testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST);
         testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE);
@@ -92,7 +100,13 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
 
-        HalDashboard.putNumber("FlywheelTarget", HalDashboard.getNumber("FlywheelTarget", 400));
+        HalDashboard.refreshKey(FLYWHEEL_TARGET_KEY, 400);
+        HalDashboard.refreshKey(ANGLE_TARGET_KEY, 0.0);
+        HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
+        HalDashboard.putBoolean(SET_ANGLE_KEY, false);
+        HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
+        HalDashboard.putNumber(FLYWHEEL_POWER_KEY, 0);
+        HalDashboard.putNumber(FLYWHEEL_VEL_KEY, 0);
     } // FrcTest
 
     //
@@ -138,6 +152,12 @@ public class FrcTest extends FrcTeleOp
                 // So let it flow to the next case.
                 //
             case SUBSYSTEMS_TEST:
+                break;
+
+            case SWERVE_CALIBRATION:
+                HalDashboard.putBoolean(SET_ANGLE_KEY, false);
+                HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
+                HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
                 break;
 
             case ARM_CHARACTERIZATION:
@@ -218,6 +238,26 @@ public class FrcTest extends FrcTeleOp
                 //
                 super.runPeriodic(elapsedTime);
                 doSensorsTest();
+                break;
+
+            case SWERVE_CALIBRATION:
+                boolean newSetAngleButtonState = HalDashboard.getBoolean(SET_ANGLE_KEY, false);
+                if (newSetAngleButtonState)
+                {
+                    robot.driveBase.setSteerAngle(HalDashboard.getNumber(ANGLE_TARGET_KEY, 0), false);
+                    HalDashboard.putBoolean(SET_ANGLE_KEY, false);
+                }
+                boolean newSaveAngleButtonState = HalDashboard.getBoolean(SAVE_ANGLES_KEY, false);
+                if (newSaveAngleButtonState)
+                {
+                    HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
+                    robot.saveSteerZeroPositions();
+                }
+                double power = HalDashboard.getBoolean(RUN_MOTORS_KEY, false) ? 0.1 : 0.0;
+                robot.leftFrontWheel.set(power);
+                robot.rightFrontWheel.set(power);
+                robot.leftBackWheel.set(power);
+                robot.rightBackWheel.set(power);
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -320,7 +360,7 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber("FlywheelTarget", 0)); //in/s
+                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
                 }
                 else
                 {
@@ -484,8 +524,8 @@ public class FrcTest extends FrcTeleOp
             robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
             robot.conveyor.exitProximitySensor.isActive(), robot.getNumBalls());
 
-        HalDashboard.putNumber("FlywheelVel", robot.shooter.getFlywheelVelocity());
-        HalDashboard.putNumber("FlywheelPower", robot.shooter.flywheel.motor.getAppliedOutput());
+        HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
+        HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.motor.getAppliedOutput());
 
         if (robot.vision != null)
         {

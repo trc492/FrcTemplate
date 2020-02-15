@@ -275,6 +275,7 @@ public class Robot extends FrcRobotBase
 
     public void saveSteerZeroPositions()
     {
+        globalTracer.traceInfo("Robot.saveSteerZeroPositions", "Saved steer zeros!");
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
             out.printf("%.0f\n",
