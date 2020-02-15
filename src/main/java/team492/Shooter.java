@@ -18,8 +18,8 @@ import trclib.TrcUtil;
 public class Shooter
 {
     // TODO: tune this
-    private static final double FLYWHEEL_kP = 0.002;
-    private static final double FLYWHEEL_kI = 0.000009;
+    private static final double FLYWHEEL_kP = 0.0008;
+    private static final double FLYWHEEL_kI = 0.0;
     private static final double FLYWHEEL_IZONE = 10;
     private static final double FLYWHEEL_kD = 0.00025;
     private static final double FLYWHEEL_kD_THRESH_UPPER = 100; // in/s
@@ -27,10 +27,12 @@ public class Shooter
     private static final double FLYWHEEL_kF = 1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     // TODO: tune this
-    private static final double PITCH_kP = 0;
+    private static final boolean USE_MM = false;
+    private static final double PITCH_kP = 0.65;
     private static final double PITCH_kI = 0;
     private static final double PITCH_kD = 0;
     private static final double PITCH_kF = 0;
+    private static final double PITCH_MAX_POWER = 0.4;
     private static final int PITCH_IZONE = 0;
     private static final int PITCH_MAX_VEL = 0;
     private static final int PITCH_MAX_ACCEL = 0;
@@ -40,6 +42,8 @@ public class Shooter
     // Measured
     private static final int PITCH_OFFSET_TICKS = 178;
     private static final double PITCH_OFFSET_DEG = 17.5;
+    private static final int PITCH_UPPER_LIMIT_TICKS = 2700;
+    private static final int PITCH_LOWER_LIMIT_TICKS = -25;
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
@@ -132,7 +136,7 @@ public class Shooter
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
         pitchMotor.motor
-            .set(ControlMode.MotionMagic, pitchTicksTarget, DemandType.ArbitraryFeedForward, getPitchGravityComp());
+            .set(USE_MM ? ControlMode.MotionMagic : ControlMode.Position, pitchTicksTarget, DemandType.ArbitraryFeedForward, getPitchGravityComp());
         if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
         {
             pitchEvent.set(true);
@@ -222,8 +226,12 @@ public class Shooter
         pitchMotor.motor.config_kD(0, PITCH_kD, 10);
         pitchMotor.motor.config_kF(0, PITCH_kF, 10);
         pitchMotor.motor.config_IntegralZone(0, PITCH_IZONE, 10);
-        pitchMotor.motor.configMotionCruiseVelocity(PITCH_MAX_VEL, 10);
-        pitchMotor.motor.configMotionAcceleration(PITCH_MAX_ACCEL, 10);
+        if (USE_MM)
+        {
+            pitchMotor.motor.configMotionCruiseVelocity(PITCH_MAX_VEL, 10);
+            pitchMotor.motor.configMotionAcceleration(PITCH_MAX_ACCEL, 10);
+        }
+        pitchMotor.motor.configClosedLoopPeakOutput(0, PITCH_MAX_POWER);
         pitchMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         pitchMotor.motor.enableVoltageCompensation(true);
         pitchMotor.setBrakeModeEnabled(true);
@@ -233,7 +241,11 @@ public class Shooter
         pitchMotor.setInverted(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
-        pitchMotor.motor.overrideLimitSwitchesEnable(true);
+        pitchMotor.motor.overrideLimitSwitchesEnable(false);
+        pitchMotor.motor.configForwardSoftLimitEnable(true, 10);
+        pitchMotor.motor.configReverseSoftLimitEnable(true, 10);
+        pitchMotor.motor.configForwardSoftLimitThreshold(PITCH_UPPER_LIMIT_TICKS, 10);
+        pitchMotor.motor.configReverseSoftLimitThreshold(PITCH_LOWER_LIMIT_TICKS, 10);
     }
 
     private void configureFlywheel()
