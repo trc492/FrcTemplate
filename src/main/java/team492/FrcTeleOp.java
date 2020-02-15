@@ -55,17 +55,23 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
-        robot.driverController.setButtonHandler(this::driverControllerButtonEvent);
-        robot.driverController.setLeftYInverted(true);
+        if (robot.preferences.useController)
+        {
+            robot.driverController.setButtonHandler(this::driverControllerButtonEvent);
+        }
+        else
+        {
+            robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
+        }
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
-        robot.operatorStick.setYInverted(false);
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
 
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
+        robot.fieldOriented = true;
         lowGoal = false;
 
         if (robot.preferences.useVision)
@@ -150,6 +156,23 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
     // Implements FrcButtonHandler.
     //
+
+    public void rightDriveStickButtonEvent(int button, boolean pressed)
+    {
+        boolean isAutoActive = robot.isAutoActive();
+        robot.dashboard
+            .displayPrintf(8, " RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
+        switch (button)
+        {
+            case FrcJoystick.SIDEWINDER_TRIGGER:
+                if (pressed)
+                {
+                    robot.fieldOriented = !robot.fieldOriented;
+                }
+                break;
+        }
+    }
 
     public void driverControllerButtonEvent(int button, boolean pressed)
     {

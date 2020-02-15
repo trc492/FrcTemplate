@@ -75,6 +75,7 @@ public class Robot extends FrcRobotBase
 {
     public static class Preferences
     {
+        public final boolean useController = true;
         public final boolean useTraceLog = true;
         public final boolean useNavX = true;
         public final boolean useGyroAssist = false;
@@ -109,6 +110,7 @@ public class Robot extends FrcRobotBase
     //
     // Inputs.
     //
+    public FrcJoystick leftDriveStick, rightDriveStick;
     public FrcXboxController driverController;
     public FrcJoystick operatorStick;
     public FrcJoystick buttonPanel;
@@ -298,10 +300,25 @@ public class Robot extends FrcRobotBase
         //
         // Inputs.
         //
-        driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
-        operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
-        buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
-        switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
+        if (preferences.useController)
+        {
+            driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
+            operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
+            buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
+            switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
+            driverController.setLeftYInverted(true);
+        }
+        else
+        {
+            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotInfo.XBOX_DRIVERCONTROLLER);
+            rightDriveStick = new FrcJoystick("DriverRightStick", RobotInfo.XBOX_DRIVERCONTROLLER + 1);
+            operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK + 1);
+            buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL + 1);
+            switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL + 1);
+            rightDriveStick.setYInverted(true);
+        }
+        operatorStick.setYInverted(false);
+
         //
         // Sensors.
         //
@@ -671,7 +688,15 @@ public class Robot extends FrcRobotBase
 
     public double getXInput()
     {
-        double x = driverController.getLeftXWithDeadband(false);
+        double x;
+        if (preferences.useController)
+        {
+            x = driverController.getLeftXWithDeadband(false);
+        }
+        else
+        {
+            x = rightDriveStick.getXWithDeadband(false);
+        }
         x = Math.copySign(Math.pow(x, 3), x);
         switch (driveSpeed)
         {
@@ -692,7 +717,15 @@ public class Robot extends FrcRobotBase
 
     public double getYInput()
     {
-        double y = driverController.getLeftYWithDeadband(false);
+        double y;
+        if (preferences.useController)
+        {
+            y = driverController.getLeftYWithDeadband(false);
+        }
+        else
+        {
+            y = rightDriveStick.getYWithDeadband(false);
+        }
         y = Math.copySign(Math.pow(y, 3), y);
         switch (driveSpeed)
         {
@@ -713,9 +746,17 @@ public class Robot extends FrcRobotBase
 
     public double getRotInput()
     {
-        double rightTrigger = driverController.getRightTriggerWithDeadband(true);
-        double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
-        double rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+        double rot;
+        if (preferences.useController)
+        {
+            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
+            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
+            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+        }
+        else
+        {
+            rot = leftDriveStick.getXWithDeadband(true);
+        }
         switch (driveSpeed)
         {
             case SLOW:

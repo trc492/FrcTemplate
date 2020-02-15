@@ -31,7 +31,6 @@ import trclib.TrcPose2D;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
-import trclib.TrcUtil;
 
 public class FrcAuto implements TrcRobot.RobotMode
 {
