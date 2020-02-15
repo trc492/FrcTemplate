@@ -480,9 +480,13 @@ public class FrcTest extends FrcTeleOp
             robot.alignment.getLeftDistance(), robot.alignment.getRightDistance(), robot.alignment.getAngleToWall(),
             robot.alignment.getShortestDistanceToWall());
 
-        robot.dashboard.displayPrintf(6, "Shooter: pitch=%.1f, flywheelVel=%.1f, lowerLimit=%b, higherLimit=%b",
-            robot.shooter.getPitch(), robot.shooter.getFlywheelVelocity(),
-            robot.shooter.pitchMotor.isLowerLimitSwitchActive(), robot.shooter.pitchMotor.isUpperLimitSwitchActive());
+        robot.dashboard.displayPrintf(6, "Shooter: pitch=%.1f, flywheelVel=%.1f, %b/%b", robot.shooter.getPitch(),
+            robot.shooter.getFlywheelVelocity(), robot.shooter.pitchMotor.isLowerLimitSwitchActive(),
+            robot.shooter.pitchMotor.isUpperLimitSwitchActive());
+
+        robot.dashboard.displayPrintf(7, "Conveyor: target=%.1f, pos=%.1f, conveyorSensor=%b, ballCount=%d",
+            robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
+            robot.conveyor.exitProximitySensor.isActive(), robot.getNumBalls());
 
         HalDashboard.putNumber("FlywheelVel", robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber("FlywheelPower", robot.shooter.flywheel.motor.getAppliedOutput());

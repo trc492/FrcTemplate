@@ -387,6 +387,33 @@
               "_source0": "network_table:///SmartDashboard/Test/TuneKf",
               "_title": "TuneKf"
             }
+          },
+          "16,6": {
+            "size": [
+              4,
+              2
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/FlywheelTarget",
+              "_title": "/SmartDashboard/FlywheelTarget"
+            }
+          },
+          "20,0": {
+            "size": [
+              12,
+              8
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/FlywheelVel",
+              "_title": "SmartDashboard/FlywheelVel",
+              "Graph/Visible time": 30.0,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Visible data/SmartDashboard/FlywheelVel": true
+            }
           }
         }
       }
@@ -837,7 +864,19 @@
         "showGrid": true,
         "hgap": 1.0,
         "vgap": 1.0,
-        "tiles": {}
+        "tiles": {
+          "0,0": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Status/DriveSpeed",
+              "_title": "/DriveSpeed"
+            }
+          }
+        }
       }
     }
   ],

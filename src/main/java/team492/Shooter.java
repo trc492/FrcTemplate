@@ -3,6 +3,8 @@ package team492;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.revrobotics.ControlType;
 import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
@@ -239,8 +241,11 @@ public class Shooter
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
         pitchMotor.setPositionSensorInverted(true);
         pitchMotor.setInverted(false);
-        pitchMotor.configRevLimitSwitchNormallyOpen(false);
-        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
+        // TODO: re-enable limit switches at some point
+        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
+        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
+//        pitchMotor.configRevLimitSwitchNormallyOpen(false);
+//        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.motor.overrideLimitSwitchesEnable(false);
         pitchMotor.motor.configForwardSoftLimitEnable(true, 10);
         pitchMotor.motor.configReverseSoftLimitEnable(true, 10);

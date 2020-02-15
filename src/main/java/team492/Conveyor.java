@@ -19,7 +19,8 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double CONVEYOR_kD = 0;
     private static final double CONVEYOR_kF = 0;
     private static final int CONVEYOR_IZONE = 0;
-    private static final double CONVEYOR_INCHES_PER_COUNT = (2 * Math.PI) / 4096.0 / 2.0; // divide by two bc it rolls 2x as fast
+    private static final double CONVEYOR_INCHES_PER_COUNT =
+        (2 * Math.PI) / 4096.0 / 2.0; // divide by two bc it rolls 2x as fast
     private static final double CONVEYOR_TOLERANCE = 0.2;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
@@ -58,6 +59,7 @@ public class Conveyor implements TrcExclusiveSubsystem
         motor.resetPosition(true);
 
         exitProximitySensor = new FrcDigitalInput("ExitProximity", RobotInfo.CONVEYOR_PROXIMITY_SENSOR);
+        exitProximitySensor.setInverted(true);
         entranceProximitySensor = new FrcDigitalInput("EntranceProximity", RobotInfo.INTAKE_PROXIMITY_SENSOR);
         shootTrigger = new TrcDigitalInputTrigger("ShootTrigger", exitProximitySensor, this::shootTriggerEvent);
         exitMonitor = new TrcDigitalInputTrigger("ExitMonitorTrigger", exitProximitySensor, this::exitMonitorEvent);
@@ -114,6 +116,16 @@ public class Conveyor implements TrcExclusiveSubsystem
             motor.set(0.0);
             shootTrigger.setEnabled(false);
         }
+    }
+
+    public double getPosition()
+    {
+        return motor.getPosition();
+    }
+
+    public double getTargetPosition()
+    {
+        return targetPosTicks * CONVEYOR_INCHES_PER_COUNT;
     }
 
     public void setManualOverrideEnabled(boolean enabled)
