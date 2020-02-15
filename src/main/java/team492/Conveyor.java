@@ -31,6 +31,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private FrcCANTalon motor;
     private TrcTaskMgr.TaskObject advanceTask, intakeTask;
     private TrcEvent advanceEvent, shootEvent, intakeEvent;
+    private boolean firstTrigger = false;
     private final TrcDigitalInputTrigger exitMonitor;
     private TrcDigitalInputTrigger shootTrigger;
     private int targetPosTicks = 0;
@@ -61,6 +62,7 @@ public class Conveyor implements TrcExclusiveSubsystem
         exitProximitySensor = new FrcDigitalInput("ExitProximity", RobotInfo.CONVEYOR_PROXIMITY_SENSOR);
         exitProximitySensor.setInverted(true);
         entranceProximitySensor = new FrcDigitalInput("EntranceProximity", RobotInfo.INTAKE_PROXIMITY_SENSOR);
+        entranceProximitySensor.setInverted(true);
         shootTrigger = new TrcDigitalInputTrigger("ShootTrigger", exitProximitySensor, this::shootTriggerEvent);
         exitMonitor = new TrcDigitalInputTrigger("ExitMonitorTrigger", exitProximitySensor, this::exitMonitorEvent);
         exitMonitor.setEnabled(true);
@@ -106,7 +108,8 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     private void shootTriggerEvent(boolean value)
     {
-        if (!value)
+        robot.globalTracer.traceInfo("Conveyor.shootTriggerEvent", "Triggered! value=%b", value);
+        if (firstTrigger && !value)
         {
             if (shootEvent != null)
             {
@@ -116,6 +119,7 @@ public class Conveyor implements TrcExclusiveSubsystem
             motor.set(0.0);
             shootTrigger.setEnabled(false);
         }
+        firstTrigger = true;
     }
 
     public double getPosition()
@@ -202,6 +206,8 @@ public class Conveyor implements TrcExclusiveSubsystem
 
             shootTrigger.setEnabled(true);
             advanceTask.unregisterTask();
+            intakeTask.unregisterTask();
+            firstTrigger = false;
 
             motor.set(SHOOT_POWER);
         }

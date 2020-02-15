@@ -332,21 +332,9 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case FrcXboxController.BUTTON_A:
-                processedInput = true;
                 if (pressed)
                 {
-                    double power = 0.08;
-                    robot.leftFrontWheel.set(power);
-                    robot.rightFrontWheel.set(power);
-                    robot.leftBackWheel.set(power);
-                    robot.rightBackWheel.set(power);
-                }
-                else
-                {
-                    robot.leftFrontWheel.set(0);
-                    robot.rightFrontWheel.set(0);
-                    robot.leftBackWheel.set(0);
-                    robot.rightBackWheel.set(0);
+                    robot.conveyor.shoot();
                 }
                 break;
 
@@ -369,11 +357,6 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
-                processedInput = true;
-                if (pressed)
-                {
-                    robot.saveSteerZeroPositions();
-                }
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
@@ -389,6 +372,10 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.RIGHT_STICK_BUTTON:
+                if (pressed)
+                {
+                    robot.shooter.setPitch(0);
+                }
                 break;
         }
 
@@ -520,9 +507,20 @@ public class FrcTest extends FrcTeleOp
             robot.shooter.getFlywheelVelocity(), robot.shooter.pitchMotor.isLowerLimitSwitchActive(),
             robot.shooter.pitchMotor.isUpperLimitSwitchActive());
 
-        robot.dashboard.displayPrintf(7, "Conveyor: target=%.1f, pos=%.1f, conveyorSensor=%b, ballCount=%d",
-            robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
-            robot.conveyor.exitProximitySensor.isActive(), robot.getNumBalls());
+        robot.dashboard
+            .displayPrintf(7, "Conveyor: target=%.1f, pos=%.1f, entrance=%b, exit=%b, ballCount=%d",
+                robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
+                robot.conveyor.entranceProximitySensor.isActive(), robot.conveyor.exitProximitySensor.isActive(),
+                robot.getNumBalls());
+
+        if (robot.preferences.useVision)
+        {
+            robot.dashboard.displayPrintf(8, "Vision: RelPose=%s", robot.vision.getLastPose());
+        }
+
+        robot.dashboard
+            .displayPrintf(9, "AutoShooter: active=%b, targetVel=%.1f, targetPitch=%.1f", robot.autoShooter.isActive(),
+                robot.autoShooter.getTargetVel(), robot.autoShooter.getTargetPitch());
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.motor.getAppliedOutput());

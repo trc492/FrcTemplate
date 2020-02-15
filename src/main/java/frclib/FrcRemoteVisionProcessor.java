@@ -58,7 +58,6 @@ public abstract class FrcRemoteVisionProcessor
         networkTable = instance.getTable(networkTableName);
         instance.addConnectionListener(this::connectionListener, false);
         visionTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".visionTask", this::updateTargetInfo);
-        setEnabled(false);
     }
 
     public FrcRemoteVisionProcessor(String instanceName, String networkTableName, int relayPort)
@@ -321,6 +320,12 @@ public abstract class FrcRemoteVisionProcessor
         {
             r = TrcUtil.magnitude(x, y);
             theta = Math.toDegrees(Math.atan2(x, y));
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("RelativePose(x=%.1f,y=%.1f,r=%.1f,theta=%.1f)", x, y, r, theta);
         }
     }
 }

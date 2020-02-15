@@ -96,8 +96,9 @@ public class TaskAutoShooter
             if (traj != null)
             {
                 this.traj = traj;
-                robot.shooter.setFlywheelVelocity(traj.getEntry(0));
-                robot.shooter.setPitch(traj.getEntry(1));
+                robot.shooter.setFlywheelVelocity(traj.getEntry(0) * 1.3);
+//                robot.shooter.setFlywheelVelocity(700);
+                robot.shooter.setPitch(traj.getEntry(1)+7);
             }
         }
         if (shouldAlign())
@@ -125,6 +126,16 @@ public class TaskAutoShooter
                 robot.ledIndicator.setShooterReady(false);
             }
         }
+    }
+
+    public double getTargetPitch()
+    {
+        return traj == null ? 0 : traj.getEntry(1);
+    }
+
+    public double getTargetVel()
+    {
+        return traj == null ? 0 : traj.getEntry(0);
     }
 
     private boolean readyToShoot(RealVector traj)
