@@ -75,6 +75,7 @@ public class Robot extends FrcRobotBase
 {
     public static class Preferences
     {
+        public final boolean isPracticeBot = false;
         public final boolean useController = true;
         public final boolean useTraceLog = true;
         public final boolean useNavX = true;
@@ -219,7 +220,7 @@ public class Robot extends FrcRobotBase
         return spark;
     }
 
-    private FrcCANTalon createSteerTalon(String name, int id)
+    private FrcCANTalon createSteerTalon(String name, int id, boolean inverted)
     {
         FrcCANTalon talon = new FrcCANTalon(name, id);
         talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
@@ -229,8 +230,8 @@ public class Robot extends FrcRobotBase
         talon.configFwdLimitSwitchNormallyOpen(true);
         talon.configRevLimitSwitchNormallyOpen(true);
         talon.setBrakeModeEnabled(true);
-        talon.setPositionSensorInverted(true);
-        talon.setInverted(false);
+        talon.setPositionSensorInverted(inverted);
+        talon.setInverted(!inverted);
         return talon;
     }
 
@@ -334,10 +335,11 @@ public class Robot extends FrcRobotBase
         lrDriveMotor = createSparkMax("LRDrive", RobotInfo.CANID_LEFTREAR_DRIVE);
         rrDriveMotor = createSparkMax("RRDrive", RobotInfo.CANID_RIGHTREAR_DRIVE);
 
-        lfSteerMotor = createSteerTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER);
-        rfSteerMotor = createSteerTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER);
-        lrSteerMotor = createSteerTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER);
-        rrSteerMotor = createSteerTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER);
+        // rf lr are inverted always, lf and rr are inverted on comp, not inverted on practice
+        lfSteerMotor = createSteerTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER, !preferences.isPracticeBot);
+        rfSteerMotor = createSteerTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER, true);
+        lrSteerMotor = createSteerTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER, true);
+        rrSteerMotor = createSteerTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER, !preferences.isPracticeBot);
 
         int[] zeros = getSteerZeroPositions();
         leftFrontWheel = createModule("LeftFrontWheel", lfDriveMotor, lfSteerMotor, zeros[0]);
