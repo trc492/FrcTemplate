@@ -461,16 +461,12 @@ public class FrcTest extends FrcTeleOp
      */
     private void doSensorsTest()
     {
-        double lfPos = robot.leftFrontWheel.getPosition();
-        double rfPos = robot.rightFrontWheel.getPosition();
-        double lbPos = robot.leftBackWheel.getPosition();
-        double rbPos = robot.rightBackWheel.getPosition();
-        double driveBaseAverage = (lfPos + rfPos + lbPos + rbPos) / 4.0;
         robot.dashboard.displayPrintf(1, "Sensors Test (Batt=%.1f/%.1f):", robot.battery.getVoltage(),
             robot.battery.getLowestVoltage());
         robot.dashboard
-            .displayPrintf(2, "DriveBase: lf=%.3f,rf=%.3f,lb=%.3f,rb=%.3f,avg=%.3f", lfPos, rfPos, lbPos, rbPos,
-                driveBaseAverage);
+            .displayPrintf(2, "DriveBase angles: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f", robot.leftFrontWheel.getSteerAngle(),
+                robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
+                robot.rightBackWheel.getSteerAngle());
         robot.dashboard
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
