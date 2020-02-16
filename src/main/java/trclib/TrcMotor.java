@@ -225,7 +225,9 @@ public abstract class TrcMotor implements TrcMotorController
             // We must clear the task object because FTC opmode stuck around even after it has ended. So the task
             // object would have a stale odometryTask if we run the opmode again.
             //
-            odometryTaskObj = null;
+            // odometryTaskObj = null; // TODO: this causes problems in FRC, but is apparently required for FTC
+            // The issue is that on stopMode, the odometryTaskObj is set to null, and all motor odometries are disabled.
+            // It therefore becomes impossible to re-enable the motor odometries without throwing a NPE, since the obj is null.
         }
     }   //clearOdometryMotorsList
 

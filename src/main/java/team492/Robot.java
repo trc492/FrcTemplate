@@ -214,7 +214,6 @@ public class Robot extends FrcRobotBase
         spark.setInverted(false);
         spark.setPositionSensorInverted(false);
         spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        spark.setOdometryEnabled(true);
         spark.motor.setOpenLoopRampRate(0.2);
         spark.motor.burnFlash();
         return spark;
@@ -355,6 +354,7 @@ public class Robot extends FrcRobotBase
 
         driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel, gyro,
             RobotInfo.ROBOT_DRIVE_WIDTH, RobotInfo.ROBOT_DRIVE_LENGTH);
+        driveBase.setSynchronizeOdometriesEnabled(false);
         driveBase.setOdometryScales(RobotInfo.ENCODER_INCHES_PER_COUNT);
         driveMode = DriveMode.HOLONOMIC_MODE;
         driveInverted = false;
@@ -449,6 +449,10 @@ public class Robot extends FrcRobotBase
             battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
+            lfDriveMotor.setOdometryEnabled(true);
+            rfDriveMotor.setOdometryEnabled(true);
+            lrDriveMotor.setOdometryEnabled(true);
+            rrDriveMotor.setOdometryEnabled(true);
             shooter.setEnabled(true);
             shooter.setManualOverrideEnabled(false);
             conveyor.setManualOverrideEnabled(false);
