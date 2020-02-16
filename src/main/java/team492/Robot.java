@@ -448,11 +448,11 @@ public class Robot extends FrcRobotBase
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
-            driveBase.setOdometryEnabled(true);
             lfDriveMotor.setOdometryEnabled(true);
             rfDriveMotor.setOdometryEnabled(true);
             lrDriveMotor.setOdometryEnabled(true);
             rrDriveMotor.setOdometryEnabled(true);
+            driveBase.setOdometryEnabled(true);
             shooter.setEnabled(true);
             shooter.setManualOverrideEnabled(false);
             conveyor.setManualOverrideEnabled(false);

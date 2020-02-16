@@ -25,7 +25,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
     private static final double SHOOT_POWER = 1.0;
-    private static final double INTAKE_POWER = 0.7;
+    private static final double INTAKE_POWER = 0.5;
 
     public final FrcDigitalInput exitProximitySensor, entranceProximitySensor;
     private FrcCANTalon motor;
@@ -78,6 +78,7 @@ public class Conveyor implements TrcExclusiveSubsystem
         if (exitProximitySensor.isActive() || !entranceProximitySensor.isActive())
         {
             motor.set(0);
+            robot.incNumBalls();
             if (intakeEvent != null)
             {
                 intakeEvent.set(true);

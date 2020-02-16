@@ -332,6 +332,7 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case FrcXboxController.BUTTON_A:
+                processedInput = true;
                 if (pressed)
                 {
                     robot.conveyor.shoot();
@@ -339,6 +340,15 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BUTTON_B:
+                processedInput = true;
+                if (pressed)
+                {
+                    robot.intake.intakeMultiple();
+                }
+                else
+                {
+                    robot.intake.stopIntake();
+                }
                 break;
 
             case FrcXboxController.BUTTON_X:
@@ -372,6 +382,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.RIGHT_STICK_BUTTON:
+                processedInput = true;
                 if (pressed)
                 {
                     robot.shooter.setPitch(0);
@@ -507,11 +518,10 @@ public class FrcTest extends FrcTeleOp
             robot.shooter.getFlywheelVelocity(), robot.shooter.pitchMotor.isLowerLimitSwitchActive(),
             robot.shooter.pitchMotor.isUpperLimitSwitchActive());
 
-        robot.dashboard
-            .displayPrintf(7, "Conveyor: target=%.1f, pos=%.1f, entrance=%b, exit=%b, ballCount=%d",
-                robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
-                robot.conveyor.entranceProximitySensor.isActive(), robot.conveyor.exitProximitySensor.isActive(),
-                robot.getNumBalls());
+        robot.dashboard.displayPrintf(7, "Conveyor: target=%.1f, pos=%.1f, entrance=%b, exit=%b, ballCount=%d",
+            robot.conveyor.getTargetPosition(), robot.conveyor.getPosition(),
+            robot.conveyor.entranceProximitySensor.isActive(), robot.conveyor.exitProximitySensor.isActive(),
+            robot.getNumBalls());
 
         if (robot.preferences.useVision)
         {
@@ -522,23 +532,10 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(9, "AutoShooter: active=%b, targetVel=%.1f, targetPitch=%.1f", robot.autoShooter.isActive(),
                 robot.autoShooter.getTargetVel(), robot.autoShooter.getTargetPitch());
 
+        robot.dashboard.displayPrintf(10, "Intake: currState=%s", robot.intake.getIntakeTaskState());
+
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.motor.getAppliedOutput());
-
-        if (robot.vision != null)
-        {
-            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-            if (pose != null)
-            {
-                robot.dashboard
-                    .displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f,depth=%.1f", pose.x, pose.y,
-                        pose.objectYaw, pose.r);
-            }
-            else
-            {
-                robot.dashboard.displayPrintf(13, "RaspiVision: No target found!");
-            }
-        }
     } // doSensorsTest
 
     /**

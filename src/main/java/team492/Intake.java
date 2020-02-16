@@ -1,7 +1,6 @@
 package team492;
 
 import frclib.FrcCANTalon;
-import frclib.FrcDigitalInput;
 import frclib.FrcPneumatic;
 import trclib.TrcDigitalInputTrigger;
 import trclib.TrcEvent;
@@ -13,29 +12,23 @@ import trclib.TrcTimer;
 public class Intake
 {
     private static final double INTAKE_POWER = 1.0;
-    private static final double INTAKE_DELAY = 0.1;
     private Robot robot;
 
     private enum State
     {
-        INTAKE, ADVANCE
+        INTAKE, MONITOR, ADVANCE
     }
 
     private FrcCANTalon intakeMotor;
     private TrcTaskMgr.TaskObject intakeTaskObj;
     private TrcStateMachine<State> sm;
     private TrcEvent event, onFinishedEvent;
-    private TrcDigitalInputTrigger proximityTrigger;
-    private TrcTimer timer;
     private FrcPneumatic intakeExtension;
     private boolean singular = false;
 
     public Intake(Robot robot)
     {
         this.robot = robot;
-
-        proximityTrigger = new TrcDigitalInputTrigger("Intake.trigger", robot.conveyor.entranceProximitySensor,
-            this::proximityTriggerEvent);
 
         intakeMotor = new FrcCANTalon("Intake", RobotInfo.CANID_INTAKE);
         intakeMotor.setInverted(false);
@@ -49,18 +42,11 @@ public class Intake
         event = new TrcEvent("Intake.event");
 
         intakeTaskObj = TrcTaskMgr.getInstance().createTask("IntakeTask", this::intakeTask);
-
-        timer = new TrcTimer("Intake.timer");
     }
 
-    private void proximityTriggerEvent(boolean active)
+    public State getIntakeTaskState()
     {
-        robot.globalTracer.traceInfo("Intake.proximityTriggerEvent", "Proximity Event! active=%b", active);
-        if (active)
-        {
-            event.set(true);
-            proximityTrigger.setEnabled(false);
-        }
+        return sm.isEnabled() ? sm.getState() : null;
     }
 
     private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
@@ -72,15 +58,21 @@ public class Intake
             {
                 case INTAKE:
                     event.clear();
-                    setIntakePower(INTAKE_POWER);
-                    proximityTrigger.setEnabled(true);
+                    intakeMotor.set(INTAKE_POWER);
+                    // proximityTrigger.setEnabled(true);
                     extendIntake();
-                    sm.waitForSingleEvent(event, State.ADVANCE);
+                    sm.setState(State.MONITOR);
+                    break;
+
+                case MONITOR:
+                    if (robot.conveyor.entranceProximitySensor.isActive())
+                    {
+                        sm.setState(State.ADVANCE);
+                    }
                     break;
 
                 case ADVANCE:
-                    robot.conveyor.intake();
-                    robot.incNumBalls();
+                    robot.conveyor.intake(null, event);
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);
@@ -92,7 +84,7 @@ public class Intake
                     }
                     else
                     {
-                        sm.setState(State.INTAKE); // reset state machine to prepare for another pickup
+                        sm.waitForSingleEvent(event, State.INTAKE); // reset state machine to prepare for another pickup
                     }
                     break;
             }
