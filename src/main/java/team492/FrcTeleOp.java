@@ -206,7 +206,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.BUTTON_X:
-                // reserved for field oriented drive in Robot.java
+                if (pressed)
+                {
+                    robot.fieldOriented = !robot.fieldOriented;
+                }
                 break;
 
             case FrcXboxController.BUTTON_Y:
@@ -241,10 +244,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.LEFT_STICK_BUTTON:
-                if (pressed)
-                {
-                    robot.fieldOriented = !robot.fieldOriented;
-                }
                 break;
 
             case FrcXboxController.RIGHT_STICK_BUTTON:
