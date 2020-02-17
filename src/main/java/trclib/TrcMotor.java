@@ -211,8 +211,11 @@ public abstract class TrcMotor implements TrcMotorController
     /**
      * This method clears the list of motors that register for odometry monitoring. This method should only be called
      * by the task scheduler.
+     *
+     * @param removeOdometryTask specifies true to also remove the odometry task object, false to leave it alone.
+     *                           This is mainly for FTC, FRC should always set this to false.
      */
-    public static void clearOdometryMotorsList()
+    public static void clearOdometryMotorsList(boolean removeOdometryTask)
     {
         synchronized (odometryMotors)
         {
@@ -225,9 +228,10 @@ public abstract class TrcMotor implements TrcMotorController
             // We must clear the task object because FTC opmode stuck around even after it has ended. So the task
             // object would have a stale odometryTask if we run the opmode again.
             //
-            // odometryTaskObj = null; // TODO: this causes problems in FRC, but is apparently required for FTC
-            // The issue is that on stopMode, the odometryTaskObj is set to null, and all motor odometries are disabled.
-            // It therefore becomes impossible to re-enable the motor odometries without throwing a NPE, since the obj is null.
+            if (removeOdometryTask)
+            {
+                odometryTaskObj = null;
+            }
         }
     }   //clearOdometryMotorsList
 
@@ -377,7 +381,7 @@ public abstract class TrcMotor implements TrcMotorController
                     "taskType=%s,runMode=%s", taskType, runMode);
         }
 
-        clearOdometryMotorsList();
+        clearOdometryMotorsList(false);
 
         if (debugEnabled)
         {
