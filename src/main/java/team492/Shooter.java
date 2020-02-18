@@ -19,11 +19,10 @@ import trclib.TrcUtil;
 
 public class Shooter
 {
-    // TODO: tune this
-    private static final double FLYWHEEL_kP = 0.0;
-    private static final double FLYWHEEL_kI = 0.0;
-    private static final int FLYWHEEL_IZONE = TrcUtil.round(10 / RobotInfo.FLYWHEEL_INCHES_PER_TICK);
-    private static final double FLYWHEEL_kD = 0.0;
+    private static final double FLYWHEEL_kP = 0.05;
+    private static final double FLYWHEEL_kI = 1e-4;
+    private static final int FLYWHEEL_IZONE = 2000;
+    private static final double FLYWHEEL_kD = 5;
     private static final double FLYWHEEL_kD_THRESH_UPPER = 100; // in/s
     private static final double FLYWHEEL_kD_THRESH_LOWER = 80; // in/s
     private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
