@@ -75,10 +75,16 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        if (exitProximitySensor.isActive() || !entranceProximitySensor.isActive())
+
+        boolean exitActive = exitProximitySensor.isActive();
+        boolean entranceActive = entranceProximitySensor.isActive();
+        if (exitActive || !entranceActive)
         {
+            if (!exitActive)
+            {
+                robot.incNumBalls();
+            }
             motor.set(0);
-            robot.incNumBalls();
             if (intakeEvent != null)
             {
                 intakeEvent.set(true);
@@ -94,7 +100,7 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     private void exitMonitorEvent(boolean value)
     {
-        if (!value)
+        if (!value && motor.getPower() >= 0)
         {
             robot.decNumBalls();
             if (robot.getNumBalls() < 0)
@@ -125,7 +131,7 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     public double getPosition()
     {
-        return motor.getPosition();
+        return motor.getPosition() * CONVEYOR_INCHES_PER_COUNT;
     }
 
     public double getTargetPosition()

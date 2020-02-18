@@ -386,6 +386,9 @@ public class FrcTest extends FrcTeleOp
                 if (pressed)
                 {
                     robot.shooter.setPitch(0);
+                    robot.conveyor.stop();
+                    robot.intake.stopIntake();
+                    robot.shooter.stopFlywheel();
                 }
                 break;
         }

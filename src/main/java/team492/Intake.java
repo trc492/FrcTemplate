@@ -7,7 +7,6 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
-import trclib.TrcTimer;
 
 public class Intake
 {
@@ -16,7 +15,7 @@ public class Intake
 
     private enum State
     {
-        INTAKE, MONITOR, ADVANCE
+        BACKUP, FORWARD, INTAKE, MONITOR, ADVANCE
     }
 
     private FrcCANTalon intakeMotor;
@@ -25,6 +24,7 @@ public class Intake
     private TrcEvent event, onFinishedEvent;
     private FrcPneumatic intakeExtension;
     private boolean singular = false;
+    private Double conveyorIntakeStartPos = null;
 
     public Intake(Robot robot)
     {
@@ -56,12 +56,48 @@ public class Intake
         {
             switch (state)
             {
+                case BACKUP:
+                    if (conveyorIntakeStartPos == null)
+                    {
+                        conveyorIntakeStartPos = robot.conveyor.getPosition();
+                    }
+                    double distMoved = robot.conveyor.getPosition() - conveyorIntakeStartPos;
+                    if (distMoved > -50 && !robot.conveyor.entranceProximitySensor.isActive())
+                    {
+                        robot.conveyor.setPower(-1.0);
+                    }
+                    else
+                    {
+                        robot.conveyor.setPower(0);
+                        conveyorIntakeStartPos = null;
+                        sm.setState(State.FORWARD);
+                    }
+                    break;
+
+                case FORWARD:
+                    if (robot.conveyor.entranceProximitySensor.isActive())
+                    {
+                        robot.conveyor.setPower(1.0);
+                    }
+                    else
+                    {
+                        robot.conveyor.setPower(0);
+                        sm.setState(State.INTAKE);
+                    }
+                    break;
+
                 case INTAKE:
-                    event.clear();
-                    intakeMotor.set(INTAKE_POWER);
-                    // proximityTrigger.setEnabled(true);
-                    extendIntake();
-                    sm.setState(State.MONITOR);
+                    if (!robot.conveyor.isManualOverrideEnabled() && robot.conveyor.exitProximitySensor.isActive())
+                    {
+                        stopIntake();
+                    }
+                    else
+                    {
+                        event.clear();
+                        intakeMotor.set(INTAKE_POWER);
+                        extendIntake();
+                        sm.setState(State.MONITOR);
+                    }
                     break;
 
                 case MONITOR:
@@ -137,9 +173,10 @@ public class Intake
         }
         this.singular = singular;
         this.onFinishedEvent = onFinishedEvent;
+        conveyorIntakeStartPos = null;
         event.clear();
         intakeTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        sm.start(State.INTAKE);
+        sm.start(robot.conveyor.isManualOverrideEnabled() ? State.INTAKE : State.BACKUP);
     }
 
     public void extendIntake()
