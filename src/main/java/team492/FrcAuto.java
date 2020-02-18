@@ -39,7 +39,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     public enum AutoStrategy
     {
-        SHOOTER_AUTO, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        SHOOTER_AUTO, FLYWHEEL_CHARACTERIZATION, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
     private enum StartPosition
@@ -85,6 +85,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         // Populate Autonomous Mode menus.
         //
         autoStrategyMenu.addChoice("High Goal Auto", AutoStrategy.SHOOTER_AUTO, true, false);
+        autoStrategyMenu.addChoice("Flywheel Characterization", AutoStrategy.FLYWHEEL_CHARACTERIZATION);
         autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
@@ -174,6 +175,12 @@ public class FrcAuto implements TrcRobot.RobotMode
                 CmdShooterAuto shooterAuto = new CmdShooterAuto(robot);
                 shooterAuto.start(delay, shooterAutoAfterMenu.getCurrentChoiceObject());
                 this.autoCommand = shooterAuto;
+                break;
+
+            case FLYWHEEL_CHARACTERIZATION:
+                autoCommand = new CmdTalonCharacterization(
+                    () -> robot.shooter.flywheel.getPosition() * RobotInfo.FLYWHEEL_INCHES_PER_TICK,
+                    robot.shooter::getFlywheelVelocity, robot.shooter.flywheel);
                 break;
 
             case X_TIMED_DRIVE:

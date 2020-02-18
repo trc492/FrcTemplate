@@ -27,7 +27,6 @@ import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
-import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
 import hallib.HalDashboard;
 import trclib.TrcEvent;
@@ -48,7 +47,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, ARM_CHARACTERIZATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
     }   // enum Test
 
     private enum State
@@ -67,7 +66,6 @@ public class FrcTest extends FrcTeleOp
 
     private CmdTimedDrive timedDriveCommand = null;
     private CmdPidDrive pidDriveCommand = null;
-    private CmdTalonCharacterization talonCharacterization = null;
 
     private int motorIndex = 0;
 
@@ -88,7 +86,6 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Sensors Test", FrcTest.Test.SENSORS_TEST, true, false);
         testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST);
         testMenu.addChoice("Swerve Calibration", Test.SWERVE_CALIBRATION);
-        testMenu.addChoice("Arm Characterization", Test.ARM_CHARACTERIZATION);
         testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST);
         testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE);
         testMenu.addChoice("Y Timed Drive", FrcTest.Test.Y_TIMED_DRIVE);
@@ -158,11 +155,6 @@ public class FrcTest extends FrcTeleOp
                 HalDashboard.putBoolean(SET_ANGLE_KEY, false);
                 HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
                 HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
-                break;
-
-            case ARM_CHARACTERIZATION:
-                talonCharacterization = new CmdTalonCharacterization(robot.shooter::getPitch,
-                    robot.shooter::getPitchVelocity, robot.shooter.pitchMotor);
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -306,10 +298,6 @@ public class FrcTest extends FrcTeleOp
                 robot.encoderYPidCtrl.displayPidInfo(5);
                 robot.gyroTurnPidCtrl.displayPidInfo(7);
                 pidDriveCommand.cmdPeriodic(elapsedTime);
-                break;
-
-            case ARM_CHARACTERIZATION:
-                talonCharacterization.cmdPeriodic(elapsedTime);
                 break;
 
             default:
@@ -538,7 +526,7 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(10, "Intake: currState=%s", robot.intake.getIntakeTaskState());
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
-        HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.motor.getAppliedOutput());
+        HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.getPower());
     } // doSensorsTest
 
     /**

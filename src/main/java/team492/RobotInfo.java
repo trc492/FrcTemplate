@@ -214,7 +214,7 @@ public class RobotInfo
 
     public static final double FLYWHEEL_DIAMETER = 4.0; // in
     public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;
-    public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO;
+    public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO / 2048.0; // falcon has 2048 cpr encoder
     public static final double FLYWHEEL_TOP_SPEED = 720;
     // TODO: tune
     public static final double FLYWHEEL_LOW_ANGLE = 30; // angle when right up against goal

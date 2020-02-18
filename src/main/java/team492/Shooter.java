@@ -6,7 +6,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.revrobotics.ControlType;
-import frclib.FrcCANSparkMax;
+import frclib.FrcCANFalcon;
 import frclib.FrcCANTalon;
 import trclib.TrcAnalogInput;
 import trclib.TrcAnalogSensor;
@@ -20,13 +20,13 @@ import trclib.TrcUtil;
 public class Shooter
 {
     // TODO: tune this
-    private static final double FLYWHEEL_kP = 0.0008;
+    private static final double FLYWHEEL_kP = 0.0;
     private static final double FLYWHEEL_kI = 0.0;
-    private static final double FLYWHEEL_IZONE = 10;
-    private static final double FLYWHEEL_kD = 0.00025;
+    private static final int FLYWHEEL_IZONE = TrcUtil.round(10 / RobotInfo.FLYWHEEL_INCHES_PER_TICK);
+    private static final double FLYWHEEL_kD = 0.0;
     private static final double FLYWHEEL_kD_THRESH_UPPER = 100; // in/s
     private static final double FLYWHEEL_kD_THRESH_LOWER = 80; // in/s
-    private static final double FLYWHEEL_kF = 1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
+    private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     // TODO: tune this
     private static final boolean USE_MM = false;
@@ -49,7 +49,7 @@ public class Shooter
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
-    public final FrcCANSparkMax flywheel;
+    public final FrcCANFalcon flywheel;
     public final FrcCANTalon pitchMotor;
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
@@ -59,7 +59,7 @@ public class Shooter
 
     public Shooter()
     {
-        flywheel = new FrcCANSparkMax("Shooter.flywheel", RobotInfo.CANID_FLYWHEEL, true);
+        flywheel = new FrcCANFalcon("Shooter.flywheel", RobotInfo.CANID_FLYWHEEL);
         pitchMotor = new FrcCANTalon("Shooter.pitchMotor", RobotInfo.CANID_SHOOTER_PITCH);
 
         configureFlywheel();
@@ -101,13 +101,13 @@ public class Shooter
         if (value <= FLYWHEEL_kD_THRESH_LOWER)
         {
             debug.traceInfo(funcName, "Enabling D term!");
-            flywheel.motor.getPIDController().setD(FLYWHEEL_kD);
+            flywheel.motor.config_kD(0, FLYWHEEL_kD, 0);
             flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_UPPER });
         }
         else if (value > FLYWHEEL_kD_THRESH_UPPER)
         {
             debug.traceInfo(funcName, "Disabling D term!");
-            flywheel.motor.getPIDController().setD(0.0);
+            flywheel.motor.config_kD(0, 0, 0);
             flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_LOWER });
         }
     }
@@ -168,12 +168,12 @@ public class Shooter
     public void setFlywheelVelocity(double velocity)
     {
         targetVelocity = velocity;
-        flywheel.motor.getPIDController().setReference(velocity, ControlType.kVelocity);
+        flywheel.motor.set(ControlMode.Velocity, 0.1 * velocity / RobotInfo.FLYWHEEL_INCHES_PER_TICK);
     }
 
     public double getFlywheelVelocity()
     {
-        return flywheel.motor.getEncoder().getVelocity();
+        return flywheel.getVelocity() * RobotInfo.FLYWHEEL_INCHES_PER_TICK;
     }
 
     public boolean pitchOnTarget()
@@ -226,7 +226,7 @@ public class Shooter
         pitchMotor.motor.config_kP(0, PITCH_kP, 10);
         pitchMotor.motor.config_kI(0, PITCH_kI, 10);
         pitchMotor.motor.config_kD(0, PITCH_kD, 10);
-        pitchMotor.motor.config_kF(0, PITCH_kF, 10);
+        pitchMotor.motor.config_kF(0, USE_MM ? PITCH_kF : 0, 10);
         pitchMotor.motor.config_IntegralZone(0, PITCH_IZONE, 10);
         if (USE_MM)
         {
@@ -255,17 +255,14 @@ public class Shooter
 
     private void configureFlywheel()
     {
-        flywheel.motor.restoreFactoryDefaults();
-        flywheel.motor.getPIDController().setP(FLYWHEEL_kP);
-        flywheel.motor.getPIDController().setI(FLYWHEEL_kI);
-        flywheel.motor.getPIDController().setIZone(FLYWHEEL_IZONE);
-        flywheel.motor.getPIDController().setD(0.0); // kD is only enabled when close to target
-        flywheel.motor.getPIDController().setFF(FLYWHEEL_kF);
-        flywheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        flywheel.motor.getEncoder().setPositionConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK);
-        flywheel.motor.getEncoder().setVelocityConversionFactor(RobotInfo.FLYWHEEL_INCHES_PER_TICK / 60.0);
+        flywheel.motor.config_kP(0, FLYWHEEL_kP, 10);
+        flywheel.motor.config_kI(0, FLYWHEEL_kI, 10);
+        flywheel.motor.config_IntegralZone(0, FLYWHEEL_IZONE, 10);
+        flywheel.motor.config_kD(0, 0, 10);
+        flywheel.motor.config_kF(0, FLYWHEEL_kF, 10);
+        flywheel.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        flywheel.motor.enableVoltageCompensation(true);
         flywheel.setBrakeModeEnabled(false);
-        flywheel.setInverted(false);
-        flywheel.motor.burnFlash(); // save to non-volatile memory, this way if the motor is reset the settings persist
+        flywheel.setInverted(true);
     }
 }

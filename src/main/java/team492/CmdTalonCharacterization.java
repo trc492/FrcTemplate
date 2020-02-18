@@ -5,7 +5,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
-import frclib.FrcCANTalon;
+import frclib.FrcCANPhoenixController;
+import hallib.HalDashboard;
 import trclib.TrcRobot;
 
 import java.util.function.DoubleSupplier;
@@ -17,12 +18,12 @@ public class CmdTalonCharacterization implements TrcRobot.RobotCommand
 {
     private final DoubleSupplier encoderPosition;
     private final DoubleSupplier encoderRate;
-    private FrcCANTalon talon;
+    private FrcCANPhoenixController talon;
     private NetworkTableEntry autoSpeedEntry;
     private NetworkTableEntry telemetryEntry;
     private Number[] numberArray = new Number[6];
 
-    public CmdTalonCharacterization(DoubleSupplier encoderPosition, DoubleSupplier encoderRate, FrcCANTalon talon)
+    public CmdTalonCharacterization(DoubleSupplier encoderPosition, DoubleSupplier encoderRate, FrcCANPhoenixController talon)
     {
         this.encoderPosition = encoderPosition;
         this.encoderRate = encoderRate;
@@ -61,6 +62,8 @@ public class CmdTalonCharacterization implements TrcRobot.RobotCommand
         numberArray[4] = position;
         numberArray[5] = rate;
         telemetryEntry.setNumberArray(numberArray);
+        HalDashboard.getInstance().displayPrintf(3, "time%.3f,batt=%.1f,speed=%.2f,volts=%.2f,pos=%.2f,rate=%.3f",
+            (Object[]) numberArray);
 
         return false;
     }
