@@ -18,12 +18,12 @@ public class CmdTalonCharacterization implements TrcRobot.RobotCommand
 {
     private final DoubleSupplier encoderPosition;
     private final DoubleSupplier encoderRate;
-    private FrcCANPhoenixController talon;
+    private FrcCANPhoenixController<?> talon;
     private NetworkTableEntry autoSpeedEntry;
     private NetworkTableEntry telemetryEntry;
     private Number[] numberArray = new Number[6];
 
-    public CmdTalonCharacterization(DoubleSupplier encoderPosition, DoubleSupplier encoderRate, FrcCANPhoenixController talon)
+    public CmdTalonCharacterization(DoubleSupplier encoderPosition, DoubleSupplier encoderRate, FrcCANPhoenixController<?> talon)
     {
         this.encoderPosition = encoderPosition;
         this.encoderRate = encoderRate;

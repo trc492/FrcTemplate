@@ -215,7 +215,7 @@ public abstract class FrcCANPhoenixController<T extends BaseTalon> extends TrcMo
     {
         if (motor instanceof FrcCANPhoenixController)
         {
-            this.motor.follow(((FrcCANPhoenixController) motor).motor);
+            this.motor.follow(((FrcCANPhoenixController<?>) motor).motor);
         }
         else
         {
