@@ -316,12 +316,11 @@ public abstract class TrcMotor implements TrcMotorController
      */
     public static void odometryTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        final String funcName = "odometryTask";
+        final String funcName = "TrcMotor.odometryTask";
 
         if (debugEnabled)
         {
-            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK,
-                    "taskType=%s,runMode=%s", taskType, runMode);
+            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
         }
 
         synchronized (odometryMotors)
@@ -333,9 +332,39 @@ public abstract class TrcMotor implements TrcMotorController
                     motor.odometry.prevTimestamp = motor.odometry.currTimestamp;
                     motor.odometry.prevPos = motor.odometry.currPos;
                     motor.odometry.currTimestamp = TrcUtil.getCurrentTime();
-                    if (motorGetPosElapsedTimer != null) motorGetPosElapsedTimer.recordStartTime();
+                    if (motorGetPosElapsedTimer != null)
+                        motorGetPosElapsedTimer.recordStartTime();
                     motor.odometry.currPos = motor.getMotorPosition();
-                    if (motorGetPosElapsedTimer != null) motorGetPosElapsedTimer.recordEndTime();
+                    if (motorGetPosElapsedTimer != null)
+                        motorGetPosElapsedTimer.recordEndTime();
+
+                    double low = Math.abs(motor.odometry.prevPos);
+                    double high = Math.abs(motor.odometry.currPos);
+
+                    if (low > high)
+                    {
+                        double temp = high;
+                        high = low;
+                        low = temp;
+                    }
+
+                    // To be spurious, motor must jump 10000+ units, and change by 8+ orders of magnitude
+                    // log10(high)-log10(low) gives change in order of magnitude
+                    // use log rules, equal to log10(high/low) > 8
+                    // change of base, log2(high/low)/log2(10) > 8
+                    // log2(high/low) > 24ish
+                    // log2 is approximately highest one bit
+                    if (high - low > 10000)
+                    {
+                        low = Math.max(low, 1);
+                        high = Math.max(high, 1);
+                        if (Long.highestOneBit((long) (high / low)) > 25)
+                        {
+                            TrcDbgTrace.getGlobalTracer()
+                                .traceWarn(funcName, "WARNING: Spurious encoder detected! prev=%.3f, high=%.3f");
+                            motor.odometry.currPos = motor.odometry.prevPos;
+                        }
+                    }
 
                     try
                     {
@@ -347,8 +376,8 @@ public abstract class TrcMotor implements TrcMotorController
                         // It doesn't support velocity data so calculate it ourselves.
                         //
                         double timeDelta = motor.odometry.currTimestamp - motor.odometry.prevTimestamp;
-                        motor.odometry.velocity = timeDelta == 0.0? 0.0:
-                                (motor.odometry.currPos - motor.odometry.prevPos) / timeDelta;
+                        motor.odometry.velocity =
+                            timeDelta == 0.0 ? 0.0 : (motor.odometry.currPos - motor.odometry.prevPos) / timeDelta;
                     }
 
                     if (debugEnabled)
@@ -377,8 +406,7 @@ public abstract class TrcMotor implements TrcMotorController
 
         if (debugEnabled)
         {
-            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK,
-                    "taskType=%s,runMode=%s", taskType, runMode);
+            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
         }
 
         clearOdometryMotorsList(false);
@@ -417,8 +445,8 @@ public abstract class TrcMotor implements TrcMotorController
         }
 
         this.maxMotorVelocity = maxVelocity;
-        velocityPidCtrl = new TrcPidController(
-                instanceName + ".velocityCtrl", pidCoefficients, 1.0, this::getNormalizedVelocity);
+        velocityPidCtrl = new TrcPidController(instanceName + ".velocityCtrl", pidCoefficients, 1.0,
+            this::getNormalizedVelocity);
         velocityPidCtrl.setAbsoluteSetPoint(true);
 
         velocityCtrlTaskObj.registerTask(TaskType.OUTPUT_TASK);
@@ -458,7 +486,7 @@ public abstract class TrcMotor implements TrcMotorController
     private double getNormalizedVelocity()
     {
         final String funcName = "getNormalizedVelocity";
-        double normalizedVel = maxMotorVelocity != 0.0? getVelocity() / maxMotorVelocity: 0.0;
+        double normalizedVel = maxMotorVelocity != 0.0 ? getVelocity() / maxMotorVelocity : 0.0;
 
         if (debugEnabled)
         {
@@ -557,7 +585,7 @@ public abstract class TrcMotor implements TrcMotorController
      * This method creates a digital trigger on the given digital input sensor. It resets the position sensor
      * reading when the digital input is triggered.
      *
-     * @param digitalInput specifies the digital input sensor that will trigger a position reset.
+     * @param digitalInput   specifies the digital input sensor that will trigger a position reset.
      * @param triggerHandler specifies an event callback if the trigger occurred, null if none specified.
      */
     public void resetPositionOnDigitalInput(TrcDigitalInput digitalInput, DigitalTriggerHandler triggerHandler)
@@ -715,7 +743,8 @@ public abstract class TrcMotor implements TrcMotorController
         }
 
         calibrating = false;
-        if (motorSetElapsedTimer != null) motorSetElapsedTimer.recordStartTime();
+        if (motorSetElapsedTimer != null)
+            motorSetElapsedTimer.recordStartTime();
         if (velocityPidCtrl != null)
         {
             velocityPidCtrl.setTarget(value);
@@ -792,9 +821,8 @@ public abstract class TrcMotor implements TrcMotorController
                 Boolean.toString(active));
         }
 
-        TrcDbgTrace.getGlobalTracer().traceInfo(
-                "triggerEvent", "TrcMotor encoder reset! motor=%s,pos=%.2f",
-                instanceName, getMotorPosition());
+        TrcDbgTrace.getGlobalTracer()
+            .traceInfo("triggerEvent", "TrcMotor encoder reset! motor=%s,pos=%.2f", instanceName, getMotorPosition());
 
         if (calibrating)
         {
