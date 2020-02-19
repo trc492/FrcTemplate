@@ -350,15 +350,14 @@ public abstract class TrcMotor implements TrcMotorController
 
                     // To be spurious, motor must jump 10000+ units, and change by 8+ orders of magnitude
                     // log10(high)-log10(low) gives change in order of magnitude
-                    // use log rules, equal to log10(high/low) > 8
-                    // change of base, log2(high/low)/log2(10) > 8
-                    // log2(high/low) > 24ish
-                    // log2 is approximately highest one bit
+                    // use log rules, equal to log10(high/low) >= 8
+                    // change of base, log2(high/low)/log2(10) >= 8
+                    // log2(high/low) >= 26.6ish
+                    // Math.getExponent() is equal to floor(log2())
                     if (high - low > 10000)
                     {
                         low = Math.max(low, 1);
-                        high = Math.max(high, 1);
-                        if (Long.highestOneBit((long) (high / low)) > 25)
+                        if (Math.getExponent(high / low) >= 27)
                         {
                             TrcDbgTrace.getGlobalTracer()
                                 .traceWarn(funcName, "WARNING: Spurious encoder detected! prev=%.3f, high=%.3f");
