@@ -74,6 +74,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.fieldOriented = true;
         lowGoal = false;
 
+        // TODO: REMOVE
+        robot.shooter.setManualOverrideEnabled(true);
+        robot.conveyor.setManualOverrideEnabled(true);
+
         if (robot.preferences.useVision)
         {
             robot.vision.setEnabled(true);
@@ -138,7 +142,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (robot.shooter.isManualOverrideEnabled())
         {
-            robot.shooter.setPitchPower(robot.operatorStick.getYWithDeadband(true));
+            robot.shooter.setPitchPower(robot.operatorStick.getYWithDeadband(false) * 0.5);
+            double flywheelPower = (1-robot.operatorStick.getZ())/2.0;
+            flywheelPower = Math.abs(flywheelPower) > 0.15 ? flywheelPower : 0;
+            robot.shooter.setFlyWheelPower(flywheelPower);
         }
     }   // runPeriodic
 
@@ -258,18 +265,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                // TODO: don't do raw set power
                 if (pressed)
                 {
-                    robot.intake.intakeMultiple();
+                    robot.conveyor.setPower(0.5);
                 }
                 else
                 {
-                    robot.intake.stopIntake(false);
+                    robot.conveyor.stop();
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
-                // todo: toggle intake pneumatics
                 if (pressed)
                 {
                     extended = !extended;
@@ -346,6 +353,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.shooter.setPitch(0);
                     robot.shooter.stopFlywheel();
+                    robot.conveyor.stop();
                 }
                 break;
 
