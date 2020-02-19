@@ -5,7 +5,6 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
-import com.revrobotics.ControlType;
 import frclib.FrcCANFalcon;
 import frclib.FrcCANTalon;
 import trclib.TrcAnalogInput;
@@ -29,22 +28,22 @@ public class Shooter
 
     // TODO: tune this
     private static final boolean USE_MM = false;
-    private static final double PITCH_kP = 0.65;
+    private static final double PITCH_kP = 1.2;
     private static final double PITCH_kI = 0;
     private static final double PITCH_kD = 0;
     private static final double PITCH_kF = 0;
-    private static final double PITCH_MAX_POWER = 0.4;
+    private static final double PITCH_MAX_POWER = 0.8;
     private static final int PITCH_IZONE = 0;
     private static final int PITCH_MAX_VEL = 0;
     private static final int PITCH_MAX_ACCEL = 0;
-    private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 3.0; // 3:1 gear ratio, 4096 cpr
+    private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 1.5; // 3:2 gear ratio, 4096 cpr
     private static final double PITCH_TOLERANCE = 1.5;
 
     // Measured
-    private static final int PITCH_OFFSET_TICKS = 178;
-    private static final double PITCH_OFFSET_DEG = 17.5;
-    private static final int PITCH_UPPER_LIMIT_TICKS = 2700;
-    private static final int PITCH_LOWER_LIMIT_TICKS = -25;
+    private static final int PITCH_OFFSET_TICKS = 155;
+    private static final double PITCH_OFFSET_DEG = 0;
+    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (90/PITCH_DEGREES_PER_COUNT);
+    private static final int PITCH_LOWER_LIMIT_TICKS = (int) (5/PITCH_DEGREES_PER_COUNT);
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 

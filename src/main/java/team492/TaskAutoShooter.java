@@ -11,8 +11,7 @@ import trclib.TrcUtil;
 
 public class TaskAutoShooter
 {
-    private static final double VEL_TOLERANCE = 15; // in/sec
-    private static final double PITCH_TOLERANCE = 5; // deg
+    private static final double VEL_TOLERANCE = 7; // in/sec
     private static final double HEADING_TOLERANCE = 5; // deg
 
     public enum Mode
@@ -97,7 +96,6 @@ public class TaskAutoShooter
             {
                 this.traj = traj;
                 robot.shooter.setFlywheelVelocity(traj.getEntry(0) * 1.3);
-//                robot.shooter.setFlywheelVelocity(700);
                 robot.shooter.setPitch(traj.getEntry(1)+7);
             }
         }
@@ -113,7 +111,7 @@ public class TaskAutoShooter
                 ballsToShoot--;
                 event.clear();
             }
-            if (readyToShoot(traj))
+            if (readyToShoot())
             {
                 robot.ledIndicator.setShooterReady(true);
                 if (shouldShoot())
@@ -138,12 +136,10 @@ public class TaskAutoShooter
         return traj == null ? 0 : traj.getEntry(0);
     }
 
-    private boolean readyToShoot(RealVector traj)
+    private boolean readyToShoot()
     {
-        double velTarget = traj.getEntry(0);
-        boolean velReady = Math.abs(robot.shooter.getFlywheelVelocity() - velTarget) <= VEL_TOLERANCE;
-        double pitchTarget = traj.getEntry(1);
-        boolean pitchReady = Math.abs(robot.shooter.getPitch() - pitchTarget) <= PITCH_TOLERANCE;
+        boolean velReady = robot.shooter.flywheel.motor.getClosedLoopError() <= VEL_TOLERANCE;
+        boolean pitchReady = robot.shooter.pitchOnTarget();
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
         boolean headingReady = pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
         return velReady && pitchReady && headingReady;
