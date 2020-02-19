@@ -445,8 +445,8 @@ public class Robot extends FrcRobotBase
 
             driveInverted = false;
 
-            pdp.setTaskEnabled(true);
-            battery.setEnabled(true);
+//            pdp.setTaskEnabled(true);
+//            battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
             lfDriveMotor.setOdometryEnabled(true);
             rfDriveMotor.setOdometryEnabled(true);
@@ -478,10 +478,10 @@ public class Robot extends FrcRobotBase
                 }
             }
 
-            gyro.setElapsedTimerEnabled(true);
-            TrcDigitalInput.setElapsedTimerEnabled(true);
-            TrcMotor.setElapsedTimerEnabled(true);
-            TrcServo.setElapsedTimerEnabled(true);
+//            gyro.setElapsedTimerEnabled(true);
+//            TrcDigitalInput.setElapsedTimerEnabled(true);
+//            TrcMotor.setElapsedTimerEnabled(true);
+//            TrcServo.setElapsedTimerEnabled(true);
         }
     }   //robotStartMode
 
@@ -491,14 +491,14 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
-            gyro.printElapsedTime(globalTracer);
-            gyro.setElapsedTimerEnabled(false);
-            TrcDigitalInput.printElapsedTime(globalTracer);
-            TrcDigitalInput.setElapsedTimerEnabled(false);
-            TrcMotor.printElapsedTime(globalTracer);
-            TrcMotor.setElapsedTimerEnabled(false);
-            TrcServo.printElapsedTime(globalTracer);
-            TrcServo.setElapsedTimerEnabled(false);
+//            gyro.printElapsedTime(globalTracer);
+//            gyro.setElapsedTimerEnabled(false);
+//            TrcDigitalInput.printElapsedTime(globalTracer);
+//            TrcDigitalInput.setElapsedTimerEnabled(false);
+//            TrcMotor.printElapsedTime(globalTracer);
+//            TrcMotor.setElapsedTimerEnabled(false);
+//            TrcServo.printElapsedTime(globalTracer);
+//            TrcServo.setElapsedTimerEnabled(false);
 
             globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
             driveBase.setOdometryEnabled(false);
@@ -507,15 +507,15 @@ public class Robot extends FrcRobotBase
             pdp.setTaskEnabled(false);
             shooter.setEnabled(false);
 
-            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
-            {
-                String channelName = pdp.getChannelName(i);
-                if (channelName != null)
-                {
-                    globalTracer
-                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
-                }
-            }
+//            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
+//            {
+//                String channelName = pdp.getChannelName(i);
+//                if (channelName != null)
+//                {
+//                    globalTracer
+//                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
+//                }
+//            }
 
             double totalEnergy = battery.getTotalEnergy();
             globalTracer.traceInfo(funcName, "TotalEnergy=%.3fWh (%.2f%%)", totalEnergy,
