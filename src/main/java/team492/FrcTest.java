@@ -38,6 +38,7 @@ public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = "FrcTest";
     public static final String FLYWHEEL_TARGET_KEY = "Test/FlywheelTarget";
+    public static final String SWERVE_ANGLES_KEYS = "Test/SwerveAngles";
     public static final String ANGLE_TARGET_KEY = "Test/AngleTarget";
     public static final String RUN_MOTORS_KEY = "Test/RunMotors";
     public static final String SET_ANGLE_KEY = "Test/SetAngle";
@@ -104,6 +105,7 @@ public class FrcTest extends FrcTeleOp
         HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, 0);
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, 0);
+        HalDashboard.putString(SWERVE_ANGLES_KEYS, "Not started");
     } // FrcTest
 
     //
@@ -250,6 +252,10 @@ public class FrcTest extends FrcTeleOp
                 robot.rightFrontWheel.set(power);
                 robot.leftBackWheel.set(power);
                 robot.rightBackWheel.set(power);
+                HalDashboard.putString(SWERVE_ANGLES_KEYS, String
+                    .format("lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.leftFrontWheel.getSteerAngle(),
+                        robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
+                        robot.rightBackWheel.getSteerAngle()));
                 break;
 
             case DRIVE_MOTORS_TEST:

@@ -184,8 +184,8 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
-    public static final double ENCODER_INCHES_PER_COUNT = 2.5133; // TODO: retune for pneumatic wheels
-    public static final double ENCODER_KP = 0.015;
+    public static final double ENCODER_INCHES_PER_COUNT = 2.30769;
+    public static final double ENCODER_KP = 0.012;
     public static final double ENCODER_KI = 0.0;
     public static final double ENCODER_KD = 0.00;
     public static final double ENCODER_KF = 0.0;
@@ -202,11 +202,11 @@ public class RobotInfo
     public static final double PURE_PURSUIT_KF = 1.0 / ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MOVE_OUTPUT_LIMIT = 0.6;
 
-    public static final double GYRO_TURN_KP                     = 0.0067;
+    public static final double GYRO_TURN_KP                     = 0.0055;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.00094;
+    public static final double GYRO_TURN_KD                     = 0.0007;
     public static final double GYRO_TURN_KF                     = 0.0;
-    public static final double GYRO_TURN_TOLERANCE              = 3.0;
+    public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
     //
     // Shooter
