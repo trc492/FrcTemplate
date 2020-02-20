@@ -39,7 +39,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     public enum AutoStrategy
     {
-        SHOOTER_AUTO, FLYWHEEL_CHARACTERIZATION, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        SHOOTER_AUTO, FLYWHEEL_CHARACTERIZATION, ARM_CHARACTERIZATION, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
     public enum StartPosition
@@ -86,6 +86,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         autoStrategyMenu.addChoice("High Goal Auto", AutoStrategy.SHOOTER_AUTO, true, false);
         autoStrategyMenu.addChoice("Flywheel Characterization", AutoStrategy.FLYWHEEL_CHARACTERIZATION);
+        autoStrategyMenu.addChoice("Arm Characterization", AutoStrategy.ARM_CHARACTERIZATION);
         autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
@@ -178,6 +179,11 @@ public class FrcAuto implements TrcRobot.RobotMode
 
             case FLYWHEEL_CHARACTERIZATION:
                 autoCommand = new CmdTalonCharacterization(robot.shooter.flywheel);
+                break;
+
+            case ARM_CHARACTERIZATION:
+                autoCommand = new CmdTalonCharacterization(robot.shooter.pitchMotor);
+                robot.shooter.setEnabled(false);
                 break;
 
             case X_TIMED_DRIVE:

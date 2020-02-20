@@ -75,8 +75,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         lowGoal = false;
 
         // TODO: REMOVE
-        robot.shooter.setManualOverrideEnabled(true);
-        robot.conveyor.setManualOverrideEnabled(true);
+//        robot.shooter.setManualOverrideEnabled(true);
+//        robot.conveyor.setManualOverrideEnabled(true);
 
         if (robot.preferences.useVision)
         {

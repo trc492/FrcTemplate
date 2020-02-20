@@ -27,23 +27,24 @@ public class Shooter
     private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     // TODO: tune this
-    private static final boolean USE_MM = false;
-    private static final double PITCH_kP = 1.2;
-    private static final double PITCH_kI = 0;
-    private static final double PITCH_kD = 0;
-    private static final double PITCH_kF = 0;
+    private static final boolean USE_MM = true;
+    private static final double PITCH_kP = 5;
+    private static final double PITCH_kI = 0.002;
+    private static final double PITCH_kD = 250;
+    private static final double PITCH_kF = 1.202;
     private static final double PITCH_MAX_POWER = 0.8;
-    private static final int PITCH_IZONE = 0;
-    private static final int PITCH_MAX_VEL = 0;
-    private static final int PITCH_MAX_ACCEL = 0;
+    private static final int PITCH_IZONE = 100;
+    private static final int PITCH_MAX_VEL = 250;
+    private static final int PITCH_MAX_ACCEL = 550;
     private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 1.5; // 3:2 gear ratio, 4096 cpr
     private static final double PITCH_TOLERANCE = 1.5;
+    private static final int PITCH_ALLOWABLE_ERROR = (int) (1 / PITCH_DEGREES_PER_COUNT);
 
     // Measured
     private static final int PITCH_OFFSET_TICKS = 155;
     private static final double PITCH_OFFSET_DEG = 0;
-    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (90/PITCH_DEGREES_PER_COUNT);
-    private static final int PITCH_LOWER_LIMIT_TICKS = (int) (5/PITCH_DEGREES_PER_COUNT);
+    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (80 / PITCH_DEGREES_PER_COUNT);
+    private static final int PITCH_LOWER_LIMIT_TICKS = (int) (0 / PITCH_DEGREES_PER_COUNT);
 
     private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
 
@@ -135,8 +136,8 @@ public class Shooter
 
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        pitchMotor.motor
-            .set(USE_MM ? ControlMode.MotionMagic : ControlMode.Position, pitchTicksTarget, DemandType.ArbitraryFeedForward, getPitchGravityComp());
+        pitchMotor.motor.set(USE_MM ? ControlMode.MotionMagic : ControlMode.Position, pitchTicksTarget,
+            DemandType.ArbitraryFeedForward, getPitchGravityComp());
         if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
         {
             pitchEvent.set(true);
@@ -231,6 +232,7 @@ public class Shooter
             pitchMotor.motor.configMotionCruiseVelocity(PITCH_MAX_VEL, 10);
             pitchMotor.motor.configMotionAcceleration(PITCH_MAX_ACCEL, 10);
         }
+        pitchMotor.motor.configAllowableClosedloopError(0, PITCH_ALLOWABLE_ERROR, 10);
         pitchMotor.motor.configClosedLoopPeakOutput(0, PITCH_MAX_POWER);
         pitchMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         pitchMotor.motor.enableVoltageCompensation(true);
@@ -242,8 +244,8 @@ public class Shooter
         // TODO: re-enable limit switches at some point
         pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
-//        pitchMotor.configRevLimitSwitchNormallyOpen(false);
-//        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
+        //        pitchMotor.configRevLimitSwitchNormallyOpen(false);
+        //        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.motor.overrideLimitSwitchesEnable(false);
         pitchMotor.motor.configForwardSoftLimitEnable(true, 10);
         pitchMotor.motor.configReverseSoftLimitEnable(true, 10);

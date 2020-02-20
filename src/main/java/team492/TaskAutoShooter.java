@@ -95,8 +95,8 @@ public class TaskAutoShooter
             if (traj != null)
             {
                 this.traj = traj;
-                robot.shooter.setFlywheelVelocity(traj.getEntry(0) * 1.3);
-                robot.shooter.setPitch(traj.getEntry(1)+7);
+                robot.shooter.setFlywheelVelocity(traj.getEntry(0) * 1.2);
+                robot.shooter.setPitch(traj.getEntry(1));
             }
         }
         if (shouldAlign())

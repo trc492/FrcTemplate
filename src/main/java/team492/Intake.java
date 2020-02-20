@@ -31,7 +31,7 @@ public class Intake
         this.robot = robot;
 
         intakeMotor = new FrcCANTalon("Intake", RobotInfo.CANID_INTAKE);
-        intakeMotor.setInverted(false);
+        intakeMotor.setInverted(true);
         intakeMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         intakeMotor.motor.enableVoltageCompensation(true);
 

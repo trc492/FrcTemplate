@@ -127,8 +127,7 @@ public class RobotInfo
     //
     // Vision subsystem.
     //
-    // TODO: tune this
-    public static final double CAMERA_Y_OFFSET = -32.5;  // in from pivot of arm + is forward
+    public static final double CAMERA_Y_OFFSET = 12;  // in from pivot of arm + is forward
     public static final double CAMERA_X_OFFSET = 0;    //Inches from pivot of arm to center of camera, + = right
     public static final double CAMERA_DATA_TIMEOUT              = 0.5;  //500ms
     public static final double CAMERA_CENTERED_THRESHOLD        = 2;    // +- 2 inches in x axis

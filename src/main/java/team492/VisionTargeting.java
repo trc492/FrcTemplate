@@ -27,8 +27,8 @@ import frclib.FrcRemoteVisionProcessor;
 
 public class VisionTargeting
 {
-    private static final double CAMERA_HEIGHT = 13.0;
-    private static final double CAMERA_ANGLE = 28.0;
+    private static final double CAMERA_HEIGHT = 12.5;
+    private static final double CAMERA_ANGLE = 28.9;
 
     private FrcLimeLightVisionProcessor vision;
 
@@ -36,8 +36,8 @@ public class VisionTargeting
     {
         vision = new FrcLimeLightVisionProcessor("LimeLight");
         vision.setDepthApproximator("ty", y -> (RobotInfo.HIGH_VISION_TARGET_HEIGHT - CAMERA_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
-//        vision.setOffsets(RobotInfo.CAMERA_X_OFFSET, RobotInfo.CAMERA_Y_OFFSET);
-        vision.setOffsets(-2.5, 32);
+        vision.setOffsets(RobotInfo.CAMERA_X_OFFSET, RobotInfo.CAMERA_Y_OFFSET);
+//        vision.setOffsets(-2.5, 32);
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }
 
