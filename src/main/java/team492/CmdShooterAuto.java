@@ -126,7 +126,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case SHOOT:
-                    robot.autoShooter.shoot(instanceName, robot.getNumBalls(), 2, TaskAutoShooter.Mode.BOTH, event);
+                    robot.autoShooter.shoot(instanceName, 3, 2, TaskAutoShooter.Mode.BOTH, event);
                     relocalizationTimedOutTime = null;
                     sm.waitForSingleEvent(event, State.RELOCALIZE);
                     break;
@@ -161,7 +161,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case SHOOT_2:
-                    robot.autoShooter.shoot(instanceName, robot.getNumBalls(), 2, TaskAutoShooter.Mode.BOTH, event);
+                    robot.autoShooter.shoot(instanceName, 3, 2, TaskAutoShooter.Mode.BOTH, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
