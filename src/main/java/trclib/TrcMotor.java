@@ -360,7 +360,7 @@ public abstract class TrcMotor implements TrcMotorController
                         if (Math.getExponent(high / low) >= 27)
                         {
                             TrcDbgTrace.getGlobalTracer()
-                                .traceWarn(funcName, "WARNING: Spurious encoder detected! prev=%.3f, high=%.3f");
+                                .traceWarn(funcName, "WARNING: Spurious encoder detected on motor %s! odometry=%s", motor, motor.odometry);
                             motor.odometry.currPos = motor.odometry.prevPos;
                         }
                     }
