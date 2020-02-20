@@ -1,6 +1,7 @@
 package team492;
 
 import frclib.FrcRemoteVisionProcessor;
+import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcPath;
 import trclib.TrcPose2D;
@@ -19,7 +20,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private enum State
     {
-        DELAY, MOVE_TO_SHOOT, SHOOT, RELOCALIZE, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, DONE
+        DELAY, LOCALIZE, MOVE_TO_SHOOT, SHOOT, RELOCALIZE, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, DONE
     }
 
     public enum AfterAction
@@ -33,6 +34,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     private TrcEvent event;
     private TrcTimer timer;
     private double delay;
+    private FrcAuto.StartPosition startPosition;
     private AfterAction afterAction;
 
     public CmdShooterAuto(Robot robot)
@@ -43,9 +45,10 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         timer = new TrcTimer(instanceName + ".timer");
     }
 
-    public void start(double delay, AfterAction afterAction)
+    public void start(double delay, FrcAuto.StartPosition startPosition, AfterAction afterAction)
     {
         this.delay = delay;
+        this.startPosition = startPosition;
         this.afterAction = afterAction;
         sm.start(State.DELAY);
         robot.globalTracer.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,afterAction=%s", delay,
@@ -64,26 +67,75 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         return ret;
     }
 
-    private TrcPath createToShootPath()
+    public TrcPath createToShootPath()
     {
-        double targetY = -RobotInfo.ROBOT_LENGTH - 10;
-        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY);
-        TrcPose2D start = robot.driveBase.getFieldPosition();
-        TrcPose2D middle = new TrcPose2D(start.x, target.y);
-        return createPath(start, middle, target);
+        if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
+        {
+            double targetY = -RobotInfo.ROBOT_LENGTH - 10;
+            TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY);
+            TrcPose2D start = robot.driveBase.getFieldPosition();
+            TrcPose2D middle = new TrcPose2D(start.x, target.y);
+            return createPath(start, middle, target);
+        }
+        else
+        {
+            TrcPose2D start = robot.driveBase.getFieldPosition();
+            TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -50, -22);
+            TrcPose2D middle = new TrcPose2D(target.x, start.y);
+            return createPath(start, middle, target);
+        }
     }
 
-    private TrcPath createPickupPath()
+    public TrcPath createPickupPath()
     {
-        TrcPose2D start = robot.driveBase.getFieldPosition();
-        TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
-        TrcPose2D middle = new TrcPose2D(target.x, start.y);
-        return createPath(start, middle, target);
+        if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
+        {
+            TrcPose2D start = robot.driveBase.getFieldPosition();
+            TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
+            TrcPose2D middle = new TrcPose2D(target.x, start.y);
+            return createPath(start, middle, target);
+        }
+        else
+        {
+            TrcPose2D start = robot.driveBase.getFieldPosition();
+            TrcPose2D middle = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -100, 0);
+            TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
+            return createPath(start, middle, target);
+        }
     }
 
-    private TrcPath createToShoot2Path()
+    public TrcPath createToShoot2Path()
     {
         throw new IllegalStateException("Not implemented yet!"); // TODO: implement
+    }
+
+    private void localizeAtStart()
+    {
+        double x = startPosition != FrcAuto.StartPosition.CUSTOM ?
+            startPosition.getXPos() :
+            HalDashboard.getNumber(FrcAuto.CUSTOM_XPOS_KEY, 0);
+        double y = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - robot.alignment.getShortestDistanceToWall()
+            - RobotInfo.ROBOT_LENGTH / 2;
+        double angle = -robot.alignment.getAngleToWall();
+        if (startPosition == FrcAuto.StartPosition.IN_VISION)
+        {
+            // if no vision, assume perfectly centered to goal
+            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
+            if (pose != null)
+            {
+                TrcPose2D p = new TrcPose2D(pose.x, pose.y);
+                x = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - p.relativeTo(new TrcPose2D(0, 0, -angle)).x;
+            }
+        }
+        else if (startPosition == FrcAuto.StartPosition.RIGHT_WALL)
+        {
+            x = startPosition.getXPos();
+            y = -RobotInfo.ROBOT_LENGTH / 2;
+            angle = 0;
+        }
+        TrcPose2D pose = new TrcPose2D(x, y, angle);
+        robot.globalTracer.traceInfo(instanceName + ".localizeAtStart", "Localizing to pose: %s", pose.toString());
+        robot.driveBase.setFieldPosition(pose);
     }
 
     @Override
@@ -104,25 +156,23 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     if (delay > 0)
                     {
                         timer.set(delay, event);
-                        sm.waitForSingleEvent(event, State.MOVE_TO_SHOOT);
+                        sm.waitForSingleEvent(event, State.LOCALIZE);
                     }
                     else
                     {
-                        sm.setState(State.MOVE_TO_SHOOT);
+                        sm.setState(State.LOCALIZE);
                     }
                     break;
 
+                case LOCALIZE:
+                    localizeAtStart();
+                    sm.setState(State.MOVE_TO_SHOOT);
+                    break;
+
                 case MOVE_TO_SHOOT:
-                    if (robot.vision.getLastPose() != null)
-                    {
-                        sm.setState(State.SHOOT);
-                    }
-                    else
-                    {
-                        path = createToShootPath();
-                        robot.purePursuit.start(path, event, 4);
-                        sm.waitForSingleEvent(event, State.SHOOT);
-                    }
+                    path = createToShootPath();
+                    robot.purePursuit.start(path, event, 4);
+                    sm.waitForSingleEvent(event, State.SHOOT);
                     break;
 
                 case SHOOT:

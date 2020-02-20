@@ -23,6 +23,11 @@ public class CmdTalonCharacterization implements TrcRobot.RobotCommand
     private NetworkTableEntry telemetryEntry;
     private Number[] numberArray = new Number[6];
 
+    public CmdTalonCharacterization(FrcCANPhoenixController<?> talon)
+    {
+        this(talon.motor::getSelectedSensorPosition, talon.motor::getSelectedSensorVelocity, talon);
+    }
+
     public CmdTalonCharacterization(DoubleSupplier encoderPosition, DoubleSupplier encoderRate, FrcCANPhoenixController<?> talon)
     {
         this.encoderPosition = encoderPosition;

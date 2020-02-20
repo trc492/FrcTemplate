@@ -35,17 +35,17 @@ import trclib.TrcTaskMgr;
 public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = "FrcAuto";
-    private static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
+    public static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
 
     public enum AutoStrategy
     {
         SHOOTER_AUTO, FLYWHEEL_CHARACTERIZATION, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     }   // enum AutoStrategy
 
-    private enum StartPosition
+    public enum StartPosition
     {
         LEFT_BUMPER_FEEDER(RobotInfo.FEEDER_STATION_RIGHT_X_POS + RobotInfo.ROBOT_WIDTH / 2), IN_VISION(
-        RobotInfo.TARGET_X_POS), CUSTOM(0);
+        RobotInfo.TARGET_X_POS), RIGHT_WALL(RobotInfo.FIELD_WIDTH - RobotInfo.ROBOT_WIDTH / 2), CUSTOM(0);
 
         private double xPos;
 
@@ -156,8 +156,6 @@ public class FrcAuto implements TrcRobot.RobotMode
 
         robot.setNumBalls(3);
 
-        relocalizeAtStart();
-
         robot.getGameInfo();
         robot.globalTracer
             .traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s", robot.eventName, robot.matchType,
@@ -173,14 +171,13 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             case SHOOTER_AUTO:
                 CmdShooterAuto shooterAuto = new CmdShooterAuto(robot);
-                shooterAuto.start(delay, shooterAutoAfterMenu.getCurrentChoiceObject());
+                shooterAuto
+                    .start(delay, startPosMenu.getCurrentChoiceObject(), shooterAutoAfterMenu.getCurrentChoiceObject());
                 this.autoCommand = shooterAuto;
                 break;
 
             case FLYWHEEL_CHARACTERIZATION:
-                autoCommand = new CmdTalonCharacterization(
-                    () -> robot.shooter.flywheel.getPosition() * RobotInfo.FLYWHEEL_INCHES_PER_TICK,
-                    robot.shooter::getFlywheelVelocity, robot.shooter.flywheel);
+                autoCommand = new CmdTalonCharacterization(robot.shooter.flywheel);
                 break;
 
             case X_TIMED_DRIVE:
@@ -212,27 +209,6 @@ public class FrcAuto implements TrcRobot.RobotMode
                 break;
         }
     }   // startMode
-
-    private void relocalizeAtStart()
-    {
-        double x = HalDashboard.getNumber(CUSTOM_XPOS_KEY, 0);
-        double y = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - robot.alignment.getShortestDistanceToWall()
-            - RobotInfo.ROBOT_LENGTH / 2;
-        double angle = -robot.alignment.getAngleToWall();
-        if (startPosMenu.getCurrentChoiceObject() == StartPosition.IN_VISION)
-        {
-            // if no vision, assume perfectly centered to goal
-            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-            if (pose != null)
-            {
-                TrcPose2D p = new TrcPose2D(pose.x, pose.y);
-                x = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - p.relativeTo(new TrcPose2D(0, 0, -angle)).x;
-            }
-        }
-        TrcPose2D pose = new TrcPose2D(x, y, angle);
-        robot.globalTracer.traceInfo("FrcAuto.relocalizeAtStart", "Relocalizing to pose: %s", pose.toString());
-        robot.driveBase.setFieldPosition(pose);
-    }
 
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
