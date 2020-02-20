@@ -2,6 +2,7 @@ package team492;
 
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
 import trclib.TrcEvent;
 import trclib.TrcPath;
 import trclib.TrcPose2D;
@@ -36,10 +37,12 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     private double delay;
     private FrcAuto.StartPosition startPosition;
     private AfterAction afterAction;
+    private TrcDbgTrace dbgTrace;
 
     public CmdShooterAuto(Robot robot)
     {
         this.robot = robot;
+        dbgTrace = TrcDbgTrace.getGlobalTracer();
         sm = new TrcStateMachine<>(instanceName + ".sm");
         event = new TrcEvent(instanceName + ".event");
         timer = new TrcTimer(instanceName + ".timer");
@@ -51,53 +54,54 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         this.startPosition = startPosition;
         this.afterAction = afterAction;
         sm.start(State.DELAY);
-        robot.globalTracer.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,afterAction=%s", delay,
+        dbgTrace.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,afterAction=%s", delay,
             afterAction.name());
     }
 
     private TrcPath createPath(TrcPose2D... poses)
     {
-        TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p, null)).toArray(TrcWaypoint[]::new));
+        TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p.relativeTo(poses[0], false), null))
+            .toArray(TrcWaypoint[]::new));
         TrcPath ret = path.trapezoidVelocity(RobotInfo.ROBOT_MAX_REQ_SPEED, RobotInfo.ROBOT_MAX_ACCEL);
-        robot.globalTracer.traceInfo(instanceName + ".createPath", "TrcPath(degrees=%b)", ret.isInDegrees());
+        dbgTrace.traceInfo(instanceName + ".createPath", "TrcPath(degrees=%b)", ret.isInDegrees());
         for (TrcWaypoint waypoint : ret.getAllWaypoints())
         {
-            robot.globalTracer.traceInfo(instanceName + ".createPath", "\t%s", waypoint.toString());
+            dbgTrace.traceInfo(instanceName + ".createPath", "\t%s", waypoint.toString());
         }
         return ret;
     }
 
-    public TrcPath createToShootPath()
+    public TrcPath createToShootPath(TrcPose2D start)
     {
+        dbgTrace.traceInfo(instanceName + ".createToShootPath", "Creating to shoot path with start=%s", start);
         if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
         {
             double targetY = -RobotInfo.ROBOT_LENGTH - 10;
             TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY);
-            TrcPose2D start = robot.driveBase.getFieldPosition();
             TrcPose2D middle = new TrcPose2D(start.x, target.y);
-            return createPath(start, middle, target);
+            return startPosition == FrcAuto.StartPosition.IN_VISION ?
+                createPath(start, target) :
+                createPath(start, middle, target);
         }
         else
         {
-            TrcPose2D start = robot.driveBase.getFieldPosition();
             TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -50, -22);
             TrcPose2D middle = new TrcPose2D(target.x, start.y);
             return createPath(start, middle, target);
         }
     }
 
-    public TrcPath createPickupPath()
+    public TrcPath createPickupPath(TrcPose2D start)
     {
+        dbgTrace.traceInfo(instanceName + ".createToPickupPath", "Creating to pickup path with start=%s", start);
         if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
         {
-            TrcPose2D start = robot.driveBase.getFieldPosition();
             TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
             TrcPose2D middle = new TrcPose2D(target.x, start.y);
             return createPath(start, middle, target);
         }
         else
         {
-            TrcPose2D start = robot.driveBase.getFieldPosition();
             TrcPose2D middle = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -100, 0);
             TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS);
             return createPath(start, middle, target);
@@ -134,7 +138,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             angle = 0;
         }
         TrcPose2D pose = new TrcPose2D(x, y, angle);
-        robot.globalTracer.traceInfo(instanceName + ".localizeAtStart", "Localizing to pose: %s", pose.toString());
+        dbgTrace.traceInfo(instanceName + ".localizeAtStart", "Localizing to pose: %s", pose.toString());
         robot.driveBase.setFieldPosition(pose);
     }
 
@@ -146,7 +150,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
-            robot.globalTracer.traceInfo(instanceName + ".cmdPeriodic", "[%.3f] CurrState=%s", state.name());
+            dbgTrace.traceInfo(instanceName + ".cmdPeriodic", "[%.3f] CurrState=%s", state.name());
             TrcPath path;
             switch (state)
             {
@@ -170,7 +174,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case MOVE_TO_SHOOT:
-                    path = createToShootPath();
+                    path = createToShootPath(robot.driveBase.getFieldPosition());
                     robot.purePursuit.start(path, event, 4);
                     sm.waitForSingleEvent(event, State.SHOOT);
                     break;
@@ -194,7 +198,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case PICKUP:
                     robot.shooter.setPitch(0);
-                    path = createPickupPath();
+                    path = createPickupPath(robot.driveBase.getFieldPosition());
                     robot.intake.intakeMultiple();
                     robot.purePursuit.start(path, event, 5);
                     sm.waitForSingleEvent(event,
@@ -233,9 +237,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         TrcPose2D inFieldFrame = p.relativeTo(new TrcPose2D(0, 0, -heading));
         TrcPose2D pose = new TrcPose2D(RobotInfo.TARGET_X_POS - inFieldFrame.x,
             RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL - inFieldFrame.y, heading);
-        robot.globalTracer
-            .traceInfo(instanceName + ".relocalizeWithVision", "CameraRelPose=%s,NewPose=%s", p.toString(),
-                pose.toString());
+        dbgTrace.traceInfo(instanceName + ".relocalizeWithVision", "CameraRelPose=%s,NewPose=%s", p.toString(),
+            pose.toString());
         robot.driveBase.setFieldPosition(pose);
         return true;
     }
