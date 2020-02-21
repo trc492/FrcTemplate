@@ -37,6 +37,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private int targetPosTicks = 0;
     private Robot robot;
     private boolean manualOverride;
+    public boolean readyForPickup = false;
 
     public Conveyor(Robot robot)
     {
@@ -217,6 +218,7 @@ public class Conveyor implements TrcExclusiveSubsystem
             firstTrigger = false;
 
             motor.set(SHOOT_POWER);
+            readyForPickup = false;
         }
     }
 
@@ -225,7 +227,7 @@ public class Conveyor implements TrcExclusiveSubsystem
      */
     public void advance()
     {
-        advance(null, null);
+        advance(null, null, INTER_BALL_DISTANCE);
     }
 
     /**
@@ -234,8 +236,9 @@ public class Conveyor implements TrcExclusiveSubsystem
      * @param owner The name of the routine calling this subsystem.
      *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
      * @param event The event to signal when done.
+     * @param distance The distance to advance the conveyor, in inches
      */
-    public void advance(String owner, TrcEvent event)
+    public void advance(String owner, TrcEvent event, double distance)
     {
         if (validateOwnership(owner)) // doesn't require checking for manual override
         {
@@ -244,11 +247,14 @@ public class Conveyor implements TrcExclusiveSubsystem
                 event.clear();
             }
             this.advanceEvent = event;
-            targetPosTicks += TrcUtil.round(INTER_BALL_DISTANCE / CONVEYOR_INCHES_PER_COUNT);
+            targetPosTicks = motor.motor.getSelectedSensorPosition();
+            targetPosTicks += TrcUtil.round(distance / CONVEYOR_INCHES_PER_COUNT);
             motor.motor.set(ControlMode.Position, targetPosTicks);
 
             advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            intakeTask.unregisterTask();
             shootTrigger.setEnabled(false);
+            readyForPickup = false;
         }
     }
 
@@ -263,6 +269,7 @@ public class Conveyor implements TrcExclusiveSubsystem
         {
             motor.set(0.0);
             advanceTask.unregisterTask();
+            intakeTask.unregisterTask();
             shootTrigger.setEnabled(false);
         }
     }

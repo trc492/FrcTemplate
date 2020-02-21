@@ -349,15 +349,15 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BUTTON_Y:
-                processedInput = true;
-                if (pressed)
-                {
-                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
-                }
-                else
-                {
-                    robot.shooter.stopFlywheel();
-                }
+//                processedInput = true;
+//                if (pressed)
+//                {
+//                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
+//                }
+//                else
+//                {
+//                    robot.shooter.stopFlywheel();
+//                }
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
@@ -529,7 +529,10 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(9, "AutoShooter: active=%b, targetVel=%.1f, targetPitch=%.1f", robot.autoShooter.isActive(),
                 robot.autoShooter.getTargetVel(), robot.autoShooter.getTargetPitch());
 
-        robot.dashboard.displayPrintf(10, "Intake: currState=%s", robot.intake.getIntakeTaskState());
+        if (robot.intake.getIntakeTaskState() != null)
+        {
+            robot.dashboard.displayPrintf(10, "Intake: currState=%s", robot.intake.getIntakeTaskState());
+        }
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.getPower());

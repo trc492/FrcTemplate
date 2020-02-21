@@ -10,12 +10,12 @@ import trclib.TrcTaskMgr;
 
 public class Intake
 {
-    private static final double INTAKE_POWER = 1.0;
+    private static final double INTAKE_POWER = 0.8;
     private Robot robot;
 
     private enum State
     {
-        BACKUP, FORWARD, INTAKE, MONITOR, ADVANCE
+        BACKUP, FORWARD, INTAKE, MONITOR, ADVANCE, SECURE
     }
 
     private FrcCANTalon intakeMotor;
@@ -31,7 +31,7 @@ public class Intake
         this.robot = robot;
 
         intakeMotor = new FrcCANTalon("Intake", RobotInfo.CANID_INTAKE);
-        intakeMotor.setInverted(true);
+        intakeMotor.setInverted(false);
         intakeMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         intakeMotor.motor.enableVoltageCompensation(true);
 
@@ -57,6 +57,11 @@ public class Intake
             switch (state)
             {
                 case BACKUP:
+//                    if (robot.conveyor.readyForPickup)
+//                    {
+//                        sm.setState(State.INTAKE);
+//                        break;
+//                    }
                     if (conveyorIntakeStartPos == null)
                     {
                         conveyorIntakeStartPos = robot.conveyor.getPosition();
@@ -75,15 +80,17 @@ public class Intake
                     break;
 
                 case FORWARD:
-                    if (robot.conveyor.entranceProximitySensor.isActive())
-                    {
-                        robot.conveyor.setPower(1.0);
-                    }
-                    else
-                    {
-                        robot.conveyor.setPower(0);
-                        sm.setState(State.INTAKE);
-                    }
+                    robot.conveyor.advance(null, event, 4);
+                    sm.setState(State.INTAKE);
+//                    if (robot.conveyor.entranceProximitySensor.isActive())
+//                    {
+//                        robot.conveyor.setPower(1.0);
+//                    }
+//                    else
+//                    {
+//                        robot.conveyor.setPower(0);
+//                        sm.setState(State.INTAKE);
+//                    }
                     break;
 
                 case INTAKE:
@@ -109,6 +116,14 @@ public class Intake
 
                 case ADVANCE:
                     robot.conveyor.intake(null, event);
+                    sm.waitForSingleEvent(event, State.SECURE);
+                    break;
+
+                case SECURE:
+                    event.clear();
+                    robot.conveyor.stop();
+                    robot.conveyor.advance(null, event, 4);
+                    robot.conveyor.readyForPickup = true;
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);

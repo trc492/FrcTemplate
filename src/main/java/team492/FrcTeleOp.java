@@ -74,10 +74,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.fieldOriented = true;
         lowGoal = false;
 
-        // TODO: REMOVE
-//        robot.shooter.setManualOverrideEnabled(true);
-//        robot.conveyor.setManualOverrideEnabled(true);
-
         if (robot.preferences.useVision)
         {
             robot.vision.setEnabled(true);
@@ -143,7 +139,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (robot.shooter.isManualOverrideEnabled())
         {
             robot.shooter.setPitchPower(robot.operatorStick.getYWithDeadband(false) * 0.5);
-            double flywheelPower = (1-robot.operatorStick.getZ())/2.0;
+            double flywheelPower = (1 - robot.operatorStick.getZ()) / 2.0;
             flywheelPower = Math.abs(flywheelPower) > 0.15 ? flywheelPower : 0;
             robot.shooter.setFlyWheelPower(flywheelPower);
         }
@@ -194,6 +190,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.BUTTON_B:
+                break;
+
+            case FrcXboxController.BUTTON_X:
                 String name = "AntiDefense";
                 if (pressed && robot.driveBase.acquireExclusiveAccess(name))
                 {
@@ -212,14 +211,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcXboxController.BUTTON_X:
+            case FrcXboxController.BUTTON_Y:
                 if (pressed)
                 {
                     robot.fieldOriented = !robot.fieldOriented;
                 }
-                break;
-
-            case FrcXboxController.BUTTON_Y:
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
@@ -265,7 +261,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                // TODO: don't do raw set power
+                if (pressed)
+                {
+                    robot.conveyor.shoot();
+                }
+                else
+                {
+                    robot.conveyor.stop();
+                }
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
                 if (pressed)
                 {
                     robot.conveyor.setPower(0.5);
@@ -276,7 +282,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON2:
+            case FrcJoystick.LOGITECH_BUTTON3:
+                if (pressed)
+                {
+                    robot.intake.intakeMultiple();
+                }
+                else
+                {
+                    robot.intake.stopIntake();
+                }
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
                 if (pressed)
                 {
                     extended = !extended;
@@ -291,33 +308,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
+            case FrcJoystick.LOGITECH_BUTTON5:
                 if (pressed)
                 {
-                    if (lowGoal)
-                    {
-                        // if we're doing low goal, just dump the balls, we don't care about speed
-                        robot.conveyor.setPower(0.8);
-                    }
-                    else
-                    {
-                        if (robot.shooter.isManualOverrideEnabled())
-                        {
-                            robot.shooter.setFlyWheelPower(1.0);
-                        }
-                        robot.conveyor.shoot();
-                    }
+                    robot.intake.setIntakePower(-1);
+                    robot.conveyor.setPower(-0.5);
                 }
                 else
                 {
+                    robot.intake.setIntakePower(0);
                     robot.conveyor.stop();
                 }
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON4:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON5:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
@@ -338,14 +339,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
-                if (pressed)
-                {
-                    robot.intake.setIntakePower(-0.4);
-                }
-                else
-                {
-                    robot.intake.stopIntake();
-                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
@@ -354,6 +347,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     robot.shooter.setPitch(0);
                     robot.shooter.stopFlywheel();
                     robot.conveyor.stop();
+                    robot.intake.stopIntake();
                 }
                 break;
 
@@ -438,6 +432,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_GREEN2:
+                robot.shooter.setManualOverrideEnabled(pressed);
                 break;
 
             case FrcJoystick.PANEL_SWITCH_BLUE2:
@@ -445,7 +440,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_YELLOW2:
-                robot.shooter.setManualOverrideEnabled(pressed);
                 break;
         }
     }

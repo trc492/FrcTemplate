@@ -40,7 +40,7 @@ public class RobotInfo
     public static final double TRENCH_RUN_X_POS = FIELD_WIDTH - 27.75;
     public static final double LAST_TRENCH_BALL_Y_POS = -194.63;
 
-    public static final double HIGH_TARGET_HEIGHT = 98;
+    public static final double HIGH_TARGET_HEIGHT = 105;
     public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81, HIGH_TARGET_HEIGHT);
     public static final double PIVOT_HEIGHT = 23.5; // in from ground
 
@@ -106,7 +106,7 @@ public class RobotInfo
     //
     // Digital Input/Output ports.
     //
-    public static final int CONVEYOR_PROXIMITY_SENSOR = 1;
+    public static final int CONVEYOR_PROXIMITY_SENSOR = 0;
     public static final int INTAKE_PROXIMITY_SENSOR = 2;
     public static final int DIO_LEFT_LIDAR = 3;
     public static final int DIO_RIGHT_LIDAR = 4;
@@ -201,11 +201,11 @@ public class RobotInfo
     public static final double PURE_PURSUIT_KF = 1.0 / ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MOVE_OUTPUT_LIMIT = 0.6;
 
-    public static final double GYRO_TURN_KP                     = 0.0055;
+    public static final double GYRO_TURN_KP                     = 0.007;
     public static final double GYRO_TURN_KI                     = 0.0;
     public static final double GYRO_TURN_KD                     = 0.0007;
     public static final double GYRO_TURN_KF                     = 0.0;
-    public static final double GYRO_TURN_TOLERANCE              = 2.0;
+    public static final double GYRO_TURN_TOLERANCE              = 1.0;
 
     //
     // Shooter
@@ -216,8 +216,8 @@ public class RobotInfo
     public static final double FLYWHEEL_INCHES_PER_TICK = Math.PI * FLYWHEEL_DIAMETER / FLYWHEEL_GEAR_RATIO / 2048.0; // falcon has 2048 cpr encoder
     public static final double FLYWHEEL_TOP_SPEED = 720;
     // TODO: tune
-    public static final double FLYWHEEL_LOW_ANGLE = 30; // angle when right up against goal
-    public static final double FLYWHEEL_LOW_SPEED = 300;
+    public static final double FLYWHEEL_LOW_ANGLE = 0; // angle when right up against goal
+    public static final double FLYWHEEL_LOW_SPEED = 500;
     public static final double FLYWHEEL_HIGH_ANGLE = 70; // angle when right up against wall
-    public static final double FLYWHEEL_HIGH_SPEED = 300;
+    public static final double FLYWHEEL_HIGH_SPEED = 500;
 }   // class RobotInfo
