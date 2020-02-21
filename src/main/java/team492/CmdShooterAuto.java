@@ -76,7 +76,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         dbgTrace.traceInfo(instanceName + ".createToShootPath", "Creating to shoot path with start=%s", start);
         if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
         {
-            double targetY = -RobotInfo.ROBOT_LENGTH - 10;
+            double targetY = -RobotInfo.ROBOT_LENGTH * 2;
             TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS, targetY);
             TrcPose2D middle = new TrcPose2D(start.x, target.y);
             return startPosition == FrcAuto.StartPosition.IN_VISION ?

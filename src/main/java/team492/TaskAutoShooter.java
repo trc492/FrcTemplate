@@ -1,7 +1,9 @@
 package team492;
 
 import frclib.FrcRemoteVisionProcessor;
+import hallib.HalDashboard;
 import org.apache.commons.math3.linear.RealVector;
+import trclib.TrcElapsedTimer;
 import trclib.TrcEvent;
 import trclib.TrcOwnershipManager;
 import trclib.TrcPidController;
@@ -47,6 +49,10 @@ public class TaskAutoShooter
             this::getAngleFromWall);
         headingPid.setAbsoluteSetPoint(true);
         headingPid.setTarget(0.0);
+
+        HalDashboard.putNumber("HeadingPid", 0);
+        HalDashboard.putNumber("VisionHeading", 0);
+        HalDashboard.putNumber("Gyro", 0);
     }
 
     private double getAngleFromWall()
@@ -108,6 +114,9 @@ public class TaskAutoShooter
         }
         if (shouldAlign())
         {
+            HalDashboard.putNumber("HeadingPid", headingPid.getOutput());
+            HalDashboard.putNumber("VisionHeading", getAngleFromWall());
+            HalDashboard.putNumber("Gyro", robot.driveBase.getHeading());
             robot.driveBase.holonomicDrive(owner, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
                 robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
         }

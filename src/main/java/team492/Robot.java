@@ -369,8 +369,7 @@ public class Robot extends FrcRobotBase
             new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
             RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
         gyroTurnPidCtrl = new TrcPidController("gyroTurnPidCtrl",
-            new PidCoefficients(RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD,
-                RobotInfo.GYRO_TURN_KF), RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
+            new PidCoefficients(RobotInfo.GYRO_TURN_KP_BIG, 0, RobotInfo.GYRO_TURN_KD_BIG), RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
         encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
         encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
         gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);

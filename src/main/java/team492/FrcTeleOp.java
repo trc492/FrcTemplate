@@ -346,6 +346,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                if (pressed)
+                {
+                    robot.shooter.setPitch(0);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
