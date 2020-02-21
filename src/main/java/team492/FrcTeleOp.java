@@ -37,7 +37,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     protected final Robot robot;
     private boolean gyroAssist = false;
     private TrcElapsedTimer elapsedTimer = null;
-    private boolean lowGoal = false;
     private boolean extended = false;
 
     public FrcTeleOp(Robot robot)
@@ -72,7 +71,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
         robot.fieldOriented = true;
-        lowGoal = false;
 
         if (robot.preferences.useVision)
         {
@@ -326,15 +324,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
                     robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
-                    lowGoal = false;
+                }
+                else
+                {
+                    robot.shooter.setPitch(0);
+                    robot.shooter.stopFlywheel();
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                if (lowGoal = pressed)
+                if (pressed)
                 {
                     robot.shooter.setPitch(RobotInfo.FLYWHEEL_LOW_ANGLE);
                     robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_LOW_SPEED);
+                }
+                else
+                {
+                    robot.shooter.setPitch(0);
+                    robot.shooter.stopFlywheel();
                 }
                 break;
 

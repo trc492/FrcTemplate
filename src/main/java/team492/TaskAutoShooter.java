@@ -14,6 +14,9 @@ public class TaskAutoShooter
     private static final double VEL_TOLERANCE = 7; // in/sec
     private static final double HEADING_TOLERANCE = 5; // deg
 
+    private static final double VEL_FUDGE_FACTOR = 1.2;
+    private static final double ANGLE_FUDGE_FACTOR = 1.0;
+
     public enum Mode
     {
         ALIGN_ONLY, SHOOT_ONLY, BOTH
@@ -95,8 +98,12 @@ public class TaskAutoShooter
             if (traj != null)
             {
                 this.traj = traj;
-                robot.shooter.setFlywheelVelocity(traj.getEntry(0) * 1.2);
-                robot.shooter.setPitch(traj.getEntry(1));
+                double velTarget = traj.getEntry(0) * VEL_FUDGE_FACTOR;
+                double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
+                traj.setEntry(0, velTarget);
+                traj.setEntry(1, angleTarget);
+                robot.shooter.setFlywheelVelocity(velTarget);
+                robot.shooter.setPitch(angleTarget);
             }
         }
         if (shouldAlign())
