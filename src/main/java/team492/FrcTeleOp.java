@@ -309,7 +309,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 else
                 {
-                    robot.shooter.setPitch(0);
+                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
                     robot.shooter.stopFlywheel();
                 }
                 break;
@@ -322,7 +322,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 else
                 {
-                    robot.shooter.setPitch(0);
+                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
                     robot.shooter.stopFlywheel();
                 }
                 break;
@@ -330,7 +330,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON8:
                 if (pressed)
                 {
-                    robot.shooter.setPitch(0);
+                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
                 }
                 break;
 

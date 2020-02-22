@@ -41,7 +41,7 @@ public class RobotInfo
     public static final double LAST_TRENCH_BALL_Y_POS = -194.63;
 
     public static final double HIGH_TARGET_HEIGHT = 98.25;
-    public static final double HIGH_VISION_TARGET_HEIGHT = TrcUtil.average(81.25, HIGH_TARGET_HEIGHT);
+    public static final double HIGH_VISION_TARGET_HEIGHT = 88;//TrcUtil.average(81.25, HIGH_TARGET_HEIGHT);
     public static final double PIVOT_HEIGHT = 23.5; // in from ground
 
     public static final double ROBOT_WIDTH = 36;
@@ -128,6 +128,7 @@ public class RobotInfo
     // Vision subsystem.
     //
     public static final double CAMERA_Y_OFFSET = 12;  // in from pivot of arm + is forward
+    public static final double CAMERA_Y_OFFSET_TO_PIVOT = 26;
     public static final double CAMERA_X_OFFSET = 0;    //Inches from pivot of arm to center of camera, + = right
     public static final double CAMERA_DATA_TIMEOUT              = 0.5;  //500ms
     public static final double CAMERA_CENTERED_THRESHOLD        = 2;    // +- 2 inches in x axis
@@ -185,10 +186,10 @@ public class RobotInfo
 
     public static final double DRIVE_RAMP_RATE = 0.2;
 
-    public static final double ENCODER_INCHES_PER_COUNT = 2.30769;
-    public static final double ENCODER_KP = 0.012;
+    public static final double ENCODER_INCHES_PER_COUNT = 2.2421;
+    public static final double ENCODER_KP = 0.011;
     public static final double ENCODER_KI = 0.0;
-    public static final double ENCODER_KD = 0.00;
+    public static final double ENCODER_KD = 0.0013;
     public static final double ENCODER_KF = 0.0;
     public static final double ENCODER_TOLERANCE = 2.0;
 
@@ -206,16 +207,16 @@ public class RobotInfo
     public static final double GYRO_TURN_KP_BIG = 0.0055;
     public static final double GYRO_TURN_KD_BIG = 0.0007;
 
-    public static final double GYRO_TURN_KP                     = 0.015;
+    public static final double GYRO_TURN_KP                     = 0.011;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.003;
+    public static final double GYRO_TURN_KD                     = 0.0;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 1.0;
 
     //
     // Shooter
     //
-    public static final double SHOOTER_BOTTOM_POS = -5;
+    public static final double SHOOTER_BOTTOM_POS = -10;
 
     public static final double FLYWHEEL_DIAMETER = 4.0; // in
     public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;

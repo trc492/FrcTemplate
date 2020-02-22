@@ -256,6 +256,7 @@ public class FrcTest extends FrcTeleOp
                     .format("lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.leftFrontWheel.getSteerAngle(),
                         robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
                         robot.rightBackWheel.getSteerAngle()));
+                doSensorsTest();
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -364,6 +365,11 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
+                if (!pressed)
+                {
+                    processedInput = true;
+                    robot.autoShooter.cancel();
+                }
                 break;
 
             case FrcXboxController.BACK:
@@ -379,7 +385,7 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.shooter.setPitch(0);
+                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
                     robot.conveyor.stop();
                     robot.intake.stopIntake();
                     robot.shooter.stopFlywheel();
@@ -523,15 +529,16 @@ public class FrcTest extends FrcTeleOp
         if (robot.preferences.useVision)
         {
             robot.dashboard.displayPrintf(8, "Vision: RelPose=%s", robot.vision.getLastPose());
+            robot.dashboard.displayPrintf(9, "Target Depth: " + robot.vision.vision.getTargetDepth());
         }
 
         robot.dashboard
-            .displayPrintf(9, "AutoShooter: active=%b, targetVel=%.1f, targetPitch=%.1f", robot.autoShooter.isActive(),
+            .displayPrintf(10, "AutoShooter: active=%b, targetVel=%.1f, targetPitch=%.1f", robot.autoShooter.isActive(),
                 robot.autoShooter.getTargetVel(), robot.autoShooter.getTargetPitch());
 
         if (robot.intake.getIntakeTaskState() != null)
         {
-            robot.dashboard.displayPrintf(10, "Intake: currState=%s", robot.intake.getIntakeTaskState());
+            robot.dashboard.displayPrintf(11, "Intake: currState=%s", robot.intake.getIntakeTaskState());
         }
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());

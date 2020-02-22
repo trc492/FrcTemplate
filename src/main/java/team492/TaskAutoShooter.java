@@ -17,6 +17,7 @@ public class TaskAutoShooter
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
+    public static final double TARGET_OFFSET = -3.5;
 
     public enum Mode
     {
@@ -48,17 +49,14 @@ public class TaskAutoShooter
         headingPid = new TrcPidController(instanceName + "HeadingController", headingPidCoeff, HEADING_TOLERANCE,
             this::getAngleFromWall);
         headingPid.setAbsoluteSetPoint(true);
-        headingPid.setTarget(0.0);
+        headingPid.setTarget(TARGET_OFFSET);
 
-        HalDashboard.putNumber("HeadingPid", 0);
-        HalDashboard.putNumber("VisionHeading", 0);
-        HalDashboard.putNumber("Gyro", 0);
+        HalDashboard.putNumber("HeadingErr", 0);
     }
 
     private double getAngleFromWall()
     {
-        FrcRemoteVisionProcessor.RelativePose pose = robot.preferences.useVision ? robot.vision.getLastPose() : null;
-        return pose != null ? -pose.theta : 0.0; // make negative so control effort is positive
+        return robot.preferences.useVision ? -robot.vision.vision.getHeading() : 0;
     }
 
     private void stop()
@@ -97,14 +95,15 @@ public class TaskAutoShooter
             return;
         }
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-        if (pose != null)
+        if (pose != null && !robot.driverController.getBackButton())
         {
-            RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(
-                TrcUtil.createVector(pose.r, RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT));
+            RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
+                .createVector(robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT-24,
+                    RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT+6));
             if (traj != null)
             {
                 this.traj = traj;
-                double velTarget = traj.getEntry(0) * VEL_FUDGE_FACTOR;
+                double velTarget = traj.getEntry(0) + 72;
                 double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
                 traj.setEntry(0, velTarget);
                 traj.setEntry(1, angleTarget);
@@ -117,8 +116,16 @@ public class TaskAutoShooter
             double xPower = robot.getXInput();
             double yPower = robot.getYInput();
             double rotPower = headingPid.getOutput();
-            robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
-                robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+            if (robot.driverController.getBackButton())
+            {
+                robot.driveBase.holonomicDrive(owner, 0, 0, 0);
+            }
+            else
+            {
+                HalDashboard.putNumber("HeadingErr", headingPid.getError());
+                robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
+                    robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+            }
             robot.globalTracer
                 .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
                     yPower, rotPower);
@@ -127,8 +134,8 @@ public class TaskAutoShooter
         {
             boolean ready = readyToShoot();
             robot.globalTracer.traceInfo(instanceName + ".shooterTask",
-                "[%.3f] Shooting autoshoot active - event=%b,balls=%d,ready=%b",
-                TrcUtil.getModeElapsedTime(), event.isSignaled(), ballsToShoot, ready);
+                "[%.3f] Shooting autoshoot active - event=%b,balls=%d,ready=%b", TrcUtil.getModeElapsedTime(),
+                event.isSignaled(), ballsToShoot, ready);
             if (event.isSignaled())
             {
                 ballsToShoot--;
@@ -265,7 +272,7 @@ public class TaskAutoShooter
             onFinishedEvent.clear();
         }
         this.event.clear();
-        headingPid.setTarget(0.0);
+        headingPid.setTarget(TARGET_OFFSET);
         taskObject.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
     }
 }

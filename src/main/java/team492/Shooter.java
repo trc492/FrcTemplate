@@ -7,9 +7,6 @@ import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import frclib.FrcCANFalcon;
 import frclib.FrcCANTalon;
-import trclib.TrcAnalogInput;
-import trclib.TrcAnalogSensor;
-import trclib.TrcAnalogSensorTrigger;
 import trclib.TrcDbgTrace;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
@@ -145,7 +142,7 @@ public class Shooter
 
     public double getFlywheelVelocity()
     {
-        return flywheel.getVelocity() * RobotInfo.FLYWHEEL_INCHES_PER_TICK / 0.1;
+        return flywheel.getVelocity() * RobotInfo.FLYWHEEL_INCHES_PER_TICK;
     }
 
     public boolean pitchOnTarget()
@@ -214,12 +211,11 @@ public class Shooter
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
         pitchMotor.setPositionSensorInverted(true);
         pitchMotor.setInverted(false);
-        // TODO: re-enable limit switches at some point
-        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
-        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
-        //        pitchMotor.configRevLimitSwitchNormallyOpen(false);
-        //        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
-        pitchMotor.motor.overrideLimitSwitchesEnable(false);
+        //        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
+        //        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
+        pitchMotor.configRevLimitSwitchNormallyOpen(false);
+        pitchMotor.configFwdLimitSwitchNormallyOpen(false);
+        pitchMotor.motor.overrideLimitSwitchesEnable(true);
         pitchMotor.motor.configForwardSoftLimitEnable(true, 10);
         pitchMotor.motor.configReverseSoftLimitEnable(true, 10);
         pitchMotor.motor.configForwardSoftLimitThreshold(PITCH_UPPER_LIMIT_TICKS, 10);
