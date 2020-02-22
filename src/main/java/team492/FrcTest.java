@@ -503,8 +503,8 @@ public class FrcTest extends FrcTeleOp
                 robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
                 robot.rightBackWheel.getSteerAngle());
         robot.dashboard
-            .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
-                robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
+            .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,xVel=%.2f,yVel=%.2f", robot.driveBase.getXPosition(),
+                robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.driveBase.getXVelocity(), robot.driveBase.getYVelocity());
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
 
         robot.dashboard.displayPrintf(5, "Alignment: left=%.2f,right=%.2f,angle=%.1f,shortestDist=%.2f",

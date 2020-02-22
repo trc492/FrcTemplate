@@ -3,7 +3,6 @@ package team492;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
 import org.apache.commons.math3.linear.RealVector;
-import trclib.TrcElapsedTimer;
 import trclib.TrcEvent;
 import trclib.TrcOwnershipManager;
 import trclib.TrcPidController;
@@ -14,7 +13,7 @@ import trclib.TrcUtil;
 public class TaskAutoShooter
 {
     private static final double VEL_TOLERANCE = 7; // in/sec
-    private static final double HEADING_TOLERANCE = 5; // deg
+    private static final double HEADING_TOLERANCE = 1; // deg
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
@@ -36,6 +35,7 @@ public class TaskAutoShooter
     private Mode mode;
     private boolean releaseConveyor, releaseDriveBase;
     private String owner;
+    private double nextBallShootTime = 0;
 
     public TaskAutoShooter(Robot robot)
     {
@@ -114,25 +114,33 @@ public class TaskAutoShooter
         }
         if (shouldAlign())
         {
-            HalDashboard.putNumber("HeadingPid", headingPid.getOutput());
-            HalDashboard.putNumber("VisionHeading", getAngleFromWall());
-            HalDashboard.putNumber("Gyro", robot.driveBase.getHeading());
-            robot.driveBase.holonomicDrive(owner, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
+            double xPower = robot.getXInput();
+            double yPower = robot.getYInput();
+            double rotPower = headingPid.getOutput();
+            robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
                 robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+            robot.globalTracer
+                .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
+                    yPower, rotPower);
         }
         if (traj != null)
         {
+            boolean ready = readyToShoot();
+            robot.globalTracer.traceInfo(instanceName + ".shooterTask",
+                "[%.3f] Shooting autoshoot active - event=%b,balls=%d,ready=%b",
+                TrcUtil.getModeElapsedTime(), event.isSignaled(), ballsToShoot, ready);
             if (event.isSignaled())
             {
                 ballsToShoot--;
                 event.clear();
             }
-            if (readyToShoot())
+            if (ready)
             {
                 robot.ledIndicator.setShooterReady(true);
                 if (shouldShoot())
                 {
                     robot.conveyor.shoot(owner, event);
+                    nextBallShootTime = TrcUtil.getCurrentTime() + 0.1;
                 }
             }
             else
@@ -154,11 +162,21 @@ public class TaskAutoShooter
 
     private boolean readyToShoot()
     {
-        boolean velReady = robot.shooter.flywheel.motor.getClosedLoopError() <= VEL_TOLERANCE;
+        boolean velReady = Math.abs(flywheelError()) <= VEL_TOLERANCE;
         boolean pitchReady = robot.shooter.pitchOnTarget();
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
         boolean headingReady = pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
-        return velReady && pitchReady && headingReady;
+        double currTime = TrcUtil.getCurrentTime();
+        boolean timeReady = currTime >= nextBallShootTime;
+        robot.globalTracer
+            .traceInfo(instanceName + ".readyToShoot", "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b",
+                TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady);
+        return velReady && pitchReady && headingReady && timeReady;
+    }
+
+    private double flywheelError()
+    {
+        return robot.shooter.flywheel.motor.getClosedLoopError() * RobotInfo.FLYWHEEL_INCHES_PER_TICK / 0.1;
     }
 
     public boolean isActive()

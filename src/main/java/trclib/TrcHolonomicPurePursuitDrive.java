@@ -50,7 +50,7 @@ import org.apache.commons.math3.linear.RealVector;
  */
 public class TrcHolonomicPurePursuitDrive
 {
-    private static final boolean debugEnabled = false;
+    private static final boolean debugEnabled = true;
 
     public enum InterpolationType
     {
@@ -371,8 +371,8 @@ public class TrcHolonomicPurePursuitDrive
         if (debugEnabled)
         {
             TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitDrive.driveTask",
-                "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
-                robotX, robotY, velocity, pose.angle, point.x, point.y, point.velocity, point.heading, pathIndex, r,
+                "[%.3f] Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
+                TrcUtil.getModeElapsedTime(), robotX, robotY, velocity, pose.angle, point.x, point.y, point.velocity, point.heading, pathIndex, r,
                 theta);
         }
 

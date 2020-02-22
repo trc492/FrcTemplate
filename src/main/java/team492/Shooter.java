@@ -46,8 +46,6 @@ public class Shooter
     private static final int PITCH_UPPER_LIMIT_TICKS = (int) (80 / PITCH_DEGREES_PER_COUNT);
     private static final int PITCH_LOWER_LIMIT_TICKS = (int) (0 / PITCH_DEGREES_PER_COUNT);
 
-    private final TrcAnalogSensorTrigger<TrcAnalogInput.DataType> flywheelTrigger;
-
     public final FrcCANFalcon flywheel;
     public final FrcCANTalon pitchMotor;
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
@@ -64,11 +62,6 @@ public class Shooter
         configureFlywheel();
         configurePitchMotor();
         offsetPitchPos();
-
-        TrcAnalogSensor flywheelError = new TrcAnalogSensor("Error",
-            () -> Math.abs(getFlywheelVelocity() - targetVelocity));
-        flywheelTrigger = new TrcAnalogSensorTrigger<>("", flywheelError, 0, TrcAnalogInput.DataType.RAW_DATA,
-            new double[] { FLYWHEEL_kD_THRESH_LOWER }, this::flywheelErrorTrigger, false);
 
         pitchControlTaskObj = TrcTaskMgr.getInstance().createTask("PitchControlTask", this::pitchControlTask);
     }
@@ -92,25 +85,6 @@ public class Shooter
         // TODO: remove the sleeps
     }
 
-    private void flywheelErrorTrigger(int currZone, int prevZone, double value)
-    {
-        final String funcName = "flywheelErrorTrigger";
-        TrcDbgTrace debug = TrcDbgTrace.getGlobalTracer();
-        debug.traceInfo(funcName, "Edge event: curr=%d,prev=%d,val=%.2f", currZone, prevZone, value);
-        if (value <= FLYWHEEL_kD_THRESH_LOWER)
-        {
-            debug.traceInfo(funcName, "Enabling D term!");
-            flywheel.motor.config_kD(0, FLYWHEEL_kD, 0);
-            flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_UPPER });
-        }
-        else if (value > FLYWHEEL_kD_THRESH_UPPER)
-        {
-            debug.traceInfo(funcName, "Disabling D term!");
-            flywheel.motor.config_kD(0, 0, 0);
-            flywheelTrigger.setThresholds(new double[] { FLYWHEEL_kD_THRESH_LOWER });
-        }
-    }
-
     public void setManualOverrideEnabled(boolean enabled)
     {
         manualOverride = enabled;
@@ -131,7 +105,6 @@ public class Shooter
         {
             pitchControlTaskObj.unregisterTask();
         }
-        flywheelTrigger.setEnabled(enabled);
     }
 
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
@@ -172,7 +145,7 @@ public class Shooter
 
     public double getFlywheelVelocity()
     {
-        return flywheel.getVelocity() * RobotInfo.FLYWHEEL_INCHES_PER_TICK;
+        return flywheel.getVelocity() * RobotInfo.FLYWHEEL_INCHES_PER_TICK / 0.1;
     }
 
     public boolean pitchOnTarget()
@@ -258,7 +231,7 @@ public class Shooter
         flywheel.motor.config_kP(0, FLYWHEEL_kP, 10);
         flywheel.motor.config_kI(0, FLYWHEEL_kI, 10);
         flywheel.motor.config_IntegralZone(0, FLYWHEEL_IZONE, 10);
-        flywheel.motor.config_kD(0, 0, 10);
+        flywheel.motor.config_kD(0, FLYWHEEL_kD, 10);
         flywheel.motor.config_kF(0, FLYWHEEL_kF, 10);
         flywheel.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         flywheel.motor.enableVoltageCompensation(true);

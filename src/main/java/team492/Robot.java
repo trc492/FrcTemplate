@@ -188,7 +188,7 @@ public class Robot extends FrcRobotBase
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
-    public DriveSpeed driveSpeed;
+    public DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
     private int numBalls;
     public double driveTime;
     public double drivePower;
@@ -215,7 +215,6 @@ public class Robot extends FrcRobotBase
         spark.setPositionSensorInverted(false);
         spark.setBrakeModeEnabled(true);
         spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        spark.motor.setOpenLoopRampRate(0.2);
         spark.motor.burnFlash();
         return spark;
     }
@@ -386,7 +385,7 @@ public class Robot extends FrcRobotBase
         purePursuit = new TrcHolonomicPurePursuitDrive("purePursuit", driveBase,
             RobotInfo.PURE_PURSUIT_FOLLOWING_DISTANCE, RobotInfo.PURE_PURSUIT_POS_TOLERANCE,
             RobotInfo.PURE_PURSUIT_HEADING_TOLERANCE, encoderYPidCtrl.getPidCoefficients(),
-            gyroTurnPidCtrl.getPidCoefficients(),
+            new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP, 0, RobotInfo.GYRO_TURN_KD),
             new TrcPidController.PidCoefficients(0, 0, 0, RobotInfo.PURE_PURSUIT_KF));
         purePursuit.setMoveOutputLimit(RobotInfo.PURE_PURSUIT_MOVE_OUTPUT_LIMIT);
         //
@@ -460,6 +459,21 @@ public class Robot extends FrcRobotBase
             dashboard.clearDisplay();
 
             ledIndicator.reset();
+
+            if (runMode == RunMode.AUTO_MODE)
+            {
+                lfDriveMotor.motor.setOpenLoopRampRate(0);
+                rfDriveMotor.motor.setOpenLoopRampRate(0);
+                lrDriveMotor.motor.setOpenLoopRampRate(0);
+                rrDriveMotor.motor.setOpenLoopRampRate(0);
+            }
+            else
+            {
+                lfDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                rfDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                lrDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                rrDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+            }
 
             if (runMode == RunMode.AUTO_MODE || runMode == RunMode.TEST_MODE)
             {

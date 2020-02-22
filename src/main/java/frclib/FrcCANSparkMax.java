@@ -277,7 +277,7 @@ public class FrcCANSparkMax extends TrcMotor
      * This method returns the motor velocity from the platform dependent motor hardware. If the hardware does
      * not support velocity info, it should throw an UnsupportedOperationException.
      *
-     * @return current motor velocity in native unit per second (RPM).
+     * @return current motor velocity in native unit per second (RPS).
      */
     @Override
     public double getMotorVelocity()
@@ -289,7 +289,7 @@ public class FrcCANSparkMax extends TrcMotor
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        double currVel = encoder.getVelocity() * encoderSign;
+        double currVel = encoder.getVelocity() * encoderSign / 60.0;
 
         if (debugEnabled)
         {

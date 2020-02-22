@@ -30,7 +30,7 @@ public class VisionTargeting
     private static final double CAMERA_HEIGHT = 12.5;
     private static final double CAMERA_ANGLE = 28.9;
 
-    private FrcLimeLightVisionProcessor vision;
+    public final FrcLimeLightVisionProcessor vision;
 
     public VisionTargeting()
     {

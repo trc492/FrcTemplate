@@ -97,6 +97,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         startPosMenu = new FrcChoiceMenu<>("Auto/StartPositions");
         startPosMenu.addChoice("Left Bumper Feeder", StartPosition.LEFT_BUMPER_FEEDER, true, false);
         startPosMenu.addChoice("In Vision", StartPosition.IN_VISION);
+        startPosMenu.addChoice("Right Wall", StartPosition.RIGHT_WALL);
         startPosMenu.addChoice("Custom", StartPosition.CUSTOM, false, true);
 
         shooterAutoAfterMenu = new FrcChoiceMenu<>("Auto/ShooterAutoAfterAction");
@@ -224,7 +225,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             autoCommand.cancel();
         }
         populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
-        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
+//        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
     }   // stopMode
 
     @Override

@@ -2,7 +2,6 @@ package team492;
 
 import frclib.FrcCANTalon;
 import frclib.FrcPneumatic;
-import trclib.TrcDigitalInputTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -10,7 +9,7 @@ import trclib.TrcTaskMgr;
 
 public class Intake
 {
-    private static final double INTAKE_POWER = 0.8;
+    private static final double INTAKE_POWER = 0.5;
     private Robot robot;
 
     private enum State

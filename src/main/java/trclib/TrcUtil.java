@@ -79,13 +79,13 @@ public class TrcUtil
     }   //getModeElapsedTime
 
     /**
-     * This method returns the current time in seconds with nano-second precision.
+     * This method returns the current time in seconds with millisecond precision.
      *
      * @return current time in seconds.
      */
     public static double getCurrentTime()
     {
-        return System.nanoTime() / 1000000000.0;
+        return getCurrentTimeMillis() / 1000.0;
     }   //getCurrentTime
 
     /**

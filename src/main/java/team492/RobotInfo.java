@@ -183,6 +183,8 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
+    public static final double DRIVE_RAMP_RATE = 0.2;
+
     public static final double ENCODER_INCHES_PER_COUNT = 2.30769;
     public static final double ENCODER_KP = 0.012;
     public static final double ENCODER_KI = 0.0;
@@ -190,14 +192,14 @@ public class RobotInfo
     public static final double ENCODER_KF = 0.0;
     public static final double ENCODER_TOLERANCE = 2.0;
 
-    public static final double ROBOT_TOP_SPEED = 192.6; // in/sec
+    public static final double ROBOT_TOP_SPEED = 300; // in/sec
 
-    public static final double ROBOT_MAX_REQ_SPEED = 0.7 * ROBOT_TOP_SPEED;
-    public static final double ROBOT_MAX_ACCEL = 300;
+    public static final double ROBOT_MAX_REQ_SPEED = 0.2 * ROBOT_TOP_SPEED;
+    public static final double ROBOT_MAX_ACCEL = 200;
 
-    public static final double PURE_PURSUIT_FOLLOWING_DISTANCE = 10.0;
-    public static final double PURE_PURSUIT_POS_TOLERANCE = 3.0;
-    public static final double PURE_PURSUIT_HEADING_TOLERANCE = 4.0;
+    public static final double PURE_PURSUIT_FOLLOWING_DISTANCE = 10;
+    public static final double PURE_PURSUIT_POS_TOLERANCE = 2.0;
+    public static final double PURE_PURSUIT_HEADING_TOLERANCE = 2.0;
     public static final double PURE_PURSUIT_KF = 1.0 / ROBOT_TOP_SPEED;
     public static final double PURE_PURSUIT_MOVE_OUTPUT_LIMIT = 0.6;
 
