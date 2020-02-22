@@ -106,7 +106,7 @@ public class RobotInfo
     //
     // Digital Input/Output ports.
     //
-    public static final int CONVEYOR_PROXIMITY_SENSOR = 0;
+    public static final int CONVEYOR_PROXIMITY_SENSOR = 3;
     public static final int INTAKE_PROXIMITY_SENSOR = 2;
     public static final int DIO_LEFT_LIDAR = 3;
     public static final int DIO_RIGHT_LIDAR = 4;

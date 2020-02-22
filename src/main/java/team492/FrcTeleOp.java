@@ -290,26 +290,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON4:
                 if (pressed)
                 {
-                    extended = !extended;
-                    if (extended)
-                    {
-                        robot.intake.extendIntake();
-                    }
-                    else
-                    {
-                        robot.intake.retractIntake();
-                    }
+                    robot.intake.extendIntake();
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
                 if (pressed)
                 {
-                    robot.conveyor.setPower(-0.5);
-                }
-                else
-                {
-                    robot.conveyor.stop();
+                    robot.intake.retractIntake();
                 }
                 break;
 
@@ -349,12 +337,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON9:
                 if (pressed)
                 {
+                    if (robot.autoShooter.isActive())
+                        robot.autoShooter.cancel();
                     robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
                     robot.shooter.stopFlywheel();
                     robot.conveyor.stop();
                     robot.intake.stopIntake();
-                    if (robot.autoShooter.isActive())
-                        robot.autoShooter.cancel();
                 }
                 break;
 
@@ -379,9 +367,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (robot.conveyor.isManualOverrideEnabled() && pressed)
                 {
                     robot.conveyor.advance();
-                    robot.shooter.stopFlywheel();
-                    if (robot.autoShooter.isActive())
-                        robot.autoShooter.cancel();
                 }
                 break;
 
@@ -392,12 +377,23 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON_YELLOW1:
+                if (pressed)
+                {
+                    robot.conveyor.setPower(-0.5);
+                }
+                else
+                {
+                    robot.conveyor.stop();
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON_WHITE1:
                 if (pressed)
                 {
+                    if (robot.autoShooter.isActive())
+                        robot.autoShooter.cancel();
                     robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stopFlywheel();
                 }
                 break;
 

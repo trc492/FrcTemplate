@@ -421,6 +421,16 @@ public class Robot extends FrcRobotBase
         setupRobotModes(new FrcTeleOp(this), autoMode, new FrcTest(this), new FrcDisabled(this));
 
         pdp.registerEnergyUsedForAllUnregisteredChannels();
+
+        HalDashboard.refreshKey("Test/DriveTime", 5.0);
+        HalDashboard.refreshKey("Test/DrivePower", 0.2);
+        HalDashboard.refreshKey("Test/DriveDistance", 6.0);
+        HalDashboard.refreshKey("Test/TurnDegrees", 90.0);
+        HalDashboard.refreshKey("Test/DrivePowerLimit", 0.5);
+        HalDashboard.refreshKey("Test/TuneKp", RobotInfo.GYRO_TURN_KP);
+        HalDashboard.refreshKey("Test/TuneKi", RobotInfo.GYRO_TURN_KI);
+        HalDashboard.refreshKey("Test/TuneKd", RobotInfo.GYRO_TURN_KD);
+        HalDashboard.refreshKey("Test/TuneKf", 0.0);
     }   //robotInit
 
     public void robotStartMode(RunMode runMode, RunMode prevMode)

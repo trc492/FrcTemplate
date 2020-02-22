@@ -349,15 +349,15 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BUTTON_Y:
-//                processedInput = true;
-//                if (pressed)
-//                {
-//                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
-//                }
-//                else
-//                {
-//                    robot.shooter.stopFlywheel();
-//                }
+                //                processedInput = true;
+                //                if (pressed)
+                //                {
+                //                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
+                //                }
+                //                else
+                //                {
+                //                    robot.shooter.stopFlywheel();
+                //                }
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
@@ -502,9 +502,9 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(2, "DriveBase angles: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f", robot.leftFrontWheel.getSteerAngle(),
                 robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
                 robot.rightBackWheel.getSteerAngle());
-        robot.dashboard
-            .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,xVel=%.2f,yVel=%.2f", robot.driveBase.getXPosition(),
-                robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.driveBase.getXVelocity(), robot.driveBase.getYVelocity());
+        robot.dashboard.displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,xVel=%.2f,yVel=%.2f",
+            robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
+            robot.driveBase.getXVelocity(), robot.driveBase.getYVelocity());
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
 
         robot.dashboard.displayPrintf(5, "Alignment: left=%.2f,right=%.2f,angle=%.1f,shortestDist=%.2f",
