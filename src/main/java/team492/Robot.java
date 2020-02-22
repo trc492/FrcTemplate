@@ -42,16 +42,13 @@ import frclib.FrcRobotBattery;
 import frclib.FrcTalonServo;
 import frclib.FrcXboxController;
 import hallib.HalDashboard;
-import trclib.TrcDigitalInput;
 import trclib.TrcEnhancedServo;
 import trclib.TrcHolonomicPurePursuitDrive;
-import trclib.TrcMotor;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
-import trclib.TrcServo;
 import trclib.TrcSwerveDriveBase;
 import trclib.TrcSwerveModule;
 import trclib.TrcUtil;
@@ -81,7 +78,7 @@ public class Robot extends FrcRobotBase
         public final boolean useNavX = true;
         public final boolean useGyroAssist = false;
         public final boolean useVision = true;
-        public final boolean useStreamCamera = false;
+        public final boolean useStreamCamera = true;
         public final boolean doAutoUpdates = false;
 
         public final boolean debugPowerConsumption = false;

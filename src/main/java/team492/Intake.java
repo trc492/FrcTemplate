@@ -10,13 +10,14 @@ import trclib.TrcTaskMgr;
 public class Intake
 {
     private static final double INTAKE_POWER = 0.5;
-    private Robot robot;
 
     private enum State
     {
         BACKUP, FORWARD, INTAKE, MONITOR, ADVANCE, SECURE
     }
 
+    private Robot robot;
+    private boolean extend;
     private FrcCANTalon intakeMotor;
     private TrcTaskMgr.TaskObject intakeTaskObj;
     private TrcStateMachine<State> sm;
@@ -56,11 +57,6 @@ public class Intake
             switch (state)
             {
                 case BACKUP:
-//                    if (robot.conveyor.readyForPickup)
-//                    {
-//                        sm.setState(State.INTAKE);
-//                        break;
-//                    }
                     if (conveyorIntakeStartPos == null)
                     {
                         conveyorIntakeStartPos = robot.conveyor.getPosition();
@@ -81,15 +77,6 @@ public class Intake
                 case FORWARD:
                     robot.conveyor.advance(null, event, 4);
                     sm.setState(State.INTAKE);
-//                    if (robot.conveyor.entranceProximitySensor.isActive())
-//                    {
-//                        robot.conveyor.setPower(1.0);
-//                    }
-//                    else
-//                    {
-//                        robot.conveyor.setPower(0);
-//                        sm.setState(State.INTAKE);
-//                    }
                     break;
 
                 case INTAKE:
@@ -101,7 +88,10 @@ public class Intake
                     {
                         event.clear();
                         intakeMotor.set(INTAKE_POWER);
-                        extendIntake();
+                        if (extend)
+                        {
+                            extendIntake();
+                        }
                         sm.setState(State.MONITOR);
                     }
                     break;
@@ -122,7 +112,6 @@ public class Intake
                     event.clear();
                     robot.conveyor.stop();
                     robot.conveyor.advance(null, event, 4);
-                    robot.conveyor.readyForPickup = true;
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);
@@ -149,6 +138,10 @@ public class Intake
     public void stopIntake(boolean retract)
     {
         setIntakePower(0.0);
+        if (isActive())
+        {
+            robot.conveyor.stop();
+        }
         if (retract)
         {
             retractIntake();
@@ -162,7 +155,12 @@ public class Intake
 
     public void intakeMultiple()
     {
-        intake(false, null);
+        intakeMultiple(true);
+    }
+
+    public void intakeMultiple(boolean extend)
+    {
+        intake(false, extend, null);
     }
 
     public void intakeOnce()
@@ -172,10 +170,10 @@ public class Intake
 
     public void intakeOnce(TrcEvent onFinishedEvent)
     {
-        intake(true, onFinishedEvent);
+        intake(true, true, onFinishedEvent);
     }
 
-    private void intake(boolean singular, TrcEvent onFinishedEvent)
+    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent)
     {
         if (isActive())
         {
@@ -185,6 +183,7 @@ public class Intake
         {
             onFinishedEvent.clear();
         }
+        this.extend = extend;
         this.singular = singular;
         this.onFinishedEvent = onFinishedEvent;
         conveyorIntakeStartPos = null;

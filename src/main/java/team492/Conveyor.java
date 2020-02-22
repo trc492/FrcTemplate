@@ -37,7 +37,6 @@ public class Conveyor implements TrcExclusiveSubsystem
     private int targetPosTicks = 0;
     private Robot robot;
     private boolean manualOverride;
-    public boolean readyForPickup = false;
 
     public Conveyor(Robot robot)
     {
@@ -76,7 +75,6 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-
         boolean exitActive = exitProximitySensor.isActive();
         boolean entranceActive = entranceProximitySensor.isActive();
         if (exitActive || !entranceActive)
@@ -218,7 +216,6 @@ public class Conveyor implements TrcExclusiveSubsystem
             firstTrigger = false;
 
             motor.set(SHOOT_POWER);
-            readyForPickup = false;
         }
     }
 
@@ -254,7 +251,6 @@ public class Conveyor implements TrcExclusiveSubsystem
             advanceTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
             intakeTask.unregisterTask();
             shootTrigger.setEnabled(false);
-            readyForPickup = false;
         }
     }
 

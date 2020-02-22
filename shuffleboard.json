@@ -414,9 +414,6 @@
                   "_source0": "network_table:///SmartDashboard/Test/FlywheelVel",
                   "_title": "/FlywheelVel",
                   "Graph/Visible time": 30.0,
-                  "Y-axis/Automatic bounds": true,
-                  "Y-axis/Upper bound": 1.0,
-                  "Y-axis/Lower bound": -1.0,
                   "Visible data/SmartDashboard/Test/FlywheelVel": true
                 },
                 {
@@ -424,9 +421,6 @@
                   "_source0": "network_table:///SmartDashboard/Test/FlywheelPower",
                   "_title": "/FlywheelPower",
                   "Graph/Visible time": 30.0,
-                  "Y-axis/Automatic bounds": true,
-                  "Y-axis/Upper bound": 1.0,
-                  "Y-axis/Lower bound": -1.0,
                   "Visible data/SmartDashboard/Test/FlywheelPower": true
                 }
               ]
@@ -581,8 +575,7 @@
               "_title": "/SmartDashboard/RobotHeading",
               "Visuals/Major tick spacing": 45.0,
               "Visuals/Starting angle": 180.0,
-              "Visuals/Show tick mark ring": true,
-              "Visuals/Counter clockwise": false
+              "Visuals/Show tick mark ring": true
             }
           }
         }
@@ -598,10 +591,10 @@
         "hgap": 1.0,
         "vgap": 1.0,
         "tiles": {
-          "0,2": {
+          "0,0": {
             "size": [
               20,
-              16
+              17
             ],
             "content": {
               "_type": "Camera Stream",
@@ -609,18 +602,18 @@
               "_title": "DriverDisplay",
               "Crosshair/Show crosshair": true,
               "Crosshair/Crosshair color": "#FFFFFFFF",
-              "Controls/Show controls": true,
-              "Controls/Rotation": "NONE",
+              "Controls/Show controls": false,
+              "Controls/Rotation": "HALF",
               "compression": -1.0,
               "fps": -1,
               "imageWidth": -1,
               "imageHeight": -1
             }
           },
-          "20,2": {
+          "20,0": {
             "size": [
               20,
-              16
+              17
             ],
             "content": {
               "_type": "Camera Stream",
@@ -628,51 +621,12 @@
               "_title": "limelight",
               "Crosshair/Show crosshair": true,
               "Crosshair/Crosshair color": "#FFFFFFFF",
-              "Controls/Show controls": true,
+              "Controls/Show controls": false,
               "Controls/Rotation": "NONE",
               "compression": -1.0,
               "fps": -1,
               "imageWidth": -1,
               "imageHeight": -1
-            }
-          },
-          "13,0": {
-            "size": [
-              13,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Camera/AlignmentCenter",
-              "_title": "/SmartDashboard/Camera/AlignmentCenter",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "0,0": {
-            "size": [
-              13,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Camera/AlignmentLeft",
-              "_title": "/SmartDashboard/Camera/AlignmentLeft",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
-          "26,0": {
-            "size": [
-              14,
-              2
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Camera/AlignmentRight",
-              "_title": "/SmartDashboard/Camera/AlignmentRight",
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
             }
           }
         }

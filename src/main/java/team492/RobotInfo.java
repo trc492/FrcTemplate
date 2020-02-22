@@ -215,6 +215,7 @@ public class RobotInfo
     //
     // Shooter
     //
+    public static final double SHOOTER_BOTTOM_POS = -5;
 
     public static final double FLYWHEEL_DIAMETER = 4.0; // in
     public static final double FLYWHEEL_GEAR_RATIO = 18.0 / 12.0;
