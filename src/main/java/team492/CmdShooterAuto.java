@@ -54,8 +54,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         this.startPosition = startPosition;
         this.afterAction = afterAction;
         sm.start(State.DELAY);
-        dbgTrace.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,afterAction=%s", delay,
-            afterAction.name());
+        dbgTrace.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,startPosition=%s,afterAction=%s",
+            delay, startPosition, afterAction);
     }
 
     private TrcPath createPath(TrcPose2D... poses)
@@ -93,7 +93,6 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         {
             TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS - 24, -50, -15);
             TrcPose2D middle = new TrcPose2D(start.x - 15, start.y);
-            robot.purePursuit.setMoveOutputLimit(0.2);
             return createPath(start, middle, target);
         }
     }
@@ -193,14 +192,14 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case MOVE_TO_SHOOT:
                     path = createToShootPath(robot.driveBase.getFieldPosition());
-                    robot.purePursuit.setMoveOutputLimit(0.3);
+                    robot.purePursuit.setMoveOutputLimit(startPosition == FrcAuto.StartPosition.RIGHT_WALL ? 0.2 : 0.3);
                     robot.purePursuit.setFollowingDistance(12);
                     robot.purePursuit.start(path, event, 4);
                     sm.waitForSingleEvent(event, State.SHOOT);
                     break;
 
                 case SHOOT:
-                    robot.autoShooter.shoot(instanceName, 3, 5, TaskAutoShooter.Mode.BOTH, event);
+                    robot.autoShooter.shoot(instanceName, 3, 5, TaskAutoShooter.Mode.BOTH, event, true);
                     relocalizationTimedOutTime = null;
                     sm.waitForSingleEvent(event, State.PICKUP);
                     break;
@@ -237,7 +236,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case SHOOT_2:
-                    robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event);
+                    robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event, true);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 

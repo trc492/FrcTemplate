@@ -13,11 +13,12 @@ import trclib.TrcUtil;
 public class TaskAutoShooter
 {
     private static final double VEL_TOLERANCE = 7; // in/sec
-    private static final double HEADING_TOLERANCE = 1; // deg
+    private static final double HEADING_TOLERANCE = 1.2; // deg
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
     public static final double TARGET_OFFSET = -3.5;
+    private boolean lockInPlace;
 
     public enum Mode
     {
@@ -37,6 +38,7 @@ public class TaskAutoShooter
     private boolean releaseConveyor, releaseDriveBase;
     private String owner;
     private double nextBallShootTime = 0;
+    private boolean isAligned = false;
 
     public TaskAutoShooter(Robot robot)
     {
@@ -75,6 +77,7 @@ public class TaskAutoShooter
             if (releaseDriveBase)
             {
                 robot.driveBase.releaseExclusiveAccess(owner);
+                robot.setAntiDefenseEnabled(owner, false);
             }
         }
         if (shouldShoot())
@@ -95,13 +98,15 @@ public class TaskAutoShooter
             return;
         }
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-        if (pose != null && !robot.driverController.getBackButton())
+        if (pose != null && !(isAligned && lockInPlace))
         {
+            // TODO: Remove the offset of the goal
             RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
                 .createVector(robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT-24,
                     RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT+6));
             if (traj != null)
             {
+                // TODO: Change to linear fudge factor?
                 this.traj = traj;
                 double velTarget = traj.getEntry(0) + 55;
                 double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
@@ -116,15 +121,17 @@ public class TaskAutoShooter
             double xPower = robot.getXInput();
             double yPower = robot.getYInput();
             double rotPower = headingPid.getOutput();
-            if (robot.driverController.getBackButton())
+            if (isAligned && lockInPlace)
             {
-                robot.driveBase.holonomicDrive(owner, 0, 0, 0);
+                robot.driveBase.stop(owner);
+                robot.setAntiDefenseEnabled(owner, true);
             }
             else
             {
                 HalDashboard.putNumber("HeadingErr", headingPid.getError());
                 robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
                     robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+                isAligned = Math.abs(headingPid.getError()) < HEADING_TOLERANCE;
             }
             robot.globalTracer
                 .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
@@ -211,7 +218,7 @@ public class TaskAutoShooter
 
     public void trackTarget()
     {
-        shoot(instanceName, 0, 0, Mode.ALIGN_ONLY, null);
+        shoot(instanceName, 0, 0, Mode.ALIGN_ONLY, null, false);
     }
 
     public void shoot()
@@ -221,10 +228,10 @@ public class TaskAutoShooter
 
     public void shoot(int numBalls, double timeout)
     {
-        shoot(instanceName, numBalls, timeout, Mode.BOTH, null);
+        shoot(instanceName, numBalls, timeout, Mode.BOTH, null, true);
     }
 
-    public void shoot(String owner, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent)
+    public void shoot(String owner, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent, boolean lockInPlace)
     {
         if (onFinishedEvent != null)
         {
@@ -239,6 +246,8 @@ public class TaskAutoShooter
             owner = this.instanceName;
         }
         this.mode = mode;
+        this.lockInPlace = lockInPlace;
+        isAligned = false;
         releaseDriveBase = !TrcOwnershipManager.getInstance().hasOwnership(owner, robot.driveBase);
         releaseConveyor = !TrcOwnershipManager.getInstance().hasOwnership(owner, robot.conveyor);
         if (shouldAlign() && !robot.driveBase.acquireExclusiveAccess(owner))

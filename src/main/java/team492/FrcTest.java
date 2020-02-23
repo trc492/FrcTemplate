@@ -365,9 +365,13 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
-                if (!pressed)
+                processedInput = true;
+                if (pressed)
                 {
-                    processedInput = true;
+                    robot.autoShooter.shoot(null, 0, 0, TaskAutoShooter.Mode.ALIGN_ONLY, null, true);
+                }
+                else
+                {
                     robot.autoShooter.cancel();
                 }
                 break;

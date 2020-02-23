@@ -474,7 +474,9 @@ public class TrcHolonomicPurePursuitDrive
         TrcWaypoint last = path.getWaypoint(path.getSize() - 1);
         if (TrcUtil.magnitude(robotX - last.x, robotY - last.y) < followingDistance)
         {
-            return path.getWaypoint(pathIndex);
+            int index = path.getSize() - 1;
+            pathIndex = index;
+            return path.getWaypoint(index);
         }
 
         for (int i = Math.max(pathIndex, 1); i < path.getSize(); i++)

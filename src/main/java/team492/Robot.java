@@ -848,9 +848,8 @@ public class Robot extends FrcRobotBase
             leftBackWheel.setSteerAngle(-135);
             rightBackWheel.setSteerAngle(135);
         }
-        else
+        else if (!enabled && driveBase.releaseExclusiveAccess(owner))
         {
-            driveBase.releaseExclusiveAccess(owner);
             leftFrontWheel.setSteerAngle(0);
             rightFrontWheel.setSteerAngle(0);
             leftBackWheel.setSteerAngle(0);
