@@ -834,6 +834,30 @@ public class Robot extends FrcRobotBase
         }
     }
 
+    public void setAntiDefenseEnabled(boolean enabled)
+    {
+        setAntiDefenseEnabled("AntiDefense", enabled);
+    }
+
+    public void setAntiDefenseEnabled(String owner, boolean enabled)
+    {
+        if (enabled && driveBase.acquireExclusiveAccess(owner))
+        {
+            leftFrontWheel.setSteerAngle(-45);
+            rightFrontWheel.setSteerAngle(45);
+            leftBackWheel.setSteerAngle(-135);
+            rightBackWheel.setSteerAngle(135);
+        }
+        else
+        {
+            driveBase.releaseExclusiveAccess(owner);
+            leftFrontWheel.setSteerAngle(0);
+            rightFrontWheel.setSteerAngle(0);
+            leftBackWheel.setSteerAngle(0);
+            rightBackWheel.setSteerAngle(0);
+        }
+    }
+
     public void traceStateInfo(double elapsedTime, String stateName, double xTarget, double yTarget, double turnTarget)
     {
         final String funcName = "traceStateInfo";

@@ -191,22 +191,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.BUTTON_X:
-                String name = "AntiDefense";
-                if (pressed && robot.driveBase.acquireExclusiveAccess(name))
-                {
-                    robot.leftFrontWheel.setSteerAngle(-45);
-                    robot.rightFrontWheel.setSteerAngle(45);
-                    robot.leftBackWheel.setSteerAngle(-135);
-                    robot.rightBackWheel.setSteerAngle(135);
-                }
-                else
-                {
-                    robot.driveBase.releaseExclusiveAccess(name);
-                    robot.leftFrontWheel.setSteerAngle(0);
-                    robot.rightFrontWheel.setSteerAngle(0);
-                    robot.leftBackWheel.setSteerAngle(0);
-                    robot.rightBackWheel.setSteerAngle(0);
-                }
+                robot.setAntiDefenseEnabled(pressed);
                 break;
 
             case FrcXboxController.BUTTON_Y:
@@ -309,7 +294,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 else
                 {
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                 }
                 break;
@@ -322,7 +307,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 else
                 {
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                 }
                 break;
@@ -330,7 +315,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON8:
                 if (pressed)
                 {
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                 }
                 break;
 
@@ -339,7 +324,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (robot.autoShooter.isActive())
                         robot.autoShooter.cancel();
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                     robot.conveyor.stop();
                     robot.intake.stopIntake();
@@ -392,7 +377,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (robot.autoShooter.isActive())
                         robot.autoShooter.cancel();
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                 }
                 break;

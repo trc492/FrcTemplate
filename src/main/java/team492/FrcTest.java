@@ -385,7 +385,7 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.shooter.setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+                    robot.shooter.stowShooter();
                     robot.conveyor.stop();
                     robot.intake.stopIntake();
                     robot.shooter.stopFlywheel();

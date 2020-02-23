@@ -19,11 +19,8 @@ public class Shooter
     private static final double FLYWHEEL_kI = 1e-4;
     private static final int FLYWHEEL_IZONE = 2000;
     private static final double FLYWHEEL_kD = 5;
-    private static final double FLYWHEEL_kD_THRESH_UPPER = 100; // in/s
-    private static final double FLYWHEEL_kD_THRESH_LOWER = 80; // in/s
     private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
-    // TODO: tune this
     private static final boolean USE_MM = true;
     private static final double PITCH_kP = 3;
     private static final double PITCH_kI = 0;
@@ -48,7 +45,6 @@ public class Shooter
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
     private int pitchTicksTarget;
-    private double targetVelocity;
     private boolean manualOverride;
 
     public Shooter()
@@ -115,12 +111,16 @@ public class Shooter
         }
     }
 
+    public void stowShooter()
+    {
+        setPitch(RobotInfo.SHOOTER_BOTTOM_POS);
+    }
+
     /**
      * Let the flywheel coast without applying power.
      */
     public void stopFlywheel()
     {
-        targetVelocity = 0;
         flywheel.set(0.0);
     }
 
@@ -136,7 +136,6 @@ public class Shooter
      */
     public void setFlywheelVelocity(double velocity)
     {
-        targetVelocity = velocity;
         flywheel.motor.set(ControlMode.Velocity, 0.1 * velocity / RobotInfo.FLYWHEEL_INCHES_PER_TICK);
     }
 
