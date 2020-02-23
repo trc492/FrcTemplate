@@ -103,7 +103,7 @@ public class TaskAutoShooter
             if (traj != null)
             {
                 this.traj = traj;
-                double velTarget = traj.getEntry(0) + 72;
+                double velTarget = traj.getEntry(0) + 55;
                 double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
                 traj.setEntry(0, velTarget);
                 traj.setEntry(1, angleTarget);
