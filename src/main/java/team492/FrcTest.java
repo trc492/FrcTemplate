@@ -37,6 +37,7 @@ import trclib.TrcTimer;
 public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = "FrcTest";
+    public static final String RUN_FLYWHEEL_KEY = "Test/RunFlywheel";
     public static final String FLYWHEEL_TARGET_KEY = "Test/FlywheelTarget";
     public static final String SWERVE_ANGLES_KEYS = "Test/SwerveAngles";
     public static final String ANGLE_TARGET_KEY = "Test/AngleTarget";
@@ -99,6 +100,7 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
 
         HalDashboard.refreshKey(FLYWHEEL_TARGET_KEY, 400);
+        HalDashboard.putBoolean(RUN_FLYWHEEL_KEY, false);
         HalDashboard.refreshKey(ANGLE_TARGET_KEY, 0.0);
         HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
         HalDashboard.putBoolean(SET_ANGLE_KEY, false);
@@ -231,6 +233,14 @@ public class FrcTest extends FrcTeleOp
                 // test mode.
                 //
                 super.runPeriodic(elapsedTime);
+                if (HalDashboard.getBoolean(RUN_FLYWHEEL_KEY, false))
+                {
+                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0));
+                }
+                else
+                {
+                    robot.shooter.stopFlywheel();
+                }
                 doSensorsTest();
                 break;
 
@@ -350,15 +360,6 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BUTTON_Y:
-                //                processedInput = true;
-                //                if (pressed)
-                //                {
-                //                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0)); //in/s
-                //                }
-                //                else
-                //                {
-                //                    robot.shooter.stopFlywheel();
-                //                }
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
