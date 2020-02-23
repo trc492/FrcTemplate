@@ -322,8 +322,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON9:
                 if (pressed)
                 {
-                    if (robot.autoShooter.isActive())
-                        robot.autoShooter.cancel();
+                    robot.autoShooter.cancel();
                     robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                     robot.conveyor.stop();
@@ -375,8 +374,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.PANEL_BUTTON_WHITE1:
                 if (pressed)
                 {
-                    if (robot.autoShooter.isActive())
-                        robot.autoShooter.cancel();
+                    robot.autoShooter.cancel();
                     robot.shooter.stowShooter();
                     robot.shooter.stopFlywheel();
                 }

@@ -137,11 +137,11 @@ public class Intake
 
     public void stopIntake(boolean retract)
     {
-        setIntakePower(0.0);
         if (isActive())
         {
             robot.conveyor.stop();
         }
+        setIntakePower(0.0);
         if (retract)
         {
             retractIntake();

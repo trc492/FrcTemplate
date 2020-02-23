@@ -46,9 +46,11 @@ public class Shooter
     private TrcEvent pitchEvent;
     private int pitchTicksTarget;
     private boolean manualOverride;
+    private Robot robot;
 
-    public Shooter()
+    public Shooter(Robot robot)
     {
+        this.robot = robot;
         flywheel = new FrcCANFalcon("Shooter.flywheel", RobotInfo.CANID_FLYWHEEL);
         pitchMotor = new FrcCANTalon("Shooter.pitchMotor", RobotInfo.CANID_SHOOTER_PITCH);
 
@@ -80,6 +82,8 @@ public class Shooter
 
     public void setManualOverrideEnabled(boolean enabled)
     {
+        robot.globalTracer.traceInfo("Shooter.setManualOverrideEnabled", "[%.3f] Shooter manual override enabled=%b",
+            TrcUtil.getModeElapsedTime(), enabled);
         manualOverride = enabled;
     }
 

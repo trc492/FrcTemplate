@@ -140,6 +140,8 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     public void setManualOverrideEnabled(boolean enabled)
     {
+        robot.globalTracer.traceInfo("Conveyor.setManualOverrideEnabled", "[%.3f] Conveyor manual override enabled=%b",
+            TrcUtil.getModeElapsedTime(), enabled);
         manualOverride = enabled;
     }
 
@@ -230,9 +232,9 @@ public class Conveyor implements TrcExclusiveSubsystem
     /**
      * Advance the conveyor belt to allow for more intake.
      *
-     * @param owner The name of the routine calling this subsystem.
-     *              If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
-     * @param event The event to signal when done.
+     * @param owner    The name of the routine calling this subsystem.
+     *                 If this isn't the owner, an exception will be thrown. To no-op instead, pass in null.
+     * @param event    The event to signal when done.
      * @param distance The distance to advance the conveyor, in inches
      */
     public void advance(String owner, TrcEvent event, double distance)

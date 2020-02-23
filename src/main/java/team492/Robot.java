@@ -396,7 +396,7 @@ public class Robot extends FrcRobotBase
         // Miscellaneous subsystems.
         //
         ledIndicator = new LEDIndicator(this);
-        shooter = new Shooter();
+        shooter = new Shooter(this);
         conveyor = new Conveyor(this);
         alignment = new WallAlignment();
         intake = new Intake(this); // must initialize after conveyor
