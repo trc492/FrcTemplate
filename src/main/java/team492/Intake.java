@@ -2,14 +2,17 @@ package team492;
 
 import frclib.FrcCANTalon;
 import frclib.FrcPneumatic;
+import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 
+import java.util.Arrays;
+
 public class Intake
 {
-    private static final double INTAKE_POWER = 0.5;
+    private static final double INTAKE_POWER = 0.8; // TODO: make configurable
 
     private enum State
     {
@@ -42,6 +45,14 @@ public class Intake
         event = new TrcEvent("Intake.event");
 
         intakeTaskObj = TrcTaskMgr.getInstance().createTask("IntakeTask", this::intakeTask);
+
+        HalDashboard.putNumber("IntakeState", -1);
+        HalDashboard.putNumber("EntranceSensor", 0);
+    }
+
+    private int stateIndex()
+    {
+        return sm.getState() == null ? -1 : Arrays.asList(State.values()).indexOf(sm.getState());
     }
 
     public State getIntakeTaskState()
@@ -52,6 +63,8 @@ public class Intake
     private void intakeTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
         State state = sm.checkReadyAndGetState();
+        HalDashboard.putNumber("IntakeState", stateIndex());
+        HalDashboard.putNumber("EntranceSensor", robot.conveyor.entranceProximitySensor.isActive() ? 1 : 0);
         if (state != null)
         {
             switch (state)

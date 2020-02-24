@@ -24,8 +24,8 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double CONVEYOR_TOLERANCE = 0.2;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
-    private static final double SHOOT_POWER = 1.0;
-    private static final double INTAKE_POWER = 0.5;
+    private static final double SHOOT_POWER = 0.6;
+    private static final double INTAKE_POWER = 0.8; // TODO: MAKE CONFIGURABLE
 
     public final FrcDigitalInput exitProximitySensor, entranceProximitySensor;
     private FrcCANTalon motor;
@@ -219,6 +219,11 @@ public class Conveyor implements TrcExclusiveSubsystem
 
             motor.set(SHOOT_POWER);
         }
+    }
+
+    public boolean isShooting()
+    {
+        return shootTrigger.isEnabled();
     }
 
     /**

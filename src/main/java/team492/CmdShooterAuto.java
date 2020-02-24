@@ -65,10 +65,15 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private TrcPath createPath(double maxVel, TrcPose2D... poses)
     {
+        dbgTrace.traceInfo(instanceName + ".createPath", "Absolute path:");
+        for (TrcPose2D pose : poses)
+        {
+            dbgTrace.traceInfo(instanceName + ".createPath", "\t%s", pose);
+        }
         TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p.relativeTo(poses[0], false), null))
             .toArray(TrcWaypoint[]::new));
         TrcPath ret = path.trapezoidVelocity(maxVel, RobotInfo.ROBOT_MAX_ACCEL);
-        dbgTrace.traceInfo(instanceName + ".createPath", "TrcPath(degrees=%b)", ret.isInDegrees());
+        dbgTrace.traceInfo(instanceName + ".createPath", "Relative path:", ret.isInDegrees());
         for (TrcWaypoint waypoint : ret.getAllWaypoints())
         {
             dbgTrace.traceInfo(instanceName + ".createPath", "\t%s", waypoint.toString());
@@ -119,7 +124,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     {
         dbgTrace.traceInfo(instanceName + ".createToShoot2Path", "[%.3f] Creating to shoot 2 path with start=%s",
             TrcUtil.getModeElapsedTime(), start);
-        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS + 39.16 / 2, -122.63);
+        TrcPose2D target = new TrcPose2D(RobotInfo.TARGET_X_POS + 39.16 / 2, -60);
         return createPath(start, target);
     }
 
@@ -142,7 +147,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                 double theta = robot.vision.vision.getHeading();
                 double yDist = RobotInfo.INITIATION_LINE_TO_ALLIANCE_WALL + 4;
                 double xDist = Math.tan(Math.toRadians(theta)) * yDist;
-                x = RobotInfo.TARGET_X_POS - xDist;
+//                x = RobotInfo.TARGET_X_POS - xDist;
+                x = RobotInfo.TARGET_X_POS;
             }
         }
         else if (startPosition == FrcAuto.StartPosition.RIGHT_WALL)
@@ -199,7 +205,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case SHOOT:
-                    robot.autoShooter.shoot(instanceName, 3, 5, TaskAutoShooter.Mode.BOTH, event, true);
+                    robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event, true);
                     relocalizationTimedOutTime = null;
                     sm.waitForSingleEvent(event, State.PICKUP);
                     break;
@@ -219,24 +225,24 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     robot.shooter.stowShooter();
                     path = createPickupPath(robot.driveBase.getFieldPosition());
                     robot.intake.intakeMultiple();
-                    robot.purePursuit.setMoveOutputLimit(0.15);
-                    robot.purePursuit.start(path, event, 5);
+                    robot.purePursuit.setMoveOutputLimit(0.35);
+                    robot.purePursuit.start(path, event, 10);
                     sm.waitForSingleEvent(event,
                         afterAction == AfterAction.INTAKE ? State.DONE : State.MOVE_TO_SHOOT_2);
                     break;
 
                 case MOVE_TO_SHOOT_2:
                     robot.intake.stopIntake();
-                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
-                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
+//                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
+//                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
                     path = createToShoot2Path(robot.driveBase.getFieldPosition());
-                    robot.purePursuit.setMoveOutputLimit(0.5);
+                    robot.purePursuit.setMoveOutputLimit(0.7);
                     robot.purePursuit.start(path, event, 4);
                     sm.waitForSingleEvent(event, State.SHOOT_2);
                     break;
 
                 case SHOOT_2:
-                    robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event, true);
+                    robot.autoShooter.shoot(instanceName, 3, 0, TaskAutoShooter.Mode.BOTH, event, true);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
@@ -276,6 +282,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     public void cancel()
     {
         sm.stop();
+        robot.intake.stopIntake();
         robot.shooter.stopFlywheel();
         robot.shooter.stowShooter();
     }

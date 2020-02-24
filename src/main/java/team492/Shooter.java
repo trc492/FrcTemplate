@@ -23,15 +23,15 @@ public class Shooter
 
     private static final boolean USE_MM = true;
     private static final double PITCH_kP = 3;
-    private static final double PITCH_kI = 0;
+    private static final double PITCH_kI = 0.0004;
     private static final double PITCH_kD = 250;
     private static final double PITCH_kF = 1.202;
     private static final double PITCH_MAX_POWER = 0.8;
-    private static final int PITCH_IZONE = 0;
+    private static final int PITCH_IZONE = 100;
     private static final int PITCH_MAX_VEL = 250;
     private static final int PITCH_MAX_ACCEL = 550;
     private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 1.5; // 3:2 gear ratio, 4096 cpr
-    private static final double PITCH_TOLERANCE = 1.5;
+    private static final double PITCH_TOLERANCE = 2.5;
     private static final int PITCH_ALLOWABLE_ERROR = (int) (1 / PITCH_DEGREES_PER_COUNT);
 
     // Measured
@@ -212,8 +212,8 @@ public class Shooter
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
-        pitchMotor.setPositionSensorInverted(true);
-        pitchMotor.setInverted(false);
+        pitchMotor.setPositionSensorInverted(false);
+        pitchMotor.setInverted(true);
         //        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         //        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);

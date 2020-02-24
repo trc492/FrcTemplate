@@ -47,14 +47,16 @@ public class FrcTest extends FrcTeleOp
     public static final String FLYWHEEL_VEL_KEY = "Test/FlywheelVel";
     public static final String FLYWHEEL_POWER_KEY = "Test/FlywheelPower";
 
+
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW;
     }   // enum Test
+
 
     private enum State
     {
-        START, DONE
+        START, DONE;
     }   // State
 
     private TrcEvent event;
@@ -70,6 +72,7 @@ public class FrcTest extends FrcTeleOp
     private CmdPidDrive pidDriveCommand = null;
 
     private int motorIndex = 0;
+    private boolean lastRunFlywheelState;
 
     public FrcTest(Robot robot)
     {
@@ -233,14 +236,19 @@ public class FrcTest extends FrcTeleOp
                 // test mode.
                 //
                 super.runPeriodic(elapsedTime);
-                if (HalDashboard.getBoolean(RUN_FLYWHEEL_KEY, false))
+                boolean newState = HalDashboard.getBoolean(RUN_FLYWHEEL_KEY, false);
+                if (newState != lastRunFlywheelState)
                 {
-                    robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0));
+                    if (newState)
+                    {
+                        robot.shooter.setFlywheelVelocity(HalDashboard.getNumber(FLYWHEEL_TARGET_KEY, 0));
+                    }
+                    else
+                    {
+                        robot.shooter.stopFlywheel();
+                    }
                 }
-                else
-                {
-                    robot.shooter.stopFlywheel();
-                }
+                lastRunFlywheelState = newState;
                 doSensorsTest();
                 break;
 

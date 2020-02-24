@@ -102,7 +102,7 @@ public class TaskAutoShooter
         {
             // TODO: Remove the offset of the goal
             RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
-                .createVector(robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT-24,
+                .createVector((robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT)*0.84,
                     RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT+6));
             if (traj != null)
             {
@@ -131,7 +131,7 @@ public class TaskAutoShooter
                 HalDashboard.putNumber("HeadingErr", headingPid.getError());
                 robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
                     robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
-                isAligned = Math.abs(headingPid.getError()) < HEADING_TOLERANCE;
+                isAligned = headingPid.isOnTarget();
             }
             robot.globalTracer
                 .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
@@ -146,15 +146,20 @@ public class TaskAutoShooter
             if (event.isSignaled())
             {
                 ballsToShoot--;
+                if (ballsToShoot == 0)
+                {
+                    stop();
+                    return;
+                }
+                nextBallShootTime = TrcUtil.getCurrentTime() + 0.1;
                 event.clear();
             }
             if (ready)
             {
                 robot.ledIndicator.setShooterReady(true);
-                if (shouldShoot())
+                if (shouldShoot() && !robot.conveyor.isShooting())
                 {
                     robot.conveyor.shoot(owner, event);
-                    nextBallShootTime = TrcUtil.getCurrentTime() + 0.1;
                 }
             }
             else
@@ -179,7 +184,7 @@ public class TaskAutoShooter
         boolean velReady = Math.abs(flywheelError()) <= VEL_TOLERANCE;
         boolean pitchReady = robot.shooter.pitchOnTarget();
         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-        boolean headingReady = pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
+        boolean headingReady = isAligned;//pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
         double currTime = TrcUtil.getCurrentTime();
         boolean timeReady = currTime >= nextBallShootTime;
         robot.globalTracer
