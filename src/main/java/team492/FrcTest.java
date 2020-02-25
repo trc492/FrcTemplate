@@ -392,6 +392,12 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.LEFT_STICK_BUTTON:
+                processedInput = true;
+                if (pressed)
+                {
+                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
+                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
+                }
                 break;
 
             case FrcXboxController.RIGHT_STICK_BUTTON:

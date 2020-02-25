@@ -225,6 +225,6 @@ public class RobotInfo
     // TODO: tune
     public static final double FLYWHEEL_LOW_ANGLE = 0; // angle when right up against goal
     public static final double FLYWHEEL_LOW_SPEED = 300;
-    public static final double FLYWHEEL_HIGH_ANGLE = 66.7; // angle when right up against wall
+    public static final double FLYWHEEL_HIGH_ANGLE = 70; // angle when right up against wall
     public static final double FLYWHEEL_HIGH_SPEED = 406.7;
 }   // class RobotInfo

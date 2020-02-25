@@ -30,6 +30,7 @@ public class Intake
     private FrcPneumatic intakeExtension;
     private boolean singular = false;
     private Double conveyorIntakeStartPos = null;
+    private double spacingDistance = 4;
 
     public Intake(Robot robot)
     {
@@ -50,6 +51,11 @@ public class Intake
 
         HalDashboard.putNumber("IntakeState", -1);
         HalDashboard.putNumber("EntranceSensor", 0);
+    }
+
+    public void setSpacingDistance(double distance)
+    {
+        this.spacingDistance = distance;
     }
 
     private int stateIndex()
@@ -90,7 +96,7 @@ public class Intake
                     break;
 
                 case FORWARD:
-                    robot.conveyor.advance(null, event, 4);
+                    robot.conveyor.advance(null, event, spacingDistance);
                     sm.setState(State.INTAKE);
                     break;
 
@@ -126,7 +132,7 @@ public class Intake
                 case SECURE:
                     event.clear();
                     robot.conveyor.stop();
-                    robot.conveyor.advance(null, event, 4);
+                    robot.conveyor.advance(null, event, spacingDistance);
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);

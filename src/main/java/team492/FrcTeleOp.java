@@ -71,6 +71,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
         robot.fieldOriented = true;
+        robot.intake.setSpacingDistance(4);
 
         if (robot.preferences.useVision)
         {

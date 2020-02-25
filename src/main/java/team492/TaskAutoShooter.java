@@ -118,9 +118,6 @@ public class TaskAutoShooter
         }
         if (shouldAlign())
         {
-            double xPower = robot.getXInput();
-            double yPower = robot.getYInput();
-            double rotPower = headingPid.getOutput();
             if (isAligned && lockInPlace)
             {
                 robot.driveBase.stop(owner);
@@ -128,14 +125,17 @@ public class TaskAutoShooter
             }
             else
             {
+                double xPower = robot.getXInput();
+                double yPower = robot.getYInput();
+                double rotPower = headingPid.getOutput();
                 HalDashboard.putNumber("HeadingErr", headingPid.getError());
                 robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
                     robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
                 isAligned = headingPid.isOnTarget();
+                robot.globalTracer
+                    .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
+                        yPower, rotPower);
             }
-            robot.globalTracer
-                .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
-                    yPower, rotPower);
         }
         if (traj != null)
         {
@@ -151,7 +151,7 @@ public class TaskAutoShooter
                     stop();
                     return;
                 }
-                nextBallShootTime = TrcUtil.getCurrentTime() + 0.1;
+                nextBallShootTime = TrcUtil.getCurrentTime() + 0.2;
                 event.clear();
             }
             if (ready)
@@ -188,8 +188,8 @@ public class TaskAutoShooter
         double currTime = TrcUtil.getCurrentTime();
         boolean timeReady = currTime >= nextBallShootTime;
         robot.globalTracer
-            .traceInfo(instanceName + ".readyToShoot", "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b",
-                TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady);
+            .traceInfo(instanceName + ".readyToShoot", "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b - headingErr=%.1f",
+                TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady, headingPid.getError());
         return velReady && pitchReady && headingReady && timeReady;
     }
 
