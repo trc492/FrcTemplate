@@ -44,7 +44,7 @@ public class Shooter
     public final FrcCANTalon pitchMotor;
     private TrcTaskMgr.TaskObject pitchControlTaskObj;
     private TrcEvent pitchEvent;
-    private int pitchTicksTarget;
+    private Integer pitchTicksTarget;
     private boolean manualOverride;
     private Robot robot;
 
@@ -106,12 +106,15 @@ public class Shooter
 
     private void pitchControlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        pitchMotor.motor.set(USE_MM ? ControlMode.MotionMagic : ControlMode.Position, pitchTicksTarget,
-            DemandType.ArbitraryFeedForward, getPitchGravityComp());
-        if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
+        if (pitchTicksTarget != null)
         {
-            pitchEvent.set(true);
-            pitchEvent = null;
+            pitchMotor.motor.set(USE_MM ? ControlMode.MotionMagic : ControlMode.Position, pitchTicksTarget,
+                DemandType.ArbitraryFeedForward, getPitchGravityComp());
+            if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
+            {
+                pitchEvent.set(true);
+                pitchEvent = null;
+            }
         }
     }
 
