@@ -224,7 +224,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                 case PICKUP:
                     robot.shooter.stowShooter();
                     path = createPickupPath(robot.driveBase.getFieldPosition());
-                    robot.intake.intakeMultiple(true, 0.8);
+                    robot.intake.intakeMultiple(true, 0.8, 0.8);
                     robot.purePursuit.setMoveOutputLimit(0.35);
                     robot.purePursuit.start(path, event, 10);
                     sm.waitForSingleEvent(event,

@@ -21,6 +21,7 @@ public class Intake
 
     private Robot robot;
     private double intakePower;
+    private double conveyorPower;
     private boolean extend;
     private FrcCANTalon intakeMotor;
     private TrcTaskMgr.TaskObject intakeTaskObj;
@@ -118,7 +119,7 @@ public class Intake
                     break;
 
                 case ADVANCE:
-                    robot.conveyor.intake(null, event);
+                    robot.conveyor.intake(null, event, conveyorPower);
                     sm.waitForSingleEvent(event, State.SECURE);
                     break;
 
@@ -169,12 +170,17 @@ public class Intake
 
     public void intakeMultiple()
     {
-        intakeMultiple(true, DEF_INTAKE_POWER);
+        intakeMultiple(true, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
     }
 
-    public void intakeMultiple(boolean extend, double intakePower)
+    public void intakeMultiple(boolean extend)
     {
-        intake(false, extend, null, intakePower);
+        intakeMultiple(extend, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
+    }
+
+    public void intakeMultiple(boolean extend, double intakePower, double conveyorPower)
+    {
+        intake(false, extend, null, intakePower, conveyorPower);
     }
 
     public void intakeOnce()
@@ -184,10 +190,10 @@ public class Intake
 
     public void intakeOnce(TrcEvent onFinishedEvent)
     {
-        intake(true, true, onFinishedEvent, DEF_INTAKE_POWER);
+        intake(true, true, onFinishedEvent, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
     }
 
-    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent, double intakePower)
+    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent, double intakePower, double conveyorPower)
     {
         if (isActive())
         {
@@ -201,6 +207,7 @@ public class Intake
         this.singular = singular;
         this.onFinishedEvent = onFinishedEvent;
         this.intakePower = intakePower;
+        this.conveyorPower = conveyorPower;
         conveyorIntakeStartPos = null;
         event.clear();
         intakeTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);

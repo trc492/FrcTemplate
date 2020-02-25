@@ -24,7 +24,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
     private static final double SHOOT_POWER = 1.0;
-    private static final double INTAKE_POWER = 0.8;
+    public static final double DEF_INTAKE_POWER = 0.5;
 
     public final FrcDigitalInput exitProximitySensor, entranceProximitySensor;
     private FrcCANTalon motor;
@@ -36,6 +36,7 @@ public class Conveyor implements TrcExclusiveSubsystem
     private int targetPosTicks = 0;
     private Robot robot;
     private boolean manualOverride;
+    private double intakePower;
 
     public Conveyor(Robot robot)
     {
@@ -92,7 +93,7 @@ public class Conveyor implements TrcExclusiveSubsystem
         }
         else
         {
-            motor.set(INTAKE_POWER);
+            motor.set(intakePower);
         }
     }
 
@@ -165,10 +166,10 @@ public class Conveyor implements TrcExclusiveSubsystem
 
     public void intake()
     {
-        intake(null, null);
+        intake(null, null, DEF_INTAKE_POWER);
     }
 
-    public void intake(String owner, TrcEvent event)
+    public void intake(String owner, TrcEvent event, double intakePower)
     {
         if (!manualOverride && validateOwnership(owner))
         {
@@ -177,12 +178,13 @@ public class Conveyor implements TrcExclusiveSubsystem
                 event.clear();
             }
             intakeEvent = event;
+            this.intakePower = intakePower;
 
             intakeTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
             shootTrigger.setEnabled(false);
             advanceTask.unregisterTask();
 
-            motor.set(INTAKE_POWER);
+            motor.set(intakePower);
         }
     }
 
