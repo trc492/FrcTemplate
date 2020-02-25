@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 public class Intake
 {
-    private static final double INTAKE_POWER = 0.8; // TODO: make configurable
+    private static final double DEF_INTAKE_POWER = 0.5;
 
     private enum State
     {
@@ -20,6 +20,7 @@ public class Intake
     }
 
     private Robot robot;
+    private double intakePower;
     private boolean extend;
     private FrcCANTalon intakeMotor;
     private TrcTaskMgr.TaskObject intakeTaskObj;
@@ -100,7 +101,7 @@ public class Intake
                     else
                     {
                         event.clear();
-                        intakeMotor.set(INTAKE_POWER);
+                        intakeMotor.set(intakePower);
                         if (extend)
                         {
                             extendIntake();
@@ -168,12 +169,12 @@ public class Intake
 
     public void intakeMultiple()
     {
-        intakeMultiple(true);
+        intakeMultiple(true, DEF_INTAKE_POWER);
     }
 
-    public void intakeMultiple(boolean extend)
+    public void intakeMultiple(boolean extend, double intakePower)
     {
-        intake(false, extend, null);
+        intake(false, extend, null, intakePower);
     }
 
     public void intakeOnce()
@@ -183,10 +184,10 @@ public class Intake
 
     public void intakeOnce(TrcEvent onFinishedEvent)
     {
-        intake(true, true, onFinishedEvent);
+        intake(true, true, onFinishedEvent, DEF_INTAKE_POWER);
     }
 
-    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent)
+    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent, double intakePower)
     {
         if (isActive())
         {
@@ -199,6 +200,7 @@ public class Intake
         this.extend = extend;
         this.singular = singular;
         this.onFinishedEvent = onFinishedEvent;
+        this.intakePower = intakePower;
         conveyorIntakeStartPos = null;
         event.clear();
         intakeTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);

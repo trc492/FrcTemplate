@@ -13,7 +13,6 @@ import trclib.TrcUtil;
 
 public class Conveyor implements TrcExclusiveSubsystem
 {
-    // TODO: tune this
     private static final double CONVEYOR_kP = 3.0;
     private static final double CONVEYOR_kI = 0;
     private static final double CONVEYOR_kD = 0;
@@ -24,8 +23,8 @@ public class Conveyor implements TrcExclusiveSubsystem
     private static final double CONVEYOR_TOLERANCE = 0.2;
     private static final double INTER_BALL_DISTANCE = 7.5; // inches
 
-    private static final double SHOOT_POWER = 0.6;
-    private static final double INTAKE_POWER = 0.8; // TODO: MAKE CONFIGURABLE
+    private static final double SHOOT_POWER = 1.0;
+    private static final double INTAKE_POWER = 0.8;
 
     public final FrcDigitalInput exitProximitySensor, entranceProximitySensor;
     private FrcCANTalon motor;
