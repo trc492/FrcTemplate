@@ -423,6 +423,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_RED2:
+                if (pressed)
+                {
+                    robot.climber.startClimber();
+                }
+                else
+                {
+                    robot.climber.cancel();
+                }
                 break;
 
             case FrcJoystick.PANEL_SWITCH_GREEN2:

@@ -173,6 +173,7 @@ public class Robot extends FrcRobotBase
     public Conveyor conveyor;
     public Shooter shooter;
     public Intake intake;
+    public Climber climber;
     public TaskAutoShooter autoShooter;
     public TaskAutoAlign autoAlign;
     public TaskSnapToAngle snapToAngle;
@@ -462,6 +463,7 @@ public class Robot extends FrcRobotBase
             shooter.setEnabled(true);
             shooter.setManualOverrideEnabled(false);
             conveyor.setManualOverrideEnabled(false);
+            climber.latch();
 
             dashboard.clearDisplay();
 
@@ -526,6 +528,9 @@ public class Robot extends FrcRobotBase
             cancelAllAuto();
             battery.setEnabled(false);
             pdp.setTaskEnabled(false);
+            conveyor.stop();
+            shooter.stopFlywheel();
+            shooter.pitchMotor.set(0);
             shooter.setEnabled(false);
 
 //            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
@@ -831,6 +836,10 @@ public class Robot extends FrcRobotBase
         if (autoAlign.isActive())
         {
             autoAlign.cancel();
+        }
+        if (climber.isActive())
+        {
+            climber.cancel();
         }
     }
 

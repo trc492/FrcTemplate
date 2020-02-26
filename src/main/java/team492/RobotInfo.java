@@ -83,6 +83,7 @@ public class RobotInfo
     public static final int CANID_CONVEYOR = 8;
     public static final int CANID_SHOOTER_PITCH = 9;
     public static final int CANID_FLYWHEEL = 10;
+    public static final int CANID_CLIMBER = 11;
 
     public static final int CANID_LEFT_LIDAR = 21;
     public static final int CANID_RIGHT_LIDAR = 22;
@@ -123,6 +124,8 @@ public class RobotInfo
     //
     public static final int SOL_INTAKE_EXTEND = 0;
     public static final int SOL_INTAKE_RETRACT = 1;
+    public static final int SOL_LATCH_EXTEND = 2;
+    public static final int SOL_LATCH_RETRACT = 3;
 
     //
     // Vision subsystem.
