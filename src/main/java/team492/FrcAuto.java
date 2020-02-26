@@ -73,6 +73,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     private StartPosition lastPos = null;
 
     private TrcRobot.RobotCommand autoCommand;
+    private CmdShooterAuto shooterAuto;
 
     public FrcAuto(Robot robot)
     {
@@ -104,6 +105,8 @@ public class FrcAuto implements TrcRobot.RobotMode
         shooterAutoAfterMenu.addChoice("Intake and Shoot", CmdShooterAuto.AfterAction.INTAKE_AND_SHOOT, true, false);
         shooterAutoAfterMenu.addChoice("Intake Only", CmdShooterAuto.AfterAction.INTAKE);
         shooterAutoAfterMenu.addChoice("Nothing", CmdShooterAuto.AfterAction.NOTHING, false, true);
+
+        shooterAuto = new CmdShooterAuto(robot);
 
         HalDashboard.refreshKey(CUSTOM_XPOS_KEY, 0.0);
         HalDashboard.refreshKey("Auto/Delay", 0.0);
@@ -172,7 +175,6 @@ public class FrcAuto implements TrcRobot.RobotMode
         switch (autoStrategy)
         {
             case SHOOTER_AUTO:
-                CmdShooterAuto shooterAuto = new CmdShooterAuto(robot);
                 shooterAuto
                     .start(delay, startPosMenu.getCurrentChoiceObject(), shooterAutoAfterMenu.getCurrentChoiceObject());
                 this.autoCommand = shooterAuto;

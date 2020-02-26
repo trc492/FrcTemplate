@@ -21,7 +21,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private enum State
     {
-        DELAY, LOCALIZE, MOVE_TO_SHOOT, SHOOT, RELOCALIZE, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, WAIT, DONE
+        DELAY, LOCALIZE, MOVE_TO_SHOOT, SHOOT, MOVE_OFF_LINE, PICKUP, MOVE_TO_SHOOT_2, SHOOT_2, WAIT, DONE
     }
 
     public enum AfterAction
@@ -31,7 +31,6 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
     private Robot robot;
     private TrcStateMachine<State> sm;
-    private Double relocalizationTimedOutTime = null;
     private TrcEvent event;
     private TrcTimer timer;
     private double delay;
@@ -46,6 +45,11 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         sm = new TrcStateMachine<>(instanceName + ".sm");
         event = new TrcEvent(instanceName + ".event");
         timer = new TrcTimer(instanceName + ".timer");
+
+        if (robot != null)
+        {
+            HalDashboard.putNumber("RobotVel", 0);
+        }
     }
 
     public void start(double delay, FrcAuto.StartPosition startPosition, AfterAction afterAction)
@@ -54,7 +58,10 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         this.startPosition = startPosition;
         this.afterAction = afterAction;
         sm.start(State.DELAY);
-        robot.intake.setSpacingDistance(6);
+        if (robot != null)
+        {
+            robot.intake.setSpacingDistance(6);
+        }
         dbgTrace.traceInfo(instanceName + ".start", "Starting with options: delay=%.3f,startPosition=%s,afterAction=%s",
             delay, startPosition, afterAction);
     }
@@ -74,7 +81,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
         TrcPath path = new TrcPath(Arrays.stream(poses).map(p -> new TrcWaypoint(p.relativeTo(poses[0], false), null))
             .toArray(TrcWaypoint[]::new));
         TrcPath ret = path.trapezoidVelocity(maxVel, RobotInfo.ROBOT_MAX_ACCEL);
-        dbgTrace.traceInfo(instanceName + ".createPath", "Relative path:", ret.isInDegrees());
+        dbgTrace.traceInfo(instanceName + ".createPath", "Relative path:");
         for (TrcWaypoint waypoint : ret.getAllWaypoints())
         {
             dbgTrace.traceInfo(instanceName + ".createPath", "\t%s", waypoint.toString());
@@ -107,16 +114,35 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     {
         dbgTrace.traceInfo(instanceName + ".createToPickupPath", "[%.3f] Creating to pickup path with start=%s",
             TrcUtil.getModeElapsedTime(), start);
-        if (startPosition != FrcAuto.StartPosition.RIGHT_WALL)
+        TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS - 12);
+        if (startPosition == FrcAuto.StartPosition.RIGHT_WALL)
         {
-            TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS-12);
-            TrcPose2D middle = new TrcPose2D(target.x, start.y);
+            TrcPose2D middle = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -100, 0);
             return createPath(20, start, middle, target);
+        }
+        else if (startPosition == FrcAuto.StartPosition.IN_VISION)
+        {
+            double x = TrcUtil.average(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.TARGET_X_POS);
+            TrcPose2D middle1 = new TrcPose2D(x, -50);
+            TrcPose2D middle2 = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -50);
+            TrcPath path = createPath(15, start, middle1, middle2, target);
+            TrcWaypoint last = path.getWaypoint(path.getSize() - 1);
+            Arrays.stream(path.getAllWaypoints()).filter(wp -> wp.x != last.x).forEach(wp -> wp.velocity = 100);
+            path.inferTimeSteps();
+            dbgTrace.traceInfo(instanceName + ".createPickupPath", "With edited velocities:");
+            for (TrcWaypoint waypoint : path.getAllWaypoints())
+            {
+                dbgTrace.traceInfo(instanceName + ".createPickupPath", "\t%s", waypoint.toString());
+            }
+            if (robot != null)
+            {
+                robot.purePursuit.setMoveOutputLimit(0.5);
+            }
+            return path;
         }
         else
         {
-            TrcPose2D middle = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -100, 0);
-            TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS-12);
+            TrcPose2D middle = new TrcPose2D(target.x, start.y);
             return createPath(20, start, middle, target);
         }
     }
@@ -150,7 +176,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                 double xDist = Math.tan(Math.toRadians(theta)) * yDist;
                 x = RobotInfo.TARGET_X_POS - xDist;
                 dbgTrace.traceInfo(instanceName + ".localizeAtStart", "Vison xDist=%.2f", xDist);
-//                x = RobotInfo.TARGET_X_POS;
+                //                x = RobotInfo.TARGET_X_POS;
             }
         }
         else if (startPosition == FrcAuto.StartPosition.RIGHT_WALL)
@@ -171,6 +197,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     {
         if (!sm.isEnabled())
             return true;
+        HalDashboard
+            .putNumber("RobotVel", TrcUtil.magnitude(robot.driveBase.getXVelocity(), robot.driveBase.getYVelocity()));
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
@@ -195,7 +223,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case LOCALIZE:
                     localizeAtStart();
-                    sm.setState(State.MOVE_TO_SHOOT);
+                    sm.setState(startPosition != FrcAuto.StartPosition.IN_VISION ? State.MOVE_TO_SHOOT : State.SHOOT);
                     break;
 
                 case MOVE_TO_SHOOT:
@@ -209,26 +237,33 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case SHOOT:
                     robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event, true);
-                    relocalizationTimedOutTime = null;
-                    sm.waitForSingleEvent(event, State.PICKUP);
+                    State nextState;
+                    if (afterAction != AfterAction.NOTHING)
+                    {
+                        nextState = State.PICKUP;
+                    }
+                    else if (startPosition == FrcAuto.StartPosition.IN_VISION)
+                    {
+                        nextState = State.MOVE_OFF_LINE;
+                    }
+                    else
+                    {
+                        nextState = State.DONE;
+                    }
+                    sm.waitForSingleEvent(event, nextState);
                     break;
 
-                case RELOCALIZE:
-                    if (relocalizationTimedOutTime == null)
-                    {
-                        relocalizationTimedOutTime = TrcUtil.getCurrentTime() + relocalizationTimeout;
-                    }
-                    if (relocalizeWithVision() || TrcUtil.getCurrentTime() >= relocalizationTimedOutTime)
-                    {
-                        sm.setState(afterAction == AfterAction.NOTHING ? State.DONE : State.PICKUP);
-                    }
+                case MOVE_OFF_LINE:
+                    robot.pidDrive.setAbsoluteTargetPose(robot.driveBase.getFieldPosition());
+                    robot.pidDrive.setAbsoluteYTarget(-RobotInfo.ROBOT_LENGTH, event);
+                    sm.waitForSingleEvent(event, State.DONE);
                     break;
 
                 case PICKUP:
                     robot.shooter.stowShooter();
+                    robot.purePursuit.setMoveOutputLimit(0.3);
                     path = createPickupPath(robot.driveBase.getFieldPosition());
                     robot.intake.intakeMultiple(true, 0.8, 0.8);
-                    robot.purePursuit.setMoveOutputLimit(0.3);
                     robot.purePursuit.start(path, event, 10);
                     sm.waitForSingleEvent(event,
                         afterAction == AfterAction.INTAKE ? State.DONE : State.MOVE_TO_SHOOT_2);
@@ -236,8 +271,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case MOVE_TO_SHOOT_2:
                     robot.intake.stopIntake();
-//                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
-//                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
+                    //                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
+                    //                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
                     path = createToShoot2Path(robot.driveBase.getFieldPosition());
                     robot.purePursuit.setMoveOutputLimit(0.8);
                     robot.purePursuit.start(path, event, 4);
