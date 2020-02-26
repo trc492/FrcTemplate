@@ -210,7 +210,7 @@ public class RobotInfo
     public static final double GYRO_TURN_KP_BIG = 0.0055;
     public static final double GYRO_TURN_KD_BIG = 0.0007;
 
-    public static final double GYRO_TURN_KP                     = 0.011;
+    public static final double GYRO_TURN_KP                     = 0.013;
     public static final double GYRO_TURN_KI                     = 0.0;
     public static final double GYRO_TURN_KD                     = 0.0;
     public static final double GYRO_TURN_KF                     = 0.0;

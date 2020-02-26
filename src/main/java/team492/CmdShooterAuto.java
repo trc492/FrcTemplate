@@ -127,7 +127,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             TrcPose2D middle2 = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -50);
             TrcPath path = createPath(15, start, middle1, middle2, target);
             TrcWaypoint last = path.getWaypoint(path.getSize() - 1);
-            Arrays.stream(path.getAllWaypoints()).filter(wp -> wp.x != last.x).forEach(wp -> wp.velocity = 100);
+            Arrays.stream(path.getAllWaypoints()).filter(wp -> Math.abs(wp.x - last.x)<12).forEach(wp -> wp.velocity = 40);
             path.inferTimeSteps();
             dbgTrace.traceInfo(instanceName + ".createPickupPath", "With edited velocities:");
             for (TrcWaypoint waypoint : path.getAllWaypoints())
@@ -136,7 +136,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             }
             if (robot != null)
             {
-                robot.purePursuit.setMoveOutputLimit(0.5);
+                robot.purePursuit.setMoveOutputLimit(0.4);
             }
             return path;
         }

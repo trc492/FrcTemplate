@@ -401,6 +401,7 @@ public class Robot extends FrcRobotBase
         conveyor = new Conveyor(this);
         alignment = new WallAlignment();
         intake = new Intake(this); // must initialize after conveyor
+        climber = new Climber(this);
 
         if (preferences.useStreamCamera)
         {

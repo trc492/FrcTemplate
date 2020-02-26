@@ -3,8 +3,6 @@ package team492;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
-import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import frclib.FrcCANFalcon;
 import frclib.FrcCANTalon;
 import trclib.TrcDbgTrace;
@@ -35,9 +33,9 @@ public class Shooter
     private static final int PITCH_ALLOWABLE_ERROR = (int) (1 / PITCH_DEGREES_PER_COUNT);
 
     // Measured
-    private static final int PITCH_OFFSET_TICKS = 155;
-    private static final double PITCH_OFFSET_DEG = 0;
-    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (80 / PITCH_DEGREES_PER_COUNT);
+    private static final int PITCH_OFFSET_TICKS = 232;
+    private static final double PITCH_OFFSET_DEG = -3.2;
+    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (48 / PITCH_DEGREES_PER_COUNT); // gosh darn G17
     private static final int PITCH_LOWER_LIMIT_TICKS = (int) (0 / PITCH_DEGREES_PER_COUNT);
 
     public final FrcCANFalcon flywheel;

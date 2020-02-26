@@ -7,6 +7,7 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 import java.util.Arrays;
 
@@ -75,6 +76,8 @@ public class Intake
         HalDashboard.putNumber("EntranceSensor", robot.conveyor.entranceProximitySensor.isActive() ? 1 : 0);
         if (state != null)
         {
+            robot.globalTracer
+                .traceInfo("Intake.intakeTask", "[%.3f] Intake state=%s", TrcUtil.getModeElapsedTime(), state);
             switch (state)
             {
                 case BACKUP:
@@ -199,7 +202,8 @@ public class Intake
         intake(true, true, onFinishedEvent, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
     }
 
-    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent, double intakePower, double conveyorPower)
+    private void intake(boolean singular, boolean extend, TrcEvent onFinishedEvent, double intakePower,
+        double conveyorPower)
     {
         if (isActive())
         {
