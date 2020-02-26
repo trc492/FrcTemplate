@@ -24,7 +24,7 @@ public class PathFollowingTest extends PathFollowingTestBase
             driveBase::getHeading);
         pidDrive = new TrcPidDrive("pidDrive", driveBase, xPid, yPid, turnPid);
 
-        purePursuit = new TrcHolonomicPurePursuitDrive("", driveBase, 12, tolerance/3, turnTolerance,
+        purePursuit = new TrcHolonomicPurePursuitDrive("", driveBase, 12, tolerance, turnTolerance,
             new TrcPidController.PidCoefficients(8), new TrcPidController.PidCoefficients(0.01, 0, 0.01),
             new TrcPidController.PidCoefficients(0.01, 0, 0, 1 / 100.0));
         purePursuit.setMoveOutputLimit(0.6);
