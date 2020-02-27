@@ -147,6 +147,15 @@ public class FrcTest extends FrcTeleOp
                 //
                 // Make sure no joystick controls on sensors test.
                 //
+                if (robot.preferences.useController)
+                {
+                    robot.driverController.setButtonHandler(null);
+                }
+                else
+                {
+                    robot.leftDriveStick.setButtonHandler(null);
+                    robot.rightDriveStick.setButtonHandler(null);
+                }
                 robot.operatorStick.setButtonHandler(null);
                 robot.buttonPanel.setButtonHandler(null);
                 robot.switchPanel.setButtonHandler(null);
@@ -159,6 +168,18 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case SWERVE_CALIBRATION:
+                if (robot.preferences.useController)
+                {
+                    robot.driverController.setButtonHandler(null);
+                }
+                else
+                {
+                    robot.leftDriveStick.setButtonHandler(null);
+                    robot.rightDriveStick.setButtonHandler(null);
+                }
+                robot.operatorStick.setButtonHandler(null);
+                robot.buttonPanel.setButtonHandler(null);
+                robot.switchPanel.setButtonHandler(null);
                 HalDashboard.putBoolean(SET_ANGLE_KEY, false);
                 HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
                 HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
@@ -389,6 +410,14 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.START:
+                if (pressed)
+                {
+                    robot.climber.unlatch();
+                }
+                else
+                {
+                    robot.climber.latch();
+                }
                 break;
 
             case FrcXboxController.LEFT_STICK_BUTTON:

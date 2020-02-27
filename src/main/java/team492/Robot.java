@@ -89,10 +89,10 @@ public class Robot extends FrcRobotBase
         public final boolean debugLoopTime = true;
     }   //class Preferences
 
-    public enum DriveMode
+    public enum DriveOrientation
     {
-        HOLONOMIC_MODE, TANK_MODE, ARCADE_MODE
-    }   // enum DriveMode
+        ROBOT, FIELD, INVERTED
+    }   // enum DriveOrientation
 
     //
     // Global constants.
@@ -131,9 +131,6 @@ public class Robot extends FrcRobotBase
     public TrcSwerveModule rightBackWheel;
     public TrcSwerveDriveBase driveBase;
 
-    public DriveMode driveMode;
-    public boolean driveInverted;
-
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
@@ -165,7 +162,7 @@ public class Robot extends FrcRobotBase
     public int location = 1;
     public String gameSpecificMessage = null;
     public boolean traceLogOpened = false;
-    public boolean fieldOriented = false;
+    public DriveOrientation driveOrientation = DriveOrientation.FIELD;
     //
     // Other robot subystems.
     //
@@ -354,8 +351,6 @@ public class Robot extends FrcRobotBase
             RobotInfo.ROBOT_DRIVE_WIDTH, RobotInfo.ROBOT_DRIVE_LENGTH);
         driveBase.setSynchronizeOdometriesEnabled(false);
         driveBase.setOdometryScales(RobotInfo.ENCODER_INCHES_PER_COUNT);
-        driveMode = DriveMode.HOLONOMIC_MODE;
-        driveInverted = false;
         //
         // Create PID controllers for DriveBase PID drive.
         //
@@ -366,7 +361,8 @@ public class Robot extends FrcRobotBase
             new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
             RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
         gyroTurnPidCtrl = new TrcPidController("gyroTurnPidCtrl",
-            new PidCoefficients(RobotInfo.GYRO_TURN_KP_BIG, 0, RobotInfo.GYRO_TURN_KD_BIG), RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
+            new PidCoefficients(RobotInfo.GYRO_TURN_KP_BIG, 0, RobotInfo.GYRO_TURN_KD_BIG),
+            RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
         encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
         encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
         gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);
@@ -439,7 +435,7 @@ public class Robot extends FrcRobotBase
     {
         final String funcName = "robotStartMode";
 
-        fieldOriented = false;
+        driveOrientation = DriveOrientation.FIELD;
 
         if (runMode != RunMode.DISABLED_MODE)
         {
@@ -451,10 +447,8 @@ public class Robot extends FrcRobotBase
             globalTracer.traceInfo(funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(), now.toString(),
                 runMode);
 
-            driveInverted = false;
-
-//            pdp.setTaskEnabled(true);
-//            battery.setEnabled(true);
+            //            pdp.setTaskEnabled(true);
+            //            battery.setEnabled(true);
             driveBase.resetOdometry(true, false);
             lfDriveMotor.setOdometryEnabled(true);
             rfDriveMotor.setOdometryEnabled(true);
@@ -502,10 +496,10 @@ public class Robot extends FrcRobotBase
                 }
             }
 
-//            gyro.setElapsedTimerEnabled(true);
-//            TrcDigitalInput.setElapsedTimerEnabled(true);
-//            TrcMotor.setElapsedTimerEnabled(true);
-//            TrcServo.setElapsedTimerEnabled(true);
+            //            gyro.setElapsedTimerEnabled(true);
+            //            TrcDigitalInput.setElapsedTimerEnabled(true);
+            //            TrcMotor.setElapsedTimerEnabled(true);
+            //            TrcServo.setElapsedTimerEnabled(true);
         }
     }   //robotStartMode
 
@@ -515,14 +509,14 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
-//            gyro.printElapsedTime(globalTracer);
-//            gyro.setElapsedTimerEnabled(false);
-//            TrcDigitalInput.printElapsedTime(globalTracer);
-//            TrcDigitalInput.setElapsedTimerEnabled(false);
-//            TrcMotor.printElapsedTime(globalTracer);
-//            TrcMotor.setElapsedTimerEnabled(false);
-//            TrcServo.printElapsedTime(globalTracer);
-//            TrcServo.setElapsedTimerEnabled(false);
+            //            gyro.printElapsedTime(globalTracer);
+            //            gyro.setElapsedTimerEnabled(false);
+            //            TrcDigitalInput.printElapsedTime(globalTracer);
+            //            TrcDigitalInput.setElapsedTimerEnabled(false);
+            //            TrcMotor.printElapsedTime(globalTracer);
+            //            TrcMotor.setElapsedTimerEnabled(false);
+            //            TrcServo.printElapsedTime(globalTracer);
+            //            TrcServo.setElapsedTimerEnabled(false);
 
             globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
             driveBase.setOdometryEnabled(false);
@@ -534,15 +528,15 @@ public class Robot extends FrcRobotBase
             shooter.pitchMotor.set(0);
             shooter.setEnabled(false);
 
-//            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
-//            {
-//                String channelName = pdp.getChannelName(i);
-//                if (channelName != null)
-//                {
-//                    globalTracer
-//                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
-//                }
-//            }
+            //            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
+            //            {
+            //                String channelName = pdp.getChannelName(i);
+            //                if (channelName != null)
+            //                {
+            //                    globalTracer
+            //                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
+            //                }
+            //            }
 
             double totalEnergy = battery.getTotalEnergy();
             globalTracer.traceInfo(funcName, "TotalEnergy=%.3fWh (%.2f%%)", totalEnergy,
@@ -783,9 +777,9 @@ public class Robot extends FrcRobotBase
         double rot;
         if (preferences.useController)
         {
-//            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
-//            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
-//            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+            //            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
+            //            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
+            //            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
             rot = driverController.getRightXWithDeadband(true);
         }
         else
@@ -809,9 +803,20 @@ public class Robot extends FrcRobotBase
         return rot;
     }
 
-    public boolean getFieldOriented()
+    public double getDriveGyroAngle()
     {
-        return fieldOriented;
+        switch (driveOrientation)
+        {
+            case ROBOT:
+                return 0;
+
+            case INVERTED:
+                return 180;
+
+            default:
+            case FIELD:
+                return driveBase.getHeading();
+        }
     }
 
     /**

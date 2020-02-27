@@ -70,7 +70,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
-        robot.fieldOriented = true;
+        robot.driveOrientation = Robot.DriveOrientation.FIELD;
         robot.intake.setSpacingDistance(4);
 
         if (robot.preferences.useVision)
@@ -131,9 +131,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double x = robot.getXInput();
         double y = robot.getYInput();
         double rot = robot.getRotInput();
-        boolean fieldOriented = robot.getFieldOriented();
+        double angle = robot.getDriveGyroAngle();
 
-        robot.driveBase.holonomicDrive(x, y, rot, fieldOriented ? robot.driveBase.getHeading() : 0.0);
+        robot.driveBase.holonomicDrive(x, y, rot, angle);
 
         if (robot.shooter.isManualOverrideEnabled())
         {
@@ -170,7 +170,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.SIDEWINDER_TRIGGER:
                 if (pressed)
                 {
-                    robot.fieldOriented = !robot.fieldOriented;
+                    if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
+                    {
+                        robot.driveOrientation = Robot.DriveOrientation.FIELD;
+                    } else
+                    {
+                        robot.driveOrientation = Robot.DriveOrientation.ROBOT;
+                    }
                 }
                 break;
         }
@@ -198,18 +204,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcXboxController.BUTTON_Y:
                 if (pressed)
                 {
-                    robot.fieldOriented = !robot.fieldOriented;
+                    if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
+                    {
+                        robot.driveOrientation = Robot.DriveOrientation.FIELD;
+                    } else
+                    {
+                        robot.driveOrientation = Robot.DriveOrientation.ROBOT;
+                    }
                 }
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
                 if (pressed)
                 {
-                    robot.snapToAngle.snapToNearestAngle();
+                    robot.driveOrientation = Robot.DriveOrientation.INVERTED;
                 }
                 else
                 {
-                    robot.snapToAngle.cancel();
+                    robot.driveOrientation = Robot.DriveOrientation.FIELD;
                 }
                 break;
 

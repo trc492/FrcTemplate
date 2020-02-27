@@ -39,7 +39,7 @@ public class TaskSnapToAngle
             return;
         }
         robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
-            robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+            robot.getDriveGyroAngle());
     }
 
     public void cancel()

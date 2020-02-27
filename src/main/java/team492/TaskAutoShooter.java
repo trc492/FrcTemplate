@@ -17,7 +17,7 @@ public class TaskAutoShooter
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
-    public static final double TARGET_OFFSET = -3.5;
+    public static final double TARGET_OFFSET = -2.7;
     private boolean lockInPlace;
 
     public enum Mode
@@ -102,8 +102,8 @@ public class TaskAutoShooter
         {
             // TODO: Remove the offset of the goal
             RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
-                .createVector((robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT)*0.84,
-                    RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT+6));
+                .createVector((robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
+                    RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT + 6));
             if (traj != null)
             {
                 // TODO: Change to linear fudge factor?
@@ -129,12 +129,11 @@ public class TaskAutoShooter
                 double yPower = robot.getYInput();
                 double rotPower = headingPid.getOutput();
                 HalDashboard.putNumber("HeadingErr", headingPid.getError());
-                robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower,
-                    robot.getFieldOriented() ? robot.driveBase.getHeading() : 0.0);
+                robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower, robot.getDriveGyroAngle());
                 isAligned = headingPid.isOnTarget();
                 robot.globalTracer
-                    .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f", xPower,
-                        yPower, rotPower);
+                    .traceInfo(instanceName + ".shooterTask", "Shooting alignment active - x=%.2f,y=%.2f,rot=%.2f",
+                        xPower, yPower, rotPower);
             }
         }
         if (traj != null)
@@ -187,9 +186,9 @@ public class TaskAutoShooter
         boolean headingReady = isAligned;//pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
         double currTime = TrcUtil.getCurrentTime();
         boolean timeReady = currTime >= nextBallShootTime;
-        robot.globalTracer
-            .traceInfo(instanceName + ".readyToShoot", "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b - headingErr=%.1f",
-                TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady, headingPid.getError());
+        robot.globalTracer.traceInfo(instanceName + ".readyToShoot",
+            "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b - headingErr=%.1f",
+            TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady, headingPid.getError());
         return velReady && pitchReady && headingReady && timeReady;
     }
 
@@ -236,7 +235,8 @@ public class TaskAutoShooter
         shoot(instanceName, numBalls, timeout, Mode.BOTH, null, true);
     }
 
-    public void shoot(String owner, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent, boolean lockInPlace)
+    public void shoot(String owner, int numBalls, double timeout, Mode mode, TrcEvent onFinishedEvent,
+        boolean lockInPlace)
     {
         if (onFinishedEvent != null)
         {
