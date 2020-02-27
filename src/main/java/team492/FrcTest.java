@@ -410,6 +410,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.START:
+                processedInput = true;
                 if (pressed)
                 {
                     robot.climber.unlatch();
