@@ -110,6 +110,7 @@ public class Shooter
                 DemandType.ArbitraryFeedForward, getPitchGravityComp());
             if (pitchEvent != null && !pitchEvent.isSignaled() && pitchOnTarget())
             {
+                robot.globalTracer.traceInfo("Shooter.pitchControlTask", "[%.3f] Pitch event %s signaled!", TrcUtil.getModeElapsedTime(), pitchEvent);
                 pitchEvent.set(true);
                 pitchEvent = null;
             }

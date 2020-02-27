@@ -7,6 +7,7 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 public class Climber
 {
@@ -15,7 +16,7 @@ public class Climber
         INIT, UNLATCH, CLIMB
     }
 
-    private static final double SHOOTER_CLIMB_POS = 60;
+    private static final double SHOOTER_CLIMB_POS = 45;
     private static final double CLIMB_POWER = 0.8;
 
     private Robot robot;
@@ -37,7 +38,7 @@ public class Climber
             RobotInfo.SOL_LATCH_RETRACT);
 
         motor = new FrcCANFalcon("Climber.motor", RobotInfo.CANID_CLIMBER);
-        motor.setInverted(false);
+        motor.setInverted(true);
         motor.setBrakeModeEnabled(true);
         motor.motor.configOpenloopRamp(1.0, 10);
         motor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
@@ -75,6 +76,7 @@ public class Climber
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
+            robot.globalTracer.traceInfo("Climber.climberTask", "[%.3f] State=%s", TrcUtil.getModeElapsedTime(), state);
             switch (state)
             {
                 case INIT:
