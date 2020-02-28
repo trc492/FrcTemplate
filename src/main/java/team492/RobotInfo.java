@@ -159,6 +159,8 @@ public class RobotInfo
     public static final double STEER_MAX_VEL_TICKS_PER_100MS =
         (STEER_MAX_VEL / STEER_DEGREES_PER_TICK) / 10.0; // ticks/100ms
 
+    // order is lf, rf, lr, rr
+    public static final int[] STEER_ZEROS = new int[]{0, 0, 0, 0}; // this is a backup if the zeros file isn't found
     public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0,
         0.01, 0, 1023.0 / STEER_MAX_VEL_TICKS_PER_100MS, 5.0 / STEER_DEGREES_PER_TICK);
 

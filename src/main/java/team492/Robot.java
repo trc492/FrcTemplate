@@ -265,7 +265,7 @@ public class Robot extends FrcRobotBase
         catch (Exception e)
         {
             globalTracer.traceErr("Robot.getSteerZeroPositions", "ERROR! Steer zero position file not found!");
-            return new int[4];
+            return RobotInfo.STEER_ZEROS;
         }
     }
 
