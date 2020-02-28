@@ -180,6 +180,10 @@ public class FrcTest extends FrcTeleOp
                 robot.operatorStick.setButtonHandler(null);
                 robot.buttonPanel.setButtonHandler(null);
                 robot.switchPanel.setButtonHandler(null);
+                robot.lfSteerMotor.set(0);
+                robot.rfSteerMotor.set(0);
+                robot.lrSteerMotor.set(0);
+                robot.rrSteerMotor.set(0);
                 HalDashboard.putBoolean(SET_ANGLE_KEY, false);
                 HalDashboard.putBoolean(RUN_MOTORS_KEY, false);
                 HalDashboard.putBoolean(SAVE_ANGLES_KEY, false);
@@ -407,17 +411,26 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcXboxController.BACK:
+                processedInput = true;
+                if (pressed)
+                {
+                    robot.climber.setPower(-0.5);
+                }
+                else
+                {
+                    robot.climber.setPower(0);
+                }
                 break;
 
             case FrcXboxController.START:
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.climber.unlatch();
+                    robot.climber.setPower(0.5);
                 }
                 else
                 {
-                    robot.climber.latch();
+                    robot.climber.setPower(0);
                 }
                 break;
 
