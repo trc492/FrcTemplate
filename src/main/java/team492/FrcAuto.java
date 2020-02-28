@@ -26,10 +26,9 @@ import java.util.Date;
 import java.util.Locale;
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
+import edu.wpi.first.wpilibj.DriverStation;
 import frclib.FrcChoiceMenu;
-import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
-import trclib.TrcPose2D;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
@@ -39,10 +38,10 @@ public class FrcAuto implements TrcRobot.RobotMode
     private static final String moduleName = "FrcAuto";
     public static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
 
-    public class MatchInfo
+    public static class MatchInfo
     {
         Date matchDate;
-        MatchType matchType;
+        DriverStation.MatchType matchType;
         int matchNumber;
 
         public String toString()
@@ -51,20 +50,6 @@ public class FrcAuto implements TrcRobot.RobotMode
                     "date=\"%s\" type=\"%s\" number=\"%d\"", matchDate, matchType, matchNumber);
         }   //toString
     }   //class MatchInfo
-
-    public enum Alliance
-    {
-        RED_ALLIANCE,
-        BLUE_ALLIANCE
-    }
-
-    public enum MatchType
-    {
-        PRACTICE,
-        QUALIFICATION,
-        SEMI_FINAL,
-        FINAL
-    }
 
     public enum AutoStrategy
     {
@@ -89,9 +74,9 @@ public class FrcAuto implements TrcRobot.RobotMode
         }
     }
 
-    public class AutoChoices
+    public static class AutoChoices
     {
-        public Alliance alliance = Alliance.RED_ALLIANCE;
+        public DriverStation.Alliance alliance = DriverStation.Alliance.Red;
         public double delay = 0.0;
         public AutoStrategy strategy = AutoStrategy.DO_NOTHING;
         public StartPosition startPos = StartPosition.CUSTOM;
@@ -179,6 +164,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     private void setAutoChoices()
     {
         // no alliance menu, so just leave at default (red)
+        autoChoices.alliance = DriverStation.getInstance().getAlliance();
         autoChoices.delay = HalDashboard.getNumber("Auto/Delay", 0.0);
         autoChoices.strategy = autoStrategyMenu.getCurrentChoiceObject();
         autoChoices.startPos = startPosMenu.getCurrentChoiceObject();
@@ -211,8 +197,8 @@ public class FrcAuto implements TrcRobot.RobotMode
 
         // These three are hardcoded for now
         matchInfo.matchDate = new Date();
-        matchInfo.matchType = MatchType.PRACTICE;
-        matchInfo.matchNumber = 0;
+        matchInfo.matchType = DriverStation.getInstance().getMatchType();
+        matchInfo.matchNumber = DriverStation.getInstance().getMatchNumber();
 
         setAutoChoices();
         robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", matchInfo);
@@ -316,11 +302,8 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             autoCommand.cmdPeriodic(elapsedTime);
 
-            if (robot.pidDrive.isActive())
+            if (robot.pidDrive.isActive() || robot.purePursuit.isActive())
             {
-                // robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
-                // robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
-                // robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
                 robot.globalTracer.logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
             }
         }
