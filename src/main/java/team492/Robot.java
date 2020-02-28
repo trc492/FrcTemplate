@@ -58,6 +58,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 
@@ -877,17 +878,25 @@ public class Robot extends FrcRobotBase
         final String funcName = "traceStateInfo";
         StringBuilder msg = new StringBuilder();
 
-        msg.append(String
-            .format("[%5.3f] >>>>> %s: xPos=%6.2f/%6.2f,yPos=%6.2f/%6.2f,heading=%6.1f/%6.1f", elapsedTime, stateName,
-                driveBase.getXPosition(), xTarget, driveBase.getYPosition(), yTarget, driveBase.getHeading(),
-                turnTarget));
+        // msg.append(String
+        //     .format("[%5.3f] >>>>> %s: xPos=%6.2f/%6.2f,yPos=%6.2f/%6.2f,heading=%6.1f/%6.1f", elapsedTime, stateName,
+        //         driveBase.getXPosition(), xTarget, driveBase.getYPosition(), yTarget, driveBase.getHeading(),
+        //         turnTarget));
 
+        if (driveBase != null)
+        {
+            msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", stateName));
+            msg.append(String.format(Locale.US, " xPos=\"%6.2f\" xTarget=\"%6.2f\"", driveBase.getXPosition(), xTarget));
+            msg.append(String.format(Locale.US, " yPos=\"%6.2f\" yTarget=\"%6.2f\"", driveBase.getYPosition(), yTarget));
+            msg.append(String.format(Locale.US, " heading=\"%6.2f\" headingTarget=\"%6.2f\"", driveBase.getHeading(), turnTarget));
+        }
+        
         if (battery != null)
         {
-            msg.append(String.format(",volt=%5.2fV(%5.2fV)", battery.getVoltage(), battery.getLowestVoltage()));
+            msg.append(String.format(",voltage=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
         }
 
-        globalTracer.traceInfo(funcName, "%s", msg);
+        globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
     }   //traceStateInfo
 
     //

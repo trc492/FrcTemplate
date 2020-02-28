@@ -22,6 +22,8 @@
 
 package team492;
 
+import java.util.Date;
+import java.util.Locale;
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
@@ -36,6 +38,33 @@ public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = "FrcAuto";
     public static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
+
+    public class MatchInfo
+    {
+        Date matchDate;
+        MatchType matchType;
+        int matchNumber;
+
+        public String toString()
+        {
+            return String.format(Locale.US,
+                    "date=\"%s\" type=\"%s\" number=\"%d\"", matchDate, matchType, matchNumber);
+        }   //toString
+    }   //class MatchInfo
+
+    public enum Alliance
+    {
+        RED_ALLIANCE,
+        BLUE_ALLIANCE
+    }
+
+    public enum MatchType
+    {
+        PRACTICE,
+        QUALIFICATION,
+        SEMI_FINAL,
+        FINAL
+    }
 
     public enum AutoStrategy
     {
@@ -60,6 +89,26 @@ public class FrcAuto implements TrcRobot.RobotMode
         }
     }
 
+    public class AutoChoices
+    {
+        public Alliance alliance = Alliance.RED_ALLIANCE;
+        public double delay = 0.0;
+        public AutoStrategy strategy = AutoStrategy.DO_NOTHING;
+        public StartPosition startPos = StartPosition.CUSTOM;
+        public CmdShooterAuto.AfterAction shooterAutoAfter = CmdShooterAuto.AfterAction.NOTHING;
+
+        public String toString()
+        {
+            return String.format(Locale.US,
+                    "alliance=\"%s\" " +
+                    "delay=\"%.1f\" " +
+                    "strategy=\"%s\" " +
+                    "startPos=\"%s\" " +
+                    "shooterAutoAfter=\"%s\"",
+                    alliance, delay, strategy, startPos, shooterAutoAfter);
+        }   //toString
+    }   //class AutoChoices
+
     private final Robot robot;
     //
     // Menus.
@@ -74,6 +123,9 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     private TrcRobot.RobotCommand autoCommand;
     private CmdShooterAuto shooterAuto;
+
+    private MatchInfo matchInfo = new MatchInfo();
+    private AutoChoices autoChoices = new AutoChoices();
 
     public FrcAuto(Robot robot)
     {
@@ -124,6 +176,15 @@ public class FrcAuto implements TrcRobot.RobotMode
         }
     }
 
+    private void setAutoChoices()
+    {
+        // no alliance menu, so just leave at default (red)
+        autoChoices.delay = HalDashboard.getNumber("Auto/Delay", 0.0);
+        autoChoices.strategy = autoStrategyMenu.getCurrentChoiceObject();
+        autoChoices.startPos = startPosMenu.getCurrentChoiceObject();
+        autoChoices.shooterAutoAfter = shooterAutoAfterMenu.getCurrentChoiceObject();
+    }
+
     public boolean isAutoActive()
     {
         return autoCommand != null && autoCommand.isActive();
@@ -147,6 +208,11 @@ public class FrcAuto implements TrcRobot.RobotMode
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         final String funcName = moduleName + ".startMode";
+
+        matchInfo.matchDate = new Date();
+        setAutoChoices();
+        robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", matchInfo);
+        robot.globalTracer.logInfo(moduleName, "AutoChoices", "%s", autoChoices);
 
         populateTask.unregisterTask();
 
@@ -248,9 +314,10 @@ public class FrcAuto implements TrcRobot.RobotMode
 
             if (robot.pidDrive.isActive())
             {
-                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
-                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
-                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                // robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                // robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                // robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                robot.globalTracer.logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
             }
         }
     } // runContinuous
