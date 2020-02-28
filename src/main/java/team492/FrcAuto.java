@@ -209,7 +209,11 @@ public class FrcAuto implements TrcRobot.RobotMode
     {
         final String funcName = moduleName + ".startMode";
 
+        // These three are hardcoded for now
         matchInfo.matchDate = new Date();
+        matchInfo.matchType = MatchType.PRACTICE;
+        matchInfo.matchNumber = 0;
+
         setAutoChoices();
         robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", matchInfo);
         robot.globalTracer.logInfo(moduleName, "AutoChoices", "%s", autoChoices);
