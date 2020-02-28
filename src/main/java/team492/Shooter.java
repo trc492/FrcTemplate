@@ -83,6 +83,10 @@ public class Shooter
         robot.globalTracer.traceInfo("Shooter.setManualOverrideEnabled", "[%.3f] Shooter manual override enabled=%b",
             TrcUtil.getModeElapsedTime(), enabled);
         manualOverride = enabled;
+        if (!enabled)
+        {
+            pitchTicksTarget = (int) pitchMotor.getPosition();
+        }
     }
 
     public boolean isManualOverrideEnabled()

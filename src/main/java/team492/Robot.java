@@ -264,6 +264,7 @@ public class Robot extends FrcRobotBase
         }
         catch (Exception e)
         {
+            globalTracer.traceErr("Robot.getSteerZeroPositions", "ERROR! Steer zero position file not found!");
             return new int[4];
         }
     }
@@ -886,11 +887,14 @@ public class Robot extends FrcRobotBase
         if (driveBase != null)
         {
             msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", stateName));
-            msg.append(String.format(Locale.US, " xPos=\"%6.2f\" xTarget=\"%6.2f\"", driveBase.getXPosition(), xTarget));
-            msg.append(String.format(Locale.US, " yPos=\"%6.2f\" yTarget=\"%6.2f\"", driveBase.getYPosition(), yTarget));
-            msg.append(String.format(Locale.US, " heading=\"%6.2f\" headingTarget=\"%6.2f\"", driveBase.getHeading(), turnTarget));
+            msg.append(
+                String.format(Locale.US, " xPos=\"%6.2f\" xTarget=\"%6.2f\"", driveBase.getXPosition(), xTarget));
+            msg.append(
+                String.format(Locale.US, " yPos=\"%6.2f\" yTarget=\"%6.2f\"", driveBase.getYPosition(), yTarget));
+            msg.append(String
+                .format(Locale.US, " heading=\"%6.2f\" headingTarget=\"%6.2f\"", driveBase.getHeading(), turnTarget));
         }
-        
+
         if (battery != null)
         {
             msg.append(String.format(",voltage=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));

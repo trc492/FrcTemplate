@@ -22,6 +22,7 @@
 
 package team492;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
@@ -30,6 +31,7 @@ import team492.Robot.DriveSpeed;
 import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
+import trclib.TrcUtil;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
@@ -176,7 +178,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
                     {
                         robot.driveOrientation = Robot.DriveOrientation.FIELD;
-                    } else
+                    }
+                    else
                     {
                         robot.driveOrientation = Robot.DriveOrientation.ROBOT;
                     }
@@ -210,7 +213,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
                     {
                         robot.driveOrientation = Robot.DriveOrientation.FIELD;
-                    } else
+                    }
+                    else
                     {
                         robot.driveOrientation = Robot.DriveOrientation.ROBOT;
                     }
@@ -438,13 +442,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_RED2:
-                if (pressed)
+                // time remaining in mode, endgame is 15 seconds
+                double matchTime = DriverStation.getInstance().getMatchTime();
+                // in teleop mode
+                boolean operatorControl = DriverStation.getInstance().isOperatorControl();
+                DriverStation.MatchType matchType = DriverStation.getInstance().getMatchType();
+                robot.globalTracer.traceInfo("FrcTeleOp.switchPanelButtonEvent",
+                    "[%.3f] Climber switch event! time=%.3f, operator=%b, matchType=%s, pressed=%b",
+                    TrcUtil.getModeElapsedTime(), matchTime, operatorControl, matchType, pressed);
+                if (matchType == DriverStation.MatchType.None || matchTime <= 15 && operatorControl)
                 {
-                    robot.climber.startClimber();
-                }
-                else
-                {
-                    robot.climber.cancel();
+                    if (pressed)
+                    {
+                        robot.climber.startClimber();
+                    }
+                    else
+                    {
+                        robot.climber.cancel();
+                    }
                 }
                 break;
 

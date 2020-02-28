@@ -52,12 +52,17 @@ public class Climber
 
     public void unlatch()
     {
-        latch.extend(); // TODO: depends on mechanism. Maybe swap?
+        latch.extend();
     }
 
     public void latch()
     {
         latch.retract();
+    }
+
+    public void unlatchAndReset(double delay)
+    {
+        latch.timedExtend(delay);
     }
 
     public boolean isActive()
@@ -85,7 +90,7 @@ public class Climber
                     break;
 
                 case UNLATCH:
-                    unlatch();
+                    unlatchAndReset(1.0);
                     robot.shooter.setManualOverrideEnabled(true);
                     sm.setState(State.CLIMB);
                     break;
@@ -107,6 +112,6 @@ public class Climber
     public void startClimber()
     {
         climberTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        sm.start(State.INIT);
+        sm.start(State.UNLATCH); // we're skipping the init phase for now
     }
 }
