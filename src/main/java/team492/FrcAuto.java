@@ -24,6 +24,7 @@ package team492;
 
 import java.util.Date;
 import java.util.Locale;
+
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -32,6 +33,7 @@ import hallib.HalDashboard;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 public class FrcAuto implements TrcRobot.RobotMode
 {
@@ -46,8 +48,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
         public String toString()
         {
-            return String.format(Locale.US,
-                    "date=\"%s\" type=\"%s\" number=\"%d\"", matchDate, matchType, matchNumber);
+            return String.format(Locale.US, "date=\"%s\" type=\"%s\" number=\"%d\"", matchDate, matchType, matchNumber);
         }   //toString
     }   //class MatchInfo
 
@@ -85,12 +86,8 @@ public class FrcAuto implements TrcRobot.RobotMode
         public String toString()
         {
             return String.format(Locale.US,
-                    "alliance=\"%s\" " +
-                    "delay=\"%.1f\" " +
-                    "strategy=\"%s\" " +
-                    "startPos=\"%s\" " +
-                    "shooterAutoAfter=\"%s\"",
-                    alliance, delay, strategy, startPos, shooterAutoAfter);
+                "alliance=\"%s\" " + "delay=\"%.1f\" " + "strategy=\"%s\" " + "startPos=\"%s\" "
+                    + "shooterAutoAfter=\"%s\"", alliance, delay, strategy, startPos, shooterAutoAfter);
         }   //toString
     }   //class AutoChoices
 
@@ -283,7 +280,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             autoCommand.cancel();
         }
         populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
-//        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
+        //        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
     }   // stopMode
 
     @Override
@@ -293,6 +290,9 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             robot.updateDashboard(RunMode.AUTO_MODE);
         }
+        robot.globalTracer.traceInfo("FrcAuto.runPeriodic", "[%.3f] detected=%b, x=%.1f,y=%.1f, depth=%.1f, area=%.1f",
+            TrcUtil.getModeElapsedTime(), robot.vision.vision.targetDetected(), robot.vision.vision.getHeading(), robot.vision.vision.get("ty"),
+            robot.vision.vision.getTargetDepth(), robot.vision.vision.getTargetArea());
     } // runPeriodic
 
     @Override
@@ -304,7 +304,8 @@ public class FrcAuto implements TrcRobot.RobotMode
 
             if (robot.pidDrive.isActive() || robot.purePursuit.isActive())
             {
-                robot.globalTracer.logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
+                robot.globalTracer
+                    .logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
             }
         }
     } // runContinuous

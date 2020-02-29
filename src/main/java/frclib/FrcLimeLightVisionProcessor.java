@@ -68,7 +68,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 
     public double getTargetDepth()
     {
-        return depthSupplier.getAsDouble();
+        return targetDetected() ? depthSupplier.getAsDouble() : 0.0;
     }
 
     public void setDepthApproximator(String input, DoubleUnaryOperator depthApproximator)
@@ -88,7 +88,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 
     public double getHeading()
     {
-        return heading.getDouble(0.0);
+        return targetDetected() ? heading.getDouble(0.0) : 0.0;
     }
 
     public double getTargetArea()

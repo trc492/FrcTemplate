@@ -20,10 +20,10 @@ public class Shooter
     private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     private static final boolean USE_MM = true;
-    private static final double PITCH_kP = 3;
+    private static final double PITCH_kP = 4;
     private static final double PITCH_kI = 0.0004;
     private static final double PITCH_kD = 250;
-    private static final double PITCH_kF = 1.202;
+    private static final double PITCH_kF = 1.9;
     private static final double PITCH_MAX_POWER = 0.8;
     private static final int PITCH_IZONE = 100;
     private static final int PITCH_MAX_VEL = 250;
