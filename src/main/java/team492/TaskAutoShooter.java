@@ -111,8 +111,12 @@ public class TaskAutoShooter
                 double velTarget = traj.getEntry(0) + 55;
                 double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
                 traj.setEntry(0, velTarget);
-                traj.setEntry(1, angleTarget);
                 robot.shooter.setFlywheelVelocity(velTarget);
+                if (Math.abs(traj.getEntry(1) - angleTarget) <= Shooter.PITCH_TOLERANCE)
+                {
+                    angleTarget = traj.getEntry(1);
+                }
+                traj.setEntry(1, angleTarget);
                 robot.shooter.setPitch(angleTarget);
             }
         }

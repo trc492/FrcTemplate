@@ -208,8 +208,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
             switch (state)
             {
                 case DELAY:
-                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
-                    robot.shooter.setPitch(35);
+                    robot.intake.extendIntake(); // lower it to release tension in gravity comp
                     if (delay > 0)
                     {
                         timer.set(delay, event);
@@ -228,7 +227,8 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
 
                 case MOVE_TO_SHOOT:
                     path = createToShootPath(robot.driveBase.getFieldPosition());
-                    robot.intake.extendIntake(); // lower it to release tension in gravity comp
+                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
+                    robot.shooter.setPitch(0);
                     robot.purePursuit.setMoveOutputLimit(startPosition == FrcAuto.StartPosition.RIGHT_WALL ? 0.2 : 0.6);
                     robot.purePursuit.setFollowingDistance(12);
                     robot.purePursuit.start(path, event, 4);

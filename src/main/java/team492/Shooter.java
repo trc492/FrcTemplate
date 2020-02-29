@@ -20,16 +20,16 @@ public class Shooter
     private static final double FLYWHEEL_kF = 0.0479; //1.0 / RobotInfo.FLYWHEEL_TOP_SPEED;
 
     private static final boolean USE_MM = true;
-    private static final double PITCH_kP = 4;
+    private static final double PITCH_kP = 3.3;
     private static final double PITCH_kI = 0.0004;
     private static final double PITCH_kD = 250;
     private static final double PITCH_kF = 1.9;
     private static final double PITCH_MAX_POWER = 0.8;
     private static final int PITCH_IZONE = 100;
-    private static final int PITCH_MAX_VEL = 250;
-    private static final int PITCH_MAX_ACCEL = 550;
+    private static final int PITCH_MAX_VEL = 200;
+    private static final int PITCH_MAX_ACCEL = 500;
     private static final double PITCH_DEGREES_PER_COUNT = 360.0 / 4096.0 / 1.5; // 3:2 gear ratio, 4096 cpr
-    private static final double PITCH_TOLERANCE = 2.5;
+    public static final double PITCH_TOLERANCE = 2.5;
     private static final int PITCH_ALLOWABLE_ERROR = (int) (1 / PITCH_DEGREES_PER_COUNT);
 
     // Measured
