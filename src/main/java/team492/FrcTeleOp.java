@@ -39,7 +39,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     protected final Robot robot;
     private boolean gyroAssist = false;
     private TrcElapsedTimer elapsedTimer = null;
-    private boolean extended = false;
 
     public FrcTeleOp(Robot robot)
     {
@@ -96,31 +95,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     private void showStatus()
     {
-        if (robot.preferences.useVision)
-        {
-            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-            HalDashboard.putBoolean("Status/TapeDetected", pose != null);
-            if (pose == null)
-            {
-                robot.ledIndicator.signalVision(null);
-            }
-            else if (pose.x > RobotInfo.CAMERA_CENTERED_THRESHOLD)
-            {
-                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.RIGHT);
-            }
-            else if (pose.x < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
-            {
-                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.LEFT);
-            }
-            else
-            {
-                robot.ledIndicator.signalVision(LEDIndicator.VisionDirection.CENTERED);
-            }
-        }
-
         robot.ledIndicator.updateLED();
-
-        HalDashboard.putString("Status/DriveSpeed", robot.driveSpeed.toString());
     }
 
     @Override

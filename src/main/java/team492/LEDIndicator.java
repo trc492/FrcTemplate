@@ -29,96 +29,50 @@ import java.util.Arrays;
 
 public class LEDIndicator
 {
-    private static final FrcColor visionColor = FrcColor.FULL_YELLOW;
-    private static final FrcColor visionColorReady = FrcColor.FULL_GREEN;
-    private static final FrcColor ballColor = FrcColor.FULL_RED;
-    private static final FrcColor backGround = FrcColor.FULL_WHITE;
-
-    public enum VisionDirection
-    {
-        LEFT, CENTERED, RIGHT
-    }
+    private static final FrcColor nominalColor = FrcColor.FULL_CYAN;
+    private static final FrcColor fieldOrientedColor = FrcColor.FULL_WHITE;
+    private static final FrcColor robotOrientedColor = FrcColor.FULL_BLUE;
+    private static final FrcColor inverseOrientedColor = FrcColor.FULL_RED;
 
     private Robot robot;
     private FrcAddressableLED led;
-    private FrcColor[] ledColors = new FrcColor[RobotInfo.NUM_LEDS];
-    private VisionDirection visionDirection;
-    private boolean isShooterReady = false;
 
     public LEDIndicator(Robot robot)
     {
         this.robot = robot;
         led = new FrcAddressableLED("LED", RobotInfo.NUM_LEDS, RobotInfo.PWM_CHANNEL_LED);
-        Arrays.fill(ledColors, backGround);
+        reset();
     }
 
     public void reset()
     {
-        visionDirection = null;
-        isShooterReady = false;
         led.setEnabled(true);
-        led.setColor(backGround);
+        led.setColor(nominalColor);
     }
 
     public void updateLED()
     {
-        int index = 0;
-        int ledsPerBall = RobotInfo.NUM_LEDS / 5;
-        int leds = robot.getNumBalls() * ledsPerBall;
-        for (int i = 0; i < leds; i++)
+        FrcColor color = nominalColor;
+        switch (robot.driveOrientation)
         {
-            ledColors[index++] = ballColor;
-        }
-        for (int i = 0; i < RobotInfo.NUM_LEDS - leds; i++)
-        {
-            ledColors[index++] = backGround;
-        }
+            case FIELD:
+                color = fieldOrientedColor;
+                break;
 
-        if (visionDirection != null)
-        {
-            int visionWidth = RobotInfo.NUM_LEDS / 8;
-            int start, end;
-            switch (visionDirection)
-            {
-                case LEFT:
-                    start = 0;
-                    end = visionWidth;
-                    break;
+            case ROBOT:
+                color = robotOrientedColor;
+                break;
 
-                case RIGHT:
-                    start = RobotInfo.NUM_LEDS - visionWidth;
-                    end = RobotInfo.NUM_LEDS;
-                    break;
-
-                default:
-                case CENTERED:
-                    start = RobotInfo.NUM_LEDS / 2 - visionWidth / 2;
-                    end = RobotInfo.NUM_LEDS / 2 + visionWidth / 2;
-                    break;
-            }
-            for (int i = start; i < end; i++)
-            {
-                ledColors[i] = isShooterReady ? visionColorReady : visionColor;
-            }
+            case INVERTED:
+                color = inverseOrientedColor;
+                break;
         }
 
-        led.setPattern(new FrcAddressableLED.Pattern(ledColors));
-    }
-
-    public void setShooterReady(boolean shooterReady)
-    {
-        isShooterReady = shooterReady;
-        updateLED();
+        setColor(color);
     }
 
     public void setColor(FrcColor color)
     {
         led.setColor(color);
-    }
-
-    public void signalVision(VisionDirection visionDirection)
-    {
-        this.visionDirection = visionDirection;
-        updateLED();
     }
 }

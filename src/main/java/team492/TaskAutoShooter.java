@@ -155,15 +155,10 @@ public class TaskAutoShooter
             }
             if (ready)
             {
-                robot.ledIndicator.setShooterReady(true);
                 if (shouldShoot() && !robot.conveyor.isShooting())
                 {
                     robot.conveyor.shoot(owner, event);
                 }
-            }
-            else
-            {
-                robot.ledIndicator.setShooterReady(false);
             }
         }
     }
