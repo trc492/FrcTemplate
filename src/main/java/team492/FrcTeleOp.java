@@ -450,7 +450,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 robot.globalTracer.traceInfo("FrcTeleOp.switchPanelButtonEvent",
                     "[%.3f] Climber switch event! time=%.3f, operator=%b, matchType=%s, pressed=%b",
                     TrcUtil.getModeElapsedTime(), matchTime, operatorControl, matchType, pressed);
-                if (matchType == DriverStation.MatchType.None || matchTime <= 15 && operatorControl)
+                if (matchType == DriverStation.MatchType.None || matchTime <= 30 && operatorControl)
                 {
                     if (pressed)
                     {
