@@ -41,7 +41,7 @@ public class RobotInfo
     public static final double LAST_TRENCH_BALL_Y_POS = -194.63;
 
     public static final double HIGH_TARGET_HEIGHT = 98.25;
-    public static final double HIGH_VISION_TARGET_HEIGHT = 88;//TrcUtil.average(81.25, HIGH_TARGET_HEIGHT);
+    public static final double HIGH_VISION_TARGET_HEIGHT = 89.5;//TrcUtil.average(81.25, HIGH_TARGET_HEIGHT);
     public static final double PIVOT_HEIGHT = 23.5; // in from ground
 
     public static final double ROBOT_WIDTH = 36;
