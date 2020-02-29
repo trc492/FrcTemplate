@@ -75,8 +75,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.driveOrientation = Robot.DriveOrientation.FIELD;
         robot.intake.setSpacingDistance(4);
 
-        robot.shooter.setManualOverrideEnabled(robot.switchPanel.getRawButton(FrcJoystick.PANEL_SWITCH_GREEN2));
-        robot.conveyor.setManualOverrideEnabled(robot.switchPanel.getRawButton(FrcJoystick.PANEL_SWITCH_BLUE2));
+        robot.shooter.setManualOverrideEnabled(false);
+        robot.conveyor.setManualOverrideEnabled(false);
 
         if (robot.preferences.useVision)
         {
