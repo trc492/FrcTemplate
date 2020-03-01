@@ -118,11 +118,9 @@ public abstract class FrcRemoteVisionProcessor
 
     private void connectionListener(ConnectionNotification notification)
     {
-        if (!notification.connected)
-        {
-            TrcDbgTrace.getGlobalTracer()
-                .traceErr("connectionListener", "MaybeError: Client %s disconnected!", notification.conn.remote_ip);
-        }
+        TrcDbgTrace.getGlobalTracer()
+            .traceErr("connectionListener", "Client %s connected=b!", notification.conn.remote_ip,
+                notification.connected);
     }
 
     /**
