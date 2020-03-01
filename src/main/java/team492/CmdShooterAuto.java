@@ -114,7 +114,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     {
         dbgTrace.traceInfo(instanceName + ".createToPickupPath", "[%.3f] Creating to pickup path with start=%s",
             TrcUtil.getModeElapsedTime(), start);
-        TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, RobotInfo.LAST_TRENCH_BALL_Y_POS - 12);
+        TrcPose2D target = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -158.63 - 12);
         if (startPosition == FrcAuto.StartPosition.RIGHT_WALL)
         {
             TrcPose2D middle = new TrcPose2D(RobotInfo.TRENCH_RUN_X_POS, -100, 0);
