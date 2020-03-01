@@ -181,13 +181,13 @@ public class TaskAutoShooter
     {
         boolean velReady = Math.abs(flywheelError()) <= VEL_TOLERANCE;
         boolean pitchReady = robot.shooter.pitchOnTarget();
-        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
-        boolean headingReady = isAligned;//pose != null && Math.abs(robot.vision.getLastPose().theta) <= HEADING_TOLERANCE;
+        boolean headingReady = isAligned;
         double currTime = TrcUtil.getCurrentTime();
         boolean timeReady = currTime >= nextBallShootTime;
         robot.globalTracer.traceInfo(instanceName + ".readyToShoot",
-            "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b - headingErr=%.1f",
-            TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady, headingPid.getError());
+            "[%.3f] Shooter readiness: vel=%b,pitch=%b,heading=%b,time=%b - headingErr=%.1f, pitch:(angle=%.1f,target=%.1f)",
+            TrcUtil.getModeElapsedTime(), velReady, pitchReady, headingReady, timeReady, headingPid.getError(),
+            robot.shooter.getPitch(), robot.shooter.getTargetPitch());
         return velReady && pitchReady && headingReady && timeReady;
     }
 

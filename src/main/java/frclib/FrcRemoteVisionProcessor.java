@@ -119,7 +119,7 @@ public abstract class FrcRemoteVisionProcessor
     private void connectionListener(ConnectionNotification notification)
     {
         TrcDbgTrace.getGlobalTracer()
-            .traceErr("connectionListener", "Client %s connected=b!", notification.conn.remote_ip,
+            .traceErr("connectionListener", "Client %s connected=%b!", notification.conn.remote_ip,
                 notification.connected);
     }
 

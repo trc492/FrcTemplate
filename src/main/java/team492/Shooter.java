@@ -159,6 +159,11 @@ public class Shooter
         return Math.abs(pitchMotor.motor.getClosedLoopError()) * PITCH_DEGREES_PER_COUNT <= PITCH_TOLERANCE;
     }
 
+    public double getTargetPitch()
+    {
+        return pitchMotor.motor.getClosedLoopTarget() * PITCH_DEGREES_PER_COUNT;
+    }
+
     public double getPitch()
     {
         return pitchMotor.getPosition() * PITCH_DEGREES_PER_COUNT;
