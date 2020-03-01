@@ -71,7 +71,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         robot.driveSpeed = DriveSpeed.MEDIUM;
-        robot.driveOrientation = Robot.DriveOrientation.FIELD;
+        robot.setDriveOrientation(Robot.DriveOrientation.FIELD);
         robot.intake.setSpacingDistance(4);
 
         robot.shooter.setManualOverrideEnabled(false);
@@ -93,16 +93,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
     } // stopMode
 
-    private void showStatus()
-    {
-        robot.ledIndicator.updateLED();
-    }
-
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        showStatus();
-
         robot.updateDashboard(RunMode.TELEOP_MODE);
 
         //
@@ -150,13 +143,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.SIDEWINDER_TRIGGER:
                 if (pressed)
                 {
-                    if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
+                    if (robot.getDriveOrientation() != Robot.DriveOrientation.FIELD)
                     {
-                        robot.driveOrientation = Robot.DriveOrientation.FIELD;
+                        robot.setDriveOrientation(Robot.DriveOrientation.FIELD);
                     }
                     else
                     {
-                        robot.driveOrientation = Robot.DriveOrientation.ROBOT;
+                        robot.setDriveOrientation(Robot.DriveOrientation.ROBOT);
                     }
                 }
                 break;
@@ -185,13 +178,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcXboxController.BUTTON_Y:
                 if (pressed)
                 {
-                    if (robot.driveOrientation != Robot.DriveOrientation.FIELD)
+                    if (robot.getDriveOrientation() != Robot.DriveOrientation.FIELD)
                     {
-                        robot.driveOrientation = Robot.DriveOrientation.FIELD;
+                        robot.setDriveOrientation(Robot.DriveOrientation.FIELD);
                     }
                     else
                     {
-                        robot.driveOrientation = Robot.DriveOrientation.ROBOT;
+                        robot.setDriveOrientation(Robot.DriveOrientation.ROBOT);
                     }
                 }
                 break;
@@ -199,11 +192,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcXboxController.LEFT_BUMPER:
                 if (pressed)
                 {
-                    robot.driveOrientation = Robot.DriveOrientation.INVERTED;
+                    robot.setDriveOrientation(Robot.DriveOrientation.INVERTED);
                 }
                 else
                 {
-                    robot.driveOrientation = Robot.DriveOrientation.FIELD;
+                    robot.setDriveOrientation(Robot.DriveOrientation.FIELD);
                 }
                 break;
 

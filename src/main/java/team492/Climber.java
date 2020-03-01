@@ -100,6 +100,10 @@ public class Climber
                     {
                         motor.set(CLIMB_POWER);
                     }
+                    else if (robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON_GREEN1))
+                    {
+                        motor.set(-CLIMB_POWER / 2);
+                    }
                     else
                     {
                         motor.set(0);

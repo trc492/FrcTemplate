@@ -163,7 +163,7 @@ public class Robot extends FrcRobotBase
     public int location = 1;
     public String gameSpecificMessage = null;
     public boolean traceLogOpened = false;
-    public DriveOrientation driveOrientation = DriveOrientation.FIELD;
+    private DriveOrientation driveOrientation = DriveOrientation.FIELD;
     //
     // Other robot subystems.
     //
@@ -394,12 +394,14 @@ public class Robot extends FrcRobotBase
         //
         // Miscellaneous subsystems.
         //
-        ledIndicator = new LEDIndicator(this);
+        ledIndicator = new LEDIndicator();
         shooter = new Shooter(this);
         conveyor = new Conveyor(this);
         alignment = new WallAlignment();
         intake = new Intake(this); // must initialize after conveyor
         climber = new Climber(this);
+
+        setDriveOrientation(DriveOrientation.FIELD);
 
         if (preferences.useStreamCamera)
         {
@@ -819,6 +821,17 @@ public class Robot extends FrcRobotBase
             case FIELD:
                 return driveBase.getHeading();
         }
+    }
+
+    public DriveOrientation getDriveOrientation()
+    {
+        return driveOrientation;
+    }
+
+    public void setDriveOrientation(DriveOrientation driveOrientation)
+    {
+        this.driveOrientation = driveOrientation;
+        ledIndicator.setDriveOrientation(driveOrientation);
     }
 
     /**

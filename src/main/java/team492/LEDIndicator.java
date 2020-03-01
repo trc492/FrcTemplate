@@ -24,22 +24,28 @@ package team492;
 
 import frclib.FrcAddressableLED;
 import frclib.FrcColor;
-
-import java.util.Arrays;
+import trclib.TrcAddressableLED;
 
 public class LEDIndicator
 {
-    private static final FrcColor nominalColor = FrcColor.FULL_CYAN;
-    private static final FrcColor fieldOrientedColor = FrcColor.FULL_WHITE;
-    private static final FrcColor robotOrientedColor = FrcColor.FULL_BLUE;
-    private static final FrcColor inverseOrientedColor = FrcColor.FULL_RED;
+    private static final TrcAddressableLED.Pattern nominalPattern = new TrcAddressableLED.Pattern(FrcColor.FULL_GREEN,
+        RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern fieldOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_WHITE, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern robotOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_BLUE, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern inverseOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_RED, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern conveyorPattern = new TrcAddressableLED.Pattern(FrcColor.FULL_YELLOW,
+        RobotInfo.NUM_LEDS);
 
-    private Robot robot;
+    private static final TrcAddressableLED.Pattern[] priorities = new TrcAddressableLED.Pattern[] { nominalPattern,
+        fieldOrientedPattern, robotOrientedPattern, inverseOrientedPattern, conveyorPattern };
+
     private FrcAddressableLED led;
 
-    public LEDIndicator(Robot robot)
+    public LEDIndicator()
     {
-        this.robot = robot;
         led = new FrcAddressableLED("LED", RobotInfo.NUM_LEDS, RobotInfo.PWM_CHANNEL_LED);
         reset();
     }
@@ -47,32 +53,35 @@ public class LEDIndicator
     public void reset()
     {
         led.setEnabled(true);
-        led.setColor(nominalColor);
+        led.setPatternPriorities(priorities);
+        led.reset();
+        led.resetAllPatternStates();
+        led.setPatternState(nominalPattern, true);
     }
 
-    public void updateLED()
+    public void setConveyorIndicator(boolean enabled)
     {
-        FrcColor color = nominalColor;
-        switch (robot.driveOrientation)
+        led.setPatternState(conveyorPattern, enabled);
+    }
+
+    public void setDriveOrientation(Robot.DriveOrientation orientation)
+    {
+        led.setPatternState(inverseOrientedPattern, false);
+        led.setPatternState(robotOrientedPattern, false);
+        led.setPatternState(fieldOrientedPattern, false);
+        switch (orientation)
         {
+            case INVERTED:
+                led.setPatternState(inverseOrientedPattern, true);
+                break;
+
             case FIELD:
-                color = fieldOrientedColor;
+                led.setPatternState(fieldOrientedPattern, true);
                 break;
 
             case ROBOT:
-                color = robotOrientedColor;
-                break;
-
-            case INVERTED:
-                color = inverseOrientedColor;
+                led.setPatternState(robotOrientedPattern, true);
                 break;
         }
-
-        setColor(color);
-    }
-
-    public void setColor(FrcColor color)
-    {
-        led.setColor(color);
     }
 }

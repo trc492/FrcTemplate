@@ -104,6 +104,7 @@ public class Intake
                     break;
 
                 case INTAKE:
+                    robot.ledIndicator.setConveyorIndicator(false);
                     if (!robot.conveyor.isManualOverrideEnabled() && robot.conveyor.exitProximitySensor.isActive())
                     {
                         stopIntake();
@@ -128,6 +129,7 @@ public class Intake
                     break;
 
                 case ADVANCE:
+                    robot.ledIndicator.setConveyorIndicator(true);
                     robot.conveyor.intake(null, event, conveyorPower);
                     sm.waitForSingleEvent(event, State.SECURE);
                     break;
@@ -164,6 +166,7 @@ public class Intake
         if (isActive())
         {
             robot.conveyor.stop();
+            robot.ledIndicator.setConveyorIndicator(false);
         }
         setIntakePower(0.0);
         if (retract)
