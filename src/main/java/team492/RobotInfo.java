@@ -122,8 +122,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
-    public static final int SOL_INTAKE_EXTEND = 1;
-    public static final int SOL_INTAKE_RETRACT = 0;
+    public static final int SOL_INTAKE_EXTEND = 0;
+    public static final int SOL_INTAKE_RETRACT = 1;
     public static final int SOL_LATCH_EXTEND = 2;
     public static final int SOL_LATCH_RETRACT = 3;
 

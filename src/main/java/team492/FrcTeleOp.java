@@ -96,6 +96,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
+//        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
         robot.updateDashboard(RunMode.TELEOP_MODE);
 
         //

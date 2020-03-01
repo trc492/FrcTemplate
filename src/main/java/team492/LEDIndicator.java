@@ -40,7 +40,7 @@ public class LEDIndicator
         RobotInfo.NUM_LEDS);
 
     private static final TrcAddressableLED.Pattern[] priorities = new TrcAddressableLED.Pattern[] { nominalPattern,
-        fieldOrientedPattern, robotOrientedPattern, inverseOrientedPattern, conveyorPattern };
+        robotOrientedPattern, inverseOrientedPattern, fieldOrientedPattern, conveyorPattern };
 
     private FrcAddressableLED led;
 
@@ -66,20 +66,23 @@ public class LEDIndicator
 
     public void setDriveOrientation(Robot.DriveOrientation orientation)
     {
-        led.setPatternState(inverseOrientedPattern, false);
-        led.setPatternState(robotOrientedPattern, false);
-        led.setPatternState(fieldOrientedPattern, false);
         switch (orientation)
         {
             case INVERTED:
+                led.setPatternState(robotOrientedPattern, false);
+                led.setPatternState(fieldOrientedPattern, false);
                 led.setPatternState(inverseOrientedPattern, true);
                 break;
 
             case FIELD:
+                led.setPatternState(inverseOrientedPattern, false);
+                led.setPatternState(robotOrientedPattern, false);
                 led.setPatternState(fieldOrientedPattern, true);
                 break;
 
             case ROBOT:
+                led.setPatternState(inverseOrientedPattern, false);
+                led.setPatternState(fieldOrientedPattern, false);
                 led.setPatternState(robotOrientedPattern, true);
                 break;
         }

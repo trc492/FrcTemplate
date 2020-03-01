@@ -166,8 +166,8 @@ public class Intake
         if (isActive())
         {
             robot.conveyor.stop();
-            robot.ledIndicator.setConveyorIndicator(false);
         }
+        robot.ledIndicator.setConveyorIndicator(false);
         setIntakePower(0.0);
         if (retract)
         {

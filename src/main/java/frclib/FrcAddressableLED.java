@@ -28,6 +28,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import trclib.TrcAddressableLED;
 import trclib.TrcColor;
 
+import java.util.Arrays;
+
 /**
  * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class
  * and provides methods to update the color pattern of the LED strip.
@@ -95,17 +97,24 @@ public class FrcAddressableLED extends TrcAddressableLED
     @Override
     public void updateLED(TrcColor[] colorPattern)
     {
-        for (int i = 0; i < ledBuffer.getLength(); i++)
+        if (colorPattern == null)
         {
-            if (i < colorPattern.length)
-            {
-                ledBuffer.setLED(i, ((FrcColor)colorPattern[i]).color);
-            }
-            else
-            {
-                ledBuffer.setLED(i, offColor);
-            }
+            reset();
         }
-        led.setData(ledBuffer);
+        else
+        {
+            for (int i = 0; i < ledBuffer.getLength(); i++)
+            {
+                if (i < colorPattern.length)
+                {
+                    ledBuffer.setLED(i, ((FrcColor)colorPattern[i]).color);
+                }
+                else
+                {
+                    ledBuffer.setLED(i, offColor);
+                }
+            }
+            led.setData(ledBuffer);
+        }
     }   //updateLED
 }   //class FrcAddressableLED

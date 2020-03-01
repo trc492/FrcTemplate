@@ -438,8 +438,11 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
-                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
+                    robot.intake.extendIntake();
+                }
+                else
+                {
+                    robot.intake.retractIntake();
                 }
                 break;
 
