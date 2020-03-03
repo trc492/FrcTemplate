@@ -236,7 +236,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case SHOOT:
-                    robot.autoShooter.shoot(instanceName, 3, 3, TaskAutoShooter.Mode.BOTH, event, true);
+                    robot.autoShooter.shoot(instanceName, 3, 6, TaskAutoShooter.Mode.BOTH, event, true);
                     State nextState;
                     if (afterAction != AfterAction.NOTHING)
                     {
@@ -270,7 +270,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                     break;
 
                 case MOVE_TO_SHOOT_2:
-                    robot.intake.stopIntake();
+                    robot.intake.stopIntake(false);
                     //                    robot.shooter.setPitch(RobotInfo.FLYWHEEL_HIGH_ANGLE);
                     //                    robot.shooter.setFlywheelVelocity(RobotInfo.FLYWHEEL_HIGH_SPEED);
                     path = createToShoot2Path(robot.driveBase.getFieldPosition());
@@ -287,6 +287,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
                 case WAIT:
                     timer.set(0.2, event); // wait for last ball
                     sm.waitForSingleEvent(event, State.DONE);
+                    break;
 
                 case DONE:
                     robot.globalTracer.traceInfo(instanceName + ".cmdPeriodic", "[%.3f] Finished auto! Pose=%s",
