@@ -24,9 +24,7 @@ package team492;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import frclib.FrcJoystick;
-import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcXboxController;
-import hallib.HalDashboard;
 import team492.Robot.DriveSpeed;
 import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
@@ -96,8 +94,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
-//        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
+        //        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
         robot.updateDashboard(RunMode.TELEOP_MODE);
+
+        robot.globalTracer.traceInfo("FrcTeleOp.runPeriodic", "angle=%.2f,target=%.2f,err=%.2f, out=%.2f,iterm=%.2f",
+            robot.shooter.getPitch(), robot.shooter.getTargetPitch(), robot.shooter.getPitchError(),
+            robot.shooter.pitchMotor.getPower(), robot.shooter.getPitchITerm());
 
         //
         // DriveBase operation.
