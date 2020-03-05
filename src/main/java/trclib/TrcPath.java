@@ -123,6 +123,27 @@ public class TrcPath
         return new TrcPath(inDegrees, points);
     }
 
+    public TrcPath relativeToStart()
+    {
+        TrcWaypoint[] waypoints = inDegrees ? this.waypoints : toDegrees().waypoints;
+        TrcWaypoint[] newPoints = new TrcWaypoint[waypoints.length];
+        TrcPose2D start = null;
+        for (int i = 0; i < waypoints.length; i++)
+        {
+            TrcPose2D pos = new TrcPose2D(waypoints[i].x, waypoints[i].y, waypoints[i].heading);
+            if (start == null)
+            {
+                start = pos;
+            }
+            pos = pos.relativeTo(start, false);
+            newPoints[i] = new TrcWaypoint(waypoints[i]);
+            newPoints[i].x = pos.x;
+            newPoints[i].y = pos.y;
+        }
+        TrcPath path = new TrcPath(true, waypoints);
+        return inDegrees ? path : path.toRadians();
+    }
+
     /**
      * Set the velocity and accelerations of the waypoints in the path to follow a trapezoidal velocity profile.
      * This is characterized by maxVel and maxAccel. Up to two points will be inserted into the path to make the
@@ -229,6 +250,11 @@ public class TrcPath
         }
         return (1.0 - weight) * start + weight * end;
     }   //interpolate
+
+    public TrcWaypoint getLastWaypoint()
+    {
+        return waypoints[waypoints.length - 1];
+    }
 
     /**
      * This method returns the waypoint at the given index of the path.

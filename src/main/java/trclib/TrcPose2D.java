@@ -26,6 +26,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This class implements a 2D pose object that represents the positional state of an object.
@@ -47,17 +48,17 @@ public class TrcPose2D
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param x specifies the x component of the position.
-     * @param y specifies the y component of the position.
+     * @param x     specifies the x component of the position.
+     * @param y     specifies the y component of the position.
      * @param angle specifies the angle.
      */
     public TrcPose2D(double x, double y, double angle)
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                    TrcDbgTrace.getGlobalTracer():
-                    new TrcDbgTrace(moduleName, tracingEnabled, traceLevel, msgLevel);
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
+                new TrcDbgTrace(moduleName, tracingEnabled, traceLevel, msgLevel);
         }
 
         this.x = x;
@@ -95,6 +96,24 @@ public class TrcPose2D
         return String.format(Locale.US, "(x=%.1f,y=%.1f,angle=%.1f)", x, y, angle);
     }   //toString
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        TrcPose2D pose2D = (TrcPose2D) o;
+        return Double.compare(pose2D.x, x) == 0 && Double.compare(pose2D.y, y) == 0
+            && Double.compare(pose2D.angle, angle) == 0;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(x, y, angle);
+    }
+
     /**
      * This method creates and returns a copy of this pose.
      *
@@ -104,6 +123,16 @@ public class TrcPose2D
     {
         return new TrcPose2D(this.x, this.y, this.angle);
     }   //clone
+
+    public RealVector toPosVector()
+    {
+        return TrcUtil.createVector(x, y);
+    }
+
+    public double distanceTo(TrcPose2D pose)
+    {
+        return toPosVector().getDistance(pose.toPosVector());
+    }
 
     /**
      * This method sets this pose to be the same as the given pose.
@@ -120,7 +149,7 @@ public class TrcPose2D
     /**
      * This method returns a transformed pose relative to the given pose.
      *
-     * @param pose specifies the reference pose.
+     * @param pose           specifies the reference pose.
      * @param transformAngle specifies true to also transform angle, false to leave it alone.
      * @return pose relative to the given pose.
      */
@@ -128,10 +157,10 @@ public class TrcPose2D
     {
         double deltaX = x - pose.x;
         double deltaY = y - pose.y;
-        RealVector newPos = TrcUtil.rotateCCW(MatrixUtils.createRealVector(new double[] {deltaX, deltaY}), pose.angle);
+        RealVector newPos = TrcUtil
+            .rotateCCW(MatrixUtils.createRealVector(new double[] { deltaX, deltaY }), pose.angle);
 
-        return new TrcPose2D(
-                newPos.getEntry(0), newPos.getEntry(1), transformAngle? angle - pose.angle: angle);
+        return new TrcPose2D(newPos.getEntry(0), newPos.getEntry(1), transformAngle ? angle - pose.angle : angle);
     }   //relativeTo
 
     /**
@@ -160,13 +189,13 @@ public class TrcPose2D
         double cosAngle = Math.cos(angleRadians);
         double sinAngle = Math.sin(angleRadians);
 
-        newPose.x += xOffset*cosAngle + yOffset*sinAngle;
-        newPose.y += -xOffset*sinAngle + yOffset*cosAngle;
+        newPose.x += xOffset * cosAngle + yOffset * sinAngle;
+        newPose.y += -xOffset * sinAngle + yOffset * cosAngle;
 
         if (debugEnabled)
         {
-            dbgTrace.traceInfo(funcName, "xOffset=%.1f, yOffset=%.1f, Pose:%s, newPose:%s",
-                    xOffset, yOffset, this, newPose);
+            dbgTrace.traceInfo(funcName, "xOffset=%.1f, yOffset=%.1f, Pose:%s, newPose:%s", xOffset, yOffset, this,
+                newPose);
         }
 
         return newPose;

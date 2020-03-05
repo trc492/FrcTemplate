@@ -165,6 +165,11 @@ public class TrcWaypoint
         return waypoints;
     }   //loadPointsFromCsv
 
+    public TrcPose2D getPositionPose()
+    {
+        return new TrcPose2D(x, y, heading);
+    }
+
     /**
      * This method calculates the distance between this waypoint and the other waypoint.
      *
