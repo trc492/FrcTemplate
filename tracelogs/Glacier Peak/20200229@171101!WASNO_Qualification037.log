@@ -1,0 +1,12 @@
+GlobalTracer.robotStartMode_Info: [0.315] Sat Feb 29 17:11:01 PST 2020: ***** TELEOP_MODE *****
+GlobalTracer.resetPosition_Err: resetPosition() on SparkMax 3 failed with error kHALError!
+GlobalTracer.resetPosition_Err: resetPosition() on SparkMax 4 failed with error kHALError!
+GlobalTracer.resetPosition_Err: resetPosition() on SparkMax 5 failed with error kHALError!
+GlobalTracer.resetPosition_Err: resetPosition() on SparkMax 6 failed with error kHALError!
+GlobalTracer.Shooter.setManualOverrideEnabled_Info: [0.335] Shooter manual override enabled=false
+GlobalTracer.Conveyor.setManualOverrideEnabled_Info: [0.336] Conveyor manual override enabled=false
+GlobalTracer.Shooter.setManualOverrideEnabled_Info: [0.442] Shooter manual override enabled=false
+GlobalTracer.Conveyor.setManualOverrideEnabled_Info: [0.445] Conveyor manual override enabled=false
+GlobalTracer.startCompetition_Warn: TELEOP_MODE took too long (0.504s)
+GlobalTracer.startCompetition_Warn: TELEOP_MODE.runPeriodic took too long (0.267s)
+GlobalTracer.startCompetition_Warn: TELEOP_MODE took too long (0.275s)
