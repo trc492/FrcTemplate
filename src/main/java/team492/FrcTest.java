@@ -47,12 +47,10 @@ public class FrcTest extends FrcTeleOp
     public static final String FLYWHEEL_VEL_KEY = "Test/FlywheelVel";
     public static final String FLYWHEEL_POWER_KEY = "Test/FlywheelPower";
 
-
     public enum Test
     {
         SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_CALIBRATION, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW;
     }   // enum Test
-
 
     private enum State
     {
@@ -605,6 +603,13 @@ public class FrcTest extends FrcTeleOp
         {
             robot.dashboard.displayPrintf(11, "Intake: currState=%s", robot.intake.getIntakeTaskState());
         }
+
+        robot.dashboard
+            .displayPrintf(12, "Encoders - lf=%.1f,rf=%.1f,lr=%.1f,rr=%.1f", robot.lfDriveMotor.getPosition(),
+                robot.rfDriveMotor.getPosition(), robot.lrDriveMotor.getPosition(), robot.rrDriveMotor.getPosition());
+        robot.dashboard
+            .displayPrintf(13, "Power - lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.lfDriveMotor.getPower(),
+                robot.rfDriveMotor.getPower(), robot.lrDriveMotor.getPower(), robot.rrDriveMotor.getPower());
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.getPower());
