@@ -25,6 +25,7 @@ package team492;
 import edu.wpi.first.wpilibj.DriverStation;
 import frclib.FrcJoystick;
 import frclib.FrcXboxController;
+import hallib.HalDashboard;
 import team492.Robot.DriveSpeed;
 import trclib.TrcElapsedTimer;
 import trclib.TrcRobot;
@@ -41,6 +42,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public FrcTeleOp(Robot robot)
     {
         this.robot = robot;
+        HalDashboard.putString("MatchTime", "N/A");
     }   // FrcTeleOp
 
     //
@@ -96,6 +98,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         //        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
         robot.updateDashboard(RunMode.TELEOP_MODE);
+        HalDashboard.putString("MatchTime", String.format("%.0f", DriverStation.getInstance().getMatchTime()));
 
         robot.globalTracer.traceInfo("FrcTeleOp.runPeriodic", "angle=%.2f,target=%.2f,err=%.2f, out=%.2f,iterm=%.2f",
             robot.shooter.getPitch(), robot.shooter.getTargetPitch(), robot.shooter.getPitchError(),
