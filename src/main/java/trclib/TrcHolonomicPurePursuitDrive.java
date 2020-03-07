@@ -51,6 +51,7 @@ import org.apache.commons.math3.linear.RealVector;
 public class TrcHolonomicPurePursuitDrive
 {
     private static final boolean debugEnabled = true;
+    private static final boolean verbosePidInfo = false;
 
     public enum InterpolationType
     {
@@ -74,6 +75,10 @@ public class TrcHolonomicPurePursuitDrive
     private final TrcDriveBase driveBase;
     private final TrcTaskMgr.TaskObject driveTaskObj;
     private final TrcPidController posPidCtrl, turnPidCtrl, velPidCtrl;
+    private TrcDbgTrace msgTracer = null;
+    private TrcRobotBattery battery = null;
+    private boolean logRobotPoseEvents = false;
+    private boolean tracePidInfo = false;
     private volatile double posTolerance; // Volatile so it can be changed at runtime
     private volatile double followingDistance; // Volatile so it can be changed at runtime
     private TrcPath path;
@@ -139,6 +144,45 @@ public class TrcHolonomicPurePursuitDrive
     {
         return instanceName;
     }   //toString
+
+    /**
+     * This method sets the message tracer for logging trace messages.
+     *
+     * @param tracer specifies the tracer for logging messages.
+     * @param logRobotPoseEvents specifies true to log robot pose events, false otherwise.
+     * @param tracePidInfo specifies true to enable tracing of PID info, false otherwise.
+     * @param battery specifies the battery object to get battery info for the message.
+     */
+    public synchronized void setMsgTracer(
+        TrcDbgTrace tracer, boolean logRobotPoseEvents, boolean tracePidInfo, TrcRobotBattery battery)
+    {
+        this.msgTracer = tracer;
+        this.logRobotPoseEvents = logRobotPoseEvents;
+        this.tracePidInfo = tracePidInfo;
+        this.battery = battery;
+    }   //setMsgTracer
+
+    /**
+     * This method sets the message tracer for logging trace messages.
+     *
+     * @param tracer specifies the tracer for logging messages.
+     * @param logRobotPoseEvents specifies true to log robot pose events, false otherwise.
+     * @param tracePidInfo specifies true to enable tracing of PID info, false otherwise.
+     */
+    public void setMsgTracer(TrcDbgTrace tracer, boolean logRobotPoseEvents, boolean tracePidInfo)
+    {
+        setMsgTracer(tracer, logRobotPoseEvents, tracePidInfo, null);
+    }   //setMsgTracer
+
+    /**
+     * This method sets the message tracer for logging trace messages.
+     *
+     * @param tracer specifies the tracer for logging messages.
+     */
+    public void setMsgTracer(TrcDbgTrace tracer)
+    {
+        setMsgTracer(tracer, false, false, null);
+    }   //setMsgTracer
 
     /**
      * Maintain heading during path following, or follow the heading values in the path. If not maintaining heading,
@@ -391,6 +435,22 @@ public class TrcHolonomicPurePursuitDrive
         else
         {
             driveBase.holonomicDrive_Polar(r, theta, turnPower, pose.angle - startHeading);
+        }
+
+        if (msgTracer != null)
+        {
+            if (logRobotPoseEvents)
+            {
+                msgTracer.logEvent(instanceName, "RobotPose", "pose=\"%s\"", driveBase.getFieldPosition());
+
+            }
+
+            if (tracePidInfo)
+            {
+                if (posPidCtrl != null) posPidCtrl.printPidInfo(msgTracer, verbosePidInfo, battery);
+                if (velPidCtrl != null) velPidCtrl.printPidInfo(msgTracer, verbosePidInfo, battery);
+                if (turnPidCtrl != null) turnPidCtrl.printPidInfo(msgTracer, verbosePidInfo, battery);
+            }
         }
     }   //driveTask
 

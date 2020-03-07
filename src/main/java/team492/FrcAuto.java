@@ -302,11 +302,11 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             autoCommand.cmdPeriodic(elapsedTime);
 
-            if (robot.pidDrive.isActive() || robot.purePursuit.isActive())
-            {
-                robot.globalTracer
-                    .logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
-            }
+            // if (robot.pidDrive.isActive() || robot.purePursuit.isActive())
+            // {
+            //     robot.globalTracer
+            //         .logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
+            // }
         }
     } // runContinuous
 

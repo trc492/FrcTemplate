@@ -376,7 +376,7 @@ public class Robot extends FrcRobotBase
         pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl);
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotInfo.DRIVE_STALL_TIMEOUT);
-        pidDrive.setMsgTracer(globalTracer);
+        pidDrive.setMsgTracer(globalTracer, true, false);
 
         purePursuit = new TrcHolonomicPurePursuitDrive("purePursuit", driveBase,
             RobotInfo.PURE_PURSUIT_FOLLOWING_DISTANCE, RobotInfo.PURE_PURSUIT_POS_TOLERANCE,
@@ -384,6 +384,7 @@ public class Robot extends FrcRobotBase
             new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP, 0, RobotInfo.GYRO_TURN_KD),
             new TrcPidController.PidCoefficients(0, 0, 0, RobotInfo.PURE_PURSUIT_KF));
         purePursuit.setMoveOutputLimit(RobotInfo.PURE_PURSUIT_MOVE_OUTPUT_LIMIT);
+        purePursuit.setMsgTracer(globalTracer, true, false);
         //
         // Vision subsystem.
         //
