@@ -93,7 +93,7 @@
         "tiles": {
           "0,0": {
             "size": [
-              16,
+              19,
               12
             ],
             "content": {
@@ -201,38 +201,38 @@
         "tiles": {
           "0,0": {
             "size": [
-              4,
-              2
+              26,
+              3
             ],
             "content": {
-              "_type": "ComboBox Chooser",
+              "_type": "Split Button Chooser",
               "_source0": "network_table:///SmartDashboard/Auto/AutoStrategies",
               "_title": "AutoStrategies"
             }
           },
           "0,3": {
             "size": [
-              5,
-              2
+              10,
+              3
             ],
             "content": {
-              "_type": "ComboBox Chooser",
+              "_type": "Split Button Chooser",
               "_source0": "network_table:///SmartDashboard/Auto/StartPositions",
               "_title": "StartPositions"
             }
           },
           "0,6": {
             "size": [
-              5,
-              2
+              10,
+              3
             ],
             "content": {
-              "_type": "ComboBox Chooser",
+              "_type": "Split Button Chooser",
               "_source0": "network_table:///SmartDashboard/Auto/ShooterAutoAfterAction",
               "_title": "ShooterAutoAfterAction"
             }
           },
-          "5,3": {
+          "10,3": {
             "size": [
               4,
               2
@@ -243,7 +243,7 @@
               "_title": "CustomXPos"
             }
           },
-          "4,0": {
+          "14,3": {
             "size": [
               2,
               2
@@ -482,9 +482,9 @@
     }
   ],
   "windowGeometry": {
-    "x": -7.333333492279053,
-    "y": -7.333333492279053,
-    "width": 1294.6666259765625,
-    "height": 694.6666870117188
+    "x": -8.0,
+    "y": 1.600000023841858,
+    "width": 1290.6666259765625,
+    "height": 685.3333129882812
   }
 }
