@@ -101,15 +101,18 @@ public class TaskAutoShooter
         if (pose != null && !(isAligned && lockInPlace))
         {
             // TODO: Remove the offset of the goal
-            RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
-                .createVector((robot.vision.getTargetDepth() + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
-                    RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT + 6));
+            double depth = robot.vision.getTargetDepth();
+//            RealVector traj = TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
+//                .createVector((depth + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
+//                    RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT + 6));
+            RealVector traj = TrajectoryCalculator.interpolateVector(depth);
             if (traj != null)
             {
                 // TODO: Change to linear fudge factor?
                 this.traj = traj;
-                double velTarget = traj.getEntry(0) + 55;
-                double angleTarget = traj.getEntry(1) * ANGLE_FUDGE_FACTOR;
+                double velTarget = traj.getEntry(0);// + 55; //900;
+//                double theta = Math.toDegrees(Math.atan2(RobotInfo.HIGH_TARGET_HEIGHT, depth));
+                double angleTarget = traj.getEntry(1);
                 traj.setEntry(0, velTarget);
                 robot.shooter.setFlywheelVelocity(velTarget);
                 if (Math.abs(traj.getEntry(1) - angleTarget) <= Shooter.PITCH_TOLERANCE)

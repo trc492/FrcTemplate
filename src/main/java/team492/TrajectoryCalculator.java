@@ -32,6 +32,26 @@ public class TrajectoryCalculator
         }
     }
 
+    public static RealVector interpolateVector(double distance)
+    {
+        double[] distances = new double[] { 76, 124, 180, 220, 280, 330 };
+        double[] velocities = new double[] { 464, 537, 720, 780, 820, 920 };
+        double[] angles = new double[] { 37, 30.5, 24.5, 25, 23, 21 };
+        for (int i = 0; i < distances.length - 1; i++)
+        {
+            if (TrcUtil.inRange(distance, distances[i], distances[i + 1]))
+            {
+                double w = (distance - distances[i]) / (distances[i + 1] - distances[i]);
+                double v = (1 - w) * velocities[i] + w * velocities[i+1];
+                double angle = (1 - w) * angles[i] + w * angles[i+1];
+                return TrcUtil.createVector(v, angle);
+            }
+        }
+        return TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
+            .createVector((distance + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
+                RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT + 6));
+    }
+
     /**
      * Calculate the trajectory to place the vertex at a given point using a linear drag model. This method accounts for
      * an arm with the shooter at the end of the arm. Rotating the arm to match the trajectory angle will change the
