@@ -33,9 +33,9 @@ public class Shooter
     private static final int PITCH_ALLOWABLE_ERROR = (int) (1 / PITCH_DEGREES_PER_COUNT);
 
     // Measured
-    private static final int PITCH_OFFSET_TICKS = 232;
-    private static final double PITCH_OFFSET_DEG = -3.2;
-    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (48 / PITCH_DEGREES_PER_COUNT); // gosh darn G17
+    private static final int PITCH_OFFSET_TICKS = 1066;
+    private static final double PITCH_OFFSET_DEG = -1.5;
+    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (55 / PITCH_DEGREES_PER_COUNT); // gosh darn G17
     private static final int PITCH_LOWER_LIMIT_TICKS = (int) (0 / PITCH_DEGREES_PER_COUNT);
 
     public final FrcCANFalcon flywheel;
@@ -230,11 +230,14 @@ public class Shooter
         pitchMotor.motor.configClosedLoopPeakOutput(0, PITCH_MAX_POWER);
         pitchMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         pitchMotor.motor.enableVoltageCompensation(true);
+        pitchMotor.motor.configContinuousCurrentLimit(45, 10);
+        pitchMotor.motor.configPeakCurrentLimit(60, 10);
+        pitchMotor.motor.configPeakCurrentDuration(80, 10);
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
-        pitchMotor.setPositionSensorInverted(false);
-        pitchMotor.setInverted(true);
+        pitchMotor.setPositionSensorInverted(true);
+        pitchMotor.setInverted(false);
         //        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         //        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);

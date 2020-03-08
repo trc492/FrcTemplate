@@ -17,7 +17,7 @@ public class TaskAutoShooter
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
-    public static final double TARGET_OFFSET = -2.7;
+    public static final double TARGET_OFFSET = 2;
     private boolean lockInPlace;
 
     public enum Mode
