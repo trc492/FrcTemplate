@@ -13,7 +13,7 @@ import trclib.TrcUtil;
 public class TaskAutoShooter
 {
     private static final double VEL_TOLERANCE = 7; // in/sec
-    private static final double HEADING_TOLERANCE = 1.2; // deg
+    private static final double HEADING_TOLERANCE = 1.5; // deg
 
     private static final double VEL_FUDGE_FACTOR = 1.2;
     private static final double ANGLE_FUDGE_FACTOR = 1.0;
@@ -224,7 +224,12 @@ public class TaskAutoShooter
 
     public void trackTarget()
     {
-        shoot(instanceName, 0, 0, Mode.ALIGN_ONLY, null, false);
+        trackTarget(false);
+    }
+
+    public void trackTarget(boolean lockInPlace)
+    {
+        shoot(instanceName, 0, 0, Mode.ALIGN_ONLY, null, lockInPlace);
     }
 
     public void shoot()

@@ -76,6 +76,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.shooter.setManualOverrideEnabled(false);
         robot.conveyor.setManualOverrideEnabled(false);
+        robot.shooter.setFlashlightEnabled(true);
 
         if (robot.preferences.useVision)
         {
@@ -93,6 +94,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
+        robot.shooter.setFlashlightEnabled(false);
     } // stopMode
 
     @Override
@@ -100,6 +102,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         //        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
         robot.updateDashboard(RunMode.TELEOP_MODE);
+        robot.dashboard.displayPrintf(14, robot.shooter.flashlight.get().getPrettyValue());
         if (DriverStation.getInstance().isFMSAttached())
         {
             HalDashboard.putString("MatchTime", String.format("%.0f", DriverStation.getInstance().getMatchTime()));
@@ -125,6 +128,21 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             double flywheelPower = (1 - robot.operatorStick.getZ()) / 2.0;
             flywheelPower = Math.abs(flywheelPower) > 0.15 ? flywheelPower : 0;
             robot.shooter.setFlyWheelPower(flywheelPower);
+        }
+
+        switch (robot.driverController.getPOV())
+        {
+            case 0:
+                robot.driveSpeed = DriveSpeed.FAST;
+                break;
+
+            case 270:
+                robot.driveSpeed = DriveSpeed.MEDIUM;
+                break;
+
+            case 180:
+                robot.driveSpeed = DriveSpeed.SLOW;
+                break;
         }
     }   // runPeriodic
 
@@ -214,7 +232,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcXboxController.RIGHT_BUMPER:
                 if (pressed)
                 {
-                    robot.autoShooter.trackTarget();
+                    robot.autoShooter.trackTarget(true);
                 }
                 break;
 

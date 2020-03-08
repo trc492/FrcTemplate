@@ -118,6 +118,7 @@ public class RobotInfo
     //
     // Relay channels.
     //
+    public static final int FLASHLIGHT_RELAY_CHANNEL = 0;
 
     //
     // Solenoid channels.

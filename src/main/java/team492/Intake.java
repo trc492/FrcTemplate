@@ -182,12 +182,12 @@ public class Intake
 
     public void intakeMultiple()
     {
-        intakeMultiple(true, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
+        intakeMultiple(true);
     }
 
     public void intakeMultiple(boolean extend)
     {
-        intakeMultiple(extend, DEF_INTAKE_POWER, Conveyor.DEF_INTAKE_POWER);
+        intakeMultiple(extend, 0.9, 0.9);
     }
 
     public void intakeMultiple(boolean extend, double intakePower, double conveyorPower)

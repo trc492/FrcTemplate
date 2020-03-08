@@ -3,6 +3,7 @@ package team492;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import edu.wpi.first.wpilibj.Relay;
 import frclib.FrcCANFalcon;
 import frclib.FrcCANTalon;
 import trclib.TrcDbgTrace;
@@ -35,7 +36,7 @@ public class Shooter
     // Measured
     private static final int PITCH_OFFSET_TICKS = 1066;
     private static final double PITCH_OFFSET_DEG = -1.5;
-    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (55 / PITCH_DEGREES_PER_COUNT); // gosh darn G17
+    private static final int PITCH_UPPER_LIMIT_TICKS = (int) (75 / PITCH_DEGREES_PER_COUNT); // gosh darn G17
     private static final int PITCH_LOWER_LIMIT_TICKS = (int) (0 / PITCH_DEGREES_PER_COUNT);
 
     public final FrcCANFalcon flywheel;
@@ -45,6 +46,7 @@ public class Shooter
     private Integer pitchTicksTarget;
     private boolean manualOverride;
     private Robot robot;
+    public final Relay flashlight;
 
     public Shooter(Robot robot)
     {
@@ -57,6 +59,13 @@ public class Shooter
         offsetPitchPos();
 
         pitchControlTaskObj = TrcTaskMgr.getInstance().createTask("PitchControlTask", this::pitchControlTask);
+
+        flashlight = new Relay(RobotInfo.FLASHLIGHT_RELAY_CHANNEL);
+    }
+
+    public void setFlashlightEnabled(boolean enabled)
+    {
+        flashlight.set(Relay.Value.kOn);
     }
 
     private void offsetPitchPos()
