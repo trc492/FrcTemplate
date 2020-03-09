@@ -607,9 +607,10 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard
             .displayPrintf(12, "Encoders - lf=%.1f,rf=%.1f,lr=%.1f,rr=%.1f", robot.lfDriveMotor.getPosition(),
                 robot.rfDriveMotor.getPosition(), robot.lrDriveMotor.getPosition(), robot.rrDriveMotor.getPosition());
-        robot.dashboard
-            .displayPrintf(13, "Power - lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.lfDriveMotor.getPower(),
-                robot.rfDriveMotor.getPower(), robot.lrDriveMotor.getPower(), robot.rrDriveMotor.getPower());
+        robot.dashboard.displayPrintf(13, "Power - lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.lfDriveMotor.getPower(),
+            robot.rfDriveMotor.getPower(), robot.lrDriveMotor.getPower(), robot.rrDriveMotor.getPower());
+
+        robot.dashboard.displayPrintf(14, "Flashlight: %s", robot.shooter.flashlight.get().getPrettyValue());
 
         HalDashboard.putNumber(FLYWHEEL_VEL_KEY, robot.shooter.getFlywheelVelocity());
         HalDashboard.putNumber(FLYWHEEL_POWER_KEY, robot.shooter.flywheel.getPower());

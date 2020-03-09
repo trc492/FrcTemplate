@@ -65,7 +65,7 @@ public class Shooter
 
     public void setFlashlightEnabled(boolean enabled)
     {
-        flashlight.set(Relay.Value.kOn);
+        flashlight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
     }
 
     private void offsetPitchPos()
@@ -242,13 +242,12 @@ public class Shooter
         pitchMotor.motor.configContinuousCurrentLimit(45, 10);
         pitchMotor.motor.configPeakCurrentLimit(60, 10);
         pitchMotor.motor.configPeakCurrentDuration(80, 10);
+        pitchMotor.motor.enableCurrentLimit(true);
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         pitchMotor.motor.configClearPositionOnLimitR(false, 10);
         pitchMotor.setPositionSensorInverted(true);
         pitchMotor.setInverted(false);
-        //        pitchMotor.motor.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
-        //        pitchMotor.motor.configReverseLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.motor.overrideLimitSwitchesEnable(true);

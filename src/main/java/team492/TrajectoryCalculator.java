@@ -42,8 +42,8 @@ public class TrajectoryCalculator
             if (TrcUtil.inRange(distance, distances[i], distances[i + 1]))
             {
                 double w = (distance - distances[i]) / (distances[i + 1] - distances[i]);
-                double v = (1 - w) * velocities[i] + w * velocities[i+1];
-                double angle = (1 - w) * angles[i] + w * angles[i+1];
+                double v = (1 - w) * velocities[i] + w * velocities[i + 1];
+                double angle = (1 - w) * angles[i] + w * angles[i + 1];
                 return TrcUtil.createVector(v, angle);
             }
         }

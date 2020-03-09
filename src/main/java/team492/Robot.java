@@ -782,9 +782,6 @@ public class Robot extends FrcRobotBase
         double rot;
         if (preferences.useController)
         {
-            //            double rightTrigger = driverController.getRightTriggerWithDeadband(true);
-            //            double leftTrigger = driverController.getLeftTriggerWithDeadband(true);
-            //            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
             rot = driverController.getRightXWithDeadband(true);
         }
         else

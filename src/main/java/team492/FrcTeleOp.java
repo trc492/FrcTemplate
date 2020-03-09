@@ -100,17 +100,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        //        robot.ledIndicator.setDriveOrientation(robot.getDriveOrientation());
         robot.updateDashboard(RunMode.TELEOP_MODE);
-        robot.dashboard.displayPrintf(14, robot.shooter.flashlight.get().getPrettyValue());
         if (DriverStation.getInstance().isFMSAttached())
         {
             HalDashboard.putString("MatchTime", String.format("%.0f", DriverStation.getInstance().getMatchTime()));
         }
 
-        robot.globalTracer.traceInfo("FrcTeleOp.runPeriodic", "angle=%.2f,target=%.2f,err=%.2f, out=%.2f,iterm=%.2f",
-            robot.shooter.getPitch(), robot.shooter.getTargetPitch(), robot.shooter.getPitchError(),
-            robot.shooter.pitchMotor.getPower(), robot.shooter.getPitchITerm());
+        if (Math.abs(robot.shooter.getPitchError()) <= 0.5)
+        {
+            robot.globalTracer
+                .traceInfo("FrcTeleOp.runPeriodic", "angle=%.2f,target=%.2f,err=%.2f, out=%.2f,iterm=%.2f",
+                    robot.shooter.getPitch(), robot.shooter.getTargetPitch(), robot.shooter.getPitchError(),
+                    robot.shooter.pitchMotor.getPower(), robot.shooter.getPitchITerm());
+        }
 
         //
         // DriveBase operation.
