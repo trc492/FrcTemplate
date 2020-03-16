@@ -324,6 +324,7 @@ public class CmdShooterAuto implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
+        robot.purePursuit.cancel();
         sm.stop();
         robot.intake.stopIntake();
         robot.shooter.stopFlywheel();
