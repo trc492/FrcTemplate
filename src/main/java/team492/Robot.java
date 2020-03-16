@@ -723,13 +723,20 @@ public class Robot extends FrcRobotBase
     {
         double x, y, rot;
         double mag;
+        double newMag;
         if (preferences.useController)
         {
             x = driverController.getLeftXWithDeadband(false);
             y = driverController.getLeftYWithDeadband(false);
             rot = driverController.getRightXWithDeadband(true);
             mag = TrcUtil.magnitude(x, y);
-            mag = Math.copySign(Math.pow(mag, 3), mag);
+            if (mag > 1)
+            {
+                x /= mag;
+                y /= mag;
+                mag = 1;
+            }
+            newMag = Math.pow(mag, 3);
         }
         else
         {
@@ -737,27 +744,36 @@ public class Robot extends FrcRobotBase
             y = rightDriveStick.getYWithDeadband(false);
             rot = leftDriveStick.getXWithDeadband(true);
             mag = TrcUtil.magnitude(x, y);
-            mag = Math.copySign(Math.pow(mag, 2), mag);
+            if (mag > 1)
+            {
+                x /= mag;
+                y /= mag;
+                mag = 1;
+            }
+            newMag = Math.pow(mag, 2);
         }
         switch (driveSpeed)
         {
             case SLOW:
-                mag *= RobotInfo.DRIVE_SLOW_SCALE;
+                newMag *= RobotInfo.DRIVE_SLOW_SCALE;
                 rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 break;
 
             case MEDIUM:
-                mag *= RobotInfo.DRIVE_MEDIUM_SCALE;
+                newMag *= RobotInfo.DRIVE_MEDIUM_SCALE;
                 rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
                 break;
 
             case FAST:
-                mag *= RobotInfo.DRIVE_FAST_SCALE;
+                newMag *= RobotInfo.DRIVE_FAST_SCALE;
                 rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
                 break;
         }
-        x *= mag;
-        y *= mag;
+        if (mag != 0)
+        {
+            x *= newMag / mag;
+            y *= newMag / mag;
+        }
         return new double[] { x, y, rot };
     }
 
