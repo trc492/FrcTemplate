@@ -719,90 +719,46 @@ public class Robot extends FrcRobotBase
         this.numBalls = numBalls;
     }
 
-    public double getXInput()
+    public double[] getDriveInputs()
     {
-        double x;
+        double x, y, rot;
+        double mag;
         if (preferences.useController)
         {
             x = driverController.getLeftXWithDeadband(false);
-            x = Math.copySign(Math.pow(x, 3), x);
-        }
-        else
-        {
-            x = rightDriveStick.getXWithDeadband(true);
-        }
-        switch (driveSpeed)
-        {
-            case SLOW:
-                x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                break;
-
-            case MEDIUM:
-                x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
-                break;
-
-            case FAST:
-                x *= RobotInfo.DRIVE_FAST_XSCALE;
-                break;
-        }
-        return x;
-    }
-
-    public double getYInput()
-    {
-        double y;
-        if (preferences.useController)
-        {
             y = driverController.getLeftYWithDeadband(false);
-            y = Math.copySign(Math.pow(y, 3), y);
-        }
-        else
-        {
-            y = rightDriveStick.getYWithDeadband(true);
-        }
-        switch (driveSpeed)
-        {
-            case SLOW:
-                y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                break;
-
-            case MEDIUM:
-                y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                break;
-
-            case FAST:
-                y *= RobotInfo.DRIVE_FAST_YSCALE;
-                break;
-        }
-        return y;
-    }
-
-    public double getRotInput()
-    {
-        double rot;
-        if (preferences.useController)
-        {
             rot = driverController.getRightXWithDeadband(true);
+            mag = TrcUtil.magnitude(x, y);
+            mag = Math.copySign(Math.pow(mag, 3), mag);
         }
         else
         {
+            x = rightDriveStick.getXWithDeadband(false);
+            y = rightDriveStick.getYWithDeadband(false);
             rot = leftDriveStick.getXWithDeadband(true);
+            mag = TrcUtil.magnitude(x, y);
+            mag = Math.copySign(Math.pow(mag, 2), mag);
         }
         switch (driveSpeed)
         {
             case SLOW:
+                mag *= RobotInfo.DRIVE_SLOW_SCALE;
                 rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 break;
 
             case MEDIUM:
+                mag *= RobotInfo.DRIVE_MEDIUM_SCALE;
                 rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
                 break;
 
             case FAST:
-                rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                mag *= RobotInfo.DRIVE_FAST_SCALE;
+                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
                 break;
         }
-        return rot;
+        x *= mag;
+        y *= mag;
+        return new double[] { x, y, rot };
     }
 
     public double getDriveGyroAngle()

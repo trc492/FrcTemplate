@@ -117,9 +117,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // DriveBase operation.
         //
-        double x = robot.getXInput();
-        double y = robot.getYInput();
-        double rot = robot.getRotInput();
+        double[] inputs = robot.getDriveInputs();
+        double x = inputs[0];
+        double y = inputs[1];
+        double rot = inputs[2];
         double angle = robot.getDriveGyroAngle();
 
         robot.driveBase.holonomicDrive(x, y, rot, angle);

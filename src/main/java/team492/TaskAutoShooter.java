@@ -132,8 +132,9 @@ public class TaskAutoShooter
             }
             else
             {
-                double xPower = robot.getXInput();
-                double yPower = robot.getYInput();
+                double[] inputs = robot.getDriveInputs();
+                double xPower = inputs[0];
+                double yPower = inputs[1];
                 double rotPower = headingPid.getOutput();
                 HalDashboard.putNumber("HeadingErr", headingPid.getError());
                 robot.driveBase.holonomicDrive(owner, xPower, yPower, rotPower, robot.getDriveGyroAngle());

@@ -33,12 +33,13 @@ public class TaskSnapToAngle
 
     private void controlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        if (robot.getRotInput() != 0)
+        double[] inputs = robot.getDriveInputs();
+        if (inputs[2] != 0)
         {
             cancel();
             return;
         }
-        robot.driveBase.holonomicDrive(instanceName, robot.getXInput(), robot.getYInput(), headingPid.getOutput(),
+        robot.driveBase.holonomicDrive(instanceName, inputs[0], inputs[2], headingPid.getOutput(),
             robot.getDriveGyroAngle());
     }
 
