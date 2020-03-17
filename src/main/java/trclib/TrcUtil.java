@@ -275,14 +275,7 @@ public class TrcUtil
      */
     public static int leastSignificantSetBit(int data)
     {
-        int bitMask = 0;
-
-        if (data != 0)
-        {
-            bitMask = data & ~(data ^ -data);
-        }
-
-        return bitMask;
+        return Integer.lowestOneBit(data);
     }   //leastSignificantSetBit
 
     /**
@@ -297,14 +290,7 @@ public class TrcUtil
 
         if (data != 0)
         {
-            for (int i = 0; ; i++)
-            {
-                if ((data & (1 << i)) != 0)
-                {
-                    pos = i;
-                    break;
-                }
-            }
+            pos = Integer.numberOfTrailingZeros(data);
         }
 
         return pos;
@@ -322,14 +308,7 @@ public class TrcUtil
 
         if (data != 0)
         {
-            for (int i = 0; ; i++)
-            {
-                if ((data & (0x80000000 >> i)) != 0)
-                {
-                    pos = 31 - i;
-                    break;
-                }
-            }
+            pos = 31 - Integer.numberOfLeadingZeros(data);
         }
 
         return pos;
