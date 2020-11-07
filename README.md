@@ -1,1 +1,1 @@
-# Frc2020InfiniteRecharge
+# FrcTemplate
