@@ -29,7 +29,7 @@ public class RobotInfo
     //
 
     //
-    // Robot dimensions.
+    // Robot dimensions in inches.
     //
 
     //
@@ -72,6 +72,10 @@ public class RobotInfo
 
     //
     // DriveBase subsystem.
+    //
+
+    //
+    // Other subsystems.
     //
 
 }   // class RobotInfo
