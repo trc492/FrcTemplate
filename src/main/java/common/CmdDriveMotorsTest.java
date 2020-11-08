@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,60 +22,57 @@
 
 package common;
 
+import java.util.Locale;
+
 import team492.Robot;
 import trclib.TrcEvent;
-import trclib.TrcPidDrive.TurnMode;
+import trclib.TrcMotorController;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
+import trclib.TrcTimer;
 
 /**
- * This class implements a waltz turn command sequence. It is useful for avoiding a pushing match with our
- * opponent. If our opponent is trying to engage a pushing match with us, the driver can push a button and
- * cause the robot to pivot left or right 180 degrees and continue on with the robot driving in reverse.
+ * This class implements the drive base motors test. This test will spin each of the drive base motors at the
+ * specified drive power for the specified period of time.
  */
-public class CmdWaltzTurn implements TrcRobot.RobotCommand
+public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
 {
-    private static enum State
+    private enum State
     {
-        WALTZ_TURN,
+        START,
         DONE
     }   //enum State
 
-    private static final String moduleName = "CmdWaltzTurn";
+    private static final String moduleName = "CmdDriveMotorsTest";
 
-    private final Robot robot;
-    private final TrcEvent event;
-    private final TrcStateMachine<State> sm;
-    private TurnMode prevTurnMode;
-    private boolean clockwiseTurn = false;
-    private boolean driveInverted = false;
+    private Robot robot;
+    private TrcMotorController[] motors;
+    private double driveTime;
+    private double drivePower;
+    private TrcEvent event;
+    private TrcTimer timer;
+    private TrcStateMachine<State> sm;
+    private int motorIndex = 0;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param robot specifies the robot object for providing access to various global objects.
+     * @param motors specifies the array of motors on the drive base.
+     * @param driveTime specifies the amount of drive time in seconds.
+     * @param drivePower specifies the motor power.
      */
-    public CmdWaltzTurn(Robot robot)
+    public CmdDriveMotorsTest(Robot robot, TrcMotorController[] motors, double driveTime, double drivePower)
     {
         this.robot = robot;
+        this.motors = motors;
+        this.driveTime = driveTime;
+        this.drivePower = drivePower;
         event = new TrcEvent(moduleName);
+        timer = new TrcTimer(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        prevTurnMode = robot.pidDrive.getTurnMode();
-    }   //CmdWaltzTurn
-
-    /**
-     * This method is called to start the command sequence doing a clockwise or counter-clockwise waltz turn.
-     *
-     * @param clockwiseTurn specifies true for a clockwise turn, false for counter-clockwise turn.
-     * @param driveInverted specifies the current inverted drive state of the robot.
-     */
-    public void start(boolean clockwiseTurn, boolean driveInverted)
-    {
-        this.clockwiseTurn = clockwiseTurn;
-        this.driveInverted = driveInverted;
-        cancel();
-        sm.start(State.WALTZ_TURN);
-    }   //start
+        sm.start(State.START);
+    }   //CmdDriveMotorsTest
 
     //
     // Implements the TrcRobot.RobotCommand interface.
@@ -86,6 +83,7 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
      *
      * @return true if the command is running, false otherwise.
      */
+    @Override
     public boolean isActive()
     {
         return sm.isEnabled();
@@ -97,11 +95,7 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        if (robot.pidDrive.isActive())
-        {
-            robot.pidDrive.cancel();
-            robot.pidDrive.setTurnMode(prevTurnMode);
-        }
+        robot.driveBase.stop();
         sm.stop();
     }   //cancel
 
@@ -122,37 +116,50 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
         }
         else
         {
-            double turnTarget = 0.0;
+            StringBuilder msg = new StringBuilder("Enc:");
 
-            robot.dashboard.displayPrintf(1, "State: %s", state);
-
+            for (int i = 0; i < motors.length; i++)
+            {
+                msg.append(String.format(Locale.US, " [%d]=%6.2f", motors[i].getPosition()));
+            }
+            robot.dashboard.displayPrintf(1, "Motors Test: state=%s, index=%d", state, motorIndex);
+            robot.dashboard.displayPrintf(2, "%s", msg);
+    
             switch (state)
             {
-                case WALTZ_TURN:
+                case START:
                     //
-                    // Do the waltz turn.
+                    // Spin a wheel at drivePower for driveTime seconds.
                     //
-                    turnTarget = clockwiseTurn? 180.0: -180.0;
-                    prevTurnMode = robot.pidDrive.getTurnMode();
-                    robot.pidDrive.setTurnMode(driveInverted? TurnMode.PIVOT_FORWARD: TurnMode.PIVOT_BACKWARD);
-                    robot.pidDrive.setRelativeTurnTarget(turnTarget, event);
-                    sm.waitForSingleEvent(event, State.DONE);
+                    for (int i = 0; i < motors.length; i++)
+                    {
+                        if (i == motorIndex)
+                        {
+                            motors[i].set(drivePower);
+                        }
+                        else
+                        {
+                            motors[i].set(0.0);
+                        }
+                    }
+                    motorIndex++;
+                    timer.set(driveTime, event);
+                    sm.waitForSingleEvent(event, motorIndex < motors.length ? State.START : State.DONE);
                     break;
 
                 case DONE:
-                default:
                     //
-                    // We are done.
+                    // We are done, stop all wheels.
                     //
-                    robot.pidDrive.setTurnMode(prevTurnMode);
+                    robot.driveBase.stop();
                     sm.stop();
                     break;
             }
 
-            robot.globalTracer.traceStateInfo(state, robot.driveBase, robot.pidDrive);
+            robot.globalTracer.traceStateInfo(state);
         }
 
         return !sm.isEnabled();
     }   //cmdPeriodic
 
-}   //class CmdWaltzTurn
+}   //class CmdDriveMotorsTest

@@ -281,6 +281,85 @@ public class TrcDbgTrace
     }   //logEvent
 
     /**
+     * This method logs a state info event using the global tracer. The state info event can be used to debug an
+     * autonomous state machine. If the state involves PID controlled driving, it also logs the robot's movement.
+     *
+     * @param state specifies the current state of the state machine.
+     * @param driveBase specifies the robot drive base, can be null if the state does not involve robot movement.
+     * @param pidDrive specifies the pidDrive object, can be null if the state does not involve robot movement.
+     * @param battery specifies the robot battery object, can be null if not interested in battery info.
+     */
+    public void traceStateInfo(Object state, TrcDriveBase driveBase, TrcPidDrive pidDrive, TrcRobotBattery battery)
+    {
+        StringBuilder msg = new StringBuilder();
+
+        msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", state));
+        if (driveBase != null && pidDrive != null && pidDrive.isActive())
+        {
+            TrcPose2D robotPose = driveBase.getFieldPosition();
+            TrcPose2D targetPose = pidDrive.getAbsoluteTargetPose();
+
+            if (pidDrive.getXPidCtrl() != null)
+            {
+                msg.append(String.format(Locale.US, " xPos=%6.2f xTarget=%6.2f", robotPose.x, targetPose.x));
+            }
+
+            if (pidDrive.getYPidCtrl() != null)
+            {
+                msg.append(String.format(Locale.US, " yPos=%6.2f yTarget=%6.2f", robotPose.y, targetPose.y));
+            }
+
+            if (pidDrive.getTurnPidCtrl() != null)
+            {
+                msg.append(String.format(Locale.US, " heading=%6.2f headingTarget=%6.2f",
+                        robotPose.angle, targetPose.angle));
+            }
+        }
+
+        if (battery != null)
+        {
+            msg.append(String.format(Locale.US,
+                    " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
+        }
+
+        logEvent("traceStateInfo", "StateInfo", "%s", msg);
+    }   //traceStateInfo
+
+    /**
+     * This method logs a state info event. The state info event can be used to debug an autonomous state machine.
+     * If the state involves PID controlled driving, it also logs the robot's movement.
+     *
+     * @param state specifies the current state of the state machine.
+     * @param driveBase specifies the robot drive base, can be null if the state does not involve robot movement.
+     * @param pidDrive specifies the pidDrive object, can be null if the state does not involve robot movement.
+     */
+    public void traceStateInfo(Object state, TrcDriveBase driveBase, TrcPidDrive pidDrive)
+    {
+        traceStateInfo(state, driveBase, pidDrive, null);
+    }   //traceStateInfo
+
+    /**
+     * This method logs a state info event. The state info event can be used to debug an autonomous state machine.
+     *
+     * @param state specifies the current state of the state machine.
+     * @param battery specifies the robot battery object, can be null if not interested in battery info.
+     */
+    public void traceStateInfo(Object state, TrcRobotBattery battery)
+    {
+        traceStateInfo(state, null, null, battery);
+    }   //traceStateInfo
+
+    /**
+     * This method logs a state info event. The state info event can be used to debug an autonomous state machine.
+     *
+     * @param state specifies the current state of the state machine.
+     */
+    public void traceStateInfo(Object state)
+    {
+        traceStateInfo(state, null, null, null);
+    }   //traceStateInfo
+
+    /**
      * This method is typically called at the beginning of a method to trace the entry parameters of the method.
      *
      * @param funcName specifies the calling method name.

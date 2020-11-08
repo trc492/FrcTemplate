@@ -1706,8 +1706,6 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
      */
     private void updateOdometry(Odometry delta, double angle)
     {
-        final String funcName = "updateOdometry";
-
         if (USE_CURVED_PATH)
         {
             // The math below uses a different coordinate system (NWU) so we have to convert

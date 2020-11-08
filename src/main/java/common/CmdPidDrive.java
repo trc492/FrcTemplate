@@ -297,7 +297,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     break;
             }
 
-            robot.traceStateInfo(elapsedTime, state.toString(), xDistance, yDistance, heading);
+            robot.globalTracer.traceStateInfo(state, robot.driveBase, robot.pidDrive);
         }
 
         return !sm.isEnabled();

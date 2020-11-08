@@ -149,7 +149,7 @@ public class TrcElapsedTimer
 
         if (!elapsedTimeQueue.isEmpty())
         {
-            elapsedTime = (long)((LinkedList)elapsedTimeQueue).getLast() / 1000000000.0;
+            elapsedTime = (long)((LinkedList<Long>)elapsedTimeQueue).getLast() / 1000000000.0;
         }
 
         return elapsedTime;
