@@ -39,7 +39,6 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
 {
     private final TrcSwerveModule lfModule, rfModule, lbModule, rbModule;
     private final double wheelBaseWidth, wheelBaseLength, wheelBaseDiagonal;
-    private double[] lastWheelPos = new double[4];
 
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.

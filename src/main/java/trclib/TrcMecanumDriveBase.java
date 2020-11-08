@@ -173,7 +173,6 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     protected Odometry getOdometryDelta(
             TrcOdometrySensor.Odometry[] prevOdometries, TrcOdometrySensor.Odometry[] currOdometries)
     {
-        final String funcName = "getOdometryDelta";
         //
         // Call super class to get Y and turn data.
         //
