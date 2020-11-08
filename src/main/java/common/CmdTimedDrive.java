@@ -22,7 +22,9 @@
 
 package common;
 
-import team492.Robot;
+import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
+import trclib.TrcDriveBase;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -42,35 +44,37 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
     }   //enum State
 
     private static final String moduleName = "CmdTimedDrive";
+    private static final HalDashboard dashboard = HalDashboard.getInstance();
+    private static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
 
-    private Robot robot;
-    private double delay;
-    private double driveTime;
-    private double xDrivePower;
-    private double yDrivePower;
-    private double turnPower;
-    private TrcEvent event;
-    private TrcTimer timer;
-    private TrcStateMachine<State> sm;
+    private final TrcDriveBase driveBase;
+    private final double delay;
+    private final double driveTime;
+    private final double xDrivePower;
+    private final double yDrivePower;
+    private final double turnPower;
+    private final TrcEvent event;
+    private final TrcTimer timer;
+    private final TrcStateMachine<State> sm;
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
+     * @param driveBase specifies the drive base object.
      * @param delay specifies delay in seconds before timed drive starts. 0 means no delay.
      * @param driveTime specifies the amount of drive time in seconds.
      * @param xDrivePower specifies the motor power in the X direction.
      * @param yDrivePower specifies the motor power in the Y direction.
      * @param turnPower specifies the motor power for turning.
      */
-    public CmdTimedDrive(
-            Robot robot, double delay, double driveTime, double xDrivePower, double yDrivePower, double turnPower)
+    public CmdTimedDrive(TrcDriveBase driveBase, double delay, double driveTime, double xDrivePower,
+            double yDrivePower, double turnPower)
     {
-        robot.globalTracer.traceInfo(
+        globalTracer.traceInfo(
                 moduleName, "delay=%.3f, time=%.1f, xPower=%.1f, yPower=%.1f, turnPower=%.1f",
                 delay, driveTime, xDrivePower, yDrivePower, turnPower);
 
-        this.robot = robot;
+        this.driveBase = driveBase;
         this.delay = delay;
         this.driveTime = driveTime;
         this.xDrivePower = xDrivePower;
@@ -103,7 +107,7 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.driveBase.stop();
+        driveBase.stop();
         sm.stop();
     }   //cancel
 
@@ -120,11 +124,11 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
+            dashboard.displayPrintf(1, "State: disabled or waiting...");
         }
         else
         {
-            robot.dashboard.displayPrintf(1, "State: %s", state);
+            dashboard.displayPrintf(1, "State: %s", state);
 
             switch (state)
             {
@@ -150,13 +154,13 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
                     //
                     // Drive the robot with the given power for a set amount of time.
                     //
-                    if (robot.driveBase.supportsHolonomicDrive())
+                    if (driveBase.supportsHolonomicDrive())
                     {
-                        robot.driveBase.holonomicDrive(xDrivePower, yDrivePower, turnPower);
+                        driveBase.holonomicDrive(xDrivePower, yDrivePower, turnPower);
                     }
                     else
                     {
-                        robot.driveBase.arcadeDrive(yDrivePower, turnPower);
+                        driveBase.arcadeDrive(yDrivePower, turnPower);
                     }
                     timer.set(driveTime, event);
                     sm.waitForSingleEvent(event, State.DONE);
@@ -170,7 +174,7 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
                     cancel();
                     break;
             }
-            robot.globalTracer.traceStateInfo(state, robot.driveBase, robot.pidDrive);
+            globalTracer.traceStateInfo(state);
         }
 
         return !sm.isEnabled();

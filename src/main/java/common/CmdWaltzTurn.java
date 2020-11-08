@@ -22,8 +22,11 @@
 
 package common;
 
-import team492.Robot;
+import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
+import trclib.TrcDriveBase;
 import trclib.TrcEvent;
+import trclib.TrcPidDrive;
 import trclib.TrcPidDrive.TurnMode;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -42,8 +45,11 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     }   //enum State
 
     private static final String moduleName = "CmdWaltzTurn";
+    private static final HalDashboard dashboard = HalDashboard.getInstance();
+    private static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
 
-    private final Robot robot;
+    private final TrcDriveBase driveBase;
+    private final TrcPidDrive pidDrive;
     private final TrcEvent event;
     private final TrcStateMachine<State> sm;
     private TurnMode prevTurnMode;
@@ -53,14 +59,16 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
+     * @param driveBase specifies the drive base object.
+     * @param pidDrive specifies the PID drive object to be used for PID controlled drive.
      */
-    public CmdWaltzTurn(Robot robot)
+    public CmdWaltzTurn(TrcDriveBase driveBase, TrcPidDrive pidDrive)
     {
-        this.robot = robot;
+        this.driveBase = driveBase;
+        this.pidDrive = pidDrive;
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        prevTurnMode = robot.pidDrive.getTurnMode();
+        prevTurnMode = pidDrive.getTurnMode();
     }   //CmdWaltzTurn
 
     /**
@@ -97,10 +105,10 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        if (robot.pidDrive.isActive())
+        if (pidDrive.isActive())
         {
-            robot.pidDrive.cancel();
-            robot.pidDrive.setTurnMode(prevTurnMode);
+            pidDrive.cancel();
+            pidDrive.setTurnMode(prevTurnMode);
         }
         sm.stop();
     }   //cancel
@@ -118,13 +126,13 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
+            dashboard.displayPrintf(1, "State: disabled or waiting...");
         }
         else
         {
             double turnTarget = 0.0;
 
-            robot.dashboard.displayPrintf(1, "State: %s", state);
+            dashboard.displayPrintf(1, "State: %s", state);
 
             switch (state)
             {
@@ -133,9 +141,9 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
                     // Do the waltz turn.
                     //
                     turnTarget = clockwiseTurn? 180.0: -180.0;
-                    prevTurnMode = robot.pidDrive.getTurnMode();
-                    robot.pidDrive.setTurnMode(driveInverted? TurnMode.PIVOT_FORWARD: TurnMode.PIVOT_BACKWARD);
-                    robot.pidDrive.setRelativeTurnTarget(turnTarget, event);
+                    prevTurnMode = pidDrive.getTurnMode();
+                    pidDrive.setTurnMode(driveInverted? TurnMode.PIVOT_FORWARD: TurnMode.PIVOT_BACKWARD);
+                    pidDrive.setRelativeTurnTarget(turnTarget, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
@@ -144,12 +152,12 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
                     //
                     // We are done.
                     //
-                    robot.pidDrive.setTurnMode(prevTurnMode);
+                    pidDrive.setTurnMode(prevTurnMode);
                     sm.stop();
                     break;
             }
 
-            robot.globalTracer.traceStateInfo(state, robot.driveBase, robot.pidDrive);
+            globalTracer.traceStateInfo(state, driveBase, pidDrive);
         }
 
         return !sm.isEnabled();

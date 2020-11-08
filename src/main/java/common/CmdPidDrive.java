@@ -22,7 +22,9 @@
 
 package common;
 
-import team492.Robot;
+import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
+import trclib.TrcDriveBase;
 import trclib.TrcEvent;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
@@ -49,8 +51,10 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     }   //enum State
 
     private static final String moduleName = "CmdPidDrive";
+    private static final HalDashboard dashboard = HalDashboard.getInstance();
+    private static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
 
-    private final Robot robot;
+    private final TrcDriveBase driveBase;
     private final TrcPidDrive pidDrive;
     private final double delay;
     private final double xDistance;
@@ -58,7 +62,8 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     private final double heading;
     private final double drivePowerLimit;
     private final boolean useSensorOdometry;
-    private final boolean tuneMode;
+    private final TrcPidController.PidCoefficients tunePidCoefficients;
+
     private final TrcEvent event;
     private final TrcTimer timer;
     private final TrcStateMachine<State> sm;
@@ -73,7 +78,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
+     * @param driveBase specifies the drive base object.
      * @param pidDrive specifies the PID drive object to be used for PID controlled drive.
      * @param delay specifies delay in seconds before PID drive starts. 0 means no delay.
      * @param xDistance specifies the target distance for the X direction.
@@ -81,20 +86,22 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
      * @param heading specifies the target heading.
      * @param drivePowerLimit specifies the power limit to be applied for the PID controlled drive.
      * @param useSensorOdometry specifies true to use the sensor odometry, false to use drive base odometry.
-     * @param tuneMode specifies true if in tune mode which allows getting PID constants from the robot object
-     *        for PID tuning, false otherwise.
+     * @param tunePidCoefficients specifies PID coefficients for tuning PID controllers, can be null if not in
+     *        tune mode.
      */
     public CmdPidDrive(
-            Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading,
-            double drivePowerLimit, boolean useSensorOdometry, boolean tuneMode)
+            TrcDriveBase driveBase, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance,
+            double heading, double drivePowerLimit, boolean useSensorOdometry,
+            TrcPidController.PidCoefficients tunePidCoefficients)
     {
-        robot.globalTracer.traceInfo(
+        globalTracer.traceInfo(
                 moduleName,
                 "pidDrive=%s, delay=%.3f, xDist=%.1f, yDist=%.1f, heading=%.1f, powerLimit=%.1f, " +
-                       "useSensorOdometry=%s, tuneMode=%s",
-                pidDrive, delay, xDistance, yDistance, heading, drivePowerLimit, useSensorOdometry, tuneMode);
+                "useSensorOdometry=%s, tunePidCoefficients=%s",
+                pidDrive, delay, xDistance, yDistance, heading, drivePowerLimit, useSensorOdometry,
+                tunePidCoefficients);
 
-        this.robot = robot;
+        this.driveBase = driveBase;
         this.pidDrive = pidDrive;
         this.delay = delay;
         this.xDistance = xDistance;
@@ -102,7 +109,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
         this.heading = heading;
         this.drivePowerLimit = drivePowerLimit;
         this.useSensorOdometry = useSensorOdometry;
-        this.tuneMode = tuneMode;
+        this.tunePidCoefficients = tunePidCoefficients;
 
         event = new TrcEvent(moduleName);
         timer = new TrcTimer(moduleName);
@@ -118,7 +125,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
+     * @param driveBase specifies the drive base object.
      * @param pidDrive specifies the PID drive object to be used for PID controlled drive.
      * @param delay specifies delay in seconds before PID drive starts. 0 means no delay.
      * @param xDistance specifies the target distance for the X direction.
@@ -127,17 +134,16 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
      * @param useSensorOdometry specifies true to use the sensor odometry, false to use drive base odometry.
      */
     public CmdPidDrive(
-            Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading,
-            boolean useSensorOdometry)
+            TrcDriveBase driveBase, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance,
+            double heading, boolean useSensorOdometry)
     {
-        this(robot, pidDrive, delay, xDistance, yDistance, heading, 1.0,
-             useSensorOdometry, false);
+        this(driveBase, pidDrive, delay, xDistance, yDistance, heading, 1.0, useSensorOdometry, null);
     }   //CmdPidDrive
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
+     * @param driveBase specifies the drive base object.
      * @param pidDrive specifies the PID drive object to be used for PID controlled drive.
      * @param delay specifies delay in seconds before PID drive starts. 0 means no delay.
      * @param xDistance specifies the target distance for the X direction.
@@ -145,10 +151,10 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
      * @param heading specifies the target heading.
      */
     public CmdPidDrive(
-            Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading)
+            TrcDriveBase driveBase, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance,
+            double heading)
     {
-        this(robot, pidDrive, delay, xDistance, yDistance, heading, 1.0,
-             false, false);
+        this(driveBase, pidDrive, delay, xDistance, yDistance, heading, 1.0, false, null);
     }   //CmdPidDrive
 
     //
@@ -205,11 +211,11 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
+            dashboard.displayPrintf(1, "State: disabled or waiting...");
         }
         else
         {
-            robot.dashboard.displayPrintf(1, "State: %s", state);
+            dashboard.displayPrintf(1, "State: %s", state);
 
             switch (state)
             {
@@ -235,7 +241,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     //
                     // Drive the set distance and heading.
                     //
-                    if (tuneMode)
+                    if (tunePidCoefficients != null)
                     {
                         //
                         // We are in tune mode, we are tuning PID. We tune PID one direction at a time.
@@ -246,11 +252,11 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                             heading != 0.0 && (tunePidCtrl = turnPidCtrl) != null)
                         {
                             savedPidCoeff = tunePidCtrl.getPidCoefficients();
-                            tunePidCtrl.setPidCoefficients(robot.tunePidCoeff);
+                            tunePidCtrl.setPidCoefficients(tunePidCoefficients);
 
-                            robot.globalTracer.traceInfo("PidTuning", "%s: Kp=%f, Ki=%f, Kd=%f, Kf=%f",
-                                    tunePidCtrl, robot.tunePidCoeff.kP, robot.tunePidCoeff.kI, robot.tunePidCoeff.kD,
-                                    robot.tunePidCoeff.kF);
+                            globalTracer.traceInfo("PidTuning", "%s: Kp=%f, Ki=%f, Kd=%f, Kf=%f",
+                                    tunePidCtrl, tunePidCoefficients.kP, tunePidCoefficients.kI, tunePidCoefficients.kD,
+                                    tunePidCoefficients.kF);
                         }
                         //
                         // Do not optimize turning if we are tuning PID.
@@ -297,7 +303,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     break;
             }
 
-            robot.globalTracer.traceStateInfo(state, robot.driveBase, robot.pidDrive);
+            globalTracer.traceStateInfo(state, driveBase, pidDrive);
         }
 
         return !sm.isEnabled();

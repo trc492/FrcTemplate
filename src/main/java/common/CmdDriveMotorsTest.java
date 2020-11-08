@@ -24,7 +24,8 @@ package common;
 
 import java.util.Locale;
 
-import team492.Robot;
+import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
 import trclib.TrcEvent;
 import trclib.TrcMotorController;
 import trclib.TrcRobot;
@@ -44,27 +45,26 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
     }   //enum State
 
     private static final String moduleName = "CmdDriveMotorsTest";
+    private static final HalDashboard dashboard = HalDashboard.getInstance();
+    private static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
 
-    private Robot robot;
-    private TrcMotorController[] motors;
-    private double driveTime;
-    private double drivePower;
-    private TrcEvent event;
-    private TrcTimer timer;
-    private TrcStateMachine<State> sm;
+    private final TrcMotorController[] motors;
+    private final double driveTime;
+    private final double drivePower;
+    private final TrcEvent event;
+    private final TrcTimer timer;
+    private final TrcStateMachine<State> sm;
     private int motorIndex = 0;
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param robot specifies the robot object for providing access to various global objects.
      * @param motors specifies the array of motors on the drive base.
      * @param driveTime specifies the amount of drive time in seconds.
      * @param drivePower specifies the motor power.
      */
-    public CmdDriveMotorsTest(Robot robot, TrcMotorController[] motors, double driveTime, double drivePower)
+    public CmdDriveMotorsTest(TrcMotorController[] motors, double driveTime, double drivePower)
     {
-        this.robot = robot;
         this.motors = motors;
         this.driveTime = driveTime;
         this.drivePower = drivePower;
@@ -95,7 +95,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.driveBase.stop();
+        stopAllWheels();
         sm.stop();
     }   //cancel
 
@@ -112,7 +112,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
+            dashboard.displayPrintf(1, "State: disabled or waiting...");
         }
         else
         {
@@ -122,8 +122,8 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
             {
                 msg.append(String.format(Locale.US, " [%d]=%6.2f", motors[i].getPosition()));
             }
-            robot.dashboard.displayPrintf(1, "Motors Test: state=%s, index=%d", state, motorIndex);
-            robot.dashboard.displayPrintf(2, "%s", msg);
+            dashboard.displayPrintf(1, "Motors Test: state=%s, index=%d", state, motorIndex);
+            dashboard.displayPrintf(2, "%s", msg);
     
             switch (state)
             {
@@ -151,15 +151,26 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
                     //
                     // We are done, stop all wheels.
                     //
-                    robot.driveBase.stop();
+                    stopAllWheels();
                     sm.stop();
                     break;
             }
 
-            robot.globalTracer.traceStateInfo(state);
+            globalTracer.traceStateInfo(state);
         }
 
         return !sm.isEnabled();
     }   //cmdPeriodic
+
+    /**
+     * This method stops all motors on the drive base.
+     */
+    private void stopAllWheels()
+    {
+        for (TrcMotorController motor: motors)
+        {
+            motor.set(0.0);
+        }
+    }   //stopAllWheels
 
 }   //class CmdDriveMotorsTest
