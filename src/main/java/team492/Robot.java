@@ -28,7 +28,6 @@ import hallib.HalDashboard;
 import trclib.TrcMecanumDriveBase;
 import trclib.TrcPidController;
 import trclib.TrcPidDrive;
-import trclib.TrcRobotBattery;
 import trclib.TrcRobot.RunMode;
 
 /**
