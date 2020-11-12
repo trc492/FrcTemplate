@@ -172,6 +172,46 @@ public abstract class FrcRobotBase extends RobotBase
     }   //setupRobotModes
 
     /**
+     * This method returns the TeleOp robot mode object.
+     *
+     * @return TeleOp robot mode object or null if not yet set.
+     */
+    public RobotMode getTeleOpMode()
+    {
+        return teleOpMode;
+    }   //getTeleOpMode
+
+    /**
+     * This method returns the Autonomous robot mode object.
+     *
+     * @return Autonomous robot mode object or null if not yet set.
+     */
+    public RobotMode getAutoMode()
+    {
+        return autoMode;
+    }   //getAutoMode
+
+    /**
+     * This method returns the Test robot mode object.
+     *
+     * @return Test robot mode object or null if not yet set.
+     */
+    public RobotMode getTestMode()
+    {
+        return testMode;
+    }   //getTestMode
+
+    /**
+     * This method returns the Disabled robot mode object.
+     *
+     * @return Disabled robot mode object or null if not yet set.
+     */
+    public RobotMode getDisabledMode()
+    {
+        return disabledMode;
+    }   //getDisabledMode
+
+    /**
      * Start the competition match. This specific startCompetition() implements "main loop" behavior like that of
      * the FRC control system in 2008 and earlier, with a primary (slow) loop that is called periodically, and a
      * "fast loop" (a.k.a. "spin loop") that is called as fast as possible with no delay between calls. This code

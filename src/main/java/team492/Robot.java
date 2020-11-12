@@ -81,8 +81,6 @@ public class Robot extends FrcRobotBase
     // FMS Match info.
     //
 
-    private FrcAuto autoMode;
-
     /**
      * Constructor.
      */
@@ -132,8 +130,7 @@ public class Robot extends FrcRobotBase
         //
         // Create Robot Modes.
         //
-        autoMode = new FrcAuto(this);
-        setupRobotModes(new FrcTeleOp(this), autoMode, new FrcTest(this), new FrcDisabled(this));
+        setupRobotModes(new FrcTeleOp(this), new FrcAuto(this), new FrcTest(this), new FrcDisabled(this));
 
     }   //robotInit
 
