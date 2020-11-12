@@ -22,12 +22,7 @@
 
 package team492;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import frclib.FrcRobotBase;
-import hallib.HalDashboard;
-import trclib.TrcMecanumDriveBase;
-import trclib.TrcPidController;
-import trclib.TrcPidDrive;
 import trclib.TrcRobot.RunMode;
 
 /**
@@ -51,9 +46,6 @@ public class Robot extends FrcRobotBase
     //
     // Global objects.
     //
-    public final DriverStation ds = DriverStation.getInstance();
-    public final HalDashboard dashboard = HalDashboard.getInstance();
-    public TrcPidController.PidCoefficients tunePidCoeff;
 
     //
     // Inputs.
@@ -66,8 +58,6 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
-    public TrcMecanumDriveBase driveBase;
-    public TrcPidDrive pidDrive;
 
     //
     // Vision subsystem.
