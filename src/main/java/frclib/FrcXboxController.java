@@ -50,7 +50,6 @@ public class FrcXboxController extends XboxController
     public static final int LEFT_STICK_BUTTON = 9;
     public static final int RIGHT_STICK_BUTTON = 10;
 
-
     private static final double DEF_DEADBAND_THRESHOLD = 0.15;
     private static final double DEF_SAMPLING_PERIOD = 0.02;     //Sampling at 50Hz.
     private double samplingPeriod = DEF_SAMPLING_PERIOD;
