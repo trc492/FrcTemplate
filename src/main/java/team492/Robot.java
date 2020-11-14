@@ -23,14 +23,14 @@
 package team492;
 
 import frclib.FrcRobotBase;
+import hallib.HalDashboard;
 import trclib.TrcRobot.RunMode;
 
 /**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the TrcRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the
- * resource directory.
+ * The Main class is configured to instantiate and automatically run this class,
+ * and to call the functions corresponding to each mode, as described in the TrcRobot
+ * documentation. If you change the name of this class or the package after creating
+ * this project, you must also update the Main class to reflect the name change.
  */
 public class Robot extends FrcRobotBase
 {
@@ -42,10 +42,11 @@ public class Robot extends FrcRobotBase
     // Global constants.
     //
     public static final String programName = "FrcTemplate";
-
+ 
     //
     // Global objects.
     //
+    public final HalDashboard dashboard = HalDashboard.getInstance();
 
     //
     // Inputs.

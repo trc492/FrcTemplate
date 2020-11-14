@@ -22,7 +22,6 @@
 
 package team492;
 
-import hallib.HalDashboard;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -31,7 +30,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
     // TeleOp mode global objects.
     //
-    private static final HalDashboard dashboard = HalDashboard.getInstance();
     protected final Robot robot;
 
     public FrcTeleOp(Robot robot)
@@ -97,11 +95,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void joystickButtonEvent(int button, boolean pressed)
     {
-        dashboard.displayPrintf(8, "Joystick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+        robot.dashboard.displayPrintf(8, "Joystick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
         }
-    }
+    }   // joystickButtonEvent
 
 }   // class FrcTeleOp

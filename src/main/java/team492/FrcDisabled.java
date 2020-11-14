@@ -30,12 +30,14 @@ public class FrcDisabled implements TrcRobot.RobotMode
     //
     // Disabled mode global objects.
     //
+    private final Robot robot;
 
     public FrcDisabled(Robot robot)
     {
         //
         // Create and initialize global objects.
         //
+        this.robot = robot;
 
     }   // FrcDisabled
 

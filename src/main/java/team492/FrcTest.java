@@ -102,6 +102,10 @@ public class FrcTest extends FrcTeleOp
     @Override
     public void runPeriodic(double elapsedTime)
     {
+        //
+        // Call super.runPeriodic only if you need TeleOp control of the robot.
+        //
+
     } // runPeriodic
 
     @Override
