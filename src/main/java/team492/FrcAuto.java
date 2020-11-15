@@ -38,14 +38,12 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     // Global objects.
     //
-    private final Robot robot;
 
     public FrcAuto(Robot robot)
     {
         //
         // Create and initialize global objects.
         //
-        this.robot = robot;
 
         //
         // Create Autonomous Mode specific menus.
