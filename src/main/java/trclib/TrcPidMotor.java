@@ -742,8 +742,8 @@ public class TrcPidMotor
      * It will also check to reset the stalled condition if reset timeout was specified.
      *
      * @param power specifies the motor power.
-     * @param rangeLow specifies the range low limit.
-     * @param rangeHigh specifies the range high limit.
+     * @param rangeLow specifies the power range low limit.
+     * @param rangeHigh specifies the power range high limit.
      */
     public void setPower(double power, double rangeLow, double rangeHigh)
     {

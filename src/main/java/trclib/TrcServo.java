@@ -38,14 +38,14 @@ public abstract class TrcServo
     protected TrcDbgTrace dbgTrace = null;
 
     /**
-     * This abstract method inverts the servo motor direction.
+     * This method inverts the servo motor direction.
      *
-     * @param inverted specifies the servo direction is inverted if true.
+     * @param inverted specifies true to invert the servo direction, false otherwise.
      */
     public abstract void setInverted(boolean inverted);
 
     /**
-     * This abstract method checks if the servo motor direction is inverted.
+     * This method checks if the servo motor direction is inverted.
      *
      * @return true if the servo direction is inverted, false otherwise.
      */
@@ -59,7 +59,7 @@ public abstract class TrcServo
      * 0.0 is rotating full speed in reverse, 0.5 is to stop the motor and 1.0 is rotating the motor full speed
      * forward. Again, motor direction can be inverted if setInverted is called.
      *
-     * @param position specifies the motor position value.
+     * @param position specifies the logical servo position.
      */
     public abstract void setPosition(double position);
 
@@ -67,7 +67,7 @@ public abstract class TrcServo
      * This method returns the logical position value set by the last setPosition call. Note that servo motors do not
      * provide real time position feedback. So getPosition doesn't actually return the current position.
      *
-     * @return motor position value set by the last setPosition call.
+     * @return servo position value set by the last setPosition call.
      */
     public abstract double getPosition();
 
