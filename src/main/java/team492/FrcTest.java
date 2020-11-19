@@ -34,7 +34,6 @@ public class FrcTest extends FrcTeleOp
     //
     // Global constants.
     //
-    private static final String moduleName = "FrcTest";
 
     //
     // Tests enum.
