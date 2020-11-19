@@ -157,4 +157,9 @@ public class Robot extends FrcRobotBase
 
     }   //robotStopMode
 
+    public void updateDashboard(RunMode runMode)
+    {
+
+    }   //updateDashboard
+
 }   //class Robot

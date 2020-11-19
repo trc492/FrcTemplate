@@ -27,7 +27,7 @@ import java.util.Locale;
 import hallib.HalDashboard;
 import trclib.TrcDbgTrace;
 import trclib.TrcEvent;
-import trclib.TrcMotorController;
+import trclib.TrcMotor;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;
@@ -48,7 +48,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
     private static final HalDashboard dashboard = HalDashboard.getInstance();
     private static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
 
-    private final TrcMotorController[] motors;
+    private final TrcMotor[] motors;
     private final double driveTime;
     private final double drivePower;
     private final TrcEvent event;
@@ -63,7 +63,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
      * @param driveTime specifies the amount of drive time in seconds.
      * @param drivePower specifies the motor power.
      */
-    public CmdDriveMotorsTest(TrcMotorController[] motors, double driveTime, double drivePower)
+    public CmdDriveMotorsTest(TrcMotor[] motors, double driveTime, double drivePower)
     {
         this.motors = motors;
         this.driveTime = driveTime;
@@ -167,7 +167,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
      */
     private void stopAllWheels()
     {
-        for (TrcMotorController motor: motors)
+        for (TrcMotor motor: motors)
         {
             motor.set(0.0);
         }

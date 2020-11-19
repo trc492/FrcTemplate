@@ -28,7 +28,7 @@ import trclib.TrcRobot.RunMode;
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     //
-    // TeleOp mode global objects.
+    // Global objects.
     //
     protected final Robot robot;
 
@@ -78,13 +78,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         // Analog control of subsystem is done here if necessary.
         //
 
+        //
+        // Update dashboard
+        //
+        robot.updateDashboard(RunMode.TELEOP_MODE);
     }   // runPeriodic
 
     @Override
     public void runContinuous(double elapsedTime)
     {
         //
-        // Do subsystem assist here if necessary.
+        // Do subsystem auto-assist here if necessary.
         //
 
     } // runContinuous
