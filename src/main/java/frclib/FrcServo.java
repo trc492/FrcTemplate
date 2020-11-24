@@ -23,6 +23,7 @@
 package frclib;
 
 import edu.wpi.first.wpilibj.Servo;
+import trclib.TrcDbgTrace;
 import trclib.TrcServo;
 
 /**
@@ -34,7 +35,7 @@ import trclib.TrcServo;
 {
     private Servo servo;
     private boolean inverted = false;
-    private double lastPosition;
+    private double prevLogicalPos = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -45,8 +46,9 @@ import trclib.TrcServo;
     public FrcServo(final String instanceName, int pwmChannel)
     {
         super(instanceName);
+
         this.servo = new Servo(pwmChannel);
-        lastPosition = servo.get();
+        prevLogicalPos = servo.get();
     }   //FrcServo
 
     //
@@ -61,6 +63,14 @@ import trclib.TrcServo;
     @Override
     public void setInverted(boolean inverted)
     {
+        final String funcName = "setInverted";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "inverted=%s", Boolean.toString(inverted));
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
         this.inverted = inverted;
     }   //setInverted
 
@@ -72,6 +82,14 @@ import trclib.TrcServo;
     @Override
     public boolean isInverted()
     {
+        final String funcName = "isInverted";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", inverted);
+        }
+
         return inverted;
     }   //isInverted
 
@@ -86,11 +104,19 @@ import trclib.TrcServo;
      * @param position specifies the logical servo position.
      */
     @Override
-    public void setPosition(double position)
+    public void setLogicalPosition(double position)
     {
-        this.lastPosition = inverted? 1.0 - position: position;
-        servo.set(lastPosition);
-    }   //setPosition
+        final String funcName = "setLogicalPosition";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "position=%f", position);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
+        this.prevLogicalPos = inverted? 1.0 - position: position;
+        servo.set(prevLogicalPos);
+    }   //setLogicalPosition
 
     /**
      * This method returns the logical position value set by the last setPosition call. Note that servo motors do not
@@ -99,9 +125,17 @@ import trclib.TrcServo;
      * @return servo position value set by the last setPosition call.
      */
     @Override
-    public double getPosition()
+    public double getLogicalPosition()
     {
-        return lastPosition;
-    }   //getPosition
+        final String funcName = "getLogicalPosition";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", prevLogicalPos);
+        }
+
+        return prevLogicalPos;
+    }   //getLogicalPosition
 
 }   //class FrcServo
