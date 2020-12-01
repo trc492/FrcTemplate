@@ -55,15 +55,12 @@ public class TrcPidActuator extends TrcPidMotor
      * @param calPower specifies the motor power for the calibration.
      * @param minPos specifies the minimum position of the actuator range.
      * @param maxPos specifies the maximum position of the actuator range.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
      */
     public TrcPidActuator(
             String instanceName, TrcMotor motor1, TrcMotor motor2, double syncGain, TrcDigitalInput lowerLimitSwitch,
-            TrcPidController pidCtrl, double calPower, double minPos, double maxPos,
-            PowerCompensation powerCompensation)
+            TrcPidController pidCtrl, double calPower, double minPos, double maxPos)
     {
-        super(instanceName, motor1, motor2, syncGain, pidCtrl, calPower, powerCompensation);
+        super(instanceName, motor1, motor2, syncGain, pidCtrl, calPower);
         this.minPos = minPos;
         this.maxPos = maxPos;
         if (lowerLimitSwitch != null)
@@ -84,33 +81,12 @@ public class TrcPidActuator extends TrcPidMotor
      * @param calPower specifies the motor power for the calibration.
      * @param minPos specifies the minimum position of the actuator range.
      * @param maxPos specifies the maximum position of the actuator range.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
-     */
-    public TrcPidActuator(
-            String instanceName, TrcMotor motor, TrcDigitalInput lowerLimitSwitch, TrcPidController pidCtrl,
-            double calPower, double minPos, double maxPos, PowerCompensation powerCompensation)
-    {
-        this(instanceName, motor, null, 0.0, lowerLimitSwitch, pidCtrl, calPower, minPos, maxPos, powerCompensation);
-    }   //TrcPidActuator
-
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param motor specifies the motor in the actuator.
-     * @param lowerLimitSwitch specifies the optional lower limit switch. Required only for auto zero calibration
-     *        whenever it is active.
-     * @param pidCtrl specifies the PID controller for PID controlled movement.
-     * @param calPower specifies the motor power for the calibration.
-     * @param minPos specifies the minimum position of the actuator range.
-     * @param maxPos specifies the maximum position of the actuator range.
      */
     public TrcPidActuator(
             String instanceName, TrcMotor motor, TrcDigitalInput lowerLimitSwitch, TrcPidController pidCtrl,
             double calPower, double minPos, double maxPos)
     {
-        this(instanceName, motor, null, 0.0, lowerLimitSwitch, pidCtrl, calPower, minPos, maxPos, null);
+        this(instanceName, motor, null, 0.0, lowerLimitSwitch, pidCtrl, calPower, minPos, maxPos);
     }   //TrcPidActuator
 
     /**
@@ -127,26 +103,7 @@ public class TrcPidActuator extends TrcPidMotor
             String instanceName, TrcMotor motor, TrcDigitalInput lowerLimitSwitch, TrcPidController pidCtrl,
             double calPower)
     {
-        this(instanceName, motor, null, 0.0, lowerLimitSwitch, pidCtrl, calPower, 0.0, 0.0, null);
-    }   //TrcPidActuator
-
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param motor specifies the motor in the actuator.
-     * @param pidCtrl specifies the PID controller for PID controlled movement.
-     * @param calPower specifies the motor power for the calibration.
-     * @param minPos specifies the minimum position of the actuator range.
-     * @param maxPos specifies the maximum position of the actuator range.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
-     */
-    public TrcPidActuator(
-            String instanceName, TrcMotor motor, TrcPidController pidCtrl, double calPower, double minPos,
-            double maxPos, PowerCompensation powerCompensation)
-    {
-        this(instanceName, motor, null, 0.0, null, pidCtrl, calPower, minPos, maxPos, powerCompensation);
+        this(instanceName, motor, null, 0.0, lowerLimitSwitch, pidCtrl, calPower, 0.0, 0.0);
     }   //TrcPidActuator
 
     /**
@@ -163,7 +120,7 @@ public class TrcPidActuator extends TrcPidMotor
             String instanceName, TrcMotor motor, TrcPidController pidCtrl, double calPower, double minPos,
             double maxPos)
     {
-        this(instanceName, motor, null, 0.0, null, pidCtrl, calPower, minPos, maxPos, null);
+        this(instanceName, motor, null, 0.0, null, pidCtrl, calPower, minPos, maxPos);
     }   //TrcPidActuator
 
     /**
@@ -177,7 +134,7 @@ public class TrcPidActuator extends TrcPidMotor
     public TrcPidActuator(
             String instanceName, TrcMotor motor, TrcPidController pidCtrl, double calPower)
     {
-        this(instanceName, motor, null, 0.0, null, pidCtrl, calPower, 0.0, 0.0, null);
+        this(instanceName, motor, null, 0.0, null, pidCtrl, calPower, 0.0, 0.0);
     }   //TrcPidActuator
 
     /**

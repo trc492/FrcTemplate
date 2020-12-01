@@ -87,14 +87,6 @@ public class TrcPidController
 
         /**
          * Constructor: Create an instance of the object.
-         */
-        public PidCoefficients()
-        {
-            this(1.0, 0.0, 0.0, 0.0);
-        }   //PidCoefficients
-
-        /**
-         * Constructor: Create an instance of the object.
          *
          * @param kP specifies the Proportional constant.
          * @param kI specifies the Integral constant.
@@ -102,7 +94,7 @@ public class TrcPidController
          */
         public PidCoefficients(double kP, double kI, double kD)
         {
-            this(kP, kI, kD, 0.0);
+            this(kP, kI, kD, 0.0, 0.0);
         }   //PidCoefficients
 
         /**
@@ -112,7 +104,15 @@ public class TrcPidController
          */
         public PidCoefficients(double kP)
         {
-            this(kP, 0.0, 0.0, 0.0);
+            this(kP, 0.0, 0.0, 0.0, 0.0);
+        }   //PidCoefficients
+
+        /**
+         * Constructor: Create an instance of the object.
+         */
+        public PidCoefficients()
+        {
+            this(1.0, 0.0, 0.0, 0.0, 0.0);
         }   //PidCoefficients
 
         /**
@@ -123,7 +123,7 @@ public class TrcPidController
         @Override
         public String toString()
         {
-            return String.format("(%f,%f,%f,%f)", kP, kI, kD, kF);
+            return String.format("(%f,%f,%f,%f,%f)", kP, kI, kD, kF, iZone);
         }   //toString
 
         /**
@@ -133,7 +133,7 @@ public class TrcPidController
          */
         public PidCoefficients clone()
         {
-            return new PidCoefficients(kP, kI, kD, kF);
+            return new PidCoefficients(kP, kI, kD, kF, iZone);
         }   //clone
 
     }   //class PidCoefficients
@@ -154,14 +154,36 @@ public class TrcPidController
 
     }   //interface PidInput
 
+    /**
+     * Some actuators are non-linear. The load may vary depending on the position. For example, raising an arm
+     * against gravity will have the maximum load when the arm is horizontal and zero load when vertical. This
+     * caused problem when applying PID control on this kind of actuator because PID controller is only good at
+     * controlling linear actuators. To make PID controller works for non-linear actuators, we need to add power
+     * compensation that counteracts the non-linear component of the load so that PID only deals with the resulting
+     * linear load. However, a generic PID controller doesn't understand the actuator and has no way to come up
+     * with the compensation. Therefore, it is up to the user of the TrcPidController to provide this interface for
+     * computing the output compensation.
+     */
+    public interface PowerCompensation
+    {
+        /**
+         * This method is called to compute the power compensation to counteract the varying non-linear load.
+         *
+         * @return compensation value of the actuator.
+         */
+        double getCompensation();
+
+    }   //interface PowerCompensation
+
     public static final double DEF_SETTLING_TIME = 0.2;
 
-    private HalDashboard dashboard;
-    private String instanceName;
+    private final HalDashboard dashboard = HalDashboard.getInstance();
+    private final String instanceName;
     private PidCoefficients pidCoefficients;
     private double tolerance;
     private double settlingTime;
     private PidInput pidInput;
+    private PowerCompensation powerComp;
 
     private boolean inverted = false;
     private boolean absSetPoint = false;
@@ -198,9 +220,10 @@ public class TrcPidController
      * @param tolerance       specifies the target tolerance.
      * @param settlingTime    specifies the minimum on target settling time.
      * @param pidInput        specifies the input provider.
+     * @param powerComp       specifies the power compensation callback, can be null if none provided.
      */
-    public TrcPidController(final String instanceName, PidCoefficients pidCoefficients, double tolerance,
-        double settlingTime, PidInput pidInput)
+    public TrcPidController(String instanceName, PidCoefficients pidCoefficients, double tolerance,
+        double settlingTime, PidInput pidInput, PowerCompensation powerComp)
     {
         if (debugEnabled)
         {
@@ -209,12 +232,12 @@ public class TrcPidController
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        dashboard = HalDashboard.getInstance();
         this.instanceName = instanceName;
         this.pidCoefficients = pidCoefficients;
         this.tolerance = Math.abs(tolerance);
         this.settlingTime = Math.abs(settlingTime);
         this.pidInput = pidInput;
+        this.powerComp = powerComp;
     }   //TrcPidController
 
     /**
@@ -229,9 +252,9 @@ public class TrcPidController
      * @param pidInput        specifies the input provider.
      */
     public TrcPidController(
-            final String instanceName, PidCoefficients pidCoefficients, double tolerance, PidInput pidInput)
+            String instanceName, PidCoefficients pidCoefficients, double tolerance, PidInput pidInput)
     {
-        this(instanceName, pidCoefficients, tolerance, DEF_SETTLING_TIME, pidInput);
+        this(instanceName, pidCoefficients, tolerance, DEF_SETTLING_TIME, pidInput, null);
     }   //TrcPidController
 
     /**
@@ -288,7 +311,7 @@ public class TrcPidController
             if (verbose)
             {
                 msg.append(String.format(
-                        Locale.US, ", PIDTerms=%6.3f/%6.3f/%6.3f/%6.3f", pTerm, iTerm, dTerm, fTerm));
+                        Locale.US, ", PIDFTerms=%6.3f/%6.3f/%6.3f/%6.3f", pTerm, iTerm, dTerm, fTerm));
             }
 
             if (battery != null)
@@ -641,6 +664,16 @@ public class TrcPidController
     }   //restoreOutputLimit
 
     /**
+     * This method returns the Power Compensation handler if there is one.
+     *
+     * @return power compensation handler, null if there is none.
+     */
+    public PowerCompensation getPowerCompensation()
+    {
+        return powerComp;
+    }   //getPowerCompensation
+
+    /**
      * This method returns the current set point value.
      *
      * @return current set point.
@@ -908,8 +941,7 @@ public class TrcPidController
             dTerm = deltaTime > 0.0 ? pidCoefficients.kD * (currError - prevError) / deltaTime : 0.0;
             fTerm = pidCoefficients.kF * setPoint;
             double lastOutput = output;
-            output = pTerm + iTerm + dTerm + fTerm;
-
+            output = pTerm + iTerm + dTerm + fTerm + (powerComp != null? powerComp.getCompensation(): 0.0);
             output = TrcUtil.clipRange(output, minOutput, maxOutput);
 
             if (rampRate != null)

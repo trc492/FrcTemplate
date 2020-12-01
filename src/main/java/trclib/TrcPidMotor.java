@@ -22,6 +22,8 @@
 
 package trclib;
 
+import trclib.TrcPidController.PowerCompensation;
+
 /**
  * This class implements a platform independent PID controlled motor. A PID controlled motor may consist of one or
  * two physical motors, a position sensor, typically an encoder (or could be a potentiometer). Optionally, it supports
@@ -42,27 +44,6 @@ public class TrcPidMotor
     private TrcRobotBattery battery = null;
     private boolean tracePidInfo = false;
 
-    /**
-     * Some actuators are non-linear. The load may vary depending on the position. For example, raising an arm
-     * against gravity will have the maximum load when the arm is horizontal and zero load when vertical. This
-     * caused problem when applying PID control on this kind of actuator because PID controller is only good at
-     * controlling linear actuators. To make PID controller works for non-linear actuators, we need to add power
-     * compensation that counteracts the non-linear component of the load so that PID only deals with the resulting
-     * linear load. However, a generic PID controller doesn't understand the actuator and has no way to come up
-     * with the compensation. Therefore, it is up to the user of the TrcPIDMotor to provide this interface for
-     * computing the output compensation.
-     */
-    public interface PowerCompensation
-    {
-        /**
-         * This method is called to compute the power compensation to counteract the varying non-linear load.
-         *
-         * @return compensation value of the actuator.
-         */
-        double getCompensation();
-
-    }   //interface PowerCompensation
-
     private static final double MIN_MOTOR_POWER = -1.0;
     private static final double MAX_MOTOR_POWER = 1.0;
 
@@ -75,7 +56,7 @@ public class TrcPidMotor
     private final TrcMotor motor2;
     private final TrcPidController pidCtrl;
     private final double defCalPower;
-    private final PowerCompensation powerCompensation;
+    private final PowerCompensation powerComp;
     private final TrcTaskMgr.TaskObject pidMotorTaskObj;
     private final TrcTaskMgr.TaskObject stopMotorTaskObj;
     private boolean active = false;
@@ -117,12 +98,10 @@ public class TrcPidMotor
      * @param syncGain specifies the gain constant for synchronizing motor1 and motor2.
      * @param pidCtrl specifies the PID controller object.
      * @param defCalPower specifies the default motor power for the calibration.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
      */
     public TrcPidMotor(
         String instanceName, TrcMotor motor1, TrcMotor motor2, double syncGain, TrcPidController pidCtrl,
-        double defCalPower, PowerCompensation powerCompensation)
+        double defCalPower)
     {
         if (debugEnabled)
         {
@@ -147,7 +126,7 @@ public class TrcPidMotor
         this.syncGain = syncGain;
         this.pidCtrl = pidCtrl;
         this.defCalPower = -Math.abs(defCalPower);
-        this.powerCompensation = powerCompensation;
+        this.powerComp = pidCtrl.getPowerCompensation();
         TrcTaskMgr taskMgr = TrcTaskMgr.getInstance();
         pidMotorTaskObj = taskMgr.createTask(instanceName + ".pidMotorTask", this::pidMotorTask);
         stopMotorTaskObj = taskMgr.createTask(instanceName + ".stopMotorTask", this::stopMotorTask);
@@ -161,63 +140,11 @@ public class TrcPidMotor
      * @param motor2 specifies motor2 object. If there is only one motor, this can be set to null.
      * @param pidCtrl specifies the PID controller object.
      * @param defCalPower specifies the default motor power for the calibration.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
      */
     public TrcPidMotor(
-        String instanceName, TrcMotor motor1, TrcMotor motor2, TrcPidController pidCtrl, double defCalPower,
-        PowerCompensation powerCompensation)
+        String instanceName, TrcMotor motor1, TrcMotor motor2, TrcPidController pidCtrl, double defCalPower)
     {
-        this(instanceName, motor1, motor2, 0.0, pidCtrl, defCalPower, powerCompensation);
-    }   //TrcPidMotor
-
-    /**
-     * Constructor: Creates an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param motor specifies motor object.
-     * @param pidCtrl specifies the PID controller object.
-     * @param defCalPower specifies the default motor power for the calibration.
-     * @param powerCompensation specifies the object that implements the PowerCompensation interface, null if none
-     *                          provided.
-     */
-    public TrcPidMotor(
-        String instanceName, TrcMotor motor, TrcPidController pidCtrl, double defCalPower,
-        PowerCompensation powerCompensation)
-    {
-        this(instanceName, motor, null, 0.0, pidCtrl, defCalPower, powerCompensation);
-    }   //TrcPidMotor
-
-    /**
-     * Constructor: Creates an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param motor1 specifies motor1 object.
-     * @param motor2 specifies motor2 object. If there is only one motor, this can be set to null.
-     * @param syncGain specifies the gain constant for synchronizing motor1 and motor2.
-     * @param pidCtrl specifies the PID controller object.
-     * @param defCalPower specifies the default motor power for the calibration.
-     */
-    public TrcPidMotor(
-        String instanceName, TrcMotor motor1, TrcMotor motor2, double syncGain, TrcPidController pidCtrl,
-        double defCalPower)
-    {
-        this(instanceName, motor1, motor2, syncGain, pidCtrl, defCalPower, null);
-    }   //TrcPidMotor
-
-    /**
-     * Constructor: Creates an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param motor1 specifies motor1 object.
-     * @param motor2 specifies motor2 object. If there is only one motor, this can be set to null.
-     * @param pidCtrl specifies the PID controller object.
-     * @param defCalPower specifies the default motor power for the calibration.
-     */
-    public TrcPidMotor(
-            String instanceName, TrcMotor motor1, TrcMotor motor2, TrcPidController pidCtrl, double defCalPower)
-    {
-        this(instanceName, motor1, motor2, 0.0, pidCtrl, defCalPower, null);
+        this(instanceName, motor1, motor2, 0.0, pidCtrl, defCalPower);
     }   //TrcPidMotor
 
     /**
@@ -230,7 +157,7 @@ public class TrcPidMotor
      */
     public TrcPidMotor(String instanceName, TrcMotor motor, TrcPidController pidCtrl, double defCalPower)
     {
-        this(instanceName, motor, null, 0.0, pidCtrl, defCalPower, null);
+        this(instanceName, motor, null, 0.0, pidCtrl, defCalPower);
     }   //TrcPidMotor
 
     /**
@@ -720,9 +647,9 @@ public class TrcPidMotor
             //
             // Motor was not stalled. Do the normal processing.
             //
-            if (powerCompensation != null)
+            if (powerComp != null)
             {
-                power += powerCompensation.getCompensation();
+                power += powerComp.getCompensation();
             }
             power = TrcUtil.clipRange(power, rangeLow, rangeHigh);
             motorPower = power;
