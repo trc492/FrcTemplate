@@ -134,15 +134,15 @@ public abstract class TrcI2cLEDPanel
      * This method converts the specified RGB values into a 16-bit color value in 565 format (5-bit R, 6-bit G and
      * 5-bit B: RRRRRGGGGGGBBBBB).
      *
-     * @param red specifies the red value.
-     * @param green specifies the green value.
-     * @param blue specifies the blue value.
+     * @param red specifies the red value (0-255).
+     * @param green specifies the green value (0-255).
+     * @param blue specifies the blue value (0-255).
      * @return 16-bit color value in 565 format.
      */
     public int color(int red, int green, int blue)
     {
         final String funcName = "color";
-        int colorValue = ((red & 0xf8) << 8) | ((green & 0xfc) << 3) | (blue >> 3);
+        int colorValue = ((red & 0xf8) << 8) | ((green & 0xfc) << 3) | ((blue & 0xf8) >> 3);
 
         if (debugEnabled)
         {

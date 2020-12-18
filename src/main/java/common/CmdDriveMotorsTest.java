@@ -120,7 +120,7 @@ public class CmdDriveMotorsTest implements TrcRobot.RobotCommand
 
             for (int i = 0; i < motors.length; i++)
             {
-                msg.append(String.format(Locale.US, " [%d]=%6.2f", motors[i].getPosition()));
+                msg.append(String.format(Locale.US, " [%d]=%6.2f", i, motors[i].getPosition()));
             }
             dashboard.displayPrintf(1, "Motors Test: state=%s, index=%d", state, motorIndex);
             dashboard.displayPrintf(2, "%s", msg);
