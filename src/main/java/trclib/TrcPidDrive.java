@@ -1201,7 +1201,7 @@ public class TrcPidDrive
 
                 if (notifyEvent != null)
                 {
-                    notifyEvent.set(true);
+                    notifyEvent.signal();
                     notifyEvent = null;
                 }
             }

@@ -164,7 +164,7 @@ public class FrcSwervePathFollower
         driveBase.stop();
         if (event != null)
         {
-            event.set(true);
+            event.signal();
         }
     }
 

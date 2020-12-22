@@ -99,6 +99,10 @@ public abstract class TrcSerialBusDevice
             this.buffer = buffer;
             this.length = length;
             this.completionEvent = completionEvent;
+            if (completionEvent != null)
+            {
+                completionEvent.clear();
+            }
             this.completionHandler = completionHandler;
             this.canceled = false;
         }   //Request
@@ -583,7 +587,7 @@ public abstract class TrcSerialBusDevice
 
         if (request.completionEvent != null)
         {
-            request.completionEvent.set(true);
+            request.completionEvent.signal();
         }
 
         if (request.completionHandler != null)

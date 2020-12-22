@@ -360,6 +360,10 @@ public abstract class TrcRGBLight
     {
         setColor(color, onPeriod, 0.0);
         this.notifyEvent = event;
+        if (event != null)
+        {
+            event.clear();
+        }
         this.notifyReceiver = receiver;
     }   //setColor
 
@@ -375,6 +379,10 @@ public abstract class TrcRGBLight
     {
         setColor(color, onPeriod, 0.0);
         this.notifyEvent = event;
+        if (event != null)
+        {
+            event.clear();
+        }
         this.notifyReceiver = null;
     }   //setColor
 
@@ -454,7 +462,7 @@ public abstract class TrcRGBLight
                 case DONE:
                     if (notifyEvent != null)
                     {
-                        notifyEvent.set(true);
+                        notifyEvent.signal();
                     }
                     if (notifyReceiver != null)
                     {

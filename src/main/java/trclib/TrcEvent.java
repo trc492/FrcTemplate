@@ -28,6 +28,13 @@ package trclib;
  */
 public class TrcEvent
 {
+    public enum State
+    {
+        CLEARED,
+        SIGNALED,
+        CANCELED
+    }   //enum State
+
     private static final String moduleName = "TrcEvent";
     private static final boolean debugEnabled = false;
     private static final boolean tracingEnabled = false;
@@ -37,8 +44,7 @@ public class TrcEvent
     private TrcDbgTrace dbgTrace = null;
 
     private final String instanceName;
-    private boolean signaled;
-    private boolean canceled;
+    private State state;
 
     /**
      * Constructor: Create an instance of the object.
@@ -46,7 +52,7 @@ public class TrcEvent
      * @param instanceName specifies the instance name.
      * @param state specifies the initial state of the event.
      */
-    public TrcEvent(final String instanceName, boolean state)
+    public TrcEvent(final String instanceName, State state)
     {
         if (debugEnabled)
         {
@@ -56,8 +62,7 @@ public class TrcEvent
         }
 
         this.instanceName = instanceName;
-        this.signaled = state;
-        this.canceled = false;
+        this.state = state;
     }   //TrcEvent
 
     /**
@@ -67,7 +72,7 @@ public class TrcEvent
      */
     public TrcEvent(final String instanceName)
     {
-        this(instanceName, false);
+        this(instanceName, State.CLEARED);
     }   //TrcEvent
 
     /**
@@ -82,61 +87,94 @@ public class TrcEvent
     }   //toString
 
     /**
+     * This method returns the state of the event.
+     *
+     * @return state of the event.
+     */
+    public synchronized State get()
+    {
+        final String funcName = "get";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", state);
+        }
+
+        return state;
+    }   //get
+
+    /**
      * This method sets the state of the event object.
      *
-     * @param signaled specifies the event state to be set.
+     * @param state specifies the event state to be set.
      */
-    public synchronized void set(boolean signaled)
+    public synchronized void set(State state)
     {
         final String funcName = "set";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "signaled=%s", Boolean.toString(signaled));
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "state=%s", state);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        this.signaled = signaled;
+        this.state = state;
     }   //set
 
     /**
-     * This method cancels an event if it is not already signaled. An event is either signaled or canceled by the
-     * event source either of which will cause whoever is waiting for it to move on. We could have overloaded
-     * signal for this (i.e. set signal to true when canceled) but we like to be able to differentiate whether
-     * the event was completed normally or aborted.
+     * This method signals an event if it wasn't canceled.
      */
-    public synchronized void cancel()
+    public synchronized void signal()
     {
-        final String funcName = "cancel";
+        final String funcName = "signal";
+
+        if (state == State.CLEARED)
+        {
+            state = State.SIGNALED;
+        }
 
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (state=%s)", state);
         }
-
-        if (!signaled)
-        {
-            canceled = true;
-        }
-    }   //cancel
+    }   //signal
 
     /**
-     * This method clears the event.
+     * This method clears an event.
      */
     public synchronized void clear()
     {
         final String funcName = "clear";
 
+        state = State.CLEARED;
+
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (state=%s)", state);
+        }
+    }   //clear
+
+    /**
+     * This method cancels an event if it is not already signaled.
+     */
+    public synchronized void cancel()
+    {
+        final String funcName = "cancel";
+
+        if (state != State.SIGNALED)
+        {
+            state = State.CANCELED;
         }
 
-        signaled = false;
-        canceled = false;
-    }   //clear
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (state=%s)", state);
+        }
+    }   //cancel
 
     /**
      * This method checks if the event is signaled.
@@ -150,10 +188,10 @@ public class TrcEvent
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Boolean.toString(signaled));
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", state);
         }
 
-        return signaled;
+        return state == State.SIGNALED;
     }   //isSignaled
 
     /**
@@ -168,10 +206,10 @@ public class TrcEvent
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Boolean.toString(canceled));
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", state);
         }
 
-        return canceled;
+        return state == State.CANCELED;
     }   //isCanceled
 
 }   //class TrcEvent

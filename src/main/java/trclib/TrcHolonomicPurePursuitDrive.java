@@ -428,7 +428,7 @@ public class TrcHolonomicPurePursuitDrive
         {
             if (onFinishedEvent != null)
             {
-                onFinishedEvent.set(true);
+                onFinishedEvent.signal();
             }
             stop();
         }

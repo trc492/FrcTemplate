@@ -110,6 +110,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
         this.digitalInput = digitalInput;
         this.eventHandler = null;
         this.triggerEvent = triggerEvent;
+        triggerEvent.clear();
         this.triggerMode = triggerMode;
     }   //TrcDigitalInputTrigger
 
@@ -167,7 +168,7 @@ public class TrcDigitalInputTrigger extends TrcTrigger
                 triggerMode == TriggerMode.TriggerOnActive && prevState ||
                 !prevState)
             {
-                triggerEvent.set(true);
+                triggerEvent.signal();
             }
         }
     }   //notifyEvent;

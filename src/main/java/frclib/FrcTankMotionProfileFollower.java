@@ -474,7 +474,7 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
             case DONE:
                 stop();
                 if (onFinishedEvent != null)
-                    onFinishedEvent.set(true);
+                    onFinishedEvent.signal();
                 break;
         }
     }

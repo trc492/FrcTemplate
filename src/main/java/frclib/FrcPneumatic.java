@@ -777,7 +777,7 @@ public class FrcPneumatic
                     setTaskEnabled(false);
                     if (notifyEvent != null)
                     {
-                        notifyEvent.set(true);
+                        notifyEvent.signal();
                         notifyEvent = null;
                     }
                     actionList = null;

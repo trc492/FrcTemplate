@@ -201,6 +201,10 @@ public class TrcSongPlayer
         this.barDuration = barDuration;
         this.repeat = repeat;
         this.event = repeat? null: event;
+        if (event != null)
+        {
+            event.clear();
+        }
         this.receiver = repeat? null: receiver;
         setTaskEnabled(!pause);
 
@@ -599,7 +603,7 @@ public class TrcSongPlayer
                     setTaskEnabled(false);
                     if (event != null)
                     {
-                        event.set(true);
+                        event.signal();
                     }
                     if (receiver != null)
                     {
