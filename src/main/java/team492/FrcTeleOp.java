@@ -22,6 +22,7 @@
 
 package team492;
 
+import frclib.FrcXboxController;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -51,6 +52,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
+        // robot.driverController.setButtonHandler(this::controllerButtonEvent);
 
         //
         // Initialize subsystems for TeleOp mode if necessary.
@@ -73,6 +75,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // DriveBase operation.
         //
+        // robot.driveBase.tankDrive(robot.driverController.getLeftYWithDeadband(true), robot.driverController.getRightYWithDeadband(true));
+        robot.driveBase.arcadeDrive(robot.driverJoystick.getYWithDeadband(true), robot.driverJoystick.getTwistWithDeadband(true));
 
         //
         // Analog control of subsystem is done here if necessary.
@@ -97,12 +101,32 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     // Implements FrcButtonHandler.
     //
 
-    public void joystickButtonEvent(int button, boolean pressed)
+    public void controllerButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "Joystick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+        robot.dashboard.displayPrintf(8, "Controller: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
+            // case FrcXboxController.BUTTON_A:
+            //     //Align using lidars
+            //     if(pressed) {
+            //         while(Math.abs(robot.leftLidar.getRange() - robot.rightLidar.getRange()) > 10) {
+            //             if(robot.leftLidar.getRange() > robot.rightLidar.getRange()) {
+            //                 robot.driveBase.tankDrive(0.5, -0.5);
+            //             } else {
+            //                 robot.driveBase.tankDrive(-0.5, 0.5);
+            //             }
+            //         }
+            //     } else {
+            //         robot.driveBase.tankDrive(0, 0);
+            //     }
+            //     break;
+            // case FrcXboxController.BUTTON_B:
+            //     //Turn to LimeLight
+            //     if(pressed) {
+            //         robot.driveBase.tankDrive(robot.limeLight.getHeading()/-100, robot.limeLight.getHeading()/100);
+            //     }
+            //     break;
         }
     }   // joystickButtonEvent
 

@@ -22,8 +22,14 @@
 
 package team492;
 
+import frclib.FrcCANTalon;
+import frclib.FrcCANTimeOfFlight;
+import frclib.FrcJoystick;
+import frclib.FrcLimeLightVisionProcessor;
 import frclib.FrcRobotBase;
+import frclib.FrcXboxController;
 import hallib.HalDashboard;
+import trclib.TrcSimpleDriveBase;
 import trclib.TrcRobot.RunMode;
 
 /**
@@ -51,6 +57,8 @@ public class Robot extends FrcRobotBase
     //
     // Inputs.
     //
+    public FrcXboxController driverController;
+    public FrcJoystick driverJoystick;
 
     //
     // Sensors.
@@ -59,10 +67,15 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
+    public FrcCANTalon leftFrontTalon, leftRearTalon, rightFrontTalon, rightRearTalon;
+    public TrcSimpleDriveBase driveBase;
 
     //
     // Vision subsystem.
     //
+    public FrcCANTimeOfFlight leftLidar;
+    public FrcCANTimeOfFlight rightLidar;
+    public FrcLimeLightVisionProcessor limeLight;
 
     //
     // Miscellaneous subsystem.
@@ -93,6 +106,8 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize inputs.
         //
+        driverController = new FrcXboxController("driverController", RobotInfo.DRIVER_CONTROLLER);
+        driverJoystick = new FrcJoystick("driverJoystick", 1);
 
         //
         // Create and initialize sensors.
@@ -101,6 +116,19 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize DriveBase subsystem.
         //
+        leftFrontTalon = new FrcCANTalon("leftFrontTalon", RobotInfo.CANID_LEFT_FRONT);
+        leftFrontTalon.setBrakeModeEnabled(true);
+        leftRearTalon = new FrcCANTalon("leftRearTalon", RobotInfo.CANID_LEFT_REAR);
+        leftRearTalon.setBrakeModeEnabled(true);
+        leftRearTalon.follow(leftFrontTalon);
+        rightFrontTalon = new FrcCANTalon("rightFrontTalon", RobotInfo.CANID_RIGHT_FRONT);
+        rightFrontTalon.setBrakeModeEnabled(true);
+        rightFrontTalon.setInverted(true);
+        rightRearTalon = new FrcCANTalon("rightRearTalon", RobotInfo.CANID_RIGHT_REAR);
+        rightRearTalon.setBrakeModeEnabled(true);
+        rightRearTalon.follow(rightFrontTalon);
+        rightRearTalon.setInverted(true);
+        driveBase = new TrcSimpleDriveBase(leftFrontTalon, rightFrontTalon);
 
         //
         // Create PID controllers for DriveBase PID drive.
@@ -109,6 +137,9 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize Vision subsystem.
         //
+        leftLidar = new FrcCANTimeOfFlight("leftLidar", RobotInfo.CANID_LEFT_LIDAR);
+        rightLidar = new FrcCANTimeOfFlight("rightLidar", RobotInfo.CANID_RIGHT_LIDAR);
+        limeLight = new FrcLimeLightVisionProcessor("limeLight");
 
         //
         // Create and initialize other subsystems.

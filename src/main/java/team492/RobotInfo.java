@@ -35,10 +35,18 @@ public class RobotInfo
     //
     // Joystick ports.
     //
+    public static final int DRIVER_CONTROLLER = 0;
 
     //
     // CAN IDs.
     //
+    public static final int CANID_LEFT_FRONT = 3;
+    public static final int CANID_LEFT_REAR = 5;
+    public static final int CANID_RIGHT_FRONT = 4;
+    public static final int CANID_RIGHT_REAR = 6;
+
+    public static final int CANID_RIGHT_LIDAR = 21;
+    public static final int CANID_LEFT_LIDAR = 22;
 
     //
     // PDP Channels.
@@ -73,6 +81,7 @@ public class RobotInfo
     //
     // DriveBase subsystem.
     //
+    public static final int TO_ROTATIONS = 12022;
 
     //
     // Other subsystems.
