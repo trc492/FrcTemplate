@@ -52,13 +52,14 @@ public class RobotParams
     }   //class Preferences
 
     public static final String GAME_NAME                        = "RapidReact";
+    public static final String TEAM_FOLDER                      = "/home/lvuser/trc492";
     public static final double DASHBOARD_UPDATE_INTERVAL        = 0.1;
 
     //
     // Field dimensions in inches.
     //
-    public static final double FIELD_LENGTH                     = 52.0*12.0 + 5.25;
-    public static final double FIELD_WIDTH                      = 26.0*12.0 + 11.25;
+    public static final double FIELD_LENGTH                     = 54.0*12.0;
+    public static final double FIELD_WIDTH                      = 27.0*12.0;
 
     //
     // Robot dimensions in inches.
@@ -84,6 +85,7 @@ public class RobotParams
     public static final int CANID_RIGHTFRONT_DRIVE              = 4;    // 40A: Yellow
     public static final int CANID_LEFTBACK_DRIVE                = 5;    // 40A: Green
     public static final int CANID_RIGHTBACK_DRIVE               = 6;    // 40A: Blue
+    // Applicable only for Swerve Drive.
     public static final int CANID_LEFTFRONT_STEER               = 23;   // 40A: Orange
     public static final int CANID_RIGHTFRONT_STEER              = 24;   // 40A: Yellow
     public static final int CANID_LEFTBACK_STEER                = 25;   // 40A: Green
@@ -149,12 +151,33 @@ public class RobotParams
     //
     // DriveBase subsystem.
     //
-    public static final double ENCODER_INCHES_PER_COUNT         = 2.2421;
-    public static final double ENCODER_KP                       = 0.011;
-    public static final double ENCODER_KI                       = 0.0;
-    public static final double ENCODER_KD                       = 0.0013;
-    public static final double ENCODER_KF                       = 0.0;
-    public static final double ENCODER_TOLERANCE                = 2.0;
+    public static final double WCD_INCHES_PER_COUNT             = 2.2421;
+    public static final double WCD_KP                           = 0.011;
+    public static final double WCD_KI                           = 0.0;
+    public static final double WCD_KD                           = 0.0013;
+    public static final double WCD_KF                           = 0.0;
+    public static final double WCD_TOLERANCE                    = 2.0;
+
+    public static final double MECANUM_X_INCHES_PER_COUNT       = 2.2421;
+    public static final double MECANUM_X_KP                     = 0.011;
+    public static final double MECANUM_X_KI                     = 0.0;
+    public static final double MECANUM_X_KD                     = 0.0013;
+    public static final double MECANUM_X_KF                     = 0.0;
+    public static final double MECANUM_X_TOLERANCE              = 2.0;
+
+    public static final double MECANUM_Y_INCHES_PER_COUNT       = 2.2421;
+    public static final double MECANUM_Y_KP                     = 0.011;
+    public static final double MECANUM_Y_KI                     = 0.0;
+    public static final double MECANUM_Y_KD                     = 0.0013;
+    public static final double MECANUM_Y_KF                     = 0.0;
+    public static final double MECANUM_Y_TOLERANCE              = 2.0;
+
+    public static final double SWERVE_INCHES_PER_COUNT          = 2.2421;
+    public static final double SWERVE_KP                        = 0.011;
+    public static final double SWERVE_KI                        = 0.0;
+    public static final double SWERVE_KD                        = 0.0013;
+    public static final double SWERVE_KF                        = 0.0;
+    public static final double SWERVE_TOLERANCE                 = 2.0;
 
     public static final double GYRO_TURN_KP                     = 0.013;
     public static final double GYRO_TURN_KI                     = 0.0;
@@ -187,6 +210,7 @@ public class RobotParams
 
     public static final double DRIVE_RAMP_RATE                  = 0.2;
 
+    // Applicable only for Swerve Drive.
     public static final double STEER_DEGREES_PER_TICK           = 360.0 / 4096.0;
     public static final double STEER_MAX_REQ_VEL                = 1000.0;   // deg/sec. max commanded velocity, not necessarily max vel
     public static final double STEER_MAX_ACCEL                  = 5000.0;   // deg/sec^2
