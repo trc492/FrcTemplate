@@ -30,7 +30,7 @@ import TrcCommonLib.command.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import TrcFrcLib.frclib.FrcChoiceMenu;
 import TrcFrcLib.frclib.FrcUserChoices;
-import TrcCommonLib.trclib.TrcMotorController;
+import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
@@ -259,9 +259,9 @@ public class FrcTest extends FrcTeleOp
                 // rightWheel. For 4-motor drive base, it is lfWheel, rfWheel, lbWheel, rbWheel.
                 //
                 testCommand = new CmdDriveMotorsTest(
-                    new TrcMotorController[] {
-                        robot.robotDrive.lfWheel, robot.robotDrive.rfWheel,
-                        robot.robotDrive.lbWheel, robot.robotDrive.rbWheel},
+                    new TrcMotor[] {
+                        robot.robotDrive.lfDriveMotor, robot.robotDrive.rfDriveMotor,
+                        robot.robotDrive.lbDriveMotor, robot.robotDrive.rbDriveMotor},
                     5.0, 0.5);
                 break;
 
@@ -362,10 +362,10 @@ public class FrcTest extends FrcTeleOp
 
                 case X_TIMED_DRIVE:
                 case Y_TIMED_DRIVE:
-                    double lfEnc = robot.robotDrive.lfWheel.getPosition();
-                    double rfEnc = robot.robotDrive.rfWheel.getPosition();
-                    double lbEnc = robot.robotDrive.lfWheel.getPosition();
-                    double rbEnc = robot.robotDrive.rbWheel.getPosition();
+                    double lfEnc = robot.robotDrive.lfDriveMotor.getPosition();
+                    double rfEnc = robot.robotDrive.rfDriveMotor.getPosition();
+                    double lbEnc = robot.robotDrive.lbDriveMotor.getPosition();
+                    double rbEnc = robot.robotDrive.rbDriveMotor.getPosition();
                     robot.dashboard.displayPrintf(2, "Enc:lf=%.0f,rf=%.0f", lfEnc, rfEnc);
                     robot.dashboard.displayPrintf(3, "Enc:lb=%.0f,rb=%.0f", lbEnc, rbEnc);
                     robot.dashboard.displayPrintf(4, "EncAverage=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
@@ -474,12 +474,11 @@ public class FrcTest extends FrcTeleOp
             2, "DriveBase: Pose=%s,Vel=%s", robot.robotDrive.driveBase.getFieldPosition(),
             robot.robotDrive.driveBase.getFieldVelocity());
         robot.dashboard.displayPrintf(3, "DriveEncoders: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f",
-            robot.robotDrive.lfWheel.getPosition(), robot.robotDrive.rfWheel.getPosition(),
-            robot.robotDrive.lbWheel.getPosition(), robot.robotDrive.rbWheel.getPosition());
+            robot.robotDrive.lfDriveMotor.getPosition(), robot.robotDrive.rfDriveMotor.getPosition(),
+            robot.robotDrive.lbDriveMotor.getPosition(), robot.robotDrive.rbDriveMotor.getPosition());
         robot.dashboard.displayPrintf(4, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
-            robot.robotDrive.lfWheel.getPower(), robot.robotDrive.rfWheel.getPower(),
-            robot.robotDrive.lbWheel.getPower(), robot.robotDrive.rbWheel.getPower());
-
+            robot.robotDrive.lfDriveMotor.getMotorPower(), robot.robotDrive.rfDriveMotor.getMotorPower(),
+            robot.robotDrive.lbDriveMotor.getMotorPower(), robot.robotDrive.rbDriveMotor.getMotorPower());
         //
         // Display other subsystems and sensor info.
         //
