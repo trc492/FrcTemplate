@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,10 @@ public class VisionTargeting
     public VisionTargeting()
     {
         vision = new FrcLimeLightVisionProcessor("LimeLight");
-        vision.setDepthApproximator("ty", y -> (RobotParams.VISION_HIGH_TARGET_HEIGHT - CAMERA_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
-        vision.setOffsets(RobotParams.CAMERA_X_OFFSET, RobotParams.CAMERA_Y_OFFSET);
+        vision.setDepthApproximator("ty", y -> (RobotInfo.HIGH_VISION_TARGET_HEIGHT - CAMERA_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
+        vision.setOffsets(RobotInfo.CAMERA_X_OFFSET, RobotInfo.CAMERA_Y_OFFSET);
 //        vision.setOffsets(-2.5, 32);
-        vision.setFreshnessTimeout(RobotParams.CAMERA_DATA_TIMEOUT);
+        vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }
 
     public double getTargetDepth()

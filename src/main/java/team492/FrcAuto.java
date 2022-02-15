@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,329 +22,296 @@
 
 package team492;
 
+import java.util.Date;
 import java.util.Locale;
 
 import TrcCommonLib.command.CmdPidDrive;
-import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcTaskMgr;
+import TrcCommonLib.trclib.TrcUtil;
+import TrcCommonLib.trclib.TrcRobot.RobotMode;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcChoiceMenu;
-import TrcFrcLib.frclib.FrcMatchInfo;
-import TrcFrcLib.frclib.FrcUserChoices;
 import edu.wpi.first.wpilibj.DriverStation;
 
-/**
- * This class implements the code to run in Autonomous Mode.
- */
-public class FrcAuto implements TrcRobot.RobotMode
+public class FrcAuto implements RobotMode
 {
     private static final String moduleName = "FrcAuto";
+    public static final String CUSTOM_XPOS_KEY = "Auto/CustomXPos";
 
-    //
-    // Global constants.
-    //
-
-    //
-    // Auto strategies.
-    //
-    private enum AutoStrategy
+    public static class MatchInfo
     {
-        PP_DRIVE,
-        PID_DRIVE,
-        TIMED_DRIVE,
-        DO_NOTHING
-    }   //enum AutoStrategy
+        Date matchDate;
+        DriverStation.MatchType matchType;
+        int matchNumber;
 
-    /**
-     * This class encapsulates all user choices for autonomous mode from the smart dashboard.
-     *
-     * To add an autonomous choice, follow the steps below:
-     * 1. Add a DBKEY string constant.
-     * 2. If the choice is a choice menu, create a FrcChoiceMenu variable for it, create the enum type if necessary,
-     *    add code to create the FrcChoiceMenu object and add choices to it.
-     * 3. Call userChoices to add the new choice object and provide default value if necessary.
-     * 4. Add a getter method for the new choice.
-     * 5. Add an entry of the new choice to the toString method.
-     */
-    public class AutoChoices
-    {
-        // Smart dashboard keys for Autonomous choices.
-        private static final String DBKEY_AUTO_ALLIANCE = "Auto/Alliance";
-        private static final String DBKEY_AUTO_STRATEGY = "Auto/Strategy";
-        private static final String DBKEY_AUTO_START_DELAY = "Auto/StartDelay";
-        private static final String DBKEY_AUTO_PATHFILE = "Auto/PathFile";
-        private static final String DBKEY_AUTO_X_DRIVE_DISTANCE = "Auto/XDriveDistance";
-        private static final String DBKEY_AUTO_Y_DRIVE_DISTANCE = "Auto/YDriveDistance";
-        private static final String DBKEY_AUTO_TURN_ANGLE = "Auto/TurnAngle";
-        private static final String DBKEY_AUTO_DRIVE_TIME = "Auto/DriveTime";
-        private static final String DBKEY_AUTO_DRIVE_POWER = "Auto/DrivePower";
-
-        private final FrcUserChoices userChoices = new FrcUserChoices();
-        private final FrcChoiceMenu<DriverStation.Alliance> allianceMenu;
-        private final FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
-
-        public AutoChoices()
-        {
-            //
-            // Create autonomous mode specific choice menus.
-            //
-            allianceMenu = new FrcChoiceMenu<>("Alliance:");
-            autoStrategyMenu = new FrcChoiceMenu<>("Autonomous Strategies:");
-            //
-            // Populate autonomous mode choice menus.
-            //
-            allianceMenu.addChoice("Red", DriverStation.Alliance.Red, true, false);
-            allianceMenu.addChoice("Blue", DriverStation.Alliance.Blue, false, true);
-
-            autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
-            autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
-            autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
-            autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, true);
-            //
-            // Initialize dashboard with default choice values.
-            //
-            userChoices.addChoiceMenu(DBKEY_AUTO_ALLIANCE, allianceMenu);
-            userChoices.addChoiceMenu(DBKEY_AUTO_STRATEGY, autoStrategyMenu);
-            userChoices.addNumber(DBKEY_AUTO_START_DELAY, 0.0);
-            userChoices.addString(DBKEY_AUTO_PATHFILE, "DrivePath.csv");
-            userChoices.addNumber(DBKEY_AUTO_X_DRIVE_DISTANCE, 6.0);    // in feet
-            userChoices.addNumber(DBKEY_AUTO_Y_DRIVE_DISTANCE, 6.0);    // in feet
-            userChoices.addNumber(DBKEY_AUTO_TURN_ANGLE, 90.0);         // in degrees
-            userChoices.addNumber(DBKEY_AUTO_DRIVE_TIME, 4.0);          // in seconds
-            userChoices.addNumber(DBKEY_AUTO_DRIVE_POWER, 0.5);
-        }   //AutoChoices
-
-        //
-        // Getters for autonomous mode choices.
-        //
-
-        public DriverStation.Alliance getAlliance()
-        {
-            // Get alliance info from FMS if one is connected. If not, get it from dashboard.
-            FrcMatchInfo matchInfo = FrcMatchInfo.getMatchInfo();
-            return matchInfo.eventName != null? matchInfo.alliance: allianceMenu.getCurrentChoiceObject();
-        }   //getAlliance
-
-        public AutoStrategy getStrategy()
-        {
-            return autoStrategyMenu.getCurrentChoiceObject();
-        }   //getStrategy
-
-        public double getStartDelay()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_START_DELAY);
-        }   //getStartDelay
-
-        public String getPathFile()
-        {
-            return userChoices.getUserString(DBKEY_AUTO_PATHFILE);
-        }   //getPathFile
-
-        public double getXDriveDistance()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_X_DRIVE_DISTANCE);
-        }   //getXDriveDistance
-
-        public double getYDriveDistance()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_Y_DRIVE_DISTANCE);
-        }   //getYDriveDistance
-
-        public double getTurnAngle()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_TURN_ANGLE);
-        }   //getTurnAngle
-
-        public double getDriveTime()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_DRIVE_TIME);
-        }   //getDriveTime
-
-        public double getDrivePower()
-        {
-            return userChoices.getUserNumber(DBKEY_AUTO_DRIVE_TIME);
-        }   //getDrivePower
-
-        @Override
         public String toString()
         {
-            return String.format(
-                Locale.US,
-                "alliance=\"%s\" " +
-                "strategy=\"%s\" " +
-                "startDelay=%.0f sec " +
-                "pathFile=\"%s\" " +
-                "xDistance=%.1f ft " +
-                "yDistance=%.1f ft " +
-                "turnDegrees=%.0f deg " +
-                "driveTime=%.0f sec " +
-                "drivePower=%.1f",
-                getAlliance(), getStrategy(), getStartDelay(), getPathFile(), getXDriveDistance(),
-                getYDriveDistance(), getTurnAngle(), getDriveTime(), getDrivePower());
+            return String.format(Locale.US, "date=\"%s\" type=\"%s\" number=\"%d\"", matchDate, matchType, matchNumber);
         }   //toString
+    }   //class MatchInfo
 
+    public enum AutoStrategy
+    {
+        SHOOTER_AUTO, FLYWHEEL_CHARACTERIZATION, ARM_CHARACTERIZATION, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+    }   // enum AutoStrategy
+
+    public enum StartPosition
+    {
+        LEFT_BUMPER_FEEDER(RobotInfo.FEEDER_STATION_RIGHT_X_POS + RobotInfo.ROBOT_WIDTH / 2), IN_VISION(
+        RobotInfo.TARGET_X_POS), RIGHT_WALL(RobotInfo.FIELD_WIDTH - RobotInfo.ROBOT_WIDTH / 2), CUSTOM(0);
+
+        private double xPos;
+
+        StartPosition(double xPos)
+        {
+            this.xPos = xPos;
+        }
+
+        public double getXPos()
+        {
+            return xPos;
+        }
+    }
+
+    public static class AutoChoices
+    {
+        public DriverStation.Alliance alliance = DriverStation.Alliance.Red;
+        public double delay = 0.0;
+        public AutoStrategy strategy = AutoStrategy.DO_NOTHING;
+        public StartPosition startPos = StartPosition.CUSTOM;
+        public CmdShooterAuto.AfterAction shooterAutoAfter = CmdShooterAuto.AfterAction.NOTHING;
+
+        public String toString()
+        {
+            return String.format(Locale.US,
+                "alliance=\"%s\" " + "delay=\"%.1f\" " + "strategy=\"%s\" " + "startPos=\"%s\" "
+                    + "shooterAutoAfter=\"%s\"", alliance, delay, strategy, startPos, shooterAutoAfter);
+        }   //toString
     }   //class AutoChoices
 
-    //
-    // Global objects.
-    //
-
-    private final AutoChoices autoChoices = new AutoChoices();
     private final Robot robot;
-    private TrcRobot.RobotCommand autoCommand;
+    //
+    // Menus.
+    //
+    private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
+    private FrcChoiceMenu<StartPosition> startPosMenu;
+    private FrcChoiceMenu<CmdShooterAuto.AfterAction> shooterAutoAfterMenu;
+    private AutoStrategy autoStrategy;
+    private double delay;
+    private TrcTaskMgr.TaskObject populateTask;
+    private StartPosition lastPos = null;
 
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param robot specifies the robot object to access all robot hardware and subsystems.
-     */
+    private TrcRobot.RobotCommand autoCommand;
+    private CmdShooterAuto shooterAuto;
+
+    private MatchInfo matchInfo = new MatchInfo();
+    private AutoChoices autoChoices = new AutoChoices();
+
     public FrcAuto(Robot robot)
     {
-        //
-        // Create and initialize global objects.
-        //
         this.robot = robot;
-
         //
-        // Create auto-assist commands if necessary.
+        // Create Autonomous Mode specific menus.
         //
+        autoStrategyMenu = new FrcChoiceMenu<>("Auto/AutoStrategies");
+        //
+        // Populate Autonomous Mode menus.
+        //
+        autoStrategyMenu.addChoice("High Goal Auto", AutoStrategy.SHOOTER_AUTO, true, false);
+        autoStrategyMenu.addChoice("Flywheel Characterization", AutoStrategy.FLYWHEEL_CHARACTERIZATION);
+        autoStrategyMenu.addChoice("Arm Characterization", AutoStrategy.ARM_CHARACTERIZATION);
+        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
+        autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
+        autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
+        autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE);
+        autoStrategyMenu.addChoice("Turn Degrees", AutoStrategy.TURN_DEGREES);
+        autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
 
-    }   //FrcAuto
+        startPosMenu = new FrcChoiceMenu<>("Auto/StartPositions");
+        startPosMenu.addChoice("Left Bumper Feeder", StartPosition.LEFT_BUMPER_FEEDER, true, false);
+        startPosMenu.addChoice("In Vision", StartPosition.IN_VISION);
+        startPosMenu.addChoice("Right Wall", StartPosition.RIGHT_WALL);
+        startPosMenu.addChoice("Custom", StartPosition.CUSTOM, false, true);
 
-    /**
-     * This method checks if an autonomous command is running.
-     *
-     * @return true if autonomous command is running, false otherwise.
-     */
+        shooterAutoAfterMenu = new FrcChoiceMenu<>("Auto/ShooterAutoAfterAction");
+        shooterAutoAfterMenu.addChoice("Intake and Shoot", CmdShooterAuto.AfterAction.INTAKE_AND_SHOOT, true, false);
+        shooterAutoAfterMenu.addChoice("Intake Only", CmdShooterAuto.AfterAction.INTAKE);
+        shooterAutoAfterMenu.addChoice("Nothing", CmdShooterAuto.AfterAction.NOTHING, false, true);
+
+        shooterAuto = new CmdShooterAuto(robot);
+
+        robot.dashboard.refreshKey(CUSTOM_XPOS_KEY, 0.0);
+        robot.dashboard.refreshKey("Auto/Delay", 0.0);
+        populateTask = TrcTaskMgr.createTask("PopulateTask", this::populateTask);
+        populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
+    }   // FrcAuto
+
+    private void populateTask(TrcTaskMgr.TaskType taskType, RunMode runMode)
+    {
+        StartPosition currChoice = startPosMenu.getCurrentChoiceObject();
+        if (currChoice != lastPos)
+        {
+            robot.dashboard.putNumber(CUSTOM_XPOS_KEY, currChoice.getXPos());
+            lastPos = currChoice;
+        }
+    }
+
+    private void setAutoChoices()
+    {
+        // no alliance menu, so just leave at default (red)
+        autoChoices.alliance = DriverStation.getAlliance();
+        autoChoices.delay = robot.dashboard.getNumber("Auto/Delay", 0.0);
+        autoChoices.strategy = autoStrategyMenu.getCurrentChoiceObject();
+        autoChoices.startPos = startPosMenu.getCurrentChoiceObject();
+        autoChoices.shooterAutoAfter = shooterAutoAfterMenu.getCurrentChoiceObject();
+    }
+
     public boolean isAutoActive()
     {
         return autoCommand != null && autoCommand.isActive();
-    }   //isAutoActive
+    }
 
-    /**
-     * This method cancels the autonomous command if one is running.
-     */
     public void cancel()
     {
         if (autoCommand != null)
         {
             autoCommand.cancel();
             autoCommand = null;
+            autoStrategy = AutoStrategy.DO_NOTHING;
         }
-    }   //cancel
+    }
 
     //
     // Implements TrcRobot.RunMode.
     //
 
-    /**
-     * This method is called when the autonomous mode is about to start. Typically, you put code that will prepare
-     * the robot for start of autonomous here such as creating autonomous command according to the chosen autonomous
-     * strategy, initializing autonomous command and enabling/configuring sensors and subsystems that are necessary
-     * for the autonomous command.
-     *
-     * @param prevMode specifies the previous RunMode it is coming from.
-     * @param nextMode specifies the next RunMode it is going into.
-     */
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
-        //
-        // Retrieve Auto choices.
-        //
-        robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", FrcMatchInfo.getMatchInfo());
+        final String funcName = moduleName + ".startMode";
+
+        // These three are hardcoded for now
+        matchInfo.matchDate = new Date();
+        matchInfo.matchType = DriverStation.getMatchType();
+        matchInfo.matchNumber = DriverStation.getMatchNumber();
+
+        setAutoChoices();
+        robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", matchInfo);
         robot.globalTracer.logInfo(moduleName, "AutoChoices", "%s", autoChoices);
-        //
-        // Create autonomous command.
-        //
-        switch (autoChoices.getStrategy())
+
+        populateTask.unregisterTask();
+
+        robot.driveBase.resetOdometry(true, true);
+
+        robot.ledIndicator.reset();
+
+        if (robot.preferences.useVision)
         {
-            case PP_DRIVE:
-                autoCommand = new CmdPurePursuitDrive(
-                    robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
-                    robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
-                ((CmdPurePursuitDrive) autoCommand).start(
-                    0.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                    RobotParams.TEAM_FOLDER + "/" + autoChoices.getPathFile(), false);
+            robot.vision.setEnabled(true);
+        }
+
+        robot.setNumBalls(3);
+
+        robot.getGameInfo();
+        robot.globalTracer
+            .traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s", robot.eventName, robot.matchType,
+                robot.matchNumber, robot.alliance.toString(), robot.location, DriverStation.isFMSAttached(),
+                robot.gameSpecificMessage);
+        //
+        // Retrieve menu choice values.
+        //
+        autoStrategy = autoStrategyMenu.getCurrentChoiceObject();
+        delay = robot.dashboard.getNumber("Auto/Delay", 0.0);
+
+        switch (autoStrategy)
+        {
+            case SHOOTER_AUTO:
+                shooterAuto
+                    .start(delay, startPosMenu.getCurrentChoiceObject(), shooterAutoAfterMenu.getCurrentChoiceObject());
+                this.autoCommand = shooterAuto;
                 break;
 
-            case PID_DRIVE:
-                autoCommand = new CmdPidDrive(
-                    robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.getStartDelay(),
-                    autoChoices.getDrivePower(), null,
-                    new TrcPose2D(autoChoices.getXDriveDistance()*12.0, autoChoices.getYDriveDistance()*12.0,
-                                  autoChoices.getTurnAngle()));
+            case FLYWHEEL_CHARACTERIZATION:
+                autoCommand = new CmdTalonCharacterization(robot.shooter.flywheel);
                 break;
 
-            case TIMED_DRIVE:
-                autoCommand = new CmdTimedDrive(
-                    robot.robotDrive.driveBase, autoChoices.getStartDelay(), autoChoices.getDriveTime(), 0.0,
-                    autoChoices.getDrivePower(), 0.0);
+            case ARM_CHARACTERIZATION:
+                autoCommand = new CmdTalonCharacterization(robot.shooter.pitchMotor);
+                robot.shooter.setEnabled(false);
+                break;
+
+            case X_TIMED_DRIVE:
+                this.autoCommand = new CmdTimedDrive(robot.driveBase, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
+                break;
+
+            case Y_TIMED_DRIVE:
+                this.autoCommand = new CmdTimedDrive(robot.driveBase, delay, robot.driveTime, 0.0, robot.drivePower, 0.0);
+                break;
+
+            case X_DISTANCE_DRIVE:
+                this.autoCommand = new CmdPidDrive(
+                    robot.driveBase, robot.pidDrive, delay, robot.drivePowerLimit, null,
+                    new TrcPose2D(robot.driveDistance, 0.0, 0.0));
+                break;
+
+            case Y_DISTANCE_DRIVE:
+                this.autoCommand = new CmdPidDrive(
+                    robot.driveBase, robot.pidDrive, delay, robot.drivePowerLimit, null,
+                    new TrcPose2D(0.0, robot.driveDistance, 0.0));
+                break;
+
+            case TURN_DEGREES:
+                this.autoCommand = new CmdPidDrive(
+                    robot.driveBase, robot.pidDrive, delay, robot.drivePowerLimit, null,
+                    new TrcPose2D(0.0, 0.0, robot.turnDegrees));
                 break;
 
             default:
             case DO_NOTHING:
-                autoCommand = null;
+                this.autoCommand = null;
                 break;
         }
-    }   //startMode
+    }   // startMode
 
-    /**
-     * This method is called when autonomous mode is about to end. Typically, you put code that will do clean
-     * up here such as canceling unfinished autonomous command and disabling autonomous sensors and subsystems.
-     *
-     * @param prevMode specifies the previous RunMode it is coming from.
-     * @param nextMode specifies the next RunMode it is going into.
-     */
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        //
-        // Stop autonomous command.
-        //
         if (autoCommand != null)
         {
             autoCommand.cancel();
         }
-    }   //stopMode
+        populateTask.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
+        //        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
+    }   // stopMode
 
-    /**
-     * This method is called periodically about 50 times a second. Typically, you put code that doesn't require
-     * frequent update here such as updating the dashboard.
-     * 
-     * @param elapsedTime specifies the elapsed time since the mode started.
-     */
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        //
-        // Update dashboard.
-        //
-        if (RobotParams.Preferences.doAutoUpdates)
+        if (robot.preferences.doAutoUpdates)
         {
-            robot.updateStatus();
+            robot.updateDashboard(RunMode.AUTO_MODE);
         }
-    }   //runPeriodic
+        robot.globalTracer.traceInfo("FrcAuto.runPeriodic", "[%.3f] detected=%b, x=%.1f,y=%.1f, depth=%.1f, area=%.1f",
+            TrcUtil.getModeElapsedTime(), robot.vision.vision.targetDetected(), robot.vision.vision.getHeading(), robot.vision.vision.get("ty"),
+            robot.vision.vision.getTargetDepth(), robot.vision.vision.getTargetArea());
+    } // runPeriodic
 
-    /**
-     * This method is called periodically as fast as the control system allows. Typically, you put code that requires
-     * servicing at a higher frequency here such as running the autonomous command which requires responsiveness and
-     * accuracy.
-     * 
-     * @param elapsedTime specifies the elapsed time since the mode started.
-     */
     @Override
     public void runContinuous(double elapsedTime)
     {
         if (autoCommand != null)
         {
-            //
-            // Run the autonomous command.
-            //
             autoCommand.cmdPeriodic(elapsedTime);
-        }
-    }   //runContinuous
 
-}   //class FrcAuto
+            // if (robot.pidDrive.isActive() || robot.purePursuit.isActive())
+            // {
+            //     robot.globalTracer
+            //         .logEvent("robot_auto", "RobotPose", "pose=\"%s\"", robot.driveBase.getFieldPosition());
+            // }
+        }
+    } // runContinuous
+
+} // class FrcAuto

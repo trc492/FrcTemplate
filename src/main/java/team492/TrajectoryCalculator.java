@@ -22,7 +22,7 @@ public class TrajectoryCalculator
     private static RealVector getVertexFromShooter(RealVector vertexFromPivot, double thetaRad)
     {
         return vertexFromPivot.subtract(
-            TrcUtil.createVector(Math.cos(thetaRad), Math.sin(thetaRad)).mapMultiply(RobotParams.SHOOTER_BARREL_LENGTH));
+            TrcUtil.createVector(Math.cos(thetaRad), Math.sin(thetaRad)).mapMultiply(RobotInfo.SHOOTER_BARREL_LENGTH));
     }
 
     private static void debug(String format, Object... args)
@@ -49,8 +49,8 @@ public class TrajectoryCalculator
             }
         }
         return TrajectoryCalculator.calculateWithArmWithDrag(TrcUtil
-            .createVector((distance + RobotParams.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
-                RobotParams.HIGH_TARGET_HEIGHT - RobotParams.PIVOT_HEIGHT + 6));
+            .createVector((distance + RobotInfo.CAMERA_Y_OFFSET_TO_PIVOT) * 0.84,
+                RobotInfo.HIGH_TARGET_HEIGHT - RobotInfo.PIVOT_HEIGHT + 6));
     }
 
     /**

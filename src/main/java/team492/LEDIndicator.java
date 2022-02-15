@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,38 +28,28 @@ import TrcFrcLib.frclib.FrcColor;
 
 public class LEDIndicator
 {
-    private static final TrcAddressableLED.Pattern nominalPattern =
-        new TrcAddressableLED.Pattern(FrcColor.FULL_GREEN, RobotParams.NUM_LEDS);
-    private static final TrcAddressableLED.Pattern fieldOrientedPattern =
-        new TrcAddressableLED.Pattern(FrcColor.FULL_WHITE, RobotParams.NUM_LEDS);
-    private static final TrcAddressableLED.Pattern robotOrientedPattern =
-        new TrcAddressableLED.Pattern(FrcColor.FULL_BLUE, RobotParams.NUM_LEDS);
-    private static final TrcAddressableLED.Pattern inverseOrientedPattern =
-        new TrcAddressableLED.Pattern(FrcColor.FULL_RED, RobotParams.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern nominalPattern = new TrcAddressableLED.Pattern(FrcColor.FULL_GREEN,
+        RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern fieldOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_WHITE, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern robotOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_BLUE, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern inverseOrientedPattern = new TrcAddressableLED.Pattern(
+        FrcColor.FULL_RED, RobotInfo.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern conveyorPattern = new TrcAddressableLED.Pattern(FrcColor.FULL_YELLOW,
+        RobotInfo.NUM_LEDS);
 
-    private static final TrcAddressableLED.Pattern[] priorities =
-        new TrcAddressableLED.Pattern[]
-        {
-            nominalPattern,
-            robotOrientedPattern,
-            inverseOrientedPattern,
-            fieldOrientedPattern
-        };
+    private static final TrcAddressableLED.Pattern[] priorities = new TrcAddressableLED.Pattern[] { nominalPattern,
+        robotOrientedPattern, inverseOrientedPattern, fieldOrientedPattern, conveyorPattern };
 
     private FrcAddressableLED led;
 
-    /**
-     * Constructor: Create an instance of the object.
-     */
     public LEDIndicator()
     {
-        led = new FrcAddressableLED("LED", RobotParams.NUM_LEDS, RobotParams.PWM_CHANNEL_LED);
+        led = new FrcAddressableLED("LED", RobotInfo.NUM_LEDS, RobotInfo.PWM_CHANNEL_LED);
         reset();
-    }   //LEDIndicator
+    }
 
-    /**
-     * This method resets the LED strip to the nominal pattern.
-     */
     public void reset()
     {
         led.setEnabled(true);
@@ -67,14 +57,14 @@ public class LEDIndicator
         led.reset();
         led.resetAllPatternStates();
         led.setPatternState(nominalPattern, true);
-    }   //reset
+    }
 
-    /**
-     * This method sets the LED to indicate the drive orientation mode of the robot.
-     *
-     * @param orientation specifies the drive orientation mode.
-     */
-    public void setDriveOrientation(FrcTeleOp.DriveOrientation orientation)
+    public void setConveyorIndicator(boolean enabled)
+    {
+        led.setPatternState(conveyorPattern, enabled);
+    }
+
+    public void setDriveOrientation(Robot.DriveOrientation orientation)
     {
         switch (orientation)
         {
@@ -96,6 +86,5 @@ public class LEDIndicator
                 led.setPatternState(robotOrientedPattern, true);
                 break;
         }
-    }   //setDriveOrientation
-
-}   //class LEDIndicator
+    }
+}

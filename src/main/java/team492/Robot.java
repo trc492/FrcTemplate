@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,90 @@
 
 package team492;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.PrintStream;
+import java.util.Date;
 import java.util.Locale;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
-import TrcCommonLib.trclib.TrcDbgTrace;
-import TrcCommonLib.trclib.TrcPose2D;
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+
+import TrcCommonLib.trclib.TrcEnhancedServo;
+import TrcCommonLib.trclib.TrcHolonomicPurePursuitDrive;
+import TrcCommonLib.trclib.TrcPidController;
+import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcRobotBattery;
+import TrcCommonLib.trclib.TrcSwerveDriveBase;
+import TrcCommonLib.trclib.TrcSwerveModule;
 import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
+import TrcFrcLib.frclib.FrcAHRSGyro;
+import TrcFrcLib.frclib.FrcCANSparkMax;
+import TrcFrcLib.frclib.FrcCANTalon;
 import TrcFrcLib.frclib.FrcDashboard;
 import TrcFrcLib.frclib.FrcJoystick;
-import TrcFrcLib.frclib.FrcMatchInfo;
 import TrcFrcLib.frclib.FrcPdp;
 import TrcFrcLib.frclib.FrcRemoteVisionProcessor;
 import TrcFrcLib.frclib.FrcRobotBase;
 import TrcFrcLib.frclib.FrcRobotBattery;
+import TrcFrcLib.frclib.FrcTalonServo;
 import TrcFrcLib.frclib.FrcXboxController;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.SPI.Port;
 
 /**
- * The Main class is configured to instantiate and automatically run this class,
- * and to call the functions corresponding to each mode, as described in the TrcRobot
- * documentation. If you change the name of this class or the package after creating
- * this project, you must also update the Main class to reflect the name change.
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the TrcRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the manifest file in the
+ * resource directory.
  */
 public class Robot extends FrcRobotBase
 {
+    public static class Preferences
+    {
+        public final boolean isPracticeBot = false;
+        public final boolean useController = true;
+        public final boolean useTraceLog = true;
+        public final boolean useNavX = true;
+        public final boolean useGyroAssist = false;
+        public final boolean useVision = true;
+        public final boolean useStreamCamera = true;
+        public final boolean doAutoUpdates = false;
+
+        public final boolean debugPowerConsumption = false;
+        public final boolean debugDriveBase = false;
+        public final boolean debugPidDrive = false;
+        public final boolean debugSubsystems = false;
+        public final boolean debugVision = false;
+        public final boolean debugLoopTime = true;
+    }   //class Preferences
+
+    public enum DriveOrientation
+    {
+        ROBOT, FIELD, INVERTED
+    }   // enum DriveOrientation
+
+    //
+    // Global constants.
+    //
+    public static final String programName = "InfiniteRecharge";
+    private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     //
     // Global objects.
     //
+    public final Preferences preferences = new Preferences();
     public final FrcDashboard dashboard = FrcDashboard.getInstance();
-    public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
-    private double nextDashboardUpdateTime = TrcUtil.getModeElapsedTime();
-    private boolean traceLogOpened = false;
-
     //
     // Inputs.
     //
@@ -64,255 +114,571 @@ public class Robot extends FrcRobotBase
     public FrcJoystick operatorStick;
     public FrcJoystick buttonPanel;
     public FrcJoystick switchPanel;
-
     //
     // Sensors.
     //
     public FrcPdp pdp;
     public TrcRobotBattery battery;
+    public FrcAHRSGyro gyro;
     public AnalogInput pressureSensor;
-
     //
     // DriveBase subsystem.
     //
-    public WestCoastDrive robotDrive;
+    public FrcCANSparkMax lfDriveMotor, rfDriveMotor, lbDriveMotor, rbDriveMotor;
+    public FrcCANTalon lfSteerMotor, rfSteerMotor, lrSteerMotor, rrSteerMotor;
+    public TrcSwerveModule leftFrontWheel;
+    public TrcSwerveModule leftBackWheel;
+    public TrcSwerveModule rightFrontWheel;
+    public TrcSwerveModule rightBackWheel;
+    public TrcSwerveDriveBase driveBase;
 
+    public TrcPidController encoderXPidCtrl;
+    public TrcPidController encoderYPidCtrl;
+    public TrcPidController gyroTurnPidCtrl;
+    public TrcPidDrive pidDrive;
+    public TrcHolonomicPurePursuitDrive purePursuit;
     //
     // Vision subsystem.
     //
-    public VisionTargeting vision;
-
+    public VisionTargeting vision = null;
     //
-    // Other subsystems.
+    // Miscellaneous subsystem.
     //
     public LEDIndicator ledIndicator;
 
+    private double nextUpdateTime = TrcUtil.getCurrentTime();
+    //
+    // FMS provided the following info:
+    //  - event name
+    //  - match type
+    //  - match number
+    //  - alliance
+    //  - location
+    //  - replay number???
+    //
+    public String eventName = "Unknown";
+    public MatchType matchType = MatchType.None;
+    public int matchNumber = 0;
+    public Alliance alliance = Alliance.Red;
+    public int location = 1;
+    public String gameSpecificMessage = null;
+    public boolean traceLogOpened = false;
+    private DriveOrientation driveOrientation = DriveOrientation.FIELD;
+    //
+    // Other robot subystems.
+    //
+    public WallAlignment alignment;
+    public Conveyor conveyor;
+    public Shooter shooter;
+    public Intake intake;
+    public Climber climber;
+    public TaskAutoShooter autoShooter;
+    public TaskAutoAlign autoAlign;
+    public TaskSnapToAngle snapToAngle;
+
+    public enum DriveSpeed
+    {
+        SLOW, MEDIUM, FAST
+    }
+
+    //
+    // Define our subsystems for Auto and TeleOp modes.
+    //
+    public DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
+    private int numBalls;
+    public double driveTime;
+    public double drivePower;
+    public double driveDistance;
+    public double turnDegrees;
+    public double drivePowerLimit;
+    public TrcPidController.PidCoefficients tunePidCoeff;
+
+    private FrcAuto autoMode;
+
     /**
-     * Constructor: Create an instance of the object.
+     * Constructor.
      */
     public Robot()
     {
-        super(RobotParams.GAME_NAME);
+        super(programName);
     }   //Robot
 
+    private FrcCANSparkMax createSparkMax(String name, int id)
+    {
+        FrcCANSparkMax spark = new FrcCANSparkMax(name, id, true);
+        spark.motor.restoreFactoryDefaults();
+        spark.setInverted(false);
+        spark.setPositionSensorInverted(false);
+        spark.setBrakeModeEnabled(true);
+        spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        spark.motor.burnFlash();
+        return spark;
+    }
+
+    private FrcCANTalon createSteerTalon(String name, int id, boolean inverted)
+    {
+        FrcCANTalon talon = new FrcCANTalon(name, id);
+        talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
+        talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        talon.motor.enableVoltageCompensation(true);
+        talon.motor.overrideLimitSwitchesEnable(false);
+        talon.configFwdLimitSwitchNormallyOpen(true);
+        talon.configRevLimitSwitchNormallyOpen(true);
+        talon.setBrakeModeEnabled(true);
+        talon.setPositionSensorInverted(inverted);
+        talon.setInverted(!inverted);
+        return talon;
+    }
+
+    private TrcSwerveModule createModule(String name, FrcCANSparkMax drive, FrcCANTalon steer, int steerZero)
+    {
+        steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // reset index
+        TrcUtil.sleep(50); // guarantee reset
+        ErrorCode error = steer.motor.getSensorCollection().syncQuadratureWithPulseWidth(0, 0, true, -steerZero, 10);
+        if (error != ErrorCode.OK)
+        {
+            System.out.printf("Encoder error! - Module=%s, error=%s\n", name, error.name());
+        }
+        TrcUtil.sleep(50); // guarantee reset
+        int modPos = (int) TrcUtil.modulo(steer.motor.getSelectedSensorPosition(), 4096);
+        int pos = modPos > 2048 ? modPos - 4096 : modPos;
+        steer.motor.setSelectedSensorPosition(pos, 0, 10);
+        TrcUtil.sleep(50);
+
+        System.out.printf("Module=%s, Zero=%d, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name, steerZero,
+            steer.motor.getSensorCollection().getPulseWidthPosition(),
+            steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
+
+        FrcTalonServo servo = new FrcTalonServo(name + ".servo", steer, RobotInfo.magicSteerCoeff,
+            RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_REQ_VEL, RobotInfo.STEER_MAX_ACCEL);
+        TrcSwerveModule module = new TrcSwerveModule(name, drive, new TrcEnhancedServo(name + ".enhancedServo", servo));
+        module.disableSteeringLimits();
+        return module;
+    }
+
+    private int[] getSteerZeroPositions()
+    {
+        try (Scanner in = new Scanner(new FileReader("/home/lvuser/steerzeros.txt")))
+        {
+            return IntStream.range(0, 4).map(e -> in.nextInt()).toArray();
+        }
+        catch (Exception e)
+        {
+            globalTracer.traceErr("Robot.getSteerZeroPositions", "ERROR! Steer zero position file not found!");
+            return RobotInfo.STEER_ZEROS;
+        }
+    }
+
+    public void saveSteerZeroPositions()
+    {
+        globalTracer.traceInfo("Robot.saveSteerZeroPositions", "Saved steer zeros!");
+        try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
+        {
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     /**
-     * This method is called when the robot is first started up and should be used for any initialization code
-     * including creation and initialization of all robot hardware and subsystems.
-     *
-     * To create new hardware or subsystem, follow the following steps:
-     * 1. Create a public class variable for the new hardware/subsystem.
-     * 2. Instantiate and initialize the new hardware/subsystem object in this method.
-     * 3. Put code in updateDashboard to display status of the new hardware/subsystem if necessary.
-     * 4. Put code in robotStartMode or robotStopMode to configure/reset hardware/subsystem if necessary.
-     * 5. Put code in FrcTeleOp to operate the subsystem if necessary (i.e. runPeriodic/xxxButtonEvent).
-     * 6. Create a getter method for the new sensor only if necessary (e.g. sensor value needs translation).
+     * This function is run when the robot is first started up and should be used for any initialization code.
      */
     @Override
     public void robotInit()
     {
         //
-        // Create and initialize global objects.
+        // Inputs.
         //
-
-        //
-        // Create and initialize inputs.
-        //
-        if (RobotParams.Preferences.useXboxController)
+        if (preferences.useController)
         {
-            driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
-            operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK);
-            buttonPanel = new FrcJoystick("buttonPanel", RobotParams.JSPORT_BUTTON_PANEL);
-            switchPanel = new FrcJoystick("switchPanel", RobotParams.JSPORT_SWITCH_PANEL);
+            driverController = new FrcXboxController("DriverController", RobotInfo.XBOX_DRIVERCONTROLLER);
+            operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
+            buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
+            switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
             driverController.setLeftYInverted(true);
         }
         else
         {
-            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotParams.XBOX_DRIVERCONTROLLER);
-            rightDriveStick = new FrcJoystick("DriverRightStick", RobotParams.XBOX_DRIVERCONTROLLER + 1);
-            operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK + 1);
-            buttonPanel = new FrcJoystick("buttonPanel", RobotParams.JSPORT_BUTTON_PANEL + 1);
-            switchPanel = new FrcJoystick("switchPanel", RobotParams.JSPORT_SWITCH_PANEL + 1);
+            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotInfo.XBOX_DRIVERCONTROLLER);
+            rightDriveStick = new FrcJoystick("DriverRightStick", RobotInfo.XBOX_DRIVERCONTROLLER + 1);
+            operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK + 1);
+            buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL + 1);
+            switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL + 1);
             rightDriveStick.setYInverted(true);
         }
         operatorStick.setYInverted(false);
 
         //
-        // Create and initialize sensors.
+        // Sensors.
         //
-        pdp = new FrcPdp(RobotParams.CANID_PDP, ModuleType.kCTRE);
+        pdp = new FrcPdp(RobotInfo.CANID_PDP, ModuleType.kCTRE);
         battery = new FrcRobotBattery(pdp);
-        pressureSensor = new AnalogInput(RobotParams.AIN_PRESSURE_SENSOR);
+        gyro = preferences.useNavX ? new FrcAHRSGyro("NavX", Port.kMXP) : null;
+        pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
+        //
+        // DriveBase subsystem.
+        //
+        lfDriveMotor = createSparkMax("LFDrive", RobotInfo.CANID_LEFTFRONT_DRIVE);
+        rfDriveMotor = createSparkMax("RFDrive", RobotInfo.CANID_RIGHTFRONT_DRIVE);
+        lbDriveMotor = createSparkMax("LRDrive", RobotInfo.CANID_LEFTREAR_DRIVE);
+        rbDriveMotor = createSparkMax("RRDrive", RobotInfo.CANID_RIGHTREAR_DRIVE);
 
-        //
-        // Create and initialize DriveBase subsystem.
-        //
-        robotDrive = new WestCoastDrive(this);
+        // rf lr are inverted always, lf and rr are inverted on comp, not inverted on practice
+        lfSteerMotor = createSteerTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER, !preferences.isPracticeBot);
+        rfSteerMotor = createSteerTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER, true);
+        lrSteerMotor = createSteerTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER, true);
+        rrSteerMotor = createSteerTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER, !preferences.isPracticeBot);
 
+        int[] zeros = getSteerZeroPositions();
+        leftFrontWheel = createModule("LeftFrontWheel", lfDriveMotor, lfSteerMotor, zeros[0]);
+        rightFrontWheel = createModule("RightFrontWheel", rfDriveMotor, rfSteerMotor, zeros[1]);
+        leftBackWheel = createModule("LeftRearWheel", lbDriveMotor, lrSteerMotor, zeros[2]);
+        rightBackWheel = createModule("RightRearWheel", rbDriveMotor, rrSteerMotor, zeros[3]);
+
+        pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_BACK_WHEEL, "LeftBackWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_BACK_WHEEL, "RightBackWheel"));
+
+        driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel, gyro,
+            RobotInfo.ROBOT_DRIVE_WIDTH, RobotInfo.ROBOT_DRIVE_LENGTH);
+        driveBase.setSynchronizeOdometriesEnabled(false);
+        driveBase.setOdometryScales(RobotInfo.ENCODER_INCHES_PER_COUNT);
         //
-        // Create and initialize Vision subsystem.
+        // Create PID controllers for DriveBase PID drive.
         //
-        if (RobotParams.Preferences.useVision)
+        encoderXPidCtrl = new TrcPidController("encoderXPidCtrl",
+            new TrcPidController.PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getXPosition);
+        encoderYPidCtrl = new TrcPidController("encoderYPidCtrl",
+            new TrcPidController.PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
+        gyroTurnPidCtrl = new TrcPidController("gyroTurnPidCtrl",
+            new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_BIG, 0, RobotInfo.GYRO_TURN_KD_BIG),
+            RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
+        encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
+        encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
+        gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);
+        gyroTurnPidCtrl.setAbsoluteSetPoint(true);
+        encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
+        encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
+        gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
+
+        pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl);
+        pidDrive.setAbsoluteTargetModeEnabled(true);
+        pidDrive.setStallDetectionEnabled(true);
+        pidDrive.setMsgTracer(globalTracer, true, false);
+
+        purePursuit = new TrcHolonomicPurePursuitDrive("purePursuit", driveBase,
+            RobotInfo.PURE_PURSUIT_FOLLOWING_DISTANCE, RobotInfo.PURE_PURSUIT_POS_TOLERANCE,
+            RobotInfo.PURE_PURSUIT_HEADING_TOLERANCE, encoderYPidCtrl.getPidCoefficients(),
+            new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP, 0, RobotInfo.GYRO_TURN_KD),
+            new TrcPidController.PidCoefficients(0, 0, 0, RobotInfo.PURE_PURSUIT_KF));
+        purePursuit.setMoveOutputLimit(RobotInfo.PURE_PURSUIT_MOVE_OUTPUT_LIMIT);
+        purePursuit.setMsgTracer(globalTracer, true, false);
+        //
+        // Vision subsystem.
+        //
+        if (preferences.useVision)
         {
             vision = new VisionTargeting();
         }
-
         //
-        // Create and initialize other subsystems.
+        // Miscellaneous subsystems.
         //
         ledIndicator = new LEDIndicator();
+        shooter = new Shooter(this);
+        conveyor = new Conveyor(this);
+        alignment = new WallAlignment();
+        intake = new Intake(this); // must initialize after conveyor
+        climber = new Climber(this);
+
+        setDriveOrientation(DriveOrientation.FIELD);
+
+        if (preferences.useStreamCamera)
+        {
+            UsbCamera camera = CameraServer.startAutomaticCapture("DriverDisplay", 0);
+            camera.setResolution(160, 120);
+        }
 
         //
         // AutoAssist commands.
         //
-
-        pdp.registerEnergyUsedForAllUnregisteredChannels();
+        autoAlign = new TaskAutoAlign(this);
+        autoShooter = new TaskAutoShooter(this);
+        snapToAngle = new TaskSnapToAngle(this);
 
         //
         // Create Robot Modes.
         //
-        setupRobotModes(new FrcTeleOp(this), new FrcAuto(this), new FrcTest(this), new FrcDisabled(this));
+        autoMode = new FrcAuto(this);
+        setupRobotModes(new FrcTeleOp(this), autoMode, new FrcTest(this), new FrcDisabled(this));
+
+        pdp.registerEnergyUsedForAllUnregisteredChannels();
+
+        dashboard.refreshKey("Test/DriveTime", 5.0);
+        dashboard.refreshKey("Test/DrivePower", 0.2);
+        dashboard.refreshKey("Test/DriveDistance", 6.0);
+        dashboard.refreshKey("Test/TurnDegrees", 90.0);
+        dashboard.refreshKey("Test/DrivePowerLimit", 0.5);
+        dashboard.refreshKey("Test/TuneKp", RobotInfo.GYRO_TURN_KP);
+        dashboard.refreshKey("Test/TuneKi", RobotInfo.GYRO_TURN_KI);
+        dashboard.refreshKey("Test/TuneKd", RobotInfo.GYRO_TURN_KD);
+        dashboard.refreshKey("Test/TuneKf", 0.0);
     }   //robotInit
 
-    /**
-     * This method is called to prepare the robot before a robot mode is about to start.
-     *
-     * @param runMode specifies the current run mode.
-     * @param prevMode specifies the previous run mode.
-     */
-    @Override
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
         final String funcName = "robotStartMode";
 
-        //
-        // Read FMS Match info.
-        //
-        FrcMatchInfo matchInfo = FrcMatchInfo.getMatchInfo();
+        driveOrientation = DriveOrientation.FIELD;
 
-        //
-        // Start trace logging.
-        //
-        if (runMode != RunMode.DISABLED_MODE && RobotParams.Preferences.useTraceLog)
+        if (runMode != RunMode.DISABLED_MODE)
         {
-            openTraceLog(matchInfo);
+            openTraceLog(
+                runMode == RunMode.AUTO_MODE ? "FrcAuto" : runMode == RunMode.TELEOP_MODE ? "FrcTeleOp" : "FrcTest");
             setTraceLogEnabled(true);
-        }
-        globalTracer.traceInfo(
-            funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(),
-            matchInfo.eventDate, runMode);
 
-        //
-        // Start subsystems.
-        //
-        robotDrive.startMode(runMode, prevMode);
-        ledIndicator.reset();
+            Date now = new Date();
+            globalTracer.traceInfo(funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(), now.toString(),
+                runMode);
+
+            //            pdp.setTaskEnabled(true);
+            //            battery.setEnabled(true);
+            driveBase.resetOdometry(true, false);
+            lfDriveMotor.setOdometryEnabled(true);
+            rfDriveMotor.setOdometryEnabled(true);
+            lbDriveMotor.setOdometryEnabled(true);
+            rbDriveMotor.setOdometryEnabled(true);
+            driveBase.setOdometryEnabled(true);
+            shooter.setEnabled(true);
+            shooter.setManualOverrideEnabled(false);
+            conveyor.setManualOverrideEnabled(false);
+            climber.latch();
+
+            dashboard.clearDisplay();
+
+            ledIndicator.reset();
+
+            if (runMode == RunMode.AUTO_MODE)
+            {
+                lfDriveMotor.motor.setOpenLoopRampRate(0);
+                rfDriveMotor.motor.setOpenLoopRampRate(0);
+                lbDriveMotor.motor.setOpenLoopRampRate(0);
+                rbDriveMotor.motor.setOpenLoopRampRate(0);
+            }
+            else
+            {
+                lfDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                rfDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                lbDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+                rbDriveMotor.motor.setOpenLoopRampRate(RobotInfo.DRIVE_RAMP_RATE);
+            }
+
+            if (runMode == RunMode.AUTO_MODE || runMode == RunMode.TEST_MODE)
+            {
+                driveTime = dashboard.getNumber("Test/DriveTime", 5.0);
+                drivePower = dashboard.getNumber("Test/DrivePower", 0.2);
+                driveDistance = dashboard.getNumber("Test/DriveDistance", 6.0);
+                turnDegrees = dashboard.getNumber("Test/TurnDegrees", 90.0);
+                drivePowerLimit = dashboard.getNumber("Test/DrivePowerLimit", 0.5);
+                if (runMode == RunMode.TEST_MODE)
+                {
+                    tunePidCoeff = new TrcPidController.PidCoefficients(
+                        dashboard.getNumber("Test/TuneKp", RobotInfo.GYRO_TURN_KP),
+                        dashboard.getNumber("Test/TuneKi", RobotInfo.GYRO_TURN_KI),
+                        dashboard.getNumber("Test/TuneKd", RobotInfo.GYRO_TURN_KD),
+                        dashboard.getNumber("Test/TuneKf", 0.0));
+                }
+            }
+
+            //            gyro.setElapsedTimerEnabled(true);
+            //            TrcDigitalInput.setElapsedTimerEnabled(true);
+            //            TrcMotor.setElapsedTimerEnabled(true);
+            //            TrcServo.setElapsedTimerEnabled(true);
+        }
     }   //robotStartMode
 
-    /**
-     * This method is called to prepare the robot right after a robot mode has been stopped.
-     *
-     * @param runMode specifies the current run mode.
-     * @param nextMode specifies the next run mode.
-     */
-    @Override
     public void robotStopMode(RunMode runMode, RunMode nextMode)
     {
         final String funcName = "robotStopMode";
 
-        //
-        // Stop subsystems.
-        //
-        robotDrive.stopMode(runMode, nextMode);
-        ledIndicator.reset();
+        if (runMode != RunMode.DISABLED_MODE)
+        {
+            //            gyro.printElapsedTime(globalTracer);
+            //            gyro.setElapsedTimerEnabled(false);
+            //            TrcDigitalInput.printElapsedTime(globalTracer);
+            //            TrcDigitalInput.setElapsedTimerEnabled(false);
+            //            TrcMotor.printElapsedTime(globalTracer);
+            //            TrcMotor.setElapsedTimerEnabled(false);
+            //            TrcServo.printElapsedTime(globalTracer);
+            //            TrcServo.setElapsedTimerEnabled(false);
 
-        //
-        // Performance status report.
-        //
-        double totalEnergy = battery.getTotalEnergy();
-        globalTracer.traceInfo(
-            funcName, "TotalEnergy=%.3fWh (%.2f%%)",
-            totalEnergy, totalEnergy * 100.0 / RobotParams.BATTERY_CAPACITY_WATT_HOUR);
+            globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
+            driveBase.setOdometryEnabled(false);
+            cancelAllAuto();
+            battery.setEnabled(false);
+            pdp.setTaskEnabled(false);
+            conveyor.stop();
+            shooter.stopFlywheel();
+            shooter.pitchMotor.set(0);
+            shooter.setEnabled(false);
 
-        //
-        // Stop trace logging.
-        //
-        setTraceLogEnabled(false);
-        closeTraceLog();
+            //            for (int i = 0; i < FrcPdp.kPDPChannels; i++)
+            //            {
+            //                String channelName = pdp.getChannelName(i);
+            //                if (channelName != null)
+            //                {
+            //                    globalTracer
+            //                        .traceInfo(funcName, "[PDP-%02d] %s: EnergyUsed=%.3f Wh", i, channelName, pdp.getEnergyUsed(i));
+            //                }
+            //            }
+
+            double totalEnergy = battery.getTotalEnergy();
+            globalTracer.traceInfo(funcName, "TotalEnergy=%.3fWh (%.2f%%)", totalEnergy,
+                totalEnergy * 100.0 / RobotInfo.BATTERY_CAPACITY_WATT_HOUR);
+            setTraceLogEnabled(false);
+            closeTraceLog();
+
+            ledIndicator.reset();
+        }
     }   //robotStopMode
 
-    /**
-     * This method is called periodically to update various hardware/subsystem status of the robot to the dashboard
-     * and trace log. In order to lower the potential impact these updates, this method will only update the dashboard
-     * at DASHBOARD_UPDATE_INTERVAL.
-     */
-    public void updateStatus()
+    public void getFMSInfo()
     {
-        final String funcName = "updateStatus";
-        double currTime = TrcUtil.getModeElapsedTime();
-        RunMode runMode = getCurrentRunMode();
-
-        if (currTime >= nextDashboardUpdateTime)
+        eventName = DriverStation.getEventName();
+        if (eventName.length() == 0)
         {
-            nextDashboardUpdateTime = currTime + RobotParams.DASHBOARD_UPDATE_INTERVAL;
+            eventName = "Unknown";
+        }
+        matchType = DriverStation.getMatchType();
+        matchNumber = DriverStation.getMatchNumber();
+    }
 
-            if (RobotParams.Preferences.debugPowerConsumption)
+    public void getGameInfo()
+    {
+        alliance = DriverStation.getAlliance();
+        location = DriverStation.getLocation();
+        gameSpecificMessage = DriverStation.getGameSpecificMessage();
+    }
+
+    public void openTraceLog(String defaultName)
+    {
+        if (preferences.useTraceLog && !traceLogOpened)
+        {
+            String fileName;
+
+            if (DriverStation.isFMSAttached())
+            {
+                getFMSInfo();
+                fileName = String.format("%s_%s%03d", eventName, matchType, matchNumber);
+            }
+            else
+            {
+                fileName = defaultName;
+            }
+
+            traceLogOpened = globalTracer.openTraceLog("/home/lvuser/tracelog", fileName);
+        }
+    }
+
+    public void closeTraceLog()
+    {
+        if (traceLogOpened)
+        {
+            globalTracer.closeTraceLog();
+            traceLogOpened = false;
+        }
+    }
+
+    public void setTraceLogEnabled(boolean enabled)
+    {
+        if (traceLogOpened)
+        {
+            globalTracer.setTraceLogEnabled(enabled);
+        }
+    }
+
+    /**
+     * Stops the lower level subsystems. This does NOT stop any auto/auto assist commands.
+     */
+    public void stopSubsystems()
+    {
+        pidDrive.cancel();
+        driveBase.stop();
+    }
+
+    public void updateDashboard(RunMode runMode)
+    {
+        final String funcName = "updateDashboard";
+        double currTime = TrcUtil.getModeElapsedTime();
+
+        if (currTime >= nextUpdateTime)
+        {
+            nextUpdateTime = currTime + DASHBOARD_UPDATE_INTERVAL;
+
+            if (preferences.debugPowerConsumption)
             {
                 dashboard.putNumber("Power/pdpTotalCurrent", pdp.getTotalCurrent());
                 dashboard.putNumber("Power/totalEnergy", battery.getTotalEnergy());
                 dashboard.putData("Power/pdpInfo", pdp.getPdpSendable());
                 if (runMode == RunMode.TELEOP_MODE)
                 {
-                    globalTracer.traceInfo(
-                        funcName, "[%.3f] Battery: currVoltage=%.2f, lowestVoltage=%.2f",
-                        currTime, battery.getVoltage(), battery.getLowestVoltage());
+                    globalTracer.traceInfo(funcName, "[%.3f] Battery: currVoltage=%.2f, lowestVoltage=%.2f", currTime,
+                        battery.getVoltage(), battery.getLowestVoltage());
                     globalTracer.traceInfo(funcName, "[%.3f] Total=%.2fA", currTime, pdp.getTotalCurrent());
                 }
             }
 
-            if (RobotParams.Preferences.debugDriveBase)
+            if (preferences.debugDriveBase)
             {
-                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
+                double xPos = driveBase.getXPosition();
+                double yPos = driveBase.getYPosition();
+                double heading = driveBase.getHeading();
 
-                dashboard.putNumber("DriveBase/xPos", robotPose.x);
-                dashboard.putNumber("DriveBase/yPos", robotPose.y);
-                dashboard.putData("DriveBase/heading", robotDrive.gyro.getGyroSendable());
+                dashboard.putNumber("DriveBase/xPos", xPos);
+                dashboard.putNumber("DriveBase/yPos", yPos);
+                dashboard.putData("DriveBase/heading", gyro.getGyroSendable());
 
                 //
                 // DriveBase debug info.
                 //
-                double lfEnc = robotDrive.lfWheel.getPosition();
-                double rfEnc = robotDrive.rfWheel.getPosition();
-                double lbEnc = robotDrive.lbWheel.getPosition();
-                double rbEnc = robotDrive.rbWheel.getPosition();
+                double lfEnc = lfDriveMotor.getPosition();
+                double rfEnc = rfDriveMotor.getPosition();
+                double lbEnc = lbDriveMotor.getPosition();
+                double rbEnc = rbDriveMotor.getPosition();
 
-                dashboard.displayPrintf(
-                    8, "DriveBase: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
-                    lfEnc, rfEnc, lbEnc, rbEnc, (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
-                dashboard.displayPrintf(9, "DriveBase: pose=%s", robotPose);
+                dashboard
+                    .displayPrintf(8, "DriveBase: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f", lfEnc, rfEnc, lbEnc,
+                        rbEnc, (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
+                dashboard.displayPrintf(9, "DriveBase: X=%.1f, Y=%.1f, Heading=%.1f", xPos, yPos, heading);
 
-                if (RobotParams.Preferences.debugPidDrive)
+                if (preferences.debugPidDrive)
                 {
-                    int lineNum = 10;
-                    if (robotDrive.encoderXPidCtrl != null)
-                    {
-                        robotDrive.encoderXPidCtrl.displayPidInfo(lineNum);
-                        lineNum += 2;
-                    }
-                    robotDrive.encoderYPidCtrl.displayPidInfo(lineNum);
-                    lineNum += 2;
-                    robotDrive.gyroTurnPidCtrl.displayPidInfo(lineNum);
+                    encoderXPidCtrl.displayPidInfo(10);
+                    encoderYPidCtrl.displayPidInfo(12);
+                    gyroTurnPidCtrl.displayPidInfo(14);
                 }
             }
 
-            if (RobotParams.Preferences.debugSubsystems)
+            if (preferences.debugSubsystems)
             {
-                if (RobotParams.Preferences.debugVision && vision != null)
+                if (preferences.debugVision && vision != null)
                 {
                     FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
                     if (pose != null)
                     {
-                        dashboard.displayPrintf(
-                            13, "VisionTarget: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,pose.objectYaw);
+                        dashboard.displayPrintf(13, "VisionTarget: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
+                            pose.objectYaw);
                     }
                     else
                     {
@@ -321,61 +687,209 @@ public class Robot extends FrcRobotBase
                 }
             }
         }
-    }   //updateStatus
+    }   //updateDashboard
+
+    public int getNumBalls()
+    {
+        return numBalls;
+    }
+
+    public void incNumBalls()
+    {
+        setNumBalls(getNumBalls() + 1);
+        if (getNumBalls() > 5)
+        {
+            globalTracer.traceErr("incNumBalls", "Invalid number of balls: %d! Resetting to five.", getNumBalls());
+            setNumBalls(5);
+        }
+    }
+
+    public void decNumBalls()
+    {
+        setNumBalls(getNumBalls() - 1);
+        if (getNumBalls() < 0)
+        {
+            globalTracer.traceErr("decNumBalls", "Invalid number of balls: %d! Resetting to zero.", getNumBalls());
+            setNumBalls(0);
+        }
+    }
+
+    public void setNumBalls(int numBalls)
+    {
+        this.numBalls = numBalls;
+    }
+
+    public double[] getDriveInputs()
+    {
+        double x, y, rot;
+        double mag;
+        double newMag;
+        if (preferences.useController)
+        {
+            x = driverController.getLeftXWithDeadband(false);
+            y = driverController.getLeftYWithDeadband(false);
+            rot = driverController.getRightXWithDeadband(true);
+            mag = TrcUtil.magnitude(x, y);
+            if (mag > 1)
+            {
+                x /= mag;
+                y /= mag;
+                mag = 1;
+            }
+            newMag = Math.pow(mag, 3);
+        }
+        else
+        {
+            x = rightDriveStick.getXWithDeadband(false);
+            y = rightDriveStick.getYWithDeadband(false);
+            rot = leftDriveStick.getXWithDeadband(true);
+            mag = TrcUtil.magnitude(x, y);
+            if (mag > 1)
+            {
+                x /= mag;
+                y /= mag;
+                mag = 1;
+            }
+            newMag = Math.pow(mag, 2);
+        }
+        switch (driveSpeed)
+        {
+            case SLOW:
+                newMag *= RobotInfo.DRIVE_SLOW_SCALE;
+                rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                break;
+
+            case MEDIUM:
+                newMag *= RobotInfo.DRIVE_MEDIUM_SCALE;
+                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                break;
+
+            case FAST:
+                newMag *= RobotInfo.DRIVE_FAST_SCALE;
+                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                break;
+        }
+        if (mag != 0)
+        {
+            x *= newMag / mag;
+            y *= newMag / mag;
+        }
+        return new double[] { x, y, rot };
+    }
+
+    public double getDriveGyroAngle()
+    {
+        switch (driveOrientation)
+        {
+            case ROBOT:
+                return 0;
+
+            case INVERTED:
+                return 180;
+
+            default:
+            case FIELD:
+                return driveBase.getHeading();
+        }
+    }
+
+    public DriveOrientation getDriveOrientation()
+    {
+        return driveOrientation;
+    }
+
+    public void setDriveOrientation(DriveOrientation driveOrientation)
+    {
+        this.driveOrientation = driveOrientation;
+        ledIndicator.setDriveOrientation(driveOrientation);
+    }
 
     /**
-     * This method creates and opens the trace log with the file name derived from the given match info.
-     * Note that the trace log is disabled after it is opened. The caller must explicitly call setTraceLogEnabled
-     * to enable/disable it.
+     * Checks if any auto processes are running, be it auto mode or auto assist, etc.
      *
-     * @param matchInfo specifies the match info from which the trace log file name is derived.
+     * @return True if any auto processes are active, false otherwise.
      */
-    public void openTraceLog(FrcMatchInfo matchInfo)
+    public boolean isAutoActive()
     {
-        if (RobotParams.Preferences.useTraceLog && !traceLogOpened)
-        {
-            String fileName = matchInfo.eventName != null?
-                String.format(Locale.US, "%s_%s%03d", matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber):
-                getCurrentRunMode().name();
+        return autoMode.isAutoActive();
+    }
 
-            traceLogOpened = globalTracer.openTraceLog(RobotParams.TEAM_FOLDER + "/tracelogs", fileName);
-        }
-    }   //openTraceLog
-
-    /**
-     * This method closes the trace log if it was opened.
-     */
-    public void closeTraceLog()
+    public void cancelAllAuto()
     {
-        if (traceLogOpened)
+        if (autoMode.isAutoActive())
         {
-            globalTracer.closeTraceLog();
-            traceLogOpened = false;
+            autoMode.cancel();
         }
-    }   //closeTraceLog
+        if (autoShooter.isActive())
+        {
+            autoShooter.cancel();
+        }
+        if (autoAlign.isActive())
+        {
+            autoAlign.cancel();
+        }
+        if (climber.isActive())
+        {
+            climber.cancel();
+        }
+    }
 
-    /**
-     * This method enables/disables the trace log.
-     *
-     * @param enabled specifies true to enable trace log, false to disable.
-     */
-    public void setTraceLogEnabled(boolean enabled)
+    public void setAntiDefenseEnabled(boolean enabled)
     {
-        if (traceLogOpened)
+        setAntiDefenseEnabled("AntiDefense", enabled);
+    }
+
+    public void setAntiDefenseEnabled(String owner, boolean enabled)
+    {
+        if (enabled && driveBase.acquireExclusiveAccess(owner))
         {
-            globalTracer.setTraceLogEnabled(enabled);
+            leftFrontWheel.setSteerAngle(-45);
+            rightFrontWheel.setSteerAngle(45);
+            leftBackWheel.setSteerAngle(-135);
+            rightBackWheel.setSteerAngle(135);
         }
-    }   //setTraceLogEnabled
+        else if (!enabled && driveBase.releaseExclusiveAccess(owner))
+        {
+            leftFrontWheel.setSteerAngle(0);
+            rightFrontWheel.setSteerAngle(0);
+            leftBackWheel.setSteerAngle(0);
+            rightBackWheel.setSteerAngle(0);
+        }
+    }
+
+    public void traceStateInfo(double elapsedTime, String stateName, double xTarget, double yTarget, double turnTarget)
+    {
+        final String funcName = "traceStateInfo";
+        StringBuilder msg = new StringBuilder();
+
+        // msg.append(String
+        //     .format("[%5.3f] >>>>> %s: xPos=%6.2f/%6.2f,yPos=%6.2f/%6.2f,heading=%6.1f/%6.1f", elapsedTime, stateName,
+        //         driveBase.getXPosition(), xTarget, driveBase.getYPosition(), yTarget, driveBase.getHeading(),
+        //         turnTarget));
+
+        if (driveBase != null)
+        {
+            msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", stateName));
+            msg.append(
+                String.format(Locale.US, " xPos=\"%6.2f\" xTarget=\"%6.2f\"", driveBase.getXPosition(), xTarget));
+            msg.append(
+                String.format(Locale.US, " yPos=\"%6.2f\" yTarget=\"%6.2f\"", driveBase.getYPosition(), yTarget));
+            msg.append(String
+                .format(Locale.US, " heading=\"%6.2f\" headingTarget=\"%6.2f\"", driveBase.getHeading(), turnTarget));
+        }
+
+        if (battery != null)
+        {
+            msg.append(String.format(",voltage=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
+        }
+
+        globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
+    }   //traceStateInfo
 
     //
     // Getters for sensor data.
     //
 
-    /**
-     * This method returns the pressure value from the pressure sensor.
-     *
-     * @return pressure value.
-     */
     public double getPressure()
     {
         return (pressureSensor.getVoltage() - 0.5) * 50.0;
