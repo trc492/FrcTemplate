@@ -319,9 +319,9 @@ public class FrcTest extends FrcTeleOp
                 robot.dashboard.putString(SWERVE_ANGLES_KEYS, String
                     .format("lf=%.2f/%.0f,rf=%.2f/%.0f,lr=%.2f/%.0f,rr=%.2f/%.0f",
                         robot.leftFrontWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
-                        robot.rightFrontWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
-                        robot.leftBackWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
-                        robot.rightBackWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096)));
+                        robot.rightFrontWheel.getSteerAngle(), TrcUtil.modulo(robot.rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
+                        robot.leftBackWheel.getSteerAngle(), TrcUtil.modulo(robot.lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
+                        robot.rightBackWheel.getSteerAngle(), TrcUtil.modulo(robot.rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096)));
                 doSensorsTest();
                 break;
 
