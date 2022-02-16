@@ -245,7 +245,7 @@ public class Robot extends FrcRobotBase
         steer.motor.setSelectedSensorPosition(pos, 0, 10);
         TrcUtil.sleep(50);
 
-        System.out.printf("Module=%s, Zero=%d, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name, steerZero,
+        System.out.printf("Module=%s, Zero=%d, PwmPos=%d, quadPos=%d, selectedPos=%f\n", name, steerZero,
             steer.motor.getSensorCollection().getPulseWidthPosition(),
             steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
 

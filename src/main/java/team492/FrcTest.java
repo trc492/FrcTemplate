@@ -29,6 +29,7 @@ import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
+import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcChoiceMenu;
 import TrcFrcLib.frclib.FrcJoystick;
@@ -316,9 +317,11 @@ public class FrcTest extends FrcTeleOp
                 robot.lbDriveMotor.set(power);
                 robot.rbDriveMotor.set(power);
                 robot.dashboard.putString(SWERVE_ANGLES_KEYS, String
-                    .format("lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f", robot.leftFrontWheel.getSteerAngle(),
-                        robot.rightFrontWheel.getSteerAngle(), robot.leftBackWheel.getSteerAngle(),
-                        robot.rightBackWheel.getSteerAngle()));
+                    .format("lf=%.2f/%.0f,rf=%.2f/%.0f,lr=%.2f/%.0f,rr=%.2f/%.0f",
+                        robot.leftFrontWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
+                        robot.rightFrontWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
+                        robot.leftBackWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096),
+                        robot.rightBackWheel.getSteerAngle(), TrcUtil.modulo(robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096)));
                 doSensorsTest();
                 break;
 
