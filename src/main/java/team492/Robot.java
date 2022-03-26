@@ -163,7 +163,7 @@ public class Robot extends FrcRobotBase
     public int location = 1;
     public String gameSpecificMessage = null;
     public boolean traceLogOpened = false;
-    private DriveOrientation driveOrientation = DriveOrientation.FIELD;
+    private DriveOrientation driveOrientation = DriveOrientation.ROBOT;
     //
     // Other robot subystems.
     //
@@ -184,7 +184,7 @@ public class Robot extends FrcRobotBase
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
-    public DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
+    public DriveSpeed driveSpeed = DriveSpeed.SLOW;
     private int numBalls;
     public double driveTime;
     public double drivePower;
@@ -402,7 +402,7 @@ public class Robot extends FrcRobotBase
         intake = new Intake(this); // must initialize after conveyor
         climber = new Climber(this);
 
-        setDriveOrientation(DriveOrientation.FIELD);
+        setDriveOrientation(DriveOrientation.ROBOT);
 
         if (preferences.useStreamCamera)
         {
@@ -440,7 +440,7 @@ public class Robot extends FrcRobotBase
     {
         final String funcName = "robotStartMode";
 
-        driveOrientation = DriveOrientation.FIELD;
+        driveOrientation = DriveOrientation.ROBOT;
 
         if (runMode != RunMode.DISABLED_MODE)
         {
@@ -726,9 +726,9 @@ public class Robot extends FrcRobotBase
         double newMag;
         if (preferences.useController)
         {
-            x = driverController.getLeftXWithDeadband(false);
-            y = driverController.getLeftYWithDeadband(false);
-            rot = driverController.getRightXWithDeadband(true);
+            x = driverController.getLeftXWithDeadband(false) * 0.6;
+            y = driverController.getLeftYWithDeadband(false) * 0.6;
+            rot = driverController.getRightXWithDeadband(true) * 0.25;
             mag = TrcUtil.magnitude(x, y);
             if (mag > 1)
             {

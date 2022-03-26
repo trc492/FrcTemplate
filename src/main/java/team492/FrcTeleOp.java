@@ -69,7 +69,7 @@ public class FrcTeleOp implements RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         robot.driveSpeed = Robot.DriveSpeed.MEDIUM;
-        robot.setDriveOrientation(Robot.DriveOrientation.FIELD);
+        robot.setDriveOrientation(Robot.DriveOrientation.ROBOT);
         robot.intake.setSpacingDistance(4);
 
         robot.shooter.setManualOverrideEnabled(false);
@@ -131,20 +131,20 @@ public class FrcTeleOp implements RobotMode
             robot.shooter.setFlyWheelPower(flywheelPower);
         }
 
-        switch (robot.driverController.getPOV())
-        {
-            case 0:
-                robot.driveSpeed = Robot.DriveSpeed.FAST;
-                break;
+        // switch (robot.driverController.getPOV())
+        // {
+        //     case 0:
+        //         robot.driveSpeed = Robot.DriveSpeed.FAST;
+        //         break;
 
-            case 270:
-                robot.driveSpeed = Robot.DriveSpeed.MEDIUM;
-                break;
+        //     case 270:
+        //         robot.driveSpeed = Robot.DriveSpeed.MEDIUM;
+        //         break;
 
-            case 180:
-                robot.driveSpeed = Robot.DriveSpeed.SLOW;
-                break;
-        }
+        //     case 180:
+        //         robot.driveSpeed = Robot.DriveSpeed.SLOW;
+        //         break;
+        // }
     }   // runPeriodic
 
     @Override
@@ -231,10 +231,10 @@ public class FrcTeleOp implements RobotMode
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
-                if (pressed)
-                {
-                    robot.autoShooter.trackTarget(true);
-                }
+                // if (pressed)
+                // {
+                //     robot.autoShooter.trackTarget(true);
+                // }
                 break;
 
             case FrcXboxController.BACK:

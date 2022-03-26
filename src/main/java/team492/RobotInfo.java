@@ -167,8 +167,8 @@ public class RobotInfo
 
     public static final double DRIVE_STALL_TIMEOUT              = 0.5;
 
-    public static final double DRIVE_SLOW_SCALE                 = 0.5;
-    public static final double DRIVE_SLOW_TURNSCALE             = 0.3;
+    public static final double DRIVE_SLOW_SCALE                 = 0.2;
+    public static final double DRIVE_SLOW_TURNSCALE             = 0.1;
 
     public static final double DRIVE_MEDIUM_SCALE               = 0.75;
     public static final double DRIVE_MEDIUM_TURNSCALE           = 0.6;
