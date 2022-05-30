@@ -59,6 +59,7 @@ public class FrcTest extends FrcTeleOp
         DRIVE_MOTORS_TEST,
         X_TIMED_DRIVE,
         Y_TIMED_DRIVE,
+        PP_DRIVE,
         PID_DRIVE,
         TUNE_X_PID,
         TUNE_Y_PID,
@@ -99,7 +100,7 @@ public class FrcTest extends FrcTeleOp
             //
             // Create test mode specific choice menus.
             //
-            testMenu = new FrcChoiceMenu<>("Tests:");
+            testMenu = new FrcChoiceMenu<>(DBKEY_TEST_TESTS);
             //
             // Populate test mode menus.
             //
@@ -110,6 +111,7 @@ public class FrcTest extends FrcTeleOp
             testMenu.addChoice("Drive Motors Test", Test.DRIVE_MOTORS_TEST);
             testMenu.addChoice("X Timed Drive", Test.X_TIMED_DRIVE);
             testMenu.addChoice("Y Timed Drive", Test.Y_TIMED_DRIVE);
+            testMenu.addChoice("PurePursuit Drive", Test.PP_DRIVE);
             testMenu.addChoice("PID Drive", Test.PID_DRIVE);
             testMenu.addChoice("Tune X PID", Test.TUNE_X_PID);
             testMenu.addChoice("Tune Y PID", Test.TUNE_Y_PID);
@@ -167,7 +169,7 @@ public class FrcTest extends FrcTeleOp
         public TrcPidController.PidCoefficients getTunePidCoefficients()
         {
             return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(DBKEY_TEST_TUNE_KD),
+                userChoices.getUserNumber(DBKEY_TEST_TUNE_KP),
                 userChoices.getUserNumber(DBKEY_TEST_TUNE_KI),
                 userChoices.getUserNumber(DBKEY_TEST_TUNE_KD),
                 userChoices.getUserNumber(DBKEY_TEST_TUNE_KF));
@@ -195,10 +197,10 @@ public class FrcTest extends FrcTeleOp
     // Global objects.
     //
     private final TestChoices testChoices = new TestChoices();
-    private final Robot robot;
     private TrcRobot.RobotCommand testCommand;
     private double maxDriveVelocity = 0.0;
     private double maxDriveAcceleration = 0.0;
+    private double maxTurnRate = 0.0;
     private double prevTime = 0.0;
     private double prevVelocity = 0.0;
 
@@ -211,7 +213,7 @@ public class FrcTest extends FrcTeleOp
         //
         // Create and initialize global objects.
         //
-        this.robot = robot;
+
     }   //FrcTest
 
     //
@@ -250,7 +252,7 @@ public class FrcTest extends FrcTeleOp
 
             case SWERVE_CALIBRATION:
                 setControlsEnabled(false);
-                robot.robotDrive.startCalibrate();
+                robot.robotDrive.startSteerCalibrate();
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -278,6 +280,15 @@ public class FrcTest extends FrcTeleOp
                 testCommand = new CmdTimedDrive(
                     robot.robotDrive.driveBase, 0.0, testChoices.getDriveTime(), 0.0, testChoices.getDrivePower(),
                     0.0);
+                break;
+
+            case PP_DRIVE:
+                robot.robotDrive.purePursuitDrive.setMoveOutputLimit(testChoices.getDrivePower());
+                robot.robotDrive.purePursuitDrive.start(
+                    null, robot.robotDrive.driveBase.getFieldPosition(), true,
+                    new TrcPose2D(
+                        testChoices.getXDriveDistance()*12.0, testChoices.getYDriveDistance()*12.0,
+                        testChoices.getTurnAngle()));
                 break;
 
             case PID_DRIVE:
@@ -340,7 +351,7 @@ public class FrcTest extends FrcTeleOp
      * This method is called periodically at a fast rate. Typically, you put code that requires servicing at a
      * high frequency here. To make the robot as responsive and as accurate as possible especially in autonomous
      * mode, you will typically put that code here.
-     * 
+     *
      * @param elapsedTime specifies the elapsed time since the mode started.
      */
     @Override
@@ -364,6 +375,7 @@ public class FrcTest extends FrcTeleOp
                 TrcPose2D velPose = robot.robotDrive.driveBase.getFieldVelocity();
                 double velocity = TrcUtil.magnitude(velPose.x, velPose.y);
                 double acceleration = 0.0;
+                double turnRate = robot.robotDrive.driveBase.getTurnRate();
 
                 if (prevTime != 0.0)
                 {
@@ -380,11 +392,17 @@ public class FrcTest extends FrcTeleOp
                     maxDriveAcceleration = acceleration;
                 }
 
+                if (turnRate > maxTurnRate)
+                {
+                    maxTurnRate = turnRate;
+                }
+
                 prevTime = currTime;
                 prevVelocity = velocity;
 
-                robot.dashboard.displayPrintf(8, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
-                robot.dashboard.displayPrintf(9, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
+                robot.dashboard.displayPrintf(9, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
+                robot.dashboard.displayPrintf(10, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
+                robot.dashboard.displayPrintf(11, "Turn Rate: (%.1f/%.1f)", turnRate, maxTurnRate);
                 break;
 
             default:
@@ -396,64 +414,66 @@ public class FrcTest extends FrcTeleOp
      * This method is called periodically at a slow rate. Typically, you put code that doesn't require frequent
      * update here. For example, TeleOp joystick code or status display code can be put here since human responses
      * are considered slow.
-     * 
+     *
      * @param elapsedTime specifies the elapsed time since the mode started.
      */
     @Override
     public void slowPeriodic(double elapsedTime)
     {
+        if (allowTeleOp())
+        {
+            //
+            // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
+            //
+            super.slowPeriodic(elapsedTime);
+        }
+
         //
         // Call super.runPeriodic only if you need TeleOp control of the robot.
         //
         switch (testChoices.getTest())
         {
             case SENSORS_TEST:
-                displaySensorStates();
-                break;
-
             case SUBSYSTEMS_TEST:
-                //
-                // Allow TeleOp to run so we can control the robot in subsystems test mode.
-                //
-                super.slowPeriodic(elapsedTime);
                 displaySensorStates();
                 break;
 
             case SWERVE_CALIBRATION:
-                robot.robotDrive.calibratePeriodic();
+                robot.robotDrive.steerCalibratePeriodic();
                 displaySensorStates();
                 break;
 
-                case X_TIMED_DRIVE:
-                case Y_TIMED_DRIVE:
-                    double lfEnc = robot.robotDrive.lfDriveMotor.getPosition();
-                    double rfEnc = robot.robotDrive.rfDriveMotor.getPosition();
-                    double lbEnc = robot.robotDrive.lbDriveMotor.getPosition();
-                    double rbEnc = robot.robotDrive.rbDriveMotor.getPosition();
-                    robot.dashboard.displayPrintf(2, "Enc:lf=%.0f,rf=%.0f", lfEnc, rfEnc);
-                    robot.dashboard.displayPrintf(3, "Enc:lb=%.0f,rb=%.0f", lbEnc, rbEnc);
-                    robot.dashboard.displayPrintf(4, "EncAverage=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
-                    robot.dashboard.displayPrintf(5, "RobotPose=%s", robot.robotDrive.driveBase.getFieldPosition());
-                    break;
+            case X_TIMED_DRIVE:
+            case Y_TIMED_DRIVE:
+                double lfEnc = robot.robotDrive.lfDriveMotor.getPosition();
+                double rfEnc = robot.robotDrive.rfDriveMotor.getPosition();
+                double lbEnc = robot.robotDrive.lbDriveMotor.getPosition();
+                double rbEnc = robot.robotDrive.rbDriveMotor.getPosition();
+                robot.dashboard.displayPrintf(9, "Enc:lf=%.0f,rf=%.0f", lfEnc, rfEnc);
+                robot.dashboard.displayPrintf(10, "Enc:lb=%.0f,rb=%.0f", lbEnc, rbEnc);
+                robot.dashboard.displayPrintf(11, "EncAverage=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
+                robot.dashboard.displayPrintf(12, "RobotPose=%s", robot.robotDrive.driveBase.getFieldPosition());
+                break;
     
-                case PID_DRIVE:
-                case TUNE_X_PID:
-                case TUNE_Y_PID:
-                case TUNE_TURN_PID:
-                    int lineNum = 3;
-                    robot.dashboard.displayPrintf(2, "RobotPose=%s", robot.robotDrive.driveBase.getFieldPosition());
-                    if (robot.robotDrive.encoderXPidCtrl != null)
-                    {
-                        robot.robotDrive.encoderXPidCtrl.displayPidInfo(lineNum);
-                        lineNum += 2;
-                    }
-                    robot.robotDrive.encoderYPidCtrl.displayPidInfo(lineNum);
+            case PP_DRIVE:
+            case PID_DRIVE:
+            case TUNE_X_PID:
+            case TUNE_Y_PID:
+            case TUNE_TURN_PID:
+                int lineNum = 10;
+                robot.dashboard.displayPrintf(9, "RobotPose=%s", robot.robotDrive.driveBase.getFieldPosition());
+                if (robot.robotDrive.encoderXPidCtrl != null)
+                {
+                    robot.robotDrive.encoderXPidCtrl.displayPidInfo(lineNum);
                     lineNum += 2;
-                    robot.robotDrive.gyroTurnPidCtrl.displayPidInfo(lineNum);
-                    break;
+                }
+                robot.robotDrive.encoderYPidCtrl.displayPidInfo(lineNum);
+                lineNum += 2;
+                robot.robotDrive.gyroTurnPidCtrl.displayPidInfo(lineNum);
+                break;
     
-                default:
-                    break;
+            default:
+                break;
         }
         //
         // Update Dashboard.
@@ -463,6 +483,18 @@ public class FrcTest extends FrcTeleOp
             robot.updateStatus();
         }
     }   //slowPeriodic
+
+    /**
+     * This method is called to determine if Test mode is allowed to do teleop control of the robot.
+     *
+     * @return true to allow and false otherwise.
+     */
+    private boolean allowTeleOp()
+    {
+        Test test = testChoices.getTest();
+
+        return test == Test.SUBSYSTEMS_TEST || test == Test.DRIVE_SPEED_TEST;
+    }   //allowTeleOp
 
     //
     // Overriding ButtonEvent here if necessary.
@@ -483,17 +515,21 @@ public class FrcTest extends FrcTeleOp
         //
         // Display drivebase info.
         //
+        if (robot.battery != null)
+        {
+            robot.dashboard.displayPrintf(
+                9, "Sensors Test (Batt=%.1f/%.1f):", robot.battery.getVoltage(), robot.battery.getLowestVoltage());
+        }
         robot.dashboard.displayPrintf(
-            1, "Sensors Test (Batt=%.1f/%.1f):", robot.battery.getVoltage(), robot.battery.getLowestVoltage());
-        robot.dashboard.displayPrintf(
-            2, "DriveBase: Pose=%s,Vel=%s", robot.robotDrive.driveBase.getFieldPosition(),
+            10, "DriveBase: Pose=%s,Vel=%s", robot.robotDrive.driveBase.getFieldPosition(),
             robot.robotDrive.driveBase.getFieldVelocity());
-        robot.dashboard.displayPrintf(3, "DriveEncoders: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f",
+        robot.dashboard.displayPrintf(11, "DriveEncoders: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f",
             robot.robotDrive.lfDriveMotor.getPosition(), robot.robotDrive.rfDriveMotor.getPosition(),
             robot.robotDrive.lbDriveMotor.getPosition(), robot.robotDrive.rbDriveMotor.getPosition());
-        robot.dashboard.displayPrintf(4, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
+        robot.dashboard.displayPrintf(12, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
             robot.robotDrive.lfDriveMotor.getMotorPower(), robot.robotDrive.rfDriveMotor.getMotorPower(),
             robot.robotDrive.lbDriveMotor.getMotorPower(), robot.robotDrive.rbDriveMotor.getMotorPower());
+
         //
         // Display other subsystems and sensor info.
         //

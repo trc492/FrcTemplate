@@ -47,15 +47,29 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
 
     //
-    // Auto strategies.
+    // Auto choices enums.
     //
-    private enum AutoStrategy
+
+    public static enum AutoStrategy
     {
         PP_DRIVE,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
     }   //enum AutoStrategy
+
+    public static enum AutoStartPos
+    {
+        POS_1(0),
+        POS_2(1),
+        POS_3(2);
+        // The value can be used as index into arrays if necessary.
+        int value;
+        AutoStartPos(int value)
+        {
+            this.value = value;
+        }   //AutoStartPos
+    }   //enum AutoStartPos
 
     /**
      * This class encapsulates all user choices for autonomous mode from the smart dashboard.
@@ -68,11 +82,12 @@ public class FrcAuto implements TrcRobot.RobotMode
      * 4. Add a getter method for the new choice.
      * 5. Add an entry of the new choice to the toString method.
      */
-    public class AutoChoices
+    public static class AutoChoices
     {
         // Smart dashboard keys for Autonomous choices.
         private static final String DBKEY_AUTO_ALLIANCE = "Auto/Alliance";
         private static final String DBKEY_AUTO_STRATEGY = "Auto/Strategy";
+        private static final String DBKEY_AUTO_START_POS = "Auto/StartPos";
         private static final String DBKEY_AUTO_START_DELAY = "Auto/StartDelay";
         private static final String DBKEY_AUTO_PATHFILE = "Auto/PathFile";
         private static final String DBKEY_AUTO_X_DRIVE_DISTANCE = "Auto/XDriveDistance";
@@ -84,14 +99,16 @@ public class FrcAuto implements TrcRobot.RobotMode
         private final FrcUserChoices userChoices = new FrcUserChoices();
         private final FrcChoiceMenu<DriverStation.Alliance> allianceMenu;
         private final FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
+        private final FrcChoiceMenu<AutoStartPos> autoStartPosMenu;
 
         public AutoChoices()
         {
             //
             // Create autonomous mode specific choice menus.
             //
-            allianceMenu = new FrcChoiceMenu<>("Alliance:");
-            autoStrategyMenu = new FrcChoiceMenu<>("Autonomous Strategies:");
+            allianceMenu = new FrcChoiceMenu<>(DBKEY_AUTO_ALLIANCE);
+            autoStrategyMenu = new FrcChoiceMenu<>(DBKEY_AUTO_STRATEGY);
+            autoStartPosMenu = new FrcChoiceMenu<>(DBKEY_AUTO_START_POS);
             //
             // Populate autonomous mode choice menus.
             //
@@ -102,11 +119,16 @@ public class FrcAuto implements TrcRobot.RobotMode
             autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
             autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
             autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, true);
+
+            autoStartPosMenu.addChoice("Start Position 1", AutoStartPos.POS_1, true, false);
+            autoStartPosMenu.addChoice("Start Position 2", AutoStartPos.POS_2);
+            autoStartPosMenu.addChoice("Start Position 3", AutoStartPos.POS_3, false, true);
             //
             // Initialize dashboard with default choice values.
             //
             userChoices.addChoiceMenu(DBKEY_AUTO_ALLIANCE, allianceMenu);
             userChoices.addChoiceMenu(DBKEY_AUTO_STRATEGY, autoStrategyMenu);
+            userChoices.addChoiceMenu(DBKEY_AUTO_START_POS, autoStartPosMenu);
             userChoices.addNumber(DBKEY_AUTO_START_DELAY, 0.0);
             userChoices.addString(DBKEY_AUTO_PATHFILE, "DrivePath.csv");
             userChoices.addNumber(DBKEY_AUTO_X_DRIVE_DISTANCE, 6.0);    // in feet
@@ -131,6 +153,11 @@ public class FrcAuto implements TrcRobot.RobotMode
         {
             return autoStrategyMenu.getCurrentChoiceObject();
         }   //getStrategy
+
+        public int getStartPos()
+        {
+            return autoStartPosMenu.getCurrentChoiceObject().value;
+        }   //getStartPos
 
         public double getStartDelay()
         {
@@ -174,6 +201,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                 Locale.US,
                 "alliance=\"%s\" " +
                 "strategy=\"%s\" " +
+                "startPos=\"%s\" " +
                 "startDelay=%.0f sec " +
                 "pathFile=\"%s\" " +
                 "xDistance=%.1f ft " +
@@ -181,7 +209,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                 "turnDegrees=%.0f deg " +
                 "driveTime=%.0f sec " +
                 "drivePower=%.1f",
-                getAlliance(), getStrategy(), getStartDelay(), getPathFile(), getXDriveDistance(),
+                getAlliance(), getStrategy(), getStartPos(), getStartDelay(), getPathFile(), getXDriveDistance(),
                 getYDriveDistance(), getTurnAngle(), getDriveTime(), getDrivePower());
         }   //toString
 
@@ -191,7 +219,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     // Global objects.
     //
 
-    private final AutoChoices autoChoices = new AutoChoices();
+    public static final AutoChoices autoChoices = new AutoChoices();
     private final Robot robot;
     private TrcRobot.RobotCommand autoCommand;
 
@@ -274,7 +302,8 @@ public class FrcAuto implements TrcRobot.RobotMode
                 autoCommand = new CmdPidDrive(
                     robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.getStartDelay(),
                     autoChoices.getDrivePower(), null,
-                    new TrcPose2D(autoChoices.getXDriveDistance()*12.0, autoChoices.getYDriveDistance()*12.0,
+                    new TrcPose2D(autoChoices.getXDriveDistance()*12.0,
+                                  autoChoices.getYDriveDistance()*12.0,
                                   autoChoices.getTurnAngle()));
                 break;
 
@@ -340,7 +369,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     public void slowPeriodic(double elapsedTime)
     {
         //
-        // Update dashboard.
+        // Update robot status.
         //
         if (RobotParams.Preferences.doAutoUpdates)
         {

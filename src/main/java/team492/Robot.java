@@ -29,6 +29,7 @@ import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobotBattery;
 import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
+import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcDashboard;
 import TrcFrcLib.frclib.FrcJoystick;
 import TrcFrcLib.frclib.FrcMatchInfo;
@@ -37,6 +38,8 @@ import TrcFrcLib.frclib.FrcRemoteVisionProcessor;
 import TrcFrcLib.frclib.FrcRobotBase;
 import TrcFrcLib.frclib.FrcRobotBattery;
 import TrcFrcLib.frclib.FrcXboxController;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 
@@ -60,10 +63,10 @@ public class Robot extends FrcRobotBase
     // Inputs.
     //
     public FrcJoystick leftDriveStick, rightDriveStick;
-    public FrcXboxController driverController;
     public FrcJoystick operatorStick;
     public FrcJoystick buttonPanel;
     public FrcJoystick switchPanel;
+    public FrcXboxController driverController;
 
     //
     // Sensors.
@@ -73,9 +76,9 @@ public class Robot extends FrcRobotBase
     public AnalogInput pressureSensor;
 
     //
-    // DriveBase subsystem.
+    // Miscellaneous hardware.
     //
-    public WestCoastDrive robotDrive;
+    public LEDIndicator ledIndicator;
 
     //
     // Vision subsystem.
@@ -83,28 +86,32 @@ public class Robot extends FrcRobotBase
     public VisionTargeting vision;
 
     //
+    // DriveBase subsystem.
+    //
+    public WestCoastDrive robotDrive;
+
+    //
     // Other subsystems.
     //
-    public LEDIndicator ledIndicator;
 
     /**
      * Constructor: Create an instance of the object.
      */
     public Robot()
     {
-        super(RobotParams.GAME_NAME);
+        super(RobotParams.ROBOT_NAME);
     }   //Robot
 
     /**
      * This method is called when the robot is first started up and should be used for any initialization code
      * including creation and initialization of all robot hardware and subsystems.
      *
-     * To create new hardware or subsystem, follow the following steps:
+     * To create new hardware or subsystem, follow the steps below:
      * 1. Create a public class variable for the new hardware/subsystem.
      * 2. Instantiate and initialize the new hardware/subsystem object in this method.
      * 3. Put code in updateDashboard to display status of the new hardware/subsystem if necessary.
      * 4. Put code in robotStartMode or robotStopMode to configure/reset hardware/subsystem if necessary.
-     * 5. Put code in FrcTeleOp to operate the subsystem if necessary (i.e. runPeriodic/xxxButtonEvent).
+     * 5. Put code in FrcTeleOp to operate the subsystem if necessary (i.e. slowPeriodic/xxxButtonEvent).
      * 6. Create a getter method for the new sensor only if necessary (e.g. sensor value needs translation).
      */
     @Override
@@ -120,33 +127,46 @@ public class Robot extends FrcRobotBase
         if (RobotParams.Preferences.useXboxController)
         {
             driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
-            operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK);
-            buttonPanel = new FrcJoystick("buttonPanel", RobotParams.JSPORT_BUTTON_PANEL);
-            switchPanel = new FrcJoystick("switchPanel", RobotParams.JSPORT_SWITCH_PANEL);
             driverController.setLeftYInverted(true);
         }
         else
         {
-            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotParams.XBOX_DRIVERCONTROLLER);
-            rightDriveStick = new FrcJoystick("DriverRightStick", RobotParams.XBOX_DRIVERCONTROLLER + 1);
-            operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK + 1);
-            buttonPanel = new FrcJoystick("buttonPanel", RobotParams.JSPORT_BUTTON_PANEL + 1);
-            switchPanel = new FrcJoystick("switchPanel", RobotParams.JSPORT_SWITCH_PANEL + 1);
+            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotParams.JSPORT_DRIVER_LEFTSTICK);
+            leftDriveStick.setYInverted(true);
+            rightDriveStick = new FrcJoystick("DriverRightStick", RobotParams.JSPORT_DRIVER_RIGHTSTICK);
             rightDriveStick.setYInverted(true);
         }
+        operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK);
         operatorStick.setYInverted(false);
+        if (RobotParams.Preferences.useButtonPanels)
+        {
+            buttonPanel = new FrcJoystick("buttonPanel", RobotParams.JSPORT_BUTTON_PANEL);
+            switchPanel = new FrcJoystick("switchPanel", RobotParams.JSPORT_SWITCH_PANEL);
+        }
 
         //
         // Create and initialize sensors.
         //
-        pdp = new FrcPdp(RobotParams.CANID_PDP, ModuleType.kCTRE);
-        battery = new FrcRobotBattery(pdp);
+        if (RobotParams.Preferences.useStreamCamera)
+        {
+            UsbCamera camera = CameraServer.startAutomaticCapture("DriverDisplay", 0);
+            camera.setResolution(160, 120);
+            camera.setFPS(10);
+        }
+
+        if (RobotParams.Preferences.usePdp)
+        {
+            pdp = new FrcPdp(RobotParams.CANID_PDP, ModuleType.kRev);
+            pdp.setSwitchableChannel(false);
+            battery = new FrcRobotBattery(pdp);
+        }
+
         pressureSensor = new AnalogInput(RobotParams.AIN_PRESSURE_SENSOR);
 
         //
-        // Create and initialize DriveBase subsystem.
+        // Create and initialize miscellaneous hardware.
         //
-        robotDrive = new WestCoastDrive(this);
+        ledIndicator = new LEDIndicator();
 
         //
         // Create and initialize Vision subsystem.
@@ -157,15 +177,24 @@ public class Robot extends FrcRobotBase
         }
 
         //
+        // Create and initialize RobotDrive subsystem.
+        //
+        robotDrive = new WestCoastDrive(this);
+
+        //
         // Create and initialize other subsystems.
         //
-        ledIndicator = new LEDIndicator();
+        if (RobotParams.Preferences.useSubsystems)
+        {
+        }
 
         //
-        // AutoAssist commands.
+        // Miscellaneous.
         //
-
-        pdp.registerEnergyUsedForAllUnregisteredChannels();
+        if (pdp != null)
+        {
+            pdp.registerEnergyUsedForAllUnregisteredChannels();
+        }
 
         //
         // Create Robot Modes.
@@ -223,15 +252,26 @@ public class Robot extends FrcRobotBase
         // Stop subsystems.
         //
         robotDrive.stopMode(runMode, nextMode);
+        if (RobotParams.Preferences.useSubsystems)
+        {
+        }
         ledIndicator.reset();
 
         //
         // Performance status report.
         //
-        double totalEnergy = battery.getTotalEnergy();
-        globalTracer.traceInfo(
-            funcName, "TotalEnergy=%.3fWh (%.2f%%)",
-            totalEnergy, totalEnergy * 100.0 / RobotParams.BATTERY_CAPACITY_WATT_HOUR);
+        if (battery != null)
+        {
+            double totalEnergy = battery.getTotalEnergy();
+            globalTracer.traceInfo(
+                funcName, "TotalEnergy=%.3fWh (%.2f%%)",
+                totalEnergy, totalEnergy * 100.0 / RobotParams.BATTERY_CAPACITY_WATT_HOUR);
+        }
+
+        if (runMode != RunMode.DISABLED_MODE)
+        {
+            printPerformanceMetrics(globalTracer);
+        }
 
         //
         // Stop trace logging.
@@ -257,15 +297,18 @@ public class Robot extends FrcRobotBase
 
             if (RobotParams.Preferences.debugPowerConsumption)
             {
-                dashboard.putNumber("Power/pdpTotalCurrent", pdp.getTotalCurrent());
-                dashboard.putNumber("Power/totalEnergy", battery.getTotalEnergy());
-                dashboard.putData("Power/pdpInfo", pdp.getPdpSendable());
-                if (runMode == RunMode.TELEOP_MODE)
+                if (pdp != null)
                 {
-                    globalTracer.traceInfo(
-                        funcName, "[%.3f] Battery: currVoltage=%.2f, lowestVoltage=%.2f",
-                        currTime, battery.getVoltage(), battery.getLowestVoltage());
-                    globalTracer.traceInfo(funcName, "[%.3f] Total=%.2fA", currTime, pdp.getTotalCurrent());
+                    dashboard.putNumber("Power/pdpTotalCurrent", pdp.getTotalCurrent());
+                    dashboard.putNumber("Power/totalEnergy", battery.getTotalEnergy());
+                    dashboard.putData("Power/pdpInfo", pdp.getPdpSendable());
+                    if (runMode == RunMode.TELEOP_MODE)
+                    {
+                        globalTracer.traceInfo(
+                            funcName, "[%.3f] Battery: currVoltage=%.2f, lowestVoltage=%.2f",
+                            currTime, battery.getVoltage(), battery.getLowestVoltage());
+                        globalTracer.traceInfo(funcName, "[%.3f] Total=%.2fA", currTime, pdp.getTotalCurrent());
+                    }
                 }
             }
 
@@ -275,19 +318,27 @@ public class Robot extends FrcRobotBase
 
                 dashboard.putNumber("DriveBase/xPos", robotPose.x);
                 dashboard.putNumber("DriveBase/yPos", robotPose.y);
-                dashboard.putData("DriveBase/heading", robotDrive.gyro.getGyroSendable());
+                dashboard.putData("DriveBase/heading", ((FrcAHRSGyro) robotDrive.gyro).getGyroSendable());
+                dashboard.putNumber("DriveBase/Yaw", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getYaw());
+                dashboard.putNumber("DriveBase/Pitch", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getPitch());
+                dashboard.putNumber("DriveBase/Roll", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getRoll());
+                dashboard.putNumber("DriveBase/AccelX", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getWorldLinearAccelX());
+                dashboard.putNumber("DriveBase/AccelY", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getWorldLinearAccelY());
+                dashboard.putNumber("DriveBase/AccelZ", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getWorldLinearAccelZ());
+                dashboard.putNumber("DriverBase/Compass", ((FrcAHRSGyro) robotDrive.gyro).ahrs.getCompassHeading());
 
                 //
                 // DriveBase debug info.
                 //
-                double lfEnc = robotDrive.lfDriveMotor.getPosition();
-                double rfEnc = robotDrive.rfDriveMotor.getPosition();
-                double lbEnc = robotDrive.lbDriveMotor.getPosition();
-                double rbEnc = robotDrive.rbDriveMotor.getPosition();
+                double lfDriveEnc = robotDrive.lfDriveMotor.getPosition();
+                double rfDriveEnc = robotDrive.rfDriveMotor.getPosition();
+                double lbDriveEnc = robotDrive.lbDriveMotor.getPosition();
+                double rbDriveEnc = robotDrive.rbDriveMotor.getPosition();
 
                 dashboard.displayPrintf(
                     8, "DriveBase: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
-                    lfEnc, rfEnc, lbEnc, rbEnc, (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
+                    lfDriveEnc, rfDriveEnc, lbDriveEnc, rbDriveEnc,
+                    (lfDriveEnc + rfDriveEnc + lbDriveEnc + rbDriveEnc) / 4.0);
                 dashboard.displayPrintf(9, "DriveBase: pose=%s", robotPose);
 
                 if (RobotParams.Preferences.debugPidDrive)
@@ -304,21 +355,37 @@ public class Robot extends FrcRobotBase
                 }
             }
 
-            if (RobotParams.Preferences.debugSubsystems)
+            if (RobotParams.Preferences.showVisionStatus)
             {
-                if (RobotParams.Preferences.debugVision && vision != null)
+                if (vision != null)
                 {
                     FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
+
                     if (pose != null)
                     {
-                        dashboard.displayPrintf(
-                            13, "VisionTarget: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,pose.objectYaw);
+                        double horiAngle = vision.getTargetHorizontalAngle();
+                        double vertAngle = vision.getTargetVerticalAngle();
+                        double distanceToTarget = vision.getTargetDistance();
+                        dashboard.putNumber("Camera/distance", distanceToTarget + RobotParams.VISION_TARGET_RADIUS);
+                        dashboard.putNumber("Camera/horiAngle", horiAngle);
+                        dashboard.putNumber("Camera/vertAngle", vertAngle);
+                        if (RobotParams.Preferences.debugVision)
+                        {
+                            dashboard.displayPrintf(
+                                15, "VisionTarget: x=%.1f,y=%.1f,depth=%.1f/%.1f,horiAngle=%.1f,vertAngle=%.1f",
+                                pose.x, pose.y, pose.r, distanceToTarget + RobotParams.VISION_TARGET_RADIUS,
+                                horiAngle, vertAngle);
+                        }
                     }
-                    else
+                    else if (RobotParams.Preferences.debugVision)
                     {
-                        dashboard.displayPrintf(13, "VisionTarget: No target found!");
+                        dashboard.displayPrintf(15, "VisionTarget: No target found!");
                     }
                 }
+            }
+
+            if (RobotParams.Preferences.showSubsystemStatus)
+            {
             }
         }
     }   //updateStatus

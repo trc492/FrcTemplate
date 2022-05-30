@@ -75,7 +75,7 @@ public class LEDIndicator
      *
      * @param orientation specifies the drive orientation mode.
      */
-    public void setDriveOrientation(FrcTeleOp.DriveOrientation orientation)
+    public void setDriveOrientation(RobotDrive.DriveOrientation orientation)
     {
         switch (orientation)
         {
