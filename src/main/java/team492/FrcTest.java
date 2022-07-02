@@ -478,7 +478,7 @@ public class FrcTest extends FrcTeleOp
         //
         // Update Dashboard.
         //
-        if (RobotParams.Preferences.doAutoUpdates)
+        if (RobotParams.Preferences.doStatusUpdate)
         {
             robot.updateStatus();
         }

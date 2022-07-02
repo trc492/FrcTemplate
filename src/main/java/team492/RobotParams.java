@@ -50,7 +50,7 @@ public class RobotParams
         public static final boolean useSubsystems               = false;
         // Miscellaneous
         public static final boolean useTraceLog                 = true;
-        public static final boolean doAutoUpdates               = true;
+        public static final boolean doStatusUpdate              = true;
         public static final boolean showSubsystemStatus         = false;
         public static final boolean showVisionStatus            = false;
         // Debug
