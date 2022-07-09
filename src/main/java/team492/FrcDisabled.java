@@ -91,7 +91,7 @@ public class FrcDisabled implements TrcRobot.RobotMode
         //
         if (RobotParams.Preferences.doAutoUpdates)
         {
-            robot.updateStatus();
+            robot.updateStatus(RunMode.DISABLED_MODE);
         }
     }   //runPeriodic
 

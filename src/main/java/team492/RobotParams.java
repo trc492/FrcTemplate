@@ -73,9 +73,9 @@ public class RobotParams
     // Joystick ports.
     //
     public static final int XBOX_DRIVERCONTROLLER               = 0;
-    public static final int JSPORT_OPERATORSTICK                = 1;
-    public static final int JSPORT_BUTTON_PANEL                 = 2;
-    public static final int JSPORT_SWITCH_PANEL                 = 3;
+    // public static final int JSPORT_OPERATORSTICK                = 1;
+    // public static final int JSPORT_BUTTON_PANEL                 = 2;
+    // public static final int JSPORT_SWITCH_PANEL                 = 3;
 
     //
     // CAN IDs.
@@ -84,13 +84,16 @@ public class RobotParams
     public static final int CANID_RIGHTFRONT_DRIVE              = 4;    // 40A: Yellow
     public static final int CANID_LEFTBACK_DRIVE                = 5;    // 40A: Green
     public static final int CANID_RIGHTBACK_DRIVE               = 6;    // 40A: Blue
-    public static final int CANID_LEFTFRONT_STEER               = 23;   // 40A: Orange
-    public static final int CANID_RIGHTFRONT_STEER              = 24;   // 40A: Yellow
-    public static final int CANID_LEFTBACK_STEER                = 25;   // 40A: Green
-    public static final int CANID_RIGHTBACK_STEER               = 26;   // 40A: Blue
+    // public static final int CANID_LEFTFRONT_STEER               = 23;   // 40A: Orange
+    // public static final int CANID_RIGHTFRONT_STEER              = 24;   // 40A: Yellow
+    // public static final int CANID_LEFTBACK_STEER                = 25;   // 40A: Green
+    // public static final int CANID_RIGHTBACK_STEER               = 26;   // 40A: Blue
 
     public static final int CANID_PDP                           = 16;
     public static final int CANID_PCM                           = 17;
+
+    public static final int CANID_RIGHT_LIDAR = 21;
+    public static final int CANID_LEFT_LIDAR = 22;
 
     //
     // PDP Channels.

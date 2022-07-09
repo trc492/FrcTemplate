@@ -22,9 +22,9 @@
 
 package team492;
 
-import frclib.FrcXboxController;
-import trclib.TrcRobot;
-import trclib.TrcRobot.RunMode;
+import TrcFrcLib.frclib.FrcXboxController;
+import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcRobot.RunMode;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
@@ -75,8 +75,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // DriveBase operation.
         //
-        // robot.driveBase.tankDrive(robot.driverController.getLeftYWithDeadband(true), robot.driverController.getRightYWithDeadband(true));
-        robot.driveBase.arcadeDrive(robot.driverJoystick.getYWithDeadband(true), robot.driverJoystick.getTwistWithDeadband(true));
+        // System.out.printf("left y: %.1f, right y: %.1f", robot.driverController.getLeftYWithDeadband(true), robot.driverController.getRightYWithDeadband(true));
+        // robot.robotDrive.tankDrive(robot.driverController.getLeftYWithDeadband(true), robot.driverController.getRightYWithDeadband(true));
+        robot.robotDrive.arcadeDrive(robot.driverController.getLeftYWithDeadband(true), -1*robot.driverController.getRightXWithDeadband(true));
 
         //
         // Analog control of subsystem is done here if necessary.
@@ -85,7 +86,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Update dashboard
         //
-        robot.updateDashboard(RunMode.TELEOP_MODE);
+        robot.updateStatus(RunMode.TELEOP_MODE);
     }   // runPeriodic
 
     @Override

@@ -22,15 +22,15 @@
 
 package team492;
 
-import frclib.FrcCANTalon;
-import frclib.FrcCANTimeOfFlight;
-import frclib.FrcJoystick;
-import frclib.FrcLimeLightVisionProcessor;
-import frclib.FrcRobotBase;
-import frclib.FrcXboxController;
-import hallib.HalDashboard;
-import trclib.TrcSimpleDriveBase;
-import trclib.TrcRobot.RunMode;
+import TrcFrcLib.frclib.FrcCANTalon;
+import TrcFrcLib.frclib.FrcCANTimeOfFlight;
+import TrcFrcLib.frclib.FrcJoystick;
+import TrcFrcLib.frclib.FrcLimeLightVisionProcessor;
+import TrcFrcLib.frclib.FrcRobotBase;
+import TrcFrcLib.frclib.FrcXboxController;
+import TrcCommonLib.trclib.TrcDashboard;
+import TrcCommonLib.trclib.TrcSimpleDriveBase;
+import TrcCommonLib.trclib.TrcRobot.RunMode;
 
 /**
  * The Main class is configured to instantiate and automatically run this class,
@@ -52,13 +52,12 @@ public class Robot extends FrcRobotBase
     //
     // Global objects.
     //
-    public final HalDashboard dashboard = HalDashboard.getInstance();
+    public final TrcDashboard dashboard = TrcDashboard.getInstance();
 
     //
     // Inputs.
     //
     public FrcXboxController driverController;
-    public FrcJoystick driverJoystick;
 
     //
     // Sensors.
@@ -68,7 +67,7 @@ public class Robot extends FrcRobotBase
     // DriveBase subsystem.
     //
     public FrcCANTalon leftFrontTalon, leftRearTalon, rightFrontTalon, rightRearTalon;
-    public TrcSimpleDriveBase driveBase;
+    public TrcSimpleDriveBase robotDrive;
 
     //
     // Vision subsystem.
@@ -107,7 +106,6 @@ public class Robot extends FrcRobotBase
         // Create and initialize inputs.
         //
         driverController = new FrcXboxController("driverController", RobotInfo.DRIVER_CONTROLLER);
-        driverJoystick = new FrcJoystick("driverJoystick", 1);
 
         //
         // Create and initialize sensors.
@@ -128,7 +126,7 @@ public class Robot extends FrcRobotBase
         rightRearTalon.setBrakeModeEnabled(true);
         rightRearTalon.follow(rightFrontTalon);
         rightRearTalon.setInverted(true);
-        driveBase = new TrcSimpleDriveBase(leftFrontTalon, rightFrontTalon);
+        robotDrive = new TrcSimpleDriveBase(leftFrontTalon, rightFrontTalon);
 
         //
         // Create PID controllers for DriveBase PID drive.
@@ -188,7 +186,7 @@ public class Robot extends FrcRobotBase
 
     }   //robotStopMode
 
-    public void updateDashboard(RunMode runMode)
+    public void updateStatus(RunMode runMode)
     {
 
     }   //updateDashboard
