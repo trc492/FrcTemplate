@@ -47,7 +47,7 @@ public class RobotParams
         public static final boolean useVision                   = false;
         public static final boolean useStreamCamera             = false;
         // Subsystems
-        public static final boolean useSubsystems               = false;
+        public static final boolean useSubsystems               = true;
         // Miscellaneous
         public static final boolean useTraceLog                 = true;
         public static final boolean doStatusUpdate              = true;
@@ -117,6 +117,9 @@ public class RobotParams
     public static final int CANID_RIGHTFRONT_STEER              = 14;   // Yellow: 40A
     public static final int CANID_LEFTBACK_STEER                = 15;   // Green: 40A
     public static final int CANID_RIGHTBACK_STEER               = 16;   // Blue: 40A
+
+    public static final int CANID_SHOOTER                       = 23;
+    public static final int CANID_TILTER                        = 24;
 
     public static final int CANID_PCM                           = 30;
     public static final int CANID_PDP                           = 31;

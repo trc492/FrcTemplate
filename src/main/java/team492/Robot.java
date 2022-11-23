@@ -25,11 +25,15 @@ package team492;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
+import TrcCommonLib.trclib.TrcPidActuator;
+import TrcCommonLib.trclib.TrcPidConveyor;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobotBattery;
 import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcAHRSGyro;
+import TrcFrcLib.frclib.FrcCANFalcon;
+import TrcFrcLib.frclib.FrcCANTalon;
 import TrcFrcLib.frclib.FrcDashboard;
 import TrcFrcLib.frclib.FrcJoystick;
 import TrcFrcLib.frclib.FrcMatchInfo;
@@ -93,6 +97,11 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
+    // public FrcCANFalcon turretMotor;
+    // public TrcPidActuator turret;
+    public FrcCANFalcon shooterMotor;
+    public TrcPidActuator shooter;
+    public FrcCANTalon tilterMotor;
 
     /**
      * Constructor: Create an instance of the object.
@@ -126,8 +135,8 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useXboxController)
         {
-            driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
-            driverController.setLeftYInverted(true);
+            // driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
+            // driverController.setLeftYInverted(true);
         }
         else
         {
@@ -186,6 +195,11 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useSubsystems)
         {
+            // turretMotor = new FrcCANFalcon("turretMotor", RobotParams.CANID)
+            // turret = new TrcPidActuator("turret", motor, null, null, params)
+            shooterMotor = new FrcCANFalcon("shooterMotor", RobotParams.CANID_SHOOTER);
+            // shooter = new TrcPidActuator("shooter", shooterMotor, null, null, params);
+            tilterMotor = new FrcCANTalon("tilterMotor", 24);
         }
 
         //
