@@ -162,7 +162,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             //
             if (RobotParams.Preferences.useSubsystems)
             {
-                robot.tilterMotor.setMotorPower(robot.operatorStick.getYWithDeadband(true));
+                // robot.tilterMotor.setMotorPower(robot.operatorStick.getYWithDeadband(true));
             }
         }
         //
@@ -194,6 +194,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
 
         robot.operatorStick.setButtonHandler(enabled? this::operatorStickButtonEvent: null);
+
 
         if (RobotParams.Preferences.useButtonPanels)
         {
@@ -417,6 +418,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                robot.intake.setMotorPower(pressed? 0.5: 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:

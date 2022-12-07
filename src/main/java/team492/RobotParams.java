@@ -120,7 +120,7 @@ public class RobotParams
 
     public static final int CANID_SHOOTER                       = 23;
     public static final int CANID_TILTER                        = 24;
-
+    public static final int CANID_TURRET                        = 25;
     public static final int CANID_PCM                           = 30;
     public static final int CANID_PDP                           = 31;
 

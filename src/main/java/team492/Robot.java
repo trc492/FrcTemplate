@@ -33,10 +33,13 @@ import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcCANFalcon;
+import TrcFrcLib.frclib.FrcCANSparkMax;
 import TrcFrcLib.frclib.FrcCANTalon;
 import TrcFrcLib.frclib.FrcDashboard;
 import TrcFrcLib.frclib.FrcJoystick;
 import TrcFrcLib.frclib.FrcMatchInfo;
+import TrcFrcLib.frclib.FrcPWMSparkMax;
+import TrcFrcLib.frclib.FrcPWMTalonSRX;
 import TrcFrcLib.frclib.FrcPdp;
 import TrcFrcLib.frclib.FrcRemoteVisionProcessor;
 import TrcFrcLib.frclib.FrcRobotBase;
@@ -102,6 +105,10 @@ public class Robot extends FrcRobotBase
     public FrcCANFalcon shooterMotor;
     public TrcPidActuator shooter;
     public FrcCANTalon tilterMotor;
+    public FrcPWMTalonSRX intake;
+    public FrcPWMTalonSRX horizontalConveyor;
+    public FrcPWMTalonSRX verticalConveyor;
+    public FrcCANSparkMax turret;
 
     /**
      * Constructor: Create an instance of the object.
@@ -200,6 +207,10 @@ public class Robot extends FrcRobotBase
             shooterMotor = new FrcCANFalcon("shooterMotor", RobotParams.CANID_SHOOTER);
             // shooter = new TrcPidActuator("shooter", shooterMotor, null, null, params);
             tilterMotor = new FrcCANTalon("tilterMotor", 24);
+            intake = new FrcPWMTalonSRX("intake", 2, null, null, null);
+            horizontalConveyor = new FrcPWMTalonSRX("horizontalConveyor", 0, null, null, null);
+            verticalConveyor = new FrcPWMTalonSRX("VerticalConveyor", 1, null, null, null);
+            turret = new FrcCANSparkMax("turret", 25, true);
         }
 
         //
