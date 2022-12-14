@@ -148,11 +148,15 @@ public class RobotParams
     //
     // Digital Input/Output ports.
     //
+    public static final int DIO_BEAM_BREAKER                    = 0;
 
     //
     // PWM channels.
     //
     public static final int PWM_CHANNEL_LED                     = 0;
+    public static final int PWM_CHANNEL_HORIZONTAL_CONVEYOR     = 0;
+    public static final int PWM_CHANNEL_VERTICAL_CONVEYOR       = 1;
+    public static final int PWM_CHANNEL_INTAKE                  = 9;
     public static final int NUM_LEDS                            = 60;
 
     //
@@ -162,6 +166,8 @@ public class RobotParams
     //
     // Solenoid channels.
     //
+    public static final int PNEUMATIC_INTAKE_RETRACT            = 0;
+    public static final int PNEUMATIC_INTAKE_EXTEND             = 0;
 
     //
     // Ultrasonic sensors.
@@ -282,5 +288,7 @@ public class RobotParams
     //
     // Other subsystems.
     //
+    public static final double INTAKE_PICKUP_POWER              = 1.0;
+    public static final double INTAKE_DUMP_POWER                = -1.0;
 
 }   //class RobotParams

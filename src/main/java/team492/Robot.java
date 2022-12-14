@@ -24,8 +24,11 @@ package team492;
 
 import java.util.Locale;
 
+import javax.net.ssl.TrustManagerFactorySpi;
+
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDigitalInput;
+import TrcCommonLib.trclib.TrcDigitalInputTrigger;
 import TrcCommonLib.trclib.TrcPidActuator;
 import TrcCommonLib.trclib.TrcPidConveyor;
 import TrcCommonLib.trclib.TrcPose2D;
@@ -83,7 +86,6 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp;
     public TrcRobotBattery battery;
     public AnalogInput pressureSensor;
-    public FrcDigitalInput conveyorSensor;
 
     //
     // Miscellaneous hardware.
@@ -103,15 +105,12 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
-    // public TrcPidActuator turret;
     public FrcCANSparkMax turretMotorController;
     public FrcCANFalcon shooterMotor;
-    public TrcPidActuator shooter;
     public FrcCANTalon tilterMotor;
-    public FrcPWMTalonSRX intake;
-    public FrcPWMTalonSRX horizontalConveyor;
-    public FrcPWMTalonSRX verticalConveyor;
-    public FrcCANSparkMax turret;
+
+    public Intake intake;
+    public Conveyor conveyor;
 
     /**
      * Constructor: Create an instance of the object.
@@ -145,8 +144,8 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useXboxController)
         {
-            // driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
-            // driverController.setLeftYInverted(true);
+            driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVERCONTROLLER);
+            driverController.setLeftYInverted(true);
         }
         else
         {
@@ -181,7 +180,6 @@ public class Robot extends FrcRobotBase
         }
 
         pressureSensor = new AnalogInput(RobotParams.AIN_PRESSURE_SENSOR);
-        conveyorSensor = new FrcDigitalInput("conveyorSensor", 0);
 
         //
         // Create and initialize miscellaneous hardware.
@@ -209,13 +207,11 @@ public class Robot extends FrcRobotBase
         if (RobotParams.Preferences.useSubsystems)
         {
             turretMotorController = new FrcCANSparkMax("turretMotorController", RobotParams.CANID_TURRET, true);
-            // turret = new TrcPidActuator("turret", motor, null, null, params)
             shooterMotor = new FrcCANFalcon("shooterMotor", RobotParams.CANID_SHOOTER);
-            // shooter = new TrcPidActuator("shooter", shooterMotor, null, null, params);
             tilterMotor = new FrcCANTalon("tilterMotor", 24);
-            intake = new FrcPWMTalonSRX("intake", 9, null, null, null);
-            horizontalConveyor = new FrcPWMTalonSRX("horizontalConveyor", 0, null, null, null);
-            verticalConveyor = new FrcPWMTalonSRX("VerticalConveyor", 1, null, null, null);
+
+            intake = new Intake(this);
+            conveyor = new Conveyor(this);
         }
 
         //
@@ -420,7 +416,7 @@ public class Robot extends FrcRobotBase
 
             if (RobotParams.Preferences.showSubsystemStatus)
             {
-               dashboard.displayPrintf(10, "Beam broken:%b", !conveyorSensor.isActive()); 
+               dashboard.displayPrintf(10, "Beam broken:%b", conveyor.isBeamBreakActive()); 
             }
         }
     }   //updateStatus

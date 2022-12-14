@@ -127,36 +127,36 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             //
             // DriveBase operation.
             //
-            // if (robot.driverController != null)
-            // {
-            //     switch (robot.driverController.getPOV())
-            //     {
-            //         case 0:
-            //             robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-            //             robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-            //             break;
+            if (robot.driverController != null)
+            {
+                switch (robot.driverController.getPOV())
+                {
+                    case 0:
+                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
+                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                        break;
 
-            //         case 270:
-            //             robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
-            //             robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-            //             break;
+                    case 270:
+                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
+                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                        break;
 
-            //         case 180:
-            //             robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
-            //             robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
-            //             break;
-            //     }
-            // }
+                    case 180:
+                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
+                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
+                        break;
+                }
+            }
 
-            // double[] inputs = robot.robotDrive.getDriveInputs();
-            // if (robot.robotDrive.driveBase.supportsHolonomicDrive())
-            // {
-            //     robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
-            // }
-            // else
-            // {
-            //     robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
-            // }
+            double[] inputs = robot.robotDrive.getDriveInputs();
+            if (robot.robotDrive.driveBase.supportsHolonomicDrive())
+            {
+                robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
+            }
+            else
+            {
+                robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+            }
             //
             // Analog control of subsystem is done here if necessary.
             //
@@ -185,7 +185,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (RobotParams.Preferences.useXboxController)
         {
-            // robot.driverController.setButtonHandler(enabled? this::driverControllerButtonEvent: null);
+            robot.driverController.setButtonHandler(enabled? this::driverControllerButtonEvent: null);
         }
         else
         {
@@ -415,10 +415,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                robot.intake.setPower(pressed ? -1.0 : 0);
+                robot.conveyor.setPower(pressed ? -0.5 : 0, 0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                robot.intake.setMotorPower(pressed? 0.5: 0.0);
+                robot.intake.setPower(pressed ? 1.0 : 0);
+                robot.conveyor.setPower(pressed ? 0.5 : 0, 0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
