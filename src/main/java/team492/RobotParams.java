@@ -51,13 +51,14 @@ public class RobotParams
         // Miscellaneous
         public static final boolean useTraceLog                 = true;
         public static final boolean doStatusUpdate              = true;
-        public static final boolean showSubsystemStatus         = false;
+        public static final boolean showSubsystemStatus         = true;
         public static final boolean showVisionStatus            = false;
+        public static final boolean useLEDIndicator             = false;
         // Debug
         public static final boolean debugPowerConsumption       = false;
         public static final boolean debugDriveBase              = false;
         public static final boolean debugPidDrive               = false;
-        public static final boolean debugSubsystems             = false;
+        public static final boolean debugSubsystems             = true;
         public static final boolean debugVision                 = false;
         public static final boolean debugLoopTime               = false;
     }   //class Preferences

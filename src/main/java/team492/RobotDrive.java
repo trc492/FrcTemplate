@@ -274,7 +274,9 @@ public class RobotDrive
     public void setDriveOrientation(DriveOrientation orientation)
     {
         driveOrientation = orientation;
-        robot.ledIndicator.setDriveOrientation(driveOrientation);
+        if(RobotParams.Preferences.useLEDIndicator) {
+            robot.ledIndicator.setDriveOrientation(driveOrientation);
+        }
     }   //setDriveOrientation
 
     /**

@@ -25,6 +25,7 @@ package team492;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
+import TrcCommonLib.trclib.TrcDigitalInput;
 import TrcCommonLib.trclib.TrcPidActuator;
 import TrcCommonLib.trclib.TrcPidConveyor;
 import TrcCommonLib.trclib.TrcPose2D;
@@ -36,6 +37,7 @@ import TrcFrcLib.frclib.FrcCANFalcon;
 import TrcFrcLib.frclib.FrcCANSparkMax;
 import TrcFrcLib.frclib.FrcCANTalon;
 import TrcFrcLib.frclib.FrcDashboard;
+import TrcFrcLib.frclib.FrcDigitalInput;
 import TrcFrcLib.frclib.FrcJoystick;
 import TrcFrcLib.frclib.FrcMatchInfo;
 import TrcFrcLib.frclib.FrcPWMSparkMax;
@@ -81,6 +83,7 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp;
     public TrcRobotBattery battery;
     public AnalogInput pressureSensor;
+    public FrcDigitalInput conveyorSensor;
 
     //
     // Miscellaneous hardware.
@@ -100,8 +103,8 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
-    // public FrcCANFalcon turretMotor;
     // public TrcPidActuator turret;
+    public FrcCANSparkMax turretMotorController;
     public FrcCANFalcon shooterMotor;
     public TrcPidActuator shooter;
     public FrcCANTalon tilterMotor;
@@ -178,11 +181,14 @@ public class Robot extends FrcRobotBase
         }
 
         pressureSensor = new AnalogInput(RobotParams.AIN_PRESSURE_SENSOR);
+        conveyorSensor = new FrcDigitalInput("conveyorSensor", 0);
 
         //
         // Create and initialize miscellaneous hardware.
         //
-        ledIndicator = new LEDIndicator();
+        if(RobotParams.Preferences.useLEDIndicator) {
+            ledIndicator = new LEDIndicator();
+        }
 
         //
         // Create and initialize Vision subsystem.
@@ -202,15 +208,14 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useSubsystems)
         {
-            // turretMotor = new FrcCANFalcon("turretMotor", RobotParams.CANID)
+            turretMotorController = new FrcCANSparkMax("turretMotorController", RobotParams.CANID_TURRET, true);
             // turret = new TrcPidActuator("turret", motor, null, null, params)
             shooterMotor = new FrcCANFalcon("shooterMotor", RobotParams.CANID_SHOOTER);
             // shooter = new TrcPidActuator("shooter", shooterMotor, null, null, params);
             tilterMotor = new FrcCANTalon("tilterMotor", 24);
-            intake = new FrcPWMTalonSRX("intake", 2, null, null, null);
+            intake = new FrcPWMTalonSRX("intake", 9, null, null, null);
             horizontalConveyor = new FrcPWMTalonSRX("horizontalConveyor", 0, null, null, null);
             verticalConveyor = new FrcPWMTalonSRX("VerticalConveyor", 1, null, null, null);
-            turret = new FrcCANSparkMax("turret", 25, true);
         }
 
         //
@@ -259,7 +264,9 @@ public class Robot extends FrcRobotBase
         // Start subsystems.
         //
         robotDrive.startMode(runMode, prevMode);
-        ledIndicator.reset();
+        if(RobotParams.Preferences.useLEDIndicator) {
+            ledIndicator.reset();
+        }
     }   //robotStartMode
 
     /**
@@ -280,7 +287,9 @@ public class Robot extends FrcRobotBase
         if (RobotParams.Preferences.useSubsystems)
         {
         }
-        ledIndicator.reset();
+        if(RobotParams.Preferences.useLEDIndicator) {
+            ledIndicator.reset();
+        }
 
         //
         // Performance status report.
@@ -411,6 +420,7 @@ public class Robot extends FrcRobotBase
 
             if (RobotParams.Preferences.showSubsystemStatus)
             {
+               dashboard.displayPrintf(10, "Beam broken:%b", !conveyorSensor.isActive()); 
             }
         }
     }   //updateStatus
