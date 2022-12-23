@@ -122,40 +122,43 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void slowPeriodic(double elapsedTime)
     {
+        robot.updateStatus();
         if (controlsEnabled)
         {
             //
             // DriveBase operation.
             //
-            if (robot.driverController != null)
-            {
-                switch (robot.driverController.getPOV())
+            if(RobotParams.Preferences.drivingEnabled) {
+                if (robot.driverController != null)
                 {
-                    case 0:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-                        break;
+                    switch (robot.driverController.getPOV())
+                    {
+                        case 0:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                            break;
 
-                    case 270:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-                        break;
+                        case 270:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                            break;
 
-                    case 180:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
-                        break;
+                        case 180:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
+                            break;
+                    }
                 }
-            }
 
-            double[] inputs = robot.robotDrive.getDriveInputs();
-            if (robot.robotDrive.driveBase.supportsHolonomicDrive())
-            {
-                robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
-            }
-            else
-            {
-                robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+                double[] inputs = robot.robotDrive.getDriveInputs();
+                if (robot.robotDrive.driveBase.supportsHolonomicDrive())
+                {
+                    robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
+                }
+                else
+                {
+                    robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+                }
             }
             //
             // Analog control of subsystem is done here if necessary.
@@ -415,13 +418,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
-                robot.intake.setPower(pressed ? -1.0 : 0);
-                robot.conveyor.setPower(pressed ? -0.5 : 0, 0);
+                if(pressed)
+                {
+                    robot.conveyor.cancel();
+                }
+                robot.intake.setPower(pressed? RobotParams.INTAKE_DUMP_POWER: 0);
+                robot.conveyor.setHorizontalPower(pressed? RobotParams.HORIZONTAL_CONVEYOR_DUMP_POWER: 0);
+                robot.conveyor.setVerticalPower(pressed? RobotParams.VERTICAL_CONVEYOR_DUMP_POWER: 0);
+                robot.shooterMotor.set(pressed? -0.1: 0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                robot.intake.setPower(pressed ? 1.0 : 0);
-                robot.conveyor.setPower(pressed ? 0.5 : 0, 0);
+                robot.conveyor.intakeAndAdvance("TeleOp");
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:

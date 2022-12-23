@@ -40,6 +40,7 @@ public class RobotParams
         public static final boolean useButtonPanels             = false;
         public static final boolean doOneStickDrive             = true;
         public static final boolean useGyroAssist               = false;
+        public static final boolean drivingEnabled              = false;
         // Sensors
         public static final boolean useNavX                     = true;
         public static final boolean usePdp                      = false;
@@ -56,7 +57,7 @@ public class RobotParams
         public static final boolean useLEDIndicator             = false;
         // Debug
         public static final boolean debugPowerConsumption       = false;
-        public static final boolean debugDriveBase              = false;
+        public static final boolean debugDriveBase              = true;
         public static final boolean debugPidDrive               = false;
         public static final boolean debugSubsystems             = true;
         public static final boolean debugVision                 = false;
@@ -288,7 +289,12 @@ public class RobotParams
     //
     // Other subsystems.
     //
-    public static final double INTAKE_PICKUP_POWER              = 1.0;
-    public static final double INTAKE_DUMP_POWER                = -1.0;
+    public static final double INTAKE_PICKUP_POWER              = 0.1;
+    public static final double INTAKE_DUMP_POWER                = -0.1;
+    public static final double HORIZONTAL_CONVEYOR_POWER        = 0.5;
+    public static final double HORIZONTAL_CONVEYOR_ADJUST_POWER = -0.25;
+    public static final double HORIZONTAL_CONVEYOR_DUMP_POWER   = -0.5;
+    public static final double VERTICAL_CONVEYOR_POWER          = 0.5;
+    public static final double VERTICAL_CONVEYOR_DUMP_POWER     = -0.5;
 
 }   //class RobotParams

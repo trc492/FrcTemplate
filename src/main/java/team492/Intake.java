@@ -29,16 +29,6 @@ public class Intake implements TrcExclusiveSubsystem
         //     RobotParams.PNEUMATIC_INTAKE_RETRACT, RobotParams.PNEUMATIC_INTAKE_EXTEND);
     }
 
-    /**
-     * This method enables/disables tracing for the shooter subsystem.
-     *
-     * @param tracer specifies the tracer to use for logging events.
-     */
-    public void setMsgTracer(TrcDbgTrace tracer)
-    {
-        msgTracer = tracer;
-    }   //setMsgTracer
-
     public void setPower(String owner, double delay, double power, double duration)
     {
         final String funcName = "setPower";
@@ -66,13 +56,15 @@ public class Intake implements TrcExclusiveSubsystem
         setPower(null, 0.0, power, 0.0);
     }   //setPower
 
-    public void pickup(String owner, TrcEvent event)
+    public double getMotorPower()
     {
-        if(validateOwnership(owner))
-        {
-            this.onFinishedEvent = event;
-        }
+        return intakeMotorController.getMotorPower();
     }
+
+    // public boolean isExtended()
+    // {
+    //     return intakePneumatic.isExtended();
+    // }
 
     public void stop(String owner, double delay)
     {

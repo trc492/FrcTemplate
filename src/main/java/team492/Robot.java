@@ -416,7 +416,16 @@ public class Robot extends FrcRobotBase
 
             if (RobotParams.Preferences.showSubsystemStatus)
             {
-               dashboard.displayPrintf(10, "Beam broken:%b", conveyor.isBeamBreakActive()); 
+                if(conveyor != null)
+                {
+                    dashboard.displayPrintf(
+                        5, "Conveyor: HPower=%.1f, VPower=%.1f, BeamBroken=%s", 
+                        conveyor.getHorizontalConveyorPower(), conveyor.getVerticalConveyorPower(), conveyor.isBeamBreakBroken());
+                }
+                if(intake != null)
+                {
+                    dashboard.displayPrintf(6, "Intake: Power=%.1f, extended=", intake.getMotorPower());//, intake.isExtended());
+                }
             }
         }
     }   //updateStatus
