@@ -24,10 +24,12 @@ package team492;
 
 import java.util.Locale;
 
+import com.revrobotics.ColorSensorV3;
+
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobotBattery;
-import TrcCommonLib.trclib.TrcUtil;
+import TrcCommonLib.trclib.TrcTimer;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcDashboard;
@@ -41,6 +43,7 @@ import TrcFrcLib.frclib.FrcXboxController;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 
 /**
@@ -56,7 +59,7 @@ public class Robot extends FrcRobotBase
     //
     public final FrcDashboard dashboard = FrcDashboard.getInstance();
     public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
-    private double nextDashboardUpdateTime = TrcUtil.getModeElapsedTime();
+    private double nextDashboardUpdateTime = TrcTimer.getModeElapsedTime();
     private boolean traceLogOpened = false;
 
     //
@@ -74,6 +77,7 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp;
     public TrcRobotBattery battery;
     public AnalogInput pressureSensor;
+    public ColorSensorV3 colorSensor;
 
     //
     // Miscellaneous hardware.
@@ -162,6 +166,7 @@ public class Robot extends FrcRobotBase
         }
 
         pressureSensor = new AnalogInput(RobotParams.AIN_PRESSURE_SENSOR);
+        colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
 
         //
         // Create and initialize miscellaneous hardware.
@@ -227,7 +232,7 @@ public class Robot extends FrcRobotBase
             setTraceLogEnabled(true);
         }
         globalTracer.traceInfo(
-            funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(),
+            funcName, "[%.3f] %s: ***** %s *****", TrcTimer.getModeElapsedTime(),
             matchInfo.eventDate, runMode);
 
         //
@@ -288,7 +293,7 @@ public class Robot extends FrcRobotBase
     public void updateStatus()
     {
         final String funcName = "updateStatus";
-        double currTime = TrcUtil.getModeElapsedTime();
+        double currTime = TrcTimer.getModeElapsedTime();
         RunMode runMode = getCurrentRunMode();
 
         if (currTime >= nextDashboardUpdateTime)
