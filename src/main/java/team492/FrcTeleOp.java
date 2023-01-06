@@ -97,81 +97,74 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     }   //stopMode
 
     /**
-     * This method is called periodically at a fast rate. Typically, you put code that requires servicing at a
-     * high frequency here. To make the robot as responsive and as accurate as possible especially in autonomous
-     * mode, you will typically put that code here.
-     * 
+     * This method is called periodically on the main robot thread. Typically, you put TeleOp control code here that
+     * doesn't require frequent update For example, TeleOp joystick code or status display code can be put here since
+     * human responses are considered slow.
+     *
      * @param elapsedTime specifies the elapsed time since the mode started.
+     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
+     *        false otherwise.
      */
     @Override
-    public void fastPeriodic(double elapsedTime)
+    public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
         //
         // Do subsystem auto-assist here if necessary.
         //
 
-    }   //fastPeriodic
-
-    /**
-     * This method is called periodically at a slow rate. Typically, you put code that doesn't require frequent
-     * update here. For example, TeleOp joystick code or status display code can be put here since human responses
-     * are considered slow.
-     *
-     * @param elapsedTime specifies the elapsed time since the mode started.
-     */
-    @Override
-    public void slowPeriodic(double elapsedTime)
-    {
-        if (controlsEnabled)
+        if (slowPeriodicLoop)
         {
-            //
-            // DriveBase operation.
-            //
-            if (robot.driverController != null)
+            if (controlsEnabled)
             {
-                switch (robot.driverController.getPOV())
+                //
+                // DriveBase operation.
+                //
+                if (robot.driverController != null)
                 {
-                    case 0:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-                        break;
+                    switch (robot.driverController.getPOV())
+                    {
+                        case 0:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                            break;
 
-                    case 270:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
-                        break;
+                        case 270:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+                            break;
 
-                    case 180:
-                        robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
-                        robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
-                        break;
+                        case 180:
+                            robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
+                            robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
+                            break;
+                    }
+                }
+
+                double[] inputs = robot.robotDrive.getDriveInputs();
+                if (robot.robotDrive.driveBase.supportsHolonomicDrive())
+                {
+                    robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
+                }
+                else
+                {
+                    robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+                }
+                //
+                // Analog control of subsystem is done here if necessary.
+                //
+                if (RobotParams.Preferences.useSubsystems)
+                {
                 }
             }
-
-            double[] inputs = robot.robotDrive.getDriveInputs();
-            if (robot.robotDrive.driveBase.supportsHolonomicDrive())
-            {
-                robot.robotDrive.driveBase.holonomicDrive(null, inputs[0], inputs[1], inputs[2], getDriveGyroAngle());
-            }
-            else
-            {
-                robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
-            }
             //
-            // Analog control of subsystem is done here if necessary.
+            // Update robot status.
             //
-            if (RobotParams.Preferences.useSubsystems)
+            if (RobotParams.Preferences.doStatusUpdate)
             {
+                robot.updateStatus();
             }
         }
-        //
-        // Update robot status.
-        //
-        if (RobotParams.Preferences.doStatusUpdate)
-        {
-            robot.updateStatus();
-        }
-    }   //slowPeriodic
+    }   //periodic
 
     /**
      * This method enables/disables joystick controls.

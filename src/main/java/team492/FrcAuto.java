@@ -340,14 +340,16 @@ public class FrcAuto implements TrcRobot.RobotMode
     }   //stopMode
 
     /**
-     * This method is called periodically at a fast rate. Typically, you put code that requires servicing at a
-     * high frequency here. To make the robot as responsive and as accurate as possible especially in autonomous
-     * mode, you will typically put that code here.
-     * 
+     * This method is called periodically on the main robot thread. Typically, you put TeleOp control code here that
+     * doesn't require frequent update For example, TeleOp joystick code or status display code can be put here since
+     * human responses are considered slow.
+     *
      * @param elapsedTime specifies the elapsed time since the mode started.
+     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
+     *        false otherwise.
      */
     @Override
-    public void fastPeriodic(double elapsedTime)
+    public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
         if (autoCommand != null)
         {
@@ -356,25 +358,17 @@ public class FrcAuto implements TrcRobot.RobotMode
             //
             autoCommand.cmdPeriodic(elapsedTime);
         }
-    }   //fastPeriodic
 
-    /**
-     * This method is called periodically at a slow rate. Typically, you put code that doesn't require frequent
-     * update here. For example, TeleOp joystick code or status display code can be put here since human responses
-     * are considered slow.
-     * 
-     * @param elapsedTime specifies the elapsed time since the mode started.
-     */
-    @Override
-    public void slowPeriodic(double elapsedTime)
-    {
-        //
-        // Update robot status.
-        //
-        if (RobotParams.Preferences.doStatusUpdate)
+        if (slowPeriodicLoop)
         {
-            robot.updateStatus();
+            //
+            // Update robot status.
+            //
+            if (RobotParams.Preferences.doStatusUpdate)
+            {
+                robot.updateStatus();
+            }
         }
-    }   //slowPeriodic
+    }   //periodic
 
 }   //class FrcAuto
