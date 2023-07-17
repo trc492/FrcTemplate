@@ -45,6 +45,8 @@ import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import team492.drivebases.WestCoastDrive;
+import team492.subsystems.LEDIndicator;
 
 /**
  * The Main class is configured to instantiate and automatically run this class,

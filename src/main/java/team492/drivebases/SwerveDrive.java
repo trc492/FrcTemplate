@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team492;
+package team492.drivebases;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,6 +46,8 @@ import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcCANFalcon;
 import TrcFrcLib.frclib.FrcFalconServo;
 import TrcFrcLib.frclib.FrcPdp;
+import team492.Robot;
+import team492.RobotParams;
 
 /**
  * This class creates the RobotDrive subsystem that consists of wheel motors and related objects for driving the

@@ -20,19 +20,21 @@
  * SOFTWARE.
  */
 
-package team492;
+package team492.drivebases;
 
-import TrcCommonLib.trclib.TrcMecanumDriveBase;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPurePursuitDrive;
+import TrcCommonLib.trclib.TrcSimpleDriveBase;
 import TrcFrcLib.frclib.FrcPdp;
+import team492.Robot;
+import team492.RobotParams;
 
 /**
  * This class creates the RobotDrive subsystem that consists of wheel motors and related objects for driving the
  * robot.
  */
-public class MecanumDrive extends RobotDrive
+public class WestCoastDrive extends RobotDrive
 {
     private static final boolean logPoseEvents = false;
     private static final boolean tracePidInfo = false;
@@ -42,40 +44,41 @@ public class MecanumDrive extends RobotDrive
      *
      * @param robot specifies the robot object.
      */
-    public MecanumDrive(Robot robot)
+    public WestCoastDrive(Robot robot)
     {
         super(robot);
 
-        lfDriveMotor = createDriveMotor("lfDriveMotor", RobotParams.CANID_LEFTFRONT_DRIVE, false);
-        lbDriveMotor = createDriveMotor("lbDriveMotor", RobotParams.CANID_LEFTBACK_DRIVE, false);
-        rfDriveMotor = createDriveMotor("rfDriveMotor", RobotParams.CANID_RIGHTFRONT_DRIVE, true);
-        rbDriveMotor = createDriveMotor("rbDriveMotor", RobotParams.CANID_RIGHTBACK_DRIVE, true);
+        lfDriveMotor = createDriveMotor("lfDriveMotor", RobotParams.CANID_LEFTFRONT_DRIVE, true);
+        lbDriveMotor = createDriveMotor("lbDriveMotor", RobotParams.CANID_LEFTBACK_DRIVE, true);
+        rfDriveMotor = createDriveMotor("rfDriveMotor", RobotParams.CANID_RIGHTFRONT_DRIVE, false);
+        rbDriveMotor = createDriveMotor("rbDriveMotor", RobotParams.CANID_RIGHTBACK_DRIVE, false);
 
-        driveBase = new TrcMecanumDriveBase(lfDriveMotor, lbDriveMotor, rfDriveMotor, rbDriveMotor, gyro);
-        driveBase.setOdometryScales(RobotParams.MECANUM_X_INCHES_PER_COUNT, RobotParams.MECANUM_Y_INCHES_PER_COUNT);
+        lbDriveMotor.followMotor(lfDriveMotor);
+        rbDriveMotor.followMotor(rfDriveMotor);
+
+        driveBase = new TrcSimpleDriveBase(lfDriveMotor, rfDriveMotor, gyro);
+        driveBase.setOdometryScales(RobotParams.WCD_INCHES_PER_COUNT);
 
         // if (RobotParams.Preferences.useExternalOdometry)
         // {
         //     //
-        //     // Create the external odometry device that uses the right back encoder port as the X odometry and
-        //     // the left and right front encoder ports as the Y1 and Y2 odometry. Gyro will serve as the angle
-        //     // odometry.
+        //     // Create the external odometry device that uses the left and right front encoder ports as the Y1 and Y2
+        //     // odometry. Gyro will serve as the angle odometry.
         //     //
         //     TrcDriveBaseOdometry driveBaseOdometry = new TrcDriveBaseOdometry(
-        //         new TrcDriveBaseOdometry.AxisSensor(rbDriveMotor, RobotParams.X_ODOMETRY_WHEEL_OFFSET),
         //         new TrcDriveBaseOdometry.AxisSensor[] {
-        //             new TrcDriveBaseOdometry.AxisSensor(lfDriveMotor, RobotParams.Y_LEFT_ODOMETRY_WHEEL_OFFSET),
-        //             new TrcDriveBaseOdometry.AxisSensor(rfDriveMotor, RobotParams.Y_RIGHT_ODOMETRY_WHEEL_OFFSET)},
+        //         new TrcDriveBaseOdometry.AxisSensor(lfDriveMotor, RobotParams.Y_LEFT_ODOMETRY_WHEEL_OFFSET),
+        //         new TrcDriveBaseOdometry.AxisSensor(rfDriveMotor, RobotParams.Y_RIGHT_ODOMETRY_WHEEL_OFFSET)},
         //         gyro);
         //     //
         //     // Set the drive base to use the external odometry device overriding the built-in one.
         //     //
         //     driveBase.setDriveBaseOdometry(driveBaseOdometry);
-        //     driveBase.setOdometryScales(RobotParams.ODWHEEL_X_INCHES_PER_COUNT, RobotParams.ODWHEEL_Y_INCHES_PER_COUNT);
+        //     driveBase.setOdometryScales(RobotParams.ODWHEEL_Y_INCHES_PER_COUNT);
         // }
         // else
         // {
-        //     driveBase.setOdometryScales(RobotParams.MECANUM_X_INCHES_PER_COUNT, RobotParams.MECANUM_Y_INCHES_PER_COUNT);
+        //     driveBase.setOdometryScales(RobotParams.WCD_INCHES_PER_COUNT);
         // }
 
         if (robot.pdp != null)
@@ -90,17 +93,13 @@ public class MecanumDrive extends RobotDrive
         //
         // Create and initialize PID controllers.
         //
-        xPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.MECANUM_X_KP, RobotParams.MECANUM_X_KI, RobotParams.MECANUM_X_KD, RobotParams.MECANUM_X_KF);
-        encoderXPidCtrl = new TrcPidController(
-            "encoderXPidCtrl", xPosPidCoeff, RobotParams.MECANUM_X_TOLERANCE, driveBase::getXPosition);
-        encoderXPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_XPID_POWER);
-        encoderXPidCtrl.setRampRate(RobotParams.DRIVE_MAX_XPID_RAMP_RATE);
-    
+        xPosPidCoeff = null;
+        encoderXPidCtrl = null;
+
         yPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.MECANUM_Y_KP, RobotParams.MECANUM_Y_KI, RobotParams.MECANUM_Y_KD, RobotParams.MECANUM_Y_KF);
+            RobotParams.WCD_KP, RobotParams.WCD_KI, RobotParams.WCD_KD, RobotParams.WCD_KF);
         encoderYPidCtrl = new TrcPidController(
-            "encoderYPidCtrl", yPosPidCoeff, RobotParams.MECANUM_Y_TOLERANCE, driveBase::getYPosition);
+            "encoderYPidCtrl", yPosPidCoeff, RobotParams.WCD_TOLERANCE, driveBase::getYPosition);
         encoderYPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_YPID_POWER);
         encoderYPidCtrl.setRampRate(RobotParams.DRIVE_MAX_YPID_RAMP_RATE);
     
@@ -111,23 +110,23 @@ public class MecanumDrive extends RobotDrive
         gyroTurnPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_TURNPID_POWER);
         gyroTurnPidCtrl.setRampRate(RobotParams.DRIVE_MAX_TURNPID_RAMP_RATE);
         gyroTurnPidCtrl.setAbsoluteSetPoint(true);
-    
+
         velPidCoeff = new TrcPidController.PidCoefficients(
             RobotParams.ROBOT_VEL_KP, RobotParams.ROBOT_VEL_KI, RobotParams.ROBOT_VEL_KD, RobotParams.ROBOT_VEL_KF);
 
-        pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl);
+        pidDrive = new TrcPidDrive("pidDrive", driveBase, null, encoderYPidCtrl, gyroTurnPidCtrl);
         // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
         // of the absolute target position.
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallDetectionEnabled(true);
-        pidDrive.setMsgTracer(robot.globalTracer, logPoseEvents, tracePidInfo);
+        pidDrive.setMsgTracer(robot.globalTracer, true, true);
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase, RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE,
-            RobotParams.PPD_TURN_TOLERANCE, xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+            RobotParams.PPD_TURN_TOLERANCE, null, yPosPidCoeff, turnPidCoeff, velPidCoeff);
         purePursuitDrive.setMoveOutputLimit(RobotParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
         purePursuitDrive.setStallDetectionEnabled(true);
-        purePursuitDrive.setMsgTracer(robot.globalTracer, true, true);
-    }   //MecanumDrive
+        purePursuitDrive.setMsgTracer(robot.globalTracer, logPoseEvents, tracePidInfo);
+    }   //WestCoastDrive
 
-}   //class MecanumDrive
+}   //class WestCoastDrive
