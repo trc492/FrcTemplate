@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcCANFalcon;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import team492.FrcAuto;
 import team492.Robot;
 import team492.RobotParams;
@@ -50,11 +51,12 @@ import team492.RobotParams;
  */
 public class RobotDrive
 {
+    private static final String FIELD_ZERO_HEADING_FILE = "FieldZeroHeading.txt";
+
     public enum DriveOrientation
     {
         ROBOT, FIELD, INVERTED
     }   //enum DriveOrientation
-
     //
     // Global objects.
     //
@@ -72,10 +74,10 @@ public class RobotDrive
     //
     public TrcDriveBase driveBase;
     //
-    // PID Coefficients and Controllers.
+    // PID Coefficients.
     //
     public TrcPidController.PidCoefficients xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff;
-    public TrcPidController encoderXPidCtrl, encoderYPidCtrl, gyroTurnPidCtrl;
+    public TrcPidController.PidCoefficients gyroPitchPidCoeff;      // for anti-tipping.
     //
     // Drive Controllers.
     //
@@ -85,8 +87,8 @@ public class RobotDrive
     // Miscellaneous.
     //
     public DriveOrientation driveOrientation = DriveOrientation.FIELD;
-    public double driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
-    public double turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+    public double driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
+    public double turnSpeedScale = RobotParams.TURN_FAST_SCALE;
     //
     // Odometry.
     //
@@ -113,12 +115,13 @@ public class RobotDrive
     {
         if (runMode != RunMode.DISABLED_MODE)
         {
-            driveSpeedScale = RobotParams.DRIVE_MEDIUM_SCALE;
-            turnSpeedScale = RobotParams.TURN_MEDIUM_SCALE;
+            driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
+            turnSpeedScale = RobotParams.TURN_FAST_SCALE;
             driveBase.setOdometryEnabled(true, true);
 
             if (runMode == RunMode.AUTO_MODE)
             {
+                // Disable ramp rate control in autonomous.
                 lfDriveMotor.motor.configOpenloopRamp(0.0);
                 rfDriveMotor.motor.configOpenloopRamp(0.0);
                 lbDriveMotor.motor.configOpenloopRamp(0.0);
@@ -134,6 +137,7 @@ public class RobotDrive
                 if (runMode == RunMode.TELEOP_MODE && endOfAutoRobotPose != null)
                 {
                     driveBase.setFieldPosition(endOfAutoRobotPose);
+                    endOfAutoRobotPose = null;
                 }
 
                 if (RobotParams.Preferences.useGyroAssist)
@@ -166,22 +170,39 @@ public class RobotDrive
 
     /**
      * This method cancels any PIDDrive operation still in progress.
+     *
+     * @param owner specifies the owner that requested the cancel.
      */
-    public void cancel()
+    public void cancel(String owner)
     {
         if (pidDrive != null && pidDrive.isActive())
         {
-            pidDrive.cancel();
+            pidDrive.cancel(owner);
         }
 
         if (purePursuitDrive != null && purePursuitDrive.isActive())
         {
-            purePursuitDrive.cancel();
+            purePursuitDrive.cancel(owner);
         }
 
-        driveBase.stop();
+        driveBase.stop(owner);
     }   //cancel
 
+    /**
+     * This method cancels any PIDDrive operation still in progress.
+     */
+    public void cancel()
+    {
+        cancel(null);
+    }   //cancel
+
+    /**
+     * This method create a drive motor and configure it.
+     *
+     * @param name specifies the name of the drive motor.
+     * @param motorCanID specifies the CAN ID of the drive motor.
+     * @param inverted specifies true to invert the drive motor, false otherwise.
+     */
     protected FrcCANFalcon createDriveMotor(String name, int motorCanID, boolean inverted)
     {
         final String funcName = "createDriveMotor";
@@ -205,7 +226,8 @@ public class RobotDrive
         }
 
         driveMotor.motor.enableVoltageCompensation(true);
-        driveMotor.setInverted(inverted);
+        driveMotor.setMotorInverted(inverted);
+        // Drive motor should always be in brake mode.
         driveMotor.setBrakeModeEnabled(true);
 
         return driveMotor;
@@ -223,19 +245,11 @@ public class RobotDrive
         double mag;
         double newMag;
 
-        if (RobotParams.Preferences.useXboxController)
+        if (RobotParams.Preferences.useDriverXboxController)
         {
             x = robot.driverController.getLeftXWithDeadband(false);
             y = robot.driverController.getLeftYWithDeadband(false);
             rot = robot.driverController.getRightXWithDeadband(true);
-            mag = TrcUtil.magnitude(x, y);
-            if (mag > 1.0)
-            {
-                x /= mag;
-                y /= mag;
-                mag = 1.0;
-            }
-            newMag = Math.pow(mag, 3);
         }
         else
         {
@@ -249,16 +263,16 @@ public class RobotDrive
             {
                 rot = robot.leftDriveStick.getXWithDeadband(true);
             }
-            mag = TrcUtil.magnitude(x, y);
-            if (mag > 1.0)
-            {
-                x /= mag;
-                y /= mag;
-                mag = 1.0;
-            }
-            newMag = Math.pow(mag, 2);
         }
-
+        // Apply squared or cubic curve to the X/Y drive.
+        mag = TrcUtil.magnitude(x, y);
+        if (mag > 1.0)
+        {
+            x /= mag;
+            y /= mag;
+            mag = 1.0;
+        }
+        newMag = Math.pow(mag, RobotParams.Preferences.useDriverXboxController? 3: 2);
         newMag *= driveSpeedScale;
         rot *= turnSpeedScale;
 
@@ -272,12 +286,40 @@ public class RobotDrive
     }   //getDriveInput
 
     /**
+     * This method returns robot heading to be maintained in teleop drive according to drive orientation mode.
+     *
+     * @return robot heading to be maintained.
+     */
+    public double getDriveGyroAngle()
+    {
+        switch (driveOrientation)
+        {
+            case ROBOT:
+                return 0.0;
+
+            case INVERTED:
+                return 180.0;
+
+            default:
+            case FIELD:
+                return robot.robotDrive.driveBase.getHeading();
+        }
+    }   //getDriveGyroAngle
+
+    /**
      * This method sets the drive orientation mode and updates the LED state correspondingly.
      */
     public void setDriveOrientation(DriveOrientation orientation)
     {
         driveOrientation = orientation;
         robot.ledIndicator.setDriveOrientation(driveOrientation);
+        // If switching to FIELD oriented driving, reset robot heading so that the current robot heading is "north".
+        if (driveOrientation == DriveOrientation.FIELD)
+        {
+            TrcPose2D robotPose = robot.robotDrive.driveBase.getFieldPosition();
+            robotPose.angle = 0.0;
+            robot.robotDrive.driveBase.setFieldPosition(robotPose);
+        }
     }   //setDriveOrientation
 
     /**
@@ -288,7 +330,7 @@ public class RobotDrive
         final String funcName = "saveFieldZeroCompassHeading";
 
         try (PrintStream out = new PrintStream(
-                new FileOutputStream(RobotParams.TEAM_FOLDER + "/FieldZeroHeading.txt")))
+                new FileOutputStream(RobotParams.TEAM_FOLDER + "/" + FIELD_ZERO_HEADING_FILE)))
         {
             double fieldZeroHeading = ((FrcAHRSGyro) gyro).ahrs.getCompassHeading();
 
@@ -311,7 +353,7 @@ public class RobotDrive
     {
         final String funcName = "getFieldZeroCompassHeading";
 
-        try (Scanner in = new Scanner(new FileReader(RobotParams.TEAM_FOLDER + "/FieldZeroHeading.txt")))
+        try (Scanner in = new Scanner(new FileReader(RobotParams.TEAM_FOLDER + "/" + FIELD_ZERO_HEADING_FILE)))
         {
             return in.nextDouble();
         }
@@ -335,12 +377,17 @@ public class RobotDrive
      */
     public void setFieldPosition(TrcPose2D pose, boolean useCompassHeading)
     {
-        TrcPose2D robotPose = pose;
+        TrcPose2D robotPose;
 
-        if (robotPose == null)
+        if (pose == null)
         {
             int startPos = FrcAuto.autoChoices.getStartPos();
-            robotPose = RobotParams.startPos[startPos];
+            robotPose = FrcAuto.autoChoices.getAlliance() == Alliance.Blue?
+                RobotParams.startPos[0][startPos]: RobotParams.startPos[1][startPos];
+        }
+        else
+        {
+            robotPose = pose.clone();
         }
 
         if (useCompassHeading)
@@ -349,7 +396,6 @@ public class RobotDrive
 
             if (fieldZero != null)
             {
-                robotPose = pose.clone();
                 robotPose.angle = ((FrcAHRSGyro) gyro).ahrs.getCompassHeading() - fieldZero;
             }
         }
@@ -373,19 +419,42 @@ public class RobotDrive
     }   //setFieldPosition
 
     /**
-     * This method is called to start steering calibration for Swerve Drive.
+     * This method returns the gyro pitch.
+     *
+     * @return gyro pitch.
      */
-    public void startSteerCalibrate()
+    public double getGyroPitch()
     {
-        throw new UnsupportedOperationException("Drivebase does not support calibration.");
-    }   //startSteerCalibrate
+        return gyro.getXHeading().value;
+    }   //getGyroPitch
 
     /**
-     * This method is called periodically to calibrate steering for Swerve Drive.
+     * This method returns the gyro roll.
+     *
+     * @return gyro roll.
      */
-    public void steerCalibratePeriodic()
+    public double getGyroRoll()
     {
-        throw new UnsupportedOperationException("Drivebase does not support calibration.");
-    }   //steerCalibratePeriodic
+        return gyro.getYHeading().value;
+    }   //getGyroRoll
+
+    /**
+     * This method returns an adjusted absolute position by the robot's alliance.
+     *
+     * @param alliance specifies the robot alliance.
+     * @param pose specifies the absolute position for the blue alliance.
+     * @return returns unchanged pos if blue alliance, adjusted to the opposite side if red alliance.
+     */
+    public TrcPose2D adjustPoseByAlliance(Alliance alliance, TrcPose2D pose)
+    {
+        if (alliance == Alliance.Red)
+        {
+            // no change on x, change y to the opposite side of the field.
+            pose.y = RobotParams.FIELD_LENGTH - pose.y;
+            pose.angle = (pose.angle + 180.0) % 360.0;
+        }
+
+        return pose;
+    }   //adjustPoseByAlliance
 
 }   //class RobotDrive

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,9 @@ import TrcCommonLib.command.CmdDriveMotorsTest;
 import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.util.Color;
+import team492.drivebases.SwerveDrive;
 import TrcFrcLib.frclib.FrcChoiceMenu;
 import TrcFrcLib.frclib.FrcUserChoices;
-import TrcCommonLib.trclib.TrcColor;
 import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
@@ -254,8 +253,11 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case SWERVE_CALIBRATION:
-                setControlsEnabled(false);
-                robot.robotDrive.startSteerCalibrate();
+                if (robot.robotDrive instanceof SwerveDrive)
+                {
+                    setControlsEnabled(false);
+                    // ((SwerveDrive) robot.robotDrive).startSteerCalibrate();
+                }
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -435,7 +437,7 @@ public class FrcTest extends FrcTeleOp
                     break;
 
                 case SWERVE_CALIBRATION:
-                    robot.robotDrive.steerCalibratePeriodic();
+                    // robot.robotDrive.steerCalibratePeriodic();
                     displaySensorStates();
                     break;
 
@@ -458,14 +460,15 @@ public class FrcTest extends FrcTeleOp
                 case TUNE_TURN_PID:
                     int lineNum = 10;
                     robot.dashboard.displayPrintf(9, "RobotPose=%s", robot.robotDrive.driveBase.getFieldPosition());
-                    if (robot.robotDrive.encoderXPidCtrl != null)
+                    TrcPidController xPidCtrl = robot.robotDrive.pidDrive.getXPidCtrl();
+                    if (xPidCtrl != null)
                     {
-                        robot.robotDrive.encoderXPidCtrl.displayPidInfo(lineNum);
+                        xPidCtrl.displayPidInfo(lineNum);
                         lineNum += 2;
                     }
-                    robot.robotDrive.encoderYPidCtrl.displayPidInfo(lineNum);
+                    robot.robotDrive.pidDrive.getYPidCtrl().displayPidInfo(lineNum);
                     lineNum += 2;
-                    robot.robotDrive.gyroTurnPidCtrl.displayPidInfo(lineNum);
+                    robot.robotDrive.pidDrive.getTurnPidCtrl().displayPidInfo(lineNum);
                     break;
 
                 default:
@@ -526,12 +529,6 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(12, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
             robot.robotDrive.lfDriveMotor.getMotorPower(), robot.robotDrive.rfDriveMotor.getMotorPower(),
             robot.robotDrive.lbDriveMotor.getMotorPower(), robot.robotDrive.rbDriveMotor.getMotorPower());
-        Color color = robot.colorSensor.getColor();
-        double[] hsv = TrcColor.rgbToHsv(color.red, color.green, color.blue);
-        robot.dashboard.displayPrintf(
-            13, "Color: RGB=(%.2f,%.2f,%.2f), HSV=(%.1f,%.1f,%.1f)",
-            color.red, color.green, color.blue, hsv[0], hsv[1], hsv[2]);
-
         //
         // Display other subsystems and sensor info.
         //

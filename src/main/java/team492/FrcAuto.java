@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = "FrcAuto";
-
     //
     // Global constants.
     //
@@ -49,7 +48,6 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     // Auto choices enums.
     //
-
     public static enum AutoStrategy
     {
         PP_DRIVE,
@@ -112,8 +110,8 @@ public class FrcAuto implements TrcRobot.RobotMode
             //
             // Populate autonomous mode choice menus.
             //
-            allianceMenu.addChoice("Red", DriverStation.Alliance.Red, true, false);
-            allianceMenu.addChoice("Blue", DriverStation.Alliance.Blue, false, true);
+            allianceMenu.addChoice("Red", DriverStation.Alliance.Red);
+            allianceMenu.addChoice("Blue", DriverStation.Alliance.Blue, true, true);
 
             autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
             autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
@@ -234,11 +232,6 @@ public class FrcAuto implements TrcRobot.RobotMode
         // Create and initialize global objects.
         //
         this.robot = robot;
-
-        //
-        // Create auto-assist commands if necessary.
-        //
-
     }   //FrcAuto
 
     /**

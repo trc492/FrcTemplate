@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,43 +89,43 @@ public class WestCoastDrive extends RobotDrive
                 new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_FRONT_DRIVE, "rfDriveMotor"),
                 new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_BACK_DRIVE, "rbDriveMotor"));
         }
-
         //
         // Create and initialize PID controllers.
         //
         xPosPidCoeff = null;
-        encoderXPidCtrl = null;
-
         yPosPidCoeff = new TrcPidController.PidCoefficients(
             RobotParams.WCD_KP, RobotParams.WCD_KI, RobotParams.WCD_KD, RobotParams.WCD_KF);
-        encoderYPidCtrl = new TrcPidController(
-            "encoderYPidCtrl", yPosPidCoeff, RobotParams.WCD_TOLERANCE, driveBase::getYPosition);
-        encoderYPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_YPID_POWER);
-        encoderYPidCtrl.setRampRate(RobotParams.DRIVE_MAX_YPID_RAMP_RATE);
-    
         turnPidCoeff = new TrcPidController.PidCoefficients(
             RobotParams.GYRO_TURN_KP, RobotParams.GYRO_TURN_KI, RobotParams.GYRO_TURN_KD, RobotParams.GYRO_TURN_KF);
-        gyroTurnPidCtrl = new TrcPidController(
-            "gyroPidCtrl", turnPidCoeff, RobotParams.GYRO_TURN_TOLERANCE, driveBase::getHeading);
-        gyroTurnPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_TURNPID_POWER);
-        gyroTurnPidCtrl.setRampRate(RobotParams.DRIVE_MAX_TURNPID_RAMP_RATE);
-        gyroTurnPidCtrl.setAbsoluteSetPoint(true);
-
         velPidCoeff = new TrcPidController.PidCoefficients(
             RobotParams.ROBOT_VEL_KP, RobotParams.ROBOT_VEL_KI, RobotParams.ROBOT_VEL_KD, RobotParams.ROBOT_VEL_KF);
 
-        pidDrive = new TrcPidDrive("pidDrive", driveBase, null, encoderYPidCtrl, gyroTurnPidCtrl);
+        pidDrive = new TrcPidDrive(
+            "pidDrive", driveBase,
+            null,
+            new TrcPidController.PidParameters(yPosPidCoeff, RobotParams.WCD_TOLERANCE, driveBase::getYPosition),
+            new TrcPidController.PidParameters(turnPidCoeff, RobotParams.GYRO_TURN_TOLERANCE, driveBase::getHeading));
+
+        TrcPidController yPidCtrl = pidDrive.getYPidCtrl();
+        yPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_YPID_POWER);
+        yPidCtrl.setRampRate(RobotParams.DRIVE_MAX_YPID_RAMP_RATE);
+
+        TrcPidController turnPidCtrl = pidDrive.getTurnPidCtrl();
+        turnPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_TURNPID_POWER);
+        turnPidCtrl.setRampRate(RobotParams.DRIVE_MAX_TURNPID_RAMP_RATE);
+        turnPidCtrl.setAbsoluteSetPoint(true);
+
         // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
         // of the absolute target position.
         pidDrive.setAbsoluteTargetModeEnabled(true);
-        pidDrive.setStallDetectionEnabled(true);
-        pidDrive.setMsgTracer(robot.globalTracer, true, true);
+        pidDrive.setMsgTracer(robot.globalTracer, logPoseEvents, tracePidInfo);
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase, RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE,
-            RobotParams.PPD_TURN_TOLERANCE, null, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+            RobotParams.PPD_TURN_TOLERANCE, xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
         purePursuitDrive.setMoveOutputLimit(RobotParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
-        purePursuitDrive.setStallDetectionEnabled(true);
+        purePursuitDrive.setRotOutputLimit(RobotParams.PPD_ROT_DEF_OUTPUT_LIMIT);
+        purePursuitDrive.setFastModeEnabled(true);
         purePursuitDrive.setMsgTracer(robot.globalTracer, logPoseEvents, tracePidInfo);
     }   //WestCoastDrive
 

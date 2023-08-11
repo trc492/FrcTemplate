@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,23 +30,24 @@ import team492.drivebases.RobotDrive;
 
 public class LEDIndicator
 {
-    private static final TrcAddressableLED.Pattern nominalPattern = // Black
-        new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.NUM_LEDS);
-
-    private static final TrcAddressableLED.Pattern fieldOrientedPattern = // Cyan
+    private static final TrcAddressableLED.Pattern fieldOrientedPattern =   // Cyan
         new TrcAddressableLED.Pattern("FieldOriented", new FrcColor(0, 63, 63), RobotParams.NUM_LEDS);
-    private static final TrcAddressableLED.Pattern robotOrientedPattern = // Red
+    private static final TrcAddressableLED.Pattern robotOrientedPattern =   // Red
         new TrcAddressableLED.Pattern("RobotOriented", new FrcColor(63, 0, 0), RobotParams.NUM_LEDS);
     private static final TrcAddressableLED.Pattern inverseOrientedPattern = // Magenta
         new TrcAddressableLED.Pattern("InverseOriented", new FrcColor(63, 0, 63), RobotParams.NUM_LEDS);
+    private static final TrcAddressableLED.Pattern nominalPattern =         // Black
+        new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.NUM_LEDS);
 
     private static final TrcAddressableLED.Pattern[] priorities =
         new TrcAddressableLED.Pattern[]
         {
-            nominalPattern,
-            inverseOrientedPattern,
-            robotOrientedPattern,
+            // Highest priority.
             fieldOrientedPattern,
+            robotOrientedPattern,
+            inverseOrientedPattern,
+            nominalPattern
+            // Lowest priority
         };
 
     private FrcAddressableLED led;
