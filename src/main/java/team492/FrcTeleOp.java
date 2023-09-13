@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,10 @@
 package team492;
 
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcDriveBase.DriveOrientation;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcJoystick;
 import TrcFrcLib.frclib.FrcXboxController;
-import team492.drivebases.RobotDrive;
 
 /**
  * This class implements the code to run in TeleOp Mode.
@@ -39,6 +39,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
     protected final Robot robot;
     private boolean controlsEnabled = false;
+    private double driveSpeedScale = RobotParams.DRIVE_NORMAL_SCALE;
+    private double turnSpeedScale = RobotParams.TURN_NORMAL_SCALE;
 
     /**
      * Constructor: Create an instance of the object.
@@ -76,7 +78,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         if (robot.robotDrive != null)
         {
-            robot.robotDrive.setDriveOrientation(RobotDrive.DriveOrientation.FIELD);
+            robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
         }
     }   //startMode
 
@@ -121,16 +123,27 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (robot.robotDrive != null)
                 {
-                    double[] inputs = robot.robotDrive.getDriveInputs();
+                    double[] inputs = robot.robotDrive.getDriveInputs(
+                        RobotParams.ROBOT_DRIVE_MODE, true, driveSpeedScale, turnSpeedScale);
 
                     if (robot.robotDrive.driveBase.supportsHolonomicDrive())
                     {
                         robot.robotDrive.driveBase.holonomicDrive(
-                            null, inputs[0], inputs[1], inputs[2], robot.robotDrive.getDriveGyroAngle());
+                            null, inputs[0], inputs[1], inputs[2], robot.robotDrive.driveBase.getDriveGyroAngle());
+                        robot.dashboard.displayPrintf(
+                            1, "Holonomic: x=%.3f, y=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
+                    }
+                    else if (RobotParams.Preferences.useTankDrive)
+                    {
+                        robot.robotDrive.driveBase.tankDrive(inputs[0], inputs[1]);
+                        robot.dashboard.displayPrintf(
+                            1, "Tank: left=%.3f, right=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
                     }
                     else
                     {
                         robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+                        robot.dashboard.displayPrintf(
+                            1, "Arcade: x=%.3f, y=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
                     }
                 }
                 //
@@ -206,13 +219,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 // Toggle between field or robot oriented driving.
                 if (pressed)
                 {
-                    if (robot.robotDrive.driveOrientation != RobotDrive.DriveOrientation.FIELD)
+                    if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
                     {
-                        robot.robotDrive.setDriveOrientation(RobotDrive.DriveOrientation.FIELD);
+                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
                     }
                     else
                     {
-                        robot.robotDrive.setDriveOrientation(RobotDrive.DriveOrientation.ROBOT);
+                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.ROBOT, false);
                     }
                 }
                 break;
@@ -227,28 +240,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcXboxController.LEFT_BUMPER:
-                // Inverted drive only makes sense for robot oriented driving.
-                if (robot.robotDrive.driveOrientation == RobotDrive.DriveOrientation.ROBOT)
+                if (pressed)
                 {
-                    robot.robotDrive.setDriveOrientation(
-                        pressed? RobotDrive.DriveOrientation.INVERTED: RobotDrive.DriveOrientation.ROBOT);
+                    driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
+                    turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
+                }
+                else
+                {
+                    driveSpeedScale = RobotParams.DRIVE_NORMAL_SCALE;
+                    turnSpeedScale = RobotParams.TURN_NORMAL_SCALE;
                 }
                 break;
 
             case FrcXboxController.RIGHT_BUMPER:
-                if (pressed)
+                // Inverted drive only makes sense for robot oriented driving.
+                if (robot.robotDrive.driveBase.getDriveOrientation() == DriveOrientation.ROBOT)
                 {
-                    robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
-                    robot.robotDrive.turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
-                }
-                else
-                {
-                    robot.robotDrive.driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-                    robot.robotDrive.turnSpeedScale = RobotParams.TURN_FAST_SCALE;
+                    robot.robotDrive.driveBase.setDriveOrientation(
+                        pressed? DriveOrientation.INVERTED: DriveOrientation.ROBOT, false);
                 }
                 break;
 
             case FrcXboxController.BACK:
+                // Code review: Need to add zero calibrate code here for titler.
                 break;
 
             case FrcXboxController.START:
@@ -341,26 +355,26 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                // Inverted drive only makes sense for robot oriented driving.
-                if (robot.robotDrive.driveOrientation == RobotDrive.DriveOrientation.ROBOT)
+                // Toggle between field or robot oriented driving.
+                if (pressed)
                 {
-                    robot.robotDrive.setDriveOrientation(
-                        pressed? RobotDrive.DriveOrientation.INVERTED: RobotDrive.DriveOrientation.ROBOT);
+                    if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
+                    {
+                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
+                    }
+                    else
+                    {
+                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.ROBOT, false);
+                    }
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                // Toggle between field or robot oriented driving.
-                if (pressed)
+                // Inverted drive only makes sense for robot oriented driving.
+                if (robot.robotDrive.driveBase.getDriveOrientation() == DriveOrientation.ROBOT)
                 {
-                    if (robot.robotDrive.driveOrientation != RobotDrive.DriveOrientation.FIELD)
-                    {
-                        robot.robotDrive.setDriveOrientation(RobotDrive.DriveOrientation.FIELD);
-                    }
-                    else
-                    {
-                        robot.robotDrive.setDriveOrientation(RobotDrive.DriveOrientation.ROBOT);
-                    }
+                    robot.robotDrive.driveBase.setDriveOrientation(
+                        pressed? DriveOrientation.INVERTED: DriveOrientation.ROBOT, false);
                 }
                 break;
         }

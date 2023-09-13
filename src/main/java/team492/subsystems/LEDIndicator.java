@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,16 @@
 package team492.subsystems;
 
 import TrcCommonLib.trclib.TrcAddressableLED;
+import TrcCommonLib.trclib.TrcDriveBase.DriveOrientation;
 import TrcFrcLib.frclib.FrcAddressableLED;
 import TrcFrcLib.frclib.FrcColor;
 import team492.RobotParams;
-import team492.drivebases.RobotDrive;
+import team492.vision.PhotonVision;
 
 public class LEDIndicator
 {
+    private static final TrcAddressableLED.Pattern aprilTagPattern =        // Green
+        new TrcAddressableLED.Pattern("AprilTag", new FrcColor(0, 63, 0), RobotParams.NUM_LEDS);
     private static final TrcAddressableLED.Pattern fieldOrientedPattern =   // Cyan
         new TrcAddressableLED.Pattern("FieldOriented", new FrcColor(0, 63, 63), RobotParams.NUM_LEDS);
     private static final TrcAddressableLED.Pattern robotOrientedPattern =   // Red
@@ -43,6 +46,7 @@ public class LEDIndicator
         new TrcAddressableLED.Pattern[]
         {
             // Highest priority.
+            aprilTagPattern,
             fieldOrientedPattern,
             robotOrientedPattern,
             inverseOrientedPattern,
@@ -78,7 +82,7 @@ public class LEDIndicator
      *
      * @param orientation specifies the drive orientation mode.
      */
-    public void setDriveOrientation(RobotDrive.DriveOrientation orientation)
+    public void setDriveOrientation(DriveOrientation orientation)
     {
         switch (orientation)
         {
@@ -101,5 +105,15 @@ public class LEDIndicator
                 break;
         }
     }   //setDriveOrientation
+
+    public void setPhotonDetectedObject(PhotonVision.PipelineType pipelineType)
+    {
+        switch (pipelineType)
+        {
+            case APRILTAG:
+                led.setPatternState(aprilTagPattern, true);
+                break;
+        }
+    }   //setPhotonDetectedObject
 
 }   //class LEDIndicator

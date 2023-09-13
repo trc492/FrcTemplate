@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -8,8 +8,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -27,11 +27,14 @@ import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
 import team492.Robot;
- 
+
+/**
+ * This class implements an autonomous strategy.
+ */
 public class CmdAuto implements TrcRobot.RobotCommand
 {
     private static final String moduleName = "CmdAuto";
-    
+
     private enum State
     {
         START,
@@ -46,10 +49,10 @@ public class CmdAuto implements TrcRobot.RobotCommand
 
     /**
      * Constructor: Create an instance of the object.
-    *
-    * @param robot specifies the robot object for providing access to various global objects.
-    * @param startDelay specifies the start delay in seconds.
-    */
+     *
+     * @param robot specifies the robot object for providing access to various global objects.
+     * @param startDelay specifies the start delay in seconds.
+     */
     public CmdAuto(Robot robot, double startDelay)
     {
         this.robot = robot;
@@ -60,16 +63,16 @@ public class CmdAuto implements TrcRobot.RobotCommand
         sm = new TrcStateMachine<>(moduleName);
         sm.start(State.START);
     }   //CmdAuto
- 
+
     //
     // Implements the TrcRobot.RobotCommand interface.
     //
 
     /**
      * This method checks if the current RobotCommand  is running.
-    *
-    * @return true if the command is running, false otherwise.
-    */
+     *
+     * @return true if the command is running, false otherwise.
+     */
     @Override
     public boolean isActive()
     {
@@ -78,7 +81,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
 
     /**
      * This method cancels the command if it is active.
-    */
+     */
     @Override
     public void cancel()
     {
@@ -88,10 +91,10 @@ public class CmdAuto implements TrcRobot.RobotCommand
 
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.
-    *
-    * @param elapsedTime specifies the elapsed time in seconds since the start of the robot mode.
-    * @return true if the command sequence is completed, false otherwise.
-    */
+     *
+     * @param elapsedTime specifies the elapsed time in seconds since the start of the robot mode.
+     * @return true if the command sequence is completed, false otherwise.
+     */
     @Override
     public boolean cmdPeriodic(double elapsedTime)
     {

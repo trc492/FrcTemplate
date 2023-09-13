@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,14 +41,13 @@ import team492.RobotParams;
 
 public class OpenCvVision extends FrcOpenCvDetector
 {
-    private static final int colorConversion = Imgproc.COLOR_RGBA2RGB;
-    private static final double[] colorThresholdsPole = {100.0, 255.0, 0.0, 100.0, 0.0, 60.0};
-    private static final double[] colorThresholdsCone = {100.0, 255.0, 0.0, 100.0, 0.0, 60.0};
-    private static final double[] colorThresholdsCube = {0.0, 60.0, 0.0, 100.0, 100, 255.0};
+    private static final int colorConversion = Imgproc.COLOR_BGRA2BGR;
+    private static final double[] redBlobColorThresholds = {100.0, 255.0, 0.0, 100.0, 0.0, 60.0};
+    private static final double[] blueBlobColorThresholds = {0.0, 60.0, 0.0, 100.0, 100, 255.0};
 
     public enum ObjectType
     {
-        APRILTAG, POLE, CONE, CUBE, NONE;
+        APRILTAG, REDBLOB, BLUEBLOB, NONE;
 
         static ObjectType nextObjectType(ObjectType objType)
         {
@@ -57,18 +56,14 @@ public class OpenCvVision extends FrcOpenCvDetector
             switch (objType)
             {
                 case APRILTAG:
-                    nextObjType = POLE;
+                    nextObjType = REDBLOB;
                     break;
 
-                case POLE:
-                    nextObjType = CONE;
+                case REDBLOB:
+                    nextObjType = BLUEBLOB;
                     break;
 
-                case CONE:
-                    nextObjType = CUBE;
-                    break;
-
-                case CUBE:
+                case BLUEBLOB:
                     nextObjType = NONE;
                     break;
 
@@ -85,9 +80,8 @@ public class OpenCvVision extends FrcOpenCvDetector
 
     private final TrcDbgTrace tracer;
     private final TrcOpenCvPipeline<DetectedObject<?>> aprilTagPipeline;
-    private final TrcOpenCvPipeline<DetectedObject<?>> polePipeline;
-    private final TrcOpenCvPipeline<DetectedObject<?>> conePipeline;
-    private final TrcOpenCvPipeline<DetectedObject<?>> cubePipeline;
+    private final TrcOpenCvPipeline<DetectedObject<?>> redBlobPipeline;
+    private final TrcOpenCvPipeline<DetectedObject<?>> blueBlobPipeline;
     private ObjectType objectType = ObjectType.NONE;
 
     /**
@@ -95,8 +89,6 @@ public class OpenCvVision extends FrcOpenCvDetector
      *
      * @param instanceName specifies the instance name.
      * @param numImageBuffers specifies the number of image buffers to allocate.
-     * @param imageWidth specifies the width of the camera image.
-     * @param imageHeight specifies the height of the camera image.
      * @param cameraRect specifies the camera rectangle for Homography Mapper, can be null if not provided.
      * @param worldRect specifies the world rectangle for Homography Mapper, can be null if not provided.
      * @param cvSink specifies the object to capture the video frames.
@@ -104,24 +96,14 @@ public class OpenCvVision extends FrcOpenCvDetector
      * @param tracer specifies the tracer for trace info, null if none provided.
      */
     public OpenCvVision(
-        String instanceName, int numImageBuffers, int imageWidth, int imageHeight,
-        TrcHomographyMapper.Rectangle cameraRect, TrcHomographyMapper.Rectangle worldRect,
-        CvSink cvSink, CvSource cvSource, TrcDbgTrace tracer)
+        String instanceName, int numImageBuffers, TrcHomographyMapper.Rectangle cameraRect,
+        TrcHomographyMapper.Rectangle worldRect, CvSink cvSink, CvSource cvSource, TrcDbgTrace tracer)
     {
-        super(instanceName, numImageBuffers, imageWidth, imageHeight,  cameraRect, worldRect, cvSink, cvSource,
+        super(instanceName, numImageBuffers, cameraRect, worldRect, cvSink, cvSource,
               tracer);
 
         this.tracer = tracer;
-        TrcOpenCvColorBlobPipeline.FilterContourParams poleFilterContourParams =
-            new TrcOpenCvColorBlobPipeline.FilterContourParams()
-                .setMinArea(5000.0)
-                .setMinPerimeter(500.0)
-                .setWidthRange(100.0, 1000.0)
-                .setHeightRange(250.0, 10000.0)
-                .setSolidityRange(0.0, 100.0)
-                .setVerticesRange(0.0, 1000.0)
-                .setAspectRatioRange(0.0, 1000.0);
-        TrcOpenCvColorBlobPipeline.FilterContourParams coneFilterContourParams =
+        TrcOpenCvColorBlobPipeline.FilterContourParams redBlobFilterContourParams =
             new TrcOpenCvColorBlobPipeline.FilterContourParams()
                 .setMinArea(10000.0)
                 .setMinPerimeter(200.0)
@@ -130,7 +112,7 @@ public class OpenCvVision extends FrcOpenCvDetector
                 .setSolidityRange(0.0, 100.0)
                 .setVerticesRange(0.0, 1000.0)
                 .setAspectRatioRange(0.0, 1000.0);
-        TrcOpenCvColorBlobPipeline.FilterContourParams cubeFilterContourParams =
+        TrcOpenCvColorBlobPipeline.FilterContourParams blueBlobFilterContourParams =
             new TrcOpenCvColorBlobPipeline.FilterContourParams()
                 .setMinArea(10000.0)
                 .setMinPerimeter(200.0)
@@ -145,12 +127,10 @@ public class OpenCvVision extends FrcOpenCvDetector
                 RobotParams.APRILTAG_SIZE, RobotParams.WEBCAM_FX, RobotParams.WEBCAM_FY, RobotParams.WEBCAM_CX,
                 RobotParams.WEBCAM_CY),
             tracer);
-        polePipeline = new TrcOpenCvColorBlobPipeline(
-            "polePipeline", colorConversion, colorThresholdsPole, poleFilterContourParams, tracer);
-        conePipeline = new TrcOpenCvColorBlobPipeline(
-            "conePipeline", colorConversion, colorThresholdsCone, coneFilterContourParams, tracer);
-        cubePipeline = new TrcOpenCvColorBlobPipeline(
-            "cubePipeline", colorConversion, colorThresholdsCube, cubeFilterContourParams, tracer);
+        redBlobPipeline = new TrcOpenCvColorBlobPipeline(
+            "redBlobPipeline", colorConversion, redBlobColorThresholds, redBlobFilterContourParams, tracer);
+        blueBlobPipeline = new TrcOpenCvColorBlobPipeline(
+            "blueBlobPipeline", colorConversion, blueBlobColorThresholds, blueBlobFilterContourParams, tracer);
     }   //OpenCvVision
 
     /**
@@ -169,16 +149,12 @@ public class OpenCvVision extends FrcOpenCvDetector
                 setPipeline(aprilTagPipeline);
                 break;
 
-            case POLE:
-                setPipeline(polePipeline);
+            case REDBLOB:
+                setPipeline(redBlobPipeline);
                 break;
 
-            case CONE:
-                setPipeline(conePipeline);
-                break;
-
-            case CUBE:
-                setPipeline(cubePipeline);
+            case BLUEBLOB:
+                setPipeline(blueBlobPipeline);
                 break;
 
             case NONE:
@@ -217,17 +193,34 @@ public class OpenCvVision extends FrcOpenCvDetector
     }   //getDetectObjectType
 
     /**
-     * This method sets the intermediate mat of the pipeline as the video output mat and optionally annotate the
-     * detected rectangle on it.
+     * This method enables/disables image annotation of the detected object.
+     *
+     * @param enabled specifies true to enable annotation, false to disable.
+     */
+    public void setAnnotateEnabled(boolean enabled)
+    {
+        getPipeline().setAnnotateEnabled(enabled);
+    }   //setAnnotateEnabled
+
+    /**
+     * This method checks if image annotation is enabled.
+     *
+     * @return true if annotation is enabled, false otherwise.
+     */
+    public boolean isAnnotateEnabled()
+    {
+        return getPipeline().isAnnotateEnabled();
+    }   //isAnnotateEnabled
+
+    /**
+     * This method sets the intermediate mat of the pipeline as the video output mat.
      *
      * @param intermediateStep specifies the intermediate mat used as video output (1 is the original mat, 0 to
      *        disable video output if supported).
-     * @param annotate specifies true to annotate detected rectangles on the output mat, false otherwise.
-     *        This parameter is ignored if intermediateStep is 0.
      */
-    public void setVideoOutput(int intermediateStep, boolean annotate)
+    public void setVideoOutput(int intermediateStep)
     {
-        getPipeline().setVideoOutput(intermediateStep, annotate);
+        getPipeline().setVideoOutput(intermediateStep);
     }   //setVideoOutput
 
     /**
@@ -237,13 +230,13 @@ public class OpenCvVision extends FrcOpenCvDetector
      * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
      * @return array of detected target info.
      */
-    public TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>> getTargetInfo(
+    public TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>> getDetectedTargetInfo(
         FilterTarget filter, Comparator<? super TrcVisionTargetInfo<DetectedObject<?>>> comparator)
     {
         TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>>[] targets =
             getDetectedTargetsInfo(filter, comparator, RobotParams.VISION_TARGET_HEIGHT, RobotParams.CAMERA_HEIGHT);
 
         return targets != null? targets[0]: null;
-    }   //getTargetInfo
+    }   //getDetectedTargetInfo
 
 }   //class OpenCvVision

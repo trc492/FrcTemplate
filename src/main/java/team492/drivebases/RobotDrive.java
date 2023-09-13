@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,9 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.Scanner;
 
-import com.ctre.phoenix.ErrorCode;
-
 import TrcCommonLib.trclib.TrcDriveBase;
 import TrcCommonLib.trclib.TrcGyro;
+import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPose2D;
@@ -40,6 +39,8 @@ import TrcCommonLib.trclib.TrcUtil;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
 import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcCANFalcon;
+import TrcFrcLib.frclib.FrcCANSparkMax;
+import TrcFrcLib.frclib.FrcCANTalon;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import team492.FrcAuto;
@@ -51,44 +52,54 @@ import team492.RobotParams;
  */
 public class RobotDrive
 {
+    private static final boolean debugEnabled = false;
+    public static final int INDEX_LEFT_FRONT = 0;
+    public static final int INDEX_RIGHT_FRONT = 1;
+    public static final int INDEX_LEFT_BACK = 2;
+    public static final int INDEX_RIGHT_BACK = 3;
     private static final String FIELD_ZERO_HEADING_FILE = "FieldZeroHeading.txt";
 
-    public enum DriveOrientation
+    public enum MotorType
     {
-        ROBOT, FIELD, INVERTED
-    }   //enum DriveOrientation
+        CAN_FALCON,
+        CAN_TALON,
+        CAN_SPARKMAX
+    }   //enum MotorType
+
+    /**
+     * This enum specifies different drive modes.
+     */
+    public enum DriveMode
+    {
+        TANK_MODE,
+        HOLONOMIC_MODE,
+        ARCADE_MODE
+    }   //enum DriveMode
+
     //
     // Global objects.
     //
     protected final Robot robot;
+
     //
     // Sensors.
     //
     public final TrcGyro gyro;
     //
+    // Subclass needs to initialize the following variables.
+    //
     // Drive motors.
-    //
-    public FrcCANFalcon lfDriveMotor, lbDriveMotor, rfDriveMotor, rbDriveMotor;
-    //
+    public TrcMotor[] driveMotors;
     // Drive Base.
-    //
     public TrcDriveBase driveBase;
+    // Drive Controllers.
+    public TrcPidDrive pidDrive;
+    public TrcPurePursuitDrive purePursuitDrive;
     //
     // PID Coefficients.
     //
     public TrcPidController.PidCoefficients xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff;
     public TrcPidController.PidCoefficients gyroPitchPidCoeff;      // for anti-tipping.
-    //
-    // Drive Controllers.
-    //
-    public TrcPidDrive pidDrive;
-    public TrcPurePursuitDrive purePursuitDrive;
-    //
-    // Miscellaneous.
-    //
-    public DriveOrientation driveOrientation = DriveOrientation.FIELD;
-    public double driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-    public double turnSpeedScale = RobotParams.TURN_FAST_SCALE;
     //
     // Odometry.
     //
@@ -115,25 +126,16 @@ public class RobotDrive
     {
         if (runMode != RunMode.DISABLED_MODE)
         {
-            driveSpeedScale = RobotParams.DRIVE_FAST_SCALE;
-            turnSpeedScale = RobotParams.TURN_FAST_SCALE;
             driveBase.setOdometryEnabled(true, true);
-
-            if (runMode == RunMode.AUTO_MODE)
+            // Disable ramp rate control in autonomous.
+            double rampTime = runMode == RunMode.AUTO_MODE? 0.0: RobotParams.DRIVE_RAMP_RATE;
+            for (int i = 0; i < driveMotors.length; i++)
             {
-                // Disable ramp rate control in autonomous.
-                lfDriveMotor.motor.configOpenloopRamp(0.0);
-                rfDriveMotor.motor.configOpenloopRamp(0.0);
-                lbDriveMotor.motor.configOpenloopRamp(0.0);
-                rbDriveMotor.motor.configOpenloopRamp(0.0);
+                driveMotors[i].setOpenLoopRampRate(rampTime);
             }
-            else
-            {
-                lfDriveMotor.motor.configOpenloopRamp(RobotParams.DRIVE_RAMP_RATE);
-                rfDriveMotor.motor.configOpenloopRamp(RobotParams.DRIVE_RAMP_RATE);
-                lbDriveMotor.motor.configOpenloopRamp(RobotParams.DRIVE_RAMP_RATE);
-                rbDriveMotor.motor.configOpenloopRamp(RobotParams.DRIVE_RAMP_RATE);
 
+            if (runMode != RunMode.AUTO_MODE)
+            {
                 if (runMode == RunMode.TELEOP_MODE && endOfAutoRobotPose != null)
                 {
                     driveBase.setFieldPosition(endOfAutoRobotPose);
@@ -197,130 +199,160 @@ public class RobotDrive
     }   //cancel
 
     /**
-     * This method create a drive motor and configure it.
+     * This method create an array of motors and configure them (can be drive motor or steer motor for Swerve Drive).
      *
-     * @param name specifies the name of the drive motor.
-     * @param motorCanID specifies the CAN ID of the drive motor.
-     * @param inverted specifies true to invert the drive motor, false otherwise.
+     * @param motorType specifies the motor type (CAN_FALCON, CAN_TALON or CAN_SPARKMAX).
+     * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+     * @param names specifies an array of names for each motor.
+     * @param motorCanIds specifies an array of CAN IDs for each motor.
+     * @param inverted specifies an array of boolean indicating if the motor needs to be inverted.
+     * @return created array of motors.
      */
-    protected FrcCANFalcon createDriveMotor(String name, int motorCanID, boolean inverted)
+    protected TrcMotor[] createMotors(
+        MotorType motorType, boolean brushless, String[] names, int[] motorCanIds, boolean[] inverted)
     {
-        final String funcName = "createDriveMotor";
-        FrcCANFalcon driveMotor = new FrcCANFalcon(name, motorCanID);
-        ErrorCode errCode;
+        TrcMotor[] motors = new TrcMotor[names.length];
 
-        errCode = driveMotor.motor.configFactoryDefault(10);
-        if (errCode != ErrorCode.OK)
+        for (int i = 0; i < names.length; i++)
         {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: Falcon.configFactoryDefault failed (code=%s).",
-                name, errCode);
+            switch (motorType)
+            {
+                case CAN_FALCON:
+                    motors[i] = new FrcCANFalcon(names[i], motorCanIds[i]);
+                    break;
+
+                case CAN_TALON:
+                    motors[i] = new FrcCANTalon(names[i], motorCanIds[i]);
+                    break;
+
+                case CAN_SPARKMAX:
+                    motors[i] = new FrcCANSparkMax(names[i], motorCanIds[i], brushless);
+                    break;
+            }
+            motors[i].resetFactoryDefault();
+            motors[i].setVoltageCompensationEnabled(RobotParams.BATTERY_NOMINAL_VOLTAGE);
+            motors[i].setBrakeModeEnabled(true);
+            motors[i].setMotorInverted(inverted[i]);
         }
 
-        errCode = driveMotor.motor.configVoltageCompSaturation(RobotParams.BATTERY_NOMINAL_VOLTAGE, 10);
-        if (errCode != ErrorCode.OK)
-        {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: Falcon.configVoltageCompSaturation failed (code=%s).",
-                name, errCode);
-        }
-
-        driveMotor.motor.enableVoltageCompensation(true);
-        driveMotor.setMotorInverted(inverted);
-        // Drive motor should always be in brake mode.
-        driveMotor.setBrakeModeEnabled(true);
-
-        return driveMotor;
-    }   //createDriveMotor
+        return motors;
+    }   //createMotors
 
     /**
      * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
      * of robot movement.
      *
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *              raised exponentially, it gives you more precise control on the low end values.
+     * @param drivePowerScale specifies the scaling factor for drive power.
+     * @param turnPowerScale specifies the scaling factor for turn power.
      * @return an array of 3 values for x, y and rotation power.
      */
-    public double[] getDriveInputs()
+    public double[] getDriveInputs(
+        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
     {
-        double x, y, rot;
-        double mag;
-        double newMag;
+        final String funcName = "getDriveInputs";
+        double x = 0.0, y = 0.0, rot = 0.0;
 
-        if (RobotParams.Preferences.useDriverXboxController)
+        switch (driveMode)
         {
-            x = robot.driverController.getLeftXWithDeadband(false);
-            y = robot.driverController.getLeftYWithDeadband(false);
-            rot = robot.driverController.getRightXWithDeadband(true);
+            case HOLONOMIC_MODE:
+                if (RobotParams.Preferences.useDriverXboxController)
+                {
+                    x = robot.driverController.getRightXWithDeadband(doExp);
+                    y = robot.driverController.getLeftYWithDeadband(doExp);
+                    rot = robot.driverController.getTriggerWithDeadband(doExp);
+                }
+                else
+                {
+                    x = robot.rightDriveStick.getXWithDeadband(doExp);
+                    y = robot.leftDriveStick.getYWithDeadband(doExp);
+                    rot = robot.leftDriveStick.getTwistWithDeadband(doExp);
+                }
+
+                if (debugEnabled)
+                {
+                    robot.globalTracer.traceInfo(funcName, "%s:x=%.1f,y=%.1f,rot=%.1f", driveMode, x, y, rot);
+                }
+                break;
+
+            case ARCADE_MODE:
+                if (RobotParams.Preferences.useDriverXboxController)
+                {
+                    x = robot.driverController.getLeftXWithDeadband(doExp);
+                    y = robot.driverController.getLeftYWithDeadband(doExp);
+                    rot = robot.driverController.getRightXWithDeadband(doExp);
+                }
+                else
+                {
+                    x = robot.leftDriveStick.getXWithDeadband(doExp);
+                    y = robot.leftDriveStick.getYWithDeadband(doExp);
+                    if (RobotParams.Preferences.doOneStickDrive)
+                    {
+                        rot = robot.leftDriveStick.getTwistWithDeadband(doExp);
+                    }
+                    else
+                    {
+                        rot = robot.rightDriveStick.getXWithDeadband(doExp);
+                    }
+                }
+
+                if (debugEnabled)
+                {
+                    robot.globalTracer.traceInfo(funcName, "%s:x=%.1f,y=%.1f,rot=%.1f", driveMode, x, y, rot);
+                }
+                break;
+
+            case TANK_MODE:
+                double leftPower, rightPower;
+                if (RobotParams.Preferences.useDriverXboxController)
+                {
+                    leftPower = robot.driverController.getLeftYWithDeadband(doExp);
+                    rightPower = robot.driverController.getRightYWithDeadband(doExp);
+                }
+                else
+                {
+                    leftPower = robot.leftDriveStick.getYWithDeadband(false);
+                    rightPower = robot.rightDriveStick.getYWithDeadband(false);
+                }
+                x = 0.0;
+                y = (leftPower + rightPower)/2.0;
+                rot = (leftPower - rightPower)/2.0;
+
+                if (debugEnabled)
+                {
+                    robot.globalTracer.traceInfo(funcName, "%s:left=%.1f,right=%.1f", driveMode, leftPower, rightPower);
+                }
+                break;
         }
-        else
-        {
-            x = robot.rightDriveStick.getXWithDeadband(false);
-            y = robot.rightDriveStick.getYWithDeadband(false);
-            if(RobotParams.Preferences.doOneStickDrive)
-            {
-                rot = robot.rightDriveStick.getTwistWithDeadband(true);
-            }
-            else
-            {
-                rot = robot.leftDriveStick.getXWithDeadband(true);
-            }
-        }
-        // Apply squared or cubic curve to the X/Y drive.
-        mag = TrcUtil.magnitude(x, y);
+
+        double mag = TrcUtil.magnitude(x, y);
         if (mag > 1.0)
         {
             x /= mag;
             y /= mag;
-            mag = 1.0;
         }
-        newMag = Math.pow(mag, RobotParams.Preferences.useDriverXboxController? 3: 2);
-        newMag *= driveSpeedScale;
-        rot *= turnSpeedScale;
-
-        if (mag != 0.0)
-        {
-            x *= newMag / mag;
-            y *= newMag / mag;
-        }
+        x *= drivePowerScale;
+        y *= drivePowerScale;
+        rot *= turnPowerScale;
 
         return new double[] { x, y, rot };
     }   //getDriveInput
 
     /**
-     * This method returns robot heading to be maintained in teleop drive according to drive orientation mode.
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
      *
-     * @return robot heading to be maintained.
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *              raised exponentially, it gives you more precise control on the low end values.
+     * @return an array of 3 values for x, y and rotation power.
      */
-    public double getDriveGyroAngle()
+    public double[] getDriveInputs(DriveMode driveMode, boolean doExp)
     {
-        switch (driveOrientation)
-        {
-            case ROBOT:
-                return 0.0;
-
-            case INVERTED:
-                return 180.0;
-
-            default:
-            case FIELD:
-                return robot.robotDrive.driveBase.getHeading();
-        }
-    }   //getDriveGyroAngle
-
-    /**
-     * This method sets the drive orientation mode and updates the LED state correspondingly.
-     */
-    public void setDriveOrientation(DriveOrientation orientation)
-    {
-        driveOrientation = orientation;
-        robot.ledIndicator.setDriveOrientation(driveOrientation);
-        // If switching to FIELD oriented driving, reset robot heading so that the current robot heading is "north".
-        if (driveOrientation == DriveOrientation.FIELD)
-        {
-            TrcPose2D robotPose = robot.robotDrive.driveBase.getFieldPosition();
-            robotPose.angle = 0.0;
-            robot.robotDrive.driveBase.setFieldPosition(robotPose);
-        }
-    }   //setDriveOrientation
+        return getDriveInputs(driveMode, doExp, 1.0, 1.0);
+    }   //getDriveInputs
 
     /**
      * This method saves the compass heading value when the robot is facing field zero.
@@ -330,7 +362,7 @@ public class RobotDrive
         final String funcName = "saveFieldZeroCompassHeading";
 
         try (PrintStream out = new PrintStream(
-                new FileOutputStream(RobotParams.TEAM_FOLDER + "/" + FIELD_ZERO_HEADING_FILE)))
+                new FileOutputStream(RobotParams.TEAM_FOLDER_PATH + "/" + FIELD_ZERO_HEADING_FILE)))
         {
             double fieldZeroHeading = ((FrcAHRSGyro) gyro).ahrs.getCompassHeading();
 
@@ -353,7 +385,7 @@ public class RobotDrive
     {
         final String funcName = "getFieldZeroCompassHeading";
 
-        try (Scanner in = new Scanner(new FileReader(RobotParams.TEAM_FOLDER + "/" + FIELD_ZERO_HEADING_FILE)))
+        try (Scanner in = new Scanner(new FileReader(RobotParams.TEAM_FOLDER_PATH + "/" + FIELD_ZERO_HEADING_FILE)))
         {
             return in.nextDouble();
         }

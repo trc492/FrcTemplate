@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import TrcCommonLib.trclib.TrcTaskMgr;
 import team492.Robot;
 
 /**
- * This class implements auto-assist task to score a cone or cube.
+ * This class implements auto-assist task.
  */
 public class TaskAuto extends TrcAutoTask<TaskAuto.State>
 {
@@ -73,7 +73,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
     }   //TaskAuto
 
     /**
-     * This method starts the auto-assist operation to score an object.
+     * This method starts the auto-assist operation.
      *
      * @param completionEvent specifies the event to signal when done, can be null if none provided.
      */
@@ -202,7 +202,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      * @param taskType specifies the type of task being run.
      * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
      * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
-     *        false otherwise.
+     *        false if running the fast loop on the main robot thread.
      */
     @Override
     protected void runTaskState(

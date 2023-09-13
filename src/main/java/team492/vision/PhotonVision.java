@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,7 @@ public class PhotonVision extends FrcPhotonVision
 
             return type;
         }   //getType
+
     }   //enum PipelineType
 
     private final LEDIndicator ledIndicator;
@@ -128,11 +129,7 @@ public class PhotonVision extends FrcPhotonVision
 
         if (detectedObject != null && ledIndicator != null)
         {
-            // TODO (Code Review): Why disable this? This only overrides the scoreLevel thing if it sees the AprilTag
-            // which means you already approached the scoring location. By then, you should already know what level
-            // you are scoring and the object you are scoring. I thought knowing vision sees the target is important
-            // here in case you are using autoScore with vision.
-            // ledIndicator.setVisionDetectedObject(getPipeline());
+            ledIndicator.setPhotonDetectedObject(getPipeline());
         }
 
         return detectedObject;
@@ -220,7 +217,7 @@ public class PhotonVision extends FrcPhotonVision
         {
             currPipeline = pipelineType;
             setPipelineIndex(pipelineType.pipelineIndex);
-            // setLED(pipelineType == PipelineType.POLE? VisionLEDMode.kOn: VisionLEDMode.kOff);
+            // setLED(VisionLEDMode.kOff);
         }
     }   //setPipeline
 

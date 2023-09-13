@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import TrcCommonLib.command.CmdDriveMotorsTest;
 import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import team492.drivebases.RobotDrive;
 import team492.drivebases.SwerveDrive;
 import TrcFrcLib.frclib.FrcChoiceMenu;
 import TrcFrcLib.frclib.FrcUserChoices;
@@ -267,8 +268,10 @@ public class FrcTest extends FrcTeleOp
                 //
                 testCommand = new CmdDriveMotorsTest(
                     new TrcMotor[] {
-                        robot.robotDrive.lfDriveMotor, robot.robotDrive.rfDriveMotor,
-                        robot.robotDrive.lbDriveMotor, robot.robotDrive.rbDriveMotor},
+                        robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT],
+                        robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT],
+                        robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK],
+                        robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK]},
                     5.0, 0.5);
                 break;
 
@@ -443,10 +446,12 @@ public class FrcTest extends FrcTeleOp
 
                 case X_TIMED_DRIVE:
                 case Y_TIMED_DRIVE:
-                    double lfEnc = robot.robotDrive.lfDriveMotor.getPosition();
-                    double rfEnc = robot.robotDrive.rfDriveMotor.getPosition();
-                    double lbEnc = robot.robotDrive.lbDriveMotor.getPosition();
-                    double rbEnc = robot.robotDrive.rbDriveMotor.getPosition();
+                    double lfEnc = robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getPosition();
+                    double rfEnc = robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getPosition();
+                    double lbEnc = robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
+                                    robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getPosition(): 0.0;
+                    double rbEnc = robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
+                                    robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0;
                     robot.dashboard.displayPrintf(9, "Enc:lf=%.0f,rf=%.0f", lfEnc, rfEnc);
                     robot.dashboard.displayPrintf(10, "Enc:lb=%.0f,rb=%.0f", lbEnc, rbEnc);
                     robot.dashboard.displayPrintf(11, "EncAverage=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
@@ -524,11 +529,19 @@ public class FrcTest extends FrcTeleOp
             10, "DriveBase: Pose=%s,Vel=%s", robot.robotDrive.driveBase.getFieldPosition(),
             robot.robotDrive.driveBase.getFieldVelocity());
         robot.dashboard.displayPrintf(11, "DriveEncoders: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f",
-            robot.robotDrive.lfDriveMotor.getPosition(), robot.robotDrive.rfDriveMotor.getPosition(),
-            robot.robotDrive.lbDriveMotor.getPosition(), robot.robotDrive.rbDriveMotor.getPosition());
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getPosition(),
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getPosition(),
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
+                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getPosition(): 0.0,
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
+                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0);
         robot.dashboard.displayPrintf(12, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
-            robot.robotDrive.lfDriveMotor.getMotorPower(), robot.robotDrive.rfDriveMotor.getMotorPower(),
-            robot.robotDrive.lbDriveMotor.getMotorPower(), robot.robotDrive.rbDriveMotor.getMotorPower());
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getMotorPower(),
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getMotorPower(),
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
+                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getMotorPower(): 0.0,
+            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
+                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getMotorPower(): 0.0);
         //
         // Display other subsystems and sensor info.
         //

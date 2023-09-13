@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,14 @@ public class WestCoastDrive extends RobotDrive
     private static final boolean logPoseEvents = false;
     private static final boolean tracePidInfo = false;
 
+
+    private final String[] driveMotorNames = {
+        RobotParams.LFDRIVE_MOTOR_NAME, RobotParams.RFDRIVE_MOTOR_NAME};
+    private final int[] driveMotorIds = {
+        RobotParams.CANID_LFDRIVE_MOTOR, RobotParams.CANID_RFDRIVE_MOTOR};
+    private final boolean[] driveMotorInverted = {
+        RobotParams.LFDRIVE_MOTOR_INVERTED, RobotParams.RFDRIVE_MOTOR_INVERTED};
+
     /**
      * Constructor: Create an instance of the object.
      *
@@ -48,15 +56,8 @@ public class WestCoastDrive extends RobotDrive
     {
         super(robot);
 
-        lfDriveMotor = createDriveMotor("lfDriveMotor", RobotParams.CANID_LEFTFRONT_DRIVE, true);
-        lbDriveMotor = createDriveMotor("lbDriveMotor", RobotParams.CANID_LEFTBACK_DRIVE, true);
-        rfDriveMotor = createDriveMotor("rfDriveMotor", RobotParams.CANID_RIGHTFRONT_DRIVE, false);
-        rbDriveMotor = createDriveMotor("rbDriveMotor", RobotParams.CANID_RIGHTBACK_DRIVE, false);
-
-        lbDriveMotor.followMotor(lfDriveMotor);
-        rbDriveMotor.followMotor(rfDriveMotor);
-
-        driveBase = new TrcSimpleDriveBase(lfDriveMotor, rfDriveMotor, gyro);
+        driveMotors = createMotors(MotorType.CAN_SPARKMAX, true, driveMotorNames, driveMotorIds, driveMotorInverted);
+        driveBase = new TrcSimpleDriveBase(driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_RIGHT_FRONT], gyro);
         driveBase.setOdometryScales(RobotParams.WCD_INCHES_PER_COUNT);
 
         // if (RobotParams.Preferences.useExternalOdometry)
@@ -84,10 +85,8 @@ public class WestCoastDrive extends RobotDrive
         if (robot.pdp != null)
         {
             robot.pdp.registerEnergyUsed(
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_FRONT_DRIVE, "lfDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_BACK_DRIVE, "lbDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_FRONT_DRIVE, "rfDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_BACK_DRIVE, "rbDriveMotor"));
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_FRONT]));
         }
         //
         // Create and initialize PID controllers.

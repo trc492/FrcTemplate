@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,14 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import com.ctre.phoenix.ErrorCode;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
 
 import TrcCommonLib.trclib.TrcWatchdogMgr;
 import TrcCommonLib.trclib.TrcDbgTrace;
+import TrcCommonLib.trclib.TrcEncoder;
+import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPurePursuitDrive;
@@ -49,8 +49,6 @@ import TrcCommonLib.trclib.TrcWatchdogMgr.Watchdog;
 import TrcFrcLib.frclib.FrcAnalogEncoder;
 import TrcFrcLib.frclib.FrcCANCoder;
 import TrcFrcLib.frclib.FrcCANFalcon;
-import TrcFrcLib.frclib.FrcEncoder;
-import TrcFrcLib.frclib.FrcFalconServo;
 import TrcFrcLib.frclib.FrcPdp;
 import team492.Robot;
 import team492.RobotParams;
@@ -61,17 +59,46 @@ import team492.RobotParams;
  */
 public class SwerveDrive extends RobotDrive
 {
-    private static final String STEER_ZERO_CAL_FILE = "steerzeros.txt";
     private static final boolean logPoseEvents = false;
     private static final boolean tracePidInfo = false;
+
+    private final String[] driveMotorNames = {
+        RobotParams.LFDRIVE_MOTOR_NAME, RobotParams.RFDRIVE_MOTOR_NAME,
+        RobotParams.LBDRIVE_MOTOR_NAME, RobotParams.RBDRIVE_MOTOR_NAME};
+    private final int[] driveMotorIds = {
+        RobotParams.CANID_LFDRIVE_MOTOR, RobotParams.CANID_RFDRIVE_MOTOR,
+        RobotParams.CANID_LBDRIVE_MOTOR, RobotParams.CANID_RBDRIVE_MOTOR};
+    private final boolean[] driveMotorInverted = {
+        RobotParams.LFDRIVE_MOTOR_INVERTED, RobotParams.RFDRIVE_MOTOR_INVERTED,
+        RobotParams.LBDRIVE_MOTOR_INVERTED, RobotParams.RBDRIVE_MOTOR_INVERTED};
+    private final String[] steerEncoderNames = {
+        RobotParams.LFSTEER_ENCODER_NAME, RobotParams.RFSTEER_ENCODER_NAME,
+        RobotParams.LBSTEER_ENCODER_NAME, RobotParams.RBSTEER_ENCODER_NAME};
+    private final int[] steerEncoderIds = {
+        RobotParams.AIN_LFSTEER_ENCODER, RobotParams.AIN_RFSTEER_ENCODER,
+        RobotParams.AIN_LBSTEER_ENCODER, RobotParams.AIN_RBSTEER_ENCODER};
+    private final boolean[] steerEncoderInverted = {
+        RobotParams.LFSTEER_ENCODER_INVERTED, RobotParams.RFSTEER_ENCODER_INVERTED,
+        RobotParams.LBSTEER_ENCODER_INVERTED, RobotParams.RBSTEER_ENCODER_INVERTED};
+    private final String[] steerMotorNames = {
+        RobotParams.LFSTEER_MOTOR_NAME, RobotParams.RFSTEER_MOTOR_NAME,
+        RobotParams.LBSTEER_MOTOR_NAME, RobotParams.RBSTEER_MOTOR_NAME};
+    private final int[] steerMotorIds = {
+        RobotParams.CANID_LFSTEER_MOTOR, RobotParams.CANID_RFSTEER_MOTOR,
+        RobotParams.CANID_LBSTEER_MOTOR, RobotParams.CANID_RBSTEER_MOTOR};
+    private final boolean[] steerMotorInverted = {
+        RobotParams.LFSTEER_INVERTED, RobotParams.RFSTEER_INVERTED,
+        RobotParams.LBSTEER_INVERTED, RobotParams.RBSTEER_INVERTED};
+    private final String[] swerveModuleNames = {
+        RobotParams.LFSWERVE_MODULE_NAME, RobotParams.RFSWERVE_MODULE_NAME,
+        RobotParams.LBSWERVE_MODULE_NAME, RobotParams.RBSWERVE_MODULE_NAME};
     //
     // Swerve steering motors and modules.
     //
-    public final FrcEncoder lfSteerEncoder, rfSteerEncoder, lbSteerEncoder, rbSteerEncoder;
-    public final FrcEncoder[] steerEncoders;
-    public final FrcCANFalcon lfSteerMotor, rfSteerMotor, lbSteerMotor, rbSteerMotor;
-    public final FrcCANFalcon[] steerMotors;
-    public final TrcSwerveModule lfWheel, lbWheel, rfWheel, rbWheel;
+    public final TrcEncoder[] steerEncoders;
+    public final TrcMotor[] steerMotors;
+    public final TrcSwerveModule[] swerveModules;
+    public int steerZeroCalibrationCount = 0;
     private String antiDefenseOwner = null;
     private boolean steerEncodersSynced = false;
 
@@ -84,55 +111,14 @@ public class SwerveDrive extends RobotDrive
     {
         super(robot);
 
-        lfDriveMotor = createDriveMotor("lfDrive", RobotParams.CANID_LEFTFRONT_DRIVE, true);
-        rfDriveMotor = createDriveMotor("rfDrive", RobotParams.CANID_RIGHTFRONT_DRIVE, false);
-        lbDriveMotor = createDriveMotor("lbDrive", RobotParams.CANID_LEFTBACK_DRIVE, true);
-        rbDriveMotor = createDriveMotor("rbDrive", RobotParams.CANID_RIGHTBACK_DRIVE, false);
-
-        // Steer zeros order: lf, rf, lb, rb.
-        double[] zeros = getSteerZeroPositions();
-        if (RobotParams.Preferences.useSteeringCANCoder)
-        {
-            lfSteerEncoder = createCANCoder(
-                "lfSteerEncoder", RobotParams.CANID_LEFTFRONT_STEER_ENCODER, true, zeros[0]);
-            rfSteerEncoder = createCANCoder(
-                "rfSteerEncoder", RobotParams.CANID_RIGHTFRONT_STEER_ENCODER, true, zeros[1]);
-            lbSteerEncoder = createCANCoder(
-                "lbSteerEncoder", RobotParams.CANID_LEFTBACK_STEER_ENCODER, true, zeros[2]);
-            rbSteerEncoder = createCANCoder(
-                "rbSteerEncoder", RobotParams.CANID_RIGHTBACK_STEER_ENCODER, true, zeros[3]);
-        }
-        else if (RobotParams.Preferences.useSteeringAnalogEncoder)
-        {
-            lfSteerEncoder = createAnalogEncoder(
-                "lfSteerEncoder", RobotParams.AIN_LEFTFRONT_STEER_ENCODER, true, zeros[0]);
-            rfSteerEncoder = createAnalogEncoder(
-                "rfSteerEncoder", RobotParams.AIN_RIGHTFRONT_STEER_ENCODER, true, zeros[1]);
-            lbSteerEncoder = createAnalogEncoder(
-                "lbSteerEncoder", RobotParams.AIN_LEFTBACK_STEER_ENCODER, true, zeros[2]);
-            rbSteerEncoder = createAnalogEncoder(
-                "rbSteerEncoder", RobotParams.AIN_RIGHTBACK_STEER_ENCODER, true, zeros[3]);
-        }
-        else
-        {
-            throw new IllegalArgumentException("Must enable either useCANCoder or useAnalogEncoder.");
-        }
-        steerEncoders = new FrcEncoder[] {lfSteerEncoder, rfSteerEncoder, lbSteerEncoder, rbSteerEncoder};
-
-        lfSteerMotor = createSteerMotor("lfSteer", RobotParams.CANID_LEFTFRONT_STEER, false);
-        rfSteerMotor = createSteerMotor("rfSteer", RobotParams.CANID_RIGHTFRONT_STEER, false);
-        lbSteerMotor = createSteerMotor("lbSteer", RobotParams.CANID_LEFTBACK_STEER, false);
-        rbSteerMotor = createSteerMotor("rbSteer", RobotParams.CANID_RIGHTBACK_STEER, false);
-
-        steerMotors = new FrcCANFalcon[] {lfSteerMotor, rfSteerMotor, lbSteerMotor, rbSteerMotor};
-
-        lfWheel = createSwerveModule("lfWheel", lfDriveMotor, lfSteerMotor, lfSteerEncoder);
-        rfWheel = createSwerveModule("rfWheel", rfDriveMotor, rfSteerMotor, rfSteerEncoder);
-        lbWheel = createSwerveModule("lbWheel", lbDriveMotor, lbSteerMotor, lbSteerEncoder);
-        rbWheel = createSwerveModule("rbWheel", rbDriveMotor, rbSteerMotor, rbSteerEncoder);
-
+        driveMotors = createMotors(MotorType.CAN_FALCON, false, driveMotorNames, driveMotorIds, driveMotorInverted);
+        steerEncoders = createSteerEncoders(
+            steerEncoderNames, steerEncoderIds, steerEncoderInverted, readSteeringCalibrationData());
+        steerMotors = createMotors(MotorType.CAN_FALCON, false, steerMotorNames, steerMotorIds, steerMotorInverted);
+        swerveModules = createSwerveModules(swerveModuleNames, driveMotors, steerMotors, steerEncoders);
         driveBase = new TrcSwerveDriveBase(
-            lfWheel, lbWheel, rfWheel, rbWheel, gyro,
+            swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
+            swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK], gyro,
             RobotParams.ROBOT_WHEELBASE_WIDTH, RobotParams.ROBOT_WHEELBASE_LENGTH);
         driveBase.setOdometryScales(RobotParams.SWERVE_INCHES_PER_COUNT, RobotParams.SWERVE_INCHES_PER_COUNT);
 
@@ -173,14 +159,14 @@ public class SwerveDrive extends RobotDrive
         if (robot.pdp != null)
         {
             robot.pdp.registerEnergyUsed(
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_FRONT_DRIVE, "lfDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_BACK_DRIVE, "lbDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_FRONT_DRIVE, "rfDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_BACK_DRIVE, "rbDriveMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_FRONT_STEER, "lfSteerMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LEFT_BACK_STEER, "lbSteerMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_FRONT_STEER, "rfSteerMotor"),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RIGHT_BACK_STEER, "rbSteerMotor"));
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LBDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_BACK]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_FRONT]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RBDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_BACK]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFSTEER_MOTOR, steerMotorNames[INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LBSTEER_MOTOR, steerMotorNames[INDEX_LEFT_BACK]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFSTEER_MOTOR, steerMotorNames[INDEX_RIGHT_FRONT]),
+                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RBSTEER_MOTOR, steerMotorNames[INDEX_RIGHT_BACK]));
         }
         //
         // Create and initialize PID controllers.
@@ -228,154 +214,121 @@ public class SwerveDrive extends RobotDrive
     }   //SwerveDrive
 
     /**
-     * This method creates an encoder for the steering motor.
+     * This method creates an array of steer encoders for each steer motor and configure them.
      *
-     * @param name specifies the instance name of the steering encoder.
-     * @param encoderId specifies the CAN ID of the CANcoder.
-     * @param inverted specifies true if the sensor direction should be inverted, false otherwise.
-     * @param steerZero specifies the zero position.
-     * @return the created steering encoder.
+     * @param names specifies an array of names for each steer encoder.
+     * @param encoderIds specifies an array of IDs for each steer encoder (CAN IDs for CAN coders, analog channels
+     *        for analog encoders).
+     * @param inverted specifies an array of boolean indicating if the encoder needs to be inverted.
+     * @param steerZeros specifies an array of zero positions for each steer encoder.
+     * @return created array of steer encoders.
      */
-    private FrcEncoder createCANCoder(String name, int encoderId, boolean inverted, double steerZero)
+    private TrcEncoder[] createSteerEncoders(String[] names, int[] encoderIds, boolean[] inverted, double[] steerZeros)
     {
-        final String funcName = "createCANcoder";
-        FrcEncoder encoder = new FrcCANCoder(name, encoderId);
+        final String funcName = "createSteerEncoder";
+        TrcEncoder[] encoders = null;
 
-        CANCoder canCoder = (CANCoder) encoder;
-        ErrorCode errCode;
-        // Reset encoder back to factory default to clear potential previous mis-configurations.
-        errCode = canCoder.configFactoryDefault(30);
-        if (errCode != ErrorCode.OK)
+        if (RobotParams.Preferences.useSteeringCANCoder)
         {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: CANcoder.configFactoryDefault failed (code=%s).",
-                name, errCode);
+            ErrorCode errCode;
+            encoders = new FrcCANCoder[names.length];
+            for (int i = 0; i < names.length; i++)
+            {
+                FrcCANCoder canCoder = new FrcCANCoder(names[i], encoderIds[i]);
+                errCode = canCoder.configFactoryDefault(30);
+                if (errCode != ErrorCode.OK)
+                {
+                    robot.globalTracer.traceWarn(
+                        funcName, "%s: CANcoder.configFactoryDefault failed (code=%s).",
+                        names[i], errCode);
+                }
+                errCode = canCoder.configFeedbackCoefficient(1.0, "cpr", SensorTimeBase.PerSecond, 30);
+                if (errCode != ErrorCode.OK)
+                {
+                    robot.globalTracer.traceWarn(
+                        funcName, "%s: CANcoder.configFeedbackCoefficient failed (code=%s).",
+                        names[i], errCode);
+                }
+                // Configure the encoder to initialize to absolute position value at boot.
+                errCode = canCoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition, 30);
+                if (errCode != ErrorCode.OK)
+                {
+                    robot.globalTracer.traceWarn(
+                        funcName, "%s: CANcoder.configSensorInitializationStrategy failed (code=%s).",
+                        names[i], errCode);
+                }
+                // Slow down the status frame rate to reduce CAN traffic.
+                errCode = canCoder.setStatusFramePeriod(CANCoderStatusFrame.SensorData, 100, 30);
+                if (errCode != ErrorCode.OK)
+                {
+                    robot.globalTracer.traceWarn(
+                        funcName, "%s: CANcoder.setStatusFramePeriod failed (code=%s).",
+                        names[i], errCode);
+                }
+                // Configure the sensor direction to match the steering motor direction.
+                canCoder.setInverted(inverted[i]);
+                // Normalize encoder to the range of 0 to 1.0 for a revolution (revolution per count).
+                canCoder.setScaleAndOffset(1.0 / RobotParams.CANCODER_CPR, steerZeros[i]);
+                encoders[i] = canCoder;
+            }
         }
-        errCode = canCoder.configFeedbackCoefficient(1.0, "cpr", SensorTimeBase.PerSecond, 30);
-        if (errCode != ErrorCode.OK)
+        else if (RobotParams.Preferences.useSteeringAnalogEncoder)
         {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: CANcoder.configFeedbackCoefficient failed (code=%s).",
-                name, errCode);
+            encoders = new FrcAnalogEncoder[names.length];
+            for (int i = 0; i < names.length; i++)
+            {
+                FrcAnalogEncoder analogEncoder = new FrcAnalogEncoder(names[i], encoderIds[i]);
+                analogEncoder.setInverted(inverted[i]);
+                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution (revolution per count).
+                analogEncoder.setScaleAndOffset(1.0, steerZeros[i]);
+                encoders[i] = analogEncoder;
+            }
         }
-        // Configure the encoder to initialize to absolute position value at boot.
-        errCode = canCoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition, 30);
-        if (errCode != ErrorCode.OK)
+        else
         {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: CANcoder.configSensorInitializationStrategy failed (code=%s).",
-                name, errCode);
+            throw new IllegalArgumentException("Must enable either useCANCoder or useAnalogEncoder.");
         }
-        // Slow down the status frame rate to reduce CAN traffic.
-        errCode = canCoder.setStatusFramePeriod(CANCoderStatusFrame.SensorData, 100, 30);
-        if (errCode != ErrorCode.OK)
-        {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: CANcoder.setStatusFramePeriod failed (code=%s).",
-                name, errCode);
-        }
-        // Configure the sensor direction to match the steering motor direction.
-        encoder.setInverted(inverted);
-        // Normalize encoder to the range of 0 to 1.0 for a revolution (revolution per count).
-        encoder.setScaleAndOffset(1.0 / RobotParams.CANCODER_CPR, steerZero);
 
-        return encoder;
-    }   //createCANCoder
+        return encoders;
+    }   //createSteerEncoders
 
     /**
-     * This method creates an encoder for the steering motor.
+     * This method creates an array of swerve modules and configure them.
      *
-     * @param name specifies the instance name of the steering encoder.
-     * @param encoderId specifies the analog channel of the analog encoder.
-     * @param inverted specifies true if the sensor direction should be inverted, false otherwise.
-     * @param steerZero specifies the zero position.
-     * @return the created steering encoder.
+     * @param names specifies an array of names for each swerve module.
+     * @param driveMotors specifies an array of drive motors for each swerve module.
+     * @param steerMotors specifies an array of steer motors for each swerve module.
+     * @param steerEncoders specifies an array of steer encoders for each swerve module.
+     * @return created array of swerve modules.
      */
-    private FrcEncoder createAnalogEncoder(String name, int encoderId, boolean inverted, double steerZero)
+    private TrcSwerveModule[] createSwerveModules(
+        String[] names, TrcMotor[] driveMotors, TrcMotor[] steerMotors, TrcEncoder[] steerEncoders)
     {
-        FrcEncoder encoder = new FrcAnalogEncoder(name, encoderId);
+        final String funcName = "createSwerveModules";
+        TrcSwerveModule[] modules = new TrcSwerveModule[names.length];
 
-        encoder.setInverted(inverted);
-        // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution (revolution per count).
-        encoder.setScaleAndOffset(1.0, steerZero);
-        return encoder;
-    }   //createAnalogEncoder
-
-    /**
-     * This method creates a steering motor for a swerve module.
-     *
-     * @param name specifies the instance name of the steering motor.
-     * @param motorCanID specifies the CAN ID of the steering motor.
-     * @param inverted specifies true if the steering motor should be inverted, false otherwise.
-     * @return the created steering motor.
-     */
-    private FrcCANFalcon createSteerMotor(String name, int motorCanID, boolean inverted)
-    {
-        final String funcName = "createSteerMotor";
-        FrcCANFalcon steerMotor = new FrcCANFalcon(name, motorCanID);
-        ErrorCode errCode;
-        // Reset motor back to factory default to clear potential previous mis-configurations.
-        errCode = steerMotor.motor.configFactoryDefault(30);
-        if (errCode != ErrorCode.OK)
+        for (int i = 0; i < names.length; i++)
         {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: Falcon.configFactoryDefault failed (code=%s).",
-                name, errCode);
+            // getPosition returns a value in the range of 0 to 1.0 of one revolution.
+            double encoderPos = steerEncoders[i].getPosition();
+
+            encoderPos *= RobotParams.STEER_MOTOR_CPR;
+            ErrorCode errCode = ((FrcCANFalcon) steerMotors[i]).motor.setSelectedSensorPosition(encoderPos, 0, 30);
+            if (errCode != ErrorCode.OK)
+            {
+                robot.globalTracer.traceWarn(
+                    funcName, "%s: Falcon.setSelectedSensorPosition failed (code=%s, pos=%.0f).",
+                    names[i], errCode, encoderPos);
+            }
+            // steerMotors[i].setControlMode(TalonFXControlMode.MotionMagic);
+
+            // We have already synchronized the Falcon internal encoder with the zero adjusted absolute encoder, so
+            // Falcon servo does not need to compensate for zero position.
+            modules[i] = new TrcSwerveModule(names[i], driveMotors[i], steerMotors[i]);
         }
 
-        errCode = steerMotor.motor.configVoltageCompSaturation(RobotParams.BATTERY_NOMINAL_VOLTAGE, 30);
-        if (errCode != ErrorCode.OK)
-        {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: Falcon.configVoltageCompSaturation failed (code=%s).",
-                name, errCode);
-        }
-
-        steerMotor.motor.enableVoltageCompensation(true);
-
-        steerMotor.setMotorInverted(inverted);
-        steerMotor.setBrakeModeEnabled(true);
-
-        return steerMotor;
-    }   //createSteerMotor
-
-    /**
-     * This method creates the swerve module that consists of a driving motor and a steering motor.
-     *
-     * @param name specifies the swerve module instance name.
-     * @param driveMotor specifies the drive motor object.
-     * @param steerMotor specifies the steering motor object.
-     * @param steerEncoder specifies the steering encoder object.
-     * @return the created swerve module.
-     */
-    private TrcSwerveModule createSwerveModule(
-        String name, FrcCANFalcon driveMotor, FrcCANFalcon steerMotor, FrcEncoder steerEncoder)
-    {
-        final String funcName = "createSwerveModule";
-        // getPosition returns a value in the range of 0 to 1.0 of one revolution.
-        double encoderPos = steerEncoder.getPosition();
-
-        encoderPos *= RobotParams.STEER_MOTOR_CPR;
-        ErrorCode errCode = steerMotor.motor.setSelectedSensorPosition(encoderPos, 0, 30);
-        if (errCode != ErrorCode.OK)
-        {
-            robot.globalTracer.traceWarn(
-                funcName, "%s: Falcon.setSelectedSensorPosition failed (code=%s, pos=%.0f).",
-                name, errCode, encoderPos);
-        }
-
-        // We have already synchronized the Falcon internal encoder with the zero adjusted absolute encoder, so
-        // Falcon servo does not need to compensate for zero position.
-        FrcFalconServo servo = new FrcFalconServo(
-            name + ".servo", steerMotor, RobotParams.steerCoeffs, RobotParams.STEER_DEGREES_PER_COUNT, 0.0,
-            RobotParams.STEER_MAX_REQ_VEL, RobotParams.STEER_MAX_ACCEL);
-        servo.setControlMode(TalonFXControlMode.MotionMagic);
-        servo.setPhysicalRange(0.0, 360.0);
-        TrcSwerveModule module = new TrcSwerveModule(name, driveMotor, servo);
-        module.disableSteeringLimits();
-
-        return module;
-    }   //createSwerveModule
+        return modules;
+    }   //createSwerveModules
 
     /**
      * This method displays the steering absolute encoder and internal motor encoder values on the dashboard for
@@ -385,21 +338,21 @@ public class SwerveDrive extends RobotDrive
      */
     public void displaySteerEncoders(int lineNum)
     {
-        double lfSteerAbsEnc = lfSteerEncoder.getPosition()*360.0;
+        double lfSteerAbsEnc = steerEncoders[INDEX_LEFT_FRONT].getPosition()*360.0;
         // if (lfSteerAbsEnc > 90.0) lfSteerAbsEnc = 180.0 - lfSteerAbsEnc;
-        double rfSteerAbsEnc = rfSteerEncoder.getPosition()*360.0;
+        double rfSteerAbsEnc = steerEncoders[INDEX_RIGHT_FRONT].getPosition()*360.0;
         // if (rfSteerAbsEnc > 90.0) rfSteerAbsEnc = 180.0 - rfSteerAbsEnc;
-        double lbSteerAbsEnc = lbSteerEncoder.getPosition()*360.0;
+        double lbSteerAbsEnc = steerEncoders[INDEX_LEFT_BACK].getPosition()*360.0;
         // if (lbSteerAbsEnc > 90.0) lbSteerAbsEnc = 180.0 - lbSteerAbsEnc;
-        double rbSteerAbsEnc = rbSteerEncoder.getPosition()*360.0;
+        double rbSteerAbsEnc = steerEncoders[INDEX_RIGHT_BACK].getPosition()*360.0;
         // if (rbSteerAbsEnc > 90.0) rbSteerAbsEnc = 180.0 - rbSteerAbsEnc;
-        double lfSteerEnc = (lfSteerMotor.getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
+        double lfSteerEnc = (steerMotors[INDEX_LEFT_FRONT].getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
                             RobotParams.STEER_MOTOR_CPR * 360.0;
-        double rfSteerEnc = (rfSteerMotor.getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
+        double rfSteerEnc = (steerMotors[INDEX_RIGHT_FRONT].getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
                             RobotParams.STEER_MOTOR_CPR * 360.0;
-        double lbSteerEnc = (lbSteerMotor.getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
+        double lbSteerEnc = (steerMotors[INDEX_LEFT_BACK].getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
                             RobotParams.STEER_MOTOR_CPR * 360.0;
-        double rbSteerEnc = (rbSteerMotor.getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
+        double rbSteerEnc = (steerMotors[INDEX_RIGHT_BACK].getMotorPosition() % RobotParams.STEER_MOTOR_CPR) /
                             RobotParams.STEER_MOTOR_CPR * 360.0;
 
         robot.dashboard.displayPrintf(
@@ -431,10 +384,10 @@ public class SwerveDrive extends RobotDrive
      */
     public void setSteerAngleZero(boolean optimize)
     {
-        lfWheel.setSteerAngle(0.0, optimize);
-        rfWheel.setSteerAngle(0.0, optimize);
-        lbWheel.setSteerAngle(0.0, optimize);
-        rbWheel.setSteerAngle(0.0, optimize);
+        for (TrcSwerveModule module: swerveModules)
+        {
+            module.setSteerAngle(0.0, optimize);
+        }
     }   //setSteerAngleZero
 
     /**
@@ -485,7 +438,7 @@ public class SwerveDrive extends RobotDrive
                 for (int i = 0; i < steerMotors.length; i++)
                 {
                     double encoderPos = steerEncoders[i].getPosition() * RobotParams.STEER_MOTOR_CPR;
-                    steerMotors[i].motor.setSelectedSensorPosition(encoderPos, 0, 0);
+                    ((FrcCANFalcon) steerMotors[i]).motor.setSelectedSensorPosition(encoderPos, 0, 0);
                     robot.globalTracer.traceInfo(
                         funcName, "[%.3f] syncSteerEncPos[%d]=%.0f", TrcTimer.getModeElapsedTime(), i, encoderPos);
             }
@@ -527,54 +480,121 @@ public class SwerveDrive extends RobotDrive
     }   //stopMode
 
     /**
-     * This method retrieves the steering zero calibration data from the calibration data file.
+     * This method starts the steering calibration.
      *
-     * @return calibration data of all four swerve modules.
+     * @param steerZeros specifies the steer zero calibration data array to be initialized.
      */
-    public static double[] getSteerZeroPositions()
+    public void startSteeringCalibration(double[] steerZeros)
     {
-        final String funcName = "getSteerZeroPositions";
-
-        try (Scanner in = new Scanner(new FileReader(RobotParams.TEAM_FOLDER + "/" + STEER_ZERO_CAL_FILE)))
-        {
-            double[] steerZeros = new double[4];
-
-            for (int i = 0; i < steerZeros.length; i++)
-            {
-                steerZeros[i] = in.nextDouble();
-            }
-
-            return steerZeros;
-        }
-        catch (Exception e)
-        {
-            TrcDbgTrace.globalTraceWarn(funcName, "Steer zero position file not found, using built-in defaults.");
-            return RobotParams.STEER_ZEROS;
-        }
-    }   //getSteerZeroPositions
+        steerZeroCalibrationCount = 0;
+        Arrays.fill(steerZeros, 0.0);
+    }   //startSteeringCalibration
 
     /**
-     * This method saves the steering zero calibration data to the calibration data file.
+     * This method stops the steering calibration and saves the calibration data to a file.
+     *
+     * @param steerZeros specifies the steer zero calibration data array to be saved.
+     */
+    public void stopSteeringCalibration(double[] steerZeros)
+    {
+        for (int i = 0; i < steerZeros.length; i++)
+        {
+            steerZeros[i] /= steerZeroCalibrationCount;
+        }
+        steerZeroCalibrationCount = 0;
+        saveSteeringCalibrationData(steerZeros);
+    }   //stopSteeringCalibration
+
+    /**
+     * This method is called periodically to sample the steer encoders for averaging the zero position data.
+     *
+     * @param steerZeros specifies the steer zero calibration data array to be updated.
+     */
+    public void runSteeringCalibration(double[] steerZeros)
+    {
+        for (int i = 0; i < steerZeros.length; i++)
+        {
+            steerZeros[i] += steerEncoders[i].getRawPosition();
+        }
+        steerZeroCalibrationCount++;
+    }   //runSteeringCalibration
+
+    /**
+     * This method saves the calibration data to a file on the Robot Controller.
      *
      * @param steerZeros specifies the steering zero calibration data to be saved.
      */
-    public static void saveSteerZeroPositions(double[] steerZeros)
+    public void saveSteeringCalibrationData(double[] steerZeros)
     {
-        final String funcName = "saveSteerZeroPositions";
+        final String funcName = "saveSteeringCalibrationData";
 
-        try (PrintStream out = new PrintStream(new FileOutputStream(RobotParams.TEAM_FOLDER + "/" + STEER_ZERO_CAL_FILE)))
+        try (PrintStream out = new PrintStream(new FileOutputStream(
+            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.STEER_ZERO_CAL_FILE)))
         {
-            for (double zero : steerZeros)
+            for (int i = 0; i < steerMotorNames.length; i++)
             {
-                out.printf("%f\n", zero);
+                out.printf("%s: %f\n", steerMotorNames[i], steerZeros[i]);
             }
-            TrcDbgTrace.globalTraceInfo(funcName, "Saved steer zeros: %s!", Arrays.toString(steerZeros));
+            out.close();
+            TrcDbgTrace.getGlobalTracer().traceInfo(
+                funcName, "SteeringCalibrationData%s=%s",
+                Arrays.toString(steerMotorNames), Arrays.toString(steerZeros));
         }
         catch (FileNotFoundException e)
         {
             e.printStackTrace();
         }
-    }   //saveSteerZeroPositions
+    }   //saveSteeringCalibrationData
+
+    /**
+     * This method reads the steering zero calibration data from the calibration data file.
+     *
+     * @return calibration data of all four swerve modules.
+     */
+    public double[] readSteeringCalibrationData()
+    {
+        final String funcName = "readSteeringCalibrationData";
+        TrcDbgTrace tracer = TrcDbgTrace.getGlobalTracer();
+        String line = null;
+
+        try (Scanner in = new Scanner(new FileReader(
+            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.STEER_ZERO_CAL_FILE)))
+        {
+            double[] steerZeros = new double[steerMotors.length];
+
+            for (int i = 0; i < steerMotors.length; i++)
+            {
+                line = in.nextLine();
+                int colonPos = line.indexOf(':');
+                String name = colonPos == -1? null: line.substring(0, colonPos);
+
+                if (name == null || !name.equals(steerMotorNames[i]))
+                {
+                    throw new RuntimeException("Invalid steer motor name in line " + line);
+                }
+
+                steerZeros[i] = Double.parseDouble(line.substring(colonPos + 1));
+            }
+            tracer.traceInfo(
+                funcName, "SteeringCalibrationData%s=%s",
+                Arrays.toString(steerMotorNames), Arrays.toString(steerZeros));
+
+            return steerZeros;
+        }
+        catch (FileNotFoundException e)
+        {
+            tracer.traceWarn(funcName, "Steering calibration data file not found, using built-in defaults.");
+            return RobotParams.STEER_ZEROS;
+        }
+        catch (NumberFormatException e)
+        {
+            throw new RuntimeException("Invalid zero position value: " + line);
+        }
+        catch (RuntimeException e)
+        {
+            throw new RuntimeException("Invalid steer motor name: " + line);
+        }
+    }   //readSteeringCalibrationData
 
     /**
      * This method checks if anti-defense mode is enabled.
