@@ -27,10 +27,13 @@ import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcOpenCvDetector;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
+import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcRobotBattery;
+import TrcCommonLib.trclib.TrcTaskMgr;
 import TrcCommonLib.trclib.TrcTimer;
 import TrcCommonLib.trclib.TrcVisionTargetInfo;
 import TrcCommonLib.trclib.TrcRobot.RunMode;
+import TrcCommonLib.trclib.TrcTaskMgr.TaskType;
 import TrcFrcLib.frclib.FrcAHRSGyro;
 import TrcFrcLib.frclib.FrcDashboard;
 import TrcFrcLib.frclib.FrcJoystick;
@@ -43,10 +46,15 @@ import TrcFrcLib.frclib.FrcRobotBattery;
 import TrcFrcLib.frclib.FrcXboxController;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import team492.drivebases.RobotDrive;
 import team492.drivebases.SwerveDrive;
+import team492.robot.CTREConfigs;
+import team492.robot.RobotContainer;
 import team492.subsystems.LEDIndicator;
 import team492.vision.LimeLightVision;
 import team492.vision.OpenCvVision;
@@ -67,6 +75,13 @@ public class Robot extends FrcRobotBase
     public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
     private double nextDashboardUpdateTime = TrcTimer.getModeElapsedTime();
     private boolean traceLogOpened = false;
+    //
+    // Command Based objects.
+    //
+    public static CTREConfigs ctreConfigs;
+    public static Pose2d new_pose = new Pose2d();
+    public RobotContainer m_robotContainer;
+    public Command m_autonomousCommand;
     //
     // Inputs.
     //
@@ -122,6 +137,13 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotInit()
     {
+        if (RobotParams.Preferences.allowCommandBased)
+        {
+            ctreConfigs = new CTREConfigs();
+            // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+            // autonomous chooser on the dashboard.
+            m_robotContainer = new RobotContainer();
+        }
         //
         // Create and initialize global objects.
         //
@@ -176,12 +198,12 @@ public class Robot extends FrcRobotBase
         {
             if (RobotParams.Preferences.useLimeLightVision)
             {
-                limeLightVision = new LimeLightVision("limelight", null);
+                limeLightVision = new LimeLightVision("limelight");
             }
 
             if (RobotParams.Preferences.usePhotonVision)
             {
-                photonVision = new PhotonVision("OV5647", ledIndicator, null);
+                photonVision = new PhotonVision("OV5647", ledIndicator);
             }
 
             if (RobotParams.Preferences.useOpenCvVision)
@@ -191,8 +213,8 @@ public class Robot extends FrcRobotBase
                 camera.setFPS(10);
                 openCvVision = new OpenCvVision(
                     "OpenCvVision", 1, RobotParams.cameraRect, RobotParams.worldRect, CameraServer.getVideo(),
-                    CameraServer.putVideo("UsbWebcam", RobotParams.CAMERA_IMAGE_WIDTH, RobotParams.CAMERA_IMAGE_HEIGHT),
-                    null);
+                    CameraServer.putVideo("UsbWebcam", RobotParams.CAMERA_IMAGE_WIDTH,
+                    RobotParams.CAMERA_IMAGE_HEIGHT));
             }
 
             if (RobotParams.Preferences.useStreamCamera)
@@ -205,7 +227,10 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize RobotDrive subsystem.
         //
-        robotDrive = new SwerveDrive(this);
+        if (!RobotParams.Preferences.allowCommandBased)
+        {
+            robotDrive = new SwerveDrive(this);
+        }
         //
         // Create and initialize other subsystems.
         //
@@ -219,11 +244,36 @@ public class Robot extends FrcRobotBase
         {
             pdp.registerEnergyUsedForAllUnregisteredChannels();
         }
+
+        if (RobotParams.Preferences.allowCommandBased)
+        {
+            TrcTaskMgr.TaskObject robotPeriodicTask = TrcTaskMgr.createTask(
+                "RobotPeriodicTask", this::robotPeriodicTask);
+            robotPeriodicTask.registerTask(TaskType.POST_PERIODIC_TASK);
+        }
         //
         // Create Robot Modes.
         //
         setupRobotModes(new FrcTeleOp(this), new FrcAuto(this), new FrcTest(this), new FrcDisabled(this));
     }   //robotInit
+
+    /**
+     * This method is called periodically after mode specific periodic method is called. This is to simulate the
+     * robotPeriodic method in TimedRobot.
+     *
+     * @param taskType specifies the type of task being run. This may be useful for handling multiple task types.
+     * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
+     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
+     *        false otherwise.
+     */
+    private void robotPeriodicTask(TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
+    {
+        // Runs the Command Based Scheduler.  This is responsible for polling buttons, adding newly-scheduled
+        // commands, running already-scheduled commands, removing finished or interrupted commands, and running
+        // subsystem periodic() methods.  This must be called from the robot's periodic block in order for anything
+        // in the Command-based framework to work.
+        CommandScheduler.getInstance().run();
+    }   //robotPeriodicTask
 
     /**
      * This method is called to prepare the robot before a robot mode is about to start.
@@ -252,7 +302,10 @@ public class Robot extends FrcRobotBase
         //
         // Start subsystems.
         //
-        robotDrive.startMode(runMode, prevMode);
+        if (robotDrive != null)
+        {
+            robotDrive.startMode(runMode, prevMode);
+        }
         ledIndicator.reset();
     }   //robotStartMode
 
@@ -269,7 +322,10 @@ public class Robot extends FrcRobotBase
         //
         // Stop subsystems.
         //
-        robotDrive.stopMode(runMode, nextMode);
+        if (robotDrive != null)
+        {
+            robotDrive.stopMode(runMode, nextMode);
+        }
         ledIndicator.reset();
         //
         // Performance status report.
@@ -306,8 +362,9 @@ public class Robot extends FrcRobotBase
 
         if (currTime >= nextDashboardUpdateTime)
         {
-            nextDashboardUpdateTime = currTime + RobotParams.DASHBOARD_UPDATE_INTERVAL;
+            int lineNum = 8;
 
+            nextDashboardUpdateTime = currTime + RobotParams.DASHBOARD_UPDATE_INTERVAL;
             if (RobotParams.Preferences.showPowerConsumption)
             {
                 if (pdp != null)
@@ -352,14 +409,25 @@ public class Robot extends FrcRobotBase
                                             robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0;
 
                     dashboard.displayPrintf(
-                        8, "DriveBase: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
+                        lineNum++, "DriveEnc: lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
                         lfDriveEnc, rfDriveEnc, lbDriveEnc, rbDriveEnc,
                         (lfDriveEnc + rfDriveEnc + lbDriveEnc + rbDriveEnc) / 4.0);
-                    dashboard.displayPrintf(9, "DriveBase: pose=%s", robotPose);
+
+                    if (robotDrive instanceof SwerveDrive)
+                    {
+                        SwerveDrive swerveDrive = (SwerveDrive) robotDrive;
+
+                        dashboard.displayPrintf(
+                            lineNum++, "SteerAngle: lf=%.1f, rf=%.1f, lb=%.1f, rb=%.1f",
+                            swerveDrive.swerveModules[RobotDrive.INDEX_LEFT_FRONT].getSteerAngle(),
+                            swerveDrive.swerveModules[RobotDrive.INDEX_RIGHT_FRONT].getSteerAngle(),
+                            swerveDrive.swerveModules[RobotDrive.INDEX_LEFT_BACK].getSteerAngle(),
+                            swerveDrive.swerveModules[RobotDrive.INDEX_RIGHT_BACK].getSteerAngle());
+                    }
+                    dashboard.displayPrintf(lineNum++, "DriveBase: pose=%s", robotPose);
 
                     if (RobotParams.Preferences.showPidDrive)
                     {
-                        int lineNum = 10;
                         TrcPidController xPidCtrl = robotDrive.pidDrive.getXPidCtrl();
                         if (xPidCtrl != null)
                         {
@@ -369,14 +437,13 @@ public class Robot extends FrcRobotBase
                         robotDrive.pidDrive.getYPidCtrl().displayPidInfo(lineNum);
                         lineNum += 2;
                         robotDrive.pidDrive.getTurnPidCtrl().displayPidInfo(lineNum);
+                        lineNum += 2;
                     }
                 }
             }
 
             if (RobotParams.Preferences.showVision)
             {
-                int lineNum = 8;
-
                 if (limeLightVision != null)
                 {
                     FrcLimeLightVision.DetectedObject object = limeLightVision.getDetectedObject();
@@ -418,7 +485,7 @@ public class Robot extends FrcRobotBase
                 String.format(Locale.US, "%s_%s%03d", matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber):
                 getCurrentRunMode().name();
 
-            traceLogOpened = globalTracer.openTraceLog(RobotParams.TEAM_FOLDER_PATH + "/tracelogs", fileName);
+            traceLogOpened = TrcDbgTrace.openTraceLog(RobotParams.TEAM_FOLDER_PATH + "/tracelogs", fileName);
         }
     }   //openTraceLog
 
@@ -429,7 +496,7 @@ public class Robot extends FrcRobotBase
     {
         if (traceLogOpened)
         {
-            globalTracer.closeTraceLog();
+            TrcDbgTrace.closeTraceLog();
             traceLogOpened = false;
         }
     }   //closeTraceLog
@@ -443,7 +510,7 @@ public class Robot extends FrcRobotBase
     {
         if (traceLogOpened)
         {
-            globalTracer.setTraceLogEnabled(enabled);
+            TrcDbgTrace.setTraceLogEnabled(enabled);
         }
     }   //setTraceLogEnabled
 
