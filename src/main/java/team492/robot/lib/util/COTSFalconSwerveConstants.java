@@ -14,9 +14,9 @@ public class COTSFalconSwerveConstants {
     public final double angleKF;
     public final boolean driveMotorInvert;
     public final boolean angleMotorInvert;
-    public final boolean canCoderInvert;
+    public final boolean angleEncoderInvert;
 
-    public COTSFalconSwerveConstants(double wheelDiameter, double angleGearRatio, double driveGearRatio, double angleKP, double angleKI, double angleKD, double angleKF, boolean driveMotorInvert, boolean angleMotorInvert, boolean canCoderInvert){
+    public COTSFalconSwerveConstants(double wheelDiameter, double angleGearRatio, double driveGearRatio, double angleKP, double angleKI, double angleKD, double angleKF, boolean driveMotorInvert, boolean angleMotorInvert, boolean angleEncoderInvert){
         this.wheelDiameter = wheelDiameter;
         this.wheelCircumference = wheelDiameter * Math.PI;
         this.angleGearRatio = angleGearRatio;
@@ -27,7 +27,7 @@ public class COTSFalconSwerveConstants {
         this.angleKF = angleKF;
         this.driveMotorInvert = driveMotorInvert;
         this.angleMotorInvert = angleMotorInvert;
-        this.canCoderInvert = canCoderInvert;
+        this.angleEncoderInvert = angleEncoderInvert;
     }
 
     /** Swerve Drive Specialties - MK3 Module*/
@@ -37,15 +37,15 @@ public class COTSFalconSwerveConstants {
         /** 12.8 : 1 */
         double angleGearRatio = (12.8 / 1.0);
 
-        double angleKP = 0.2;
+        double angleKP = 4.8;//0.2;
         double angleKI = 0.0;
         double angleKD = 0.0;
         double angleKF = 0.0;
 
         boolean driveMotorInvert = false;
         boolean angleMotorInvert = false;
-        boolean canCoderInvert = false;
-        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, canCoderInvert);
+        boolean angleEncoderInvert = false;
+        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, angleEncoderInvert);
     }
 
     /** Swerve Drive Specialties - MK4 Module*/
@@ -55,15 +55,15 @@ public class COTSFalconSwerveConstants {
         /** 12.8 : 1 */
         double angleGearRatio = (12.8 / 1.0);
 
-        double angleKP = 0.2;
+        double angleKP = 4.8;//0.2;
         double angleKI = 0.0;
         double angleKD = 0.0;
         double angleKF = 0.0;
 
         boolean driveMotorInvert = false;
         boolean angleMotorInvert = false;
-        boolean canCoderInvert = false;
-        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, canCoderInvert);
+        boolean angleEncoderInvert = false;
+        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, angleEncoderInvert);
     }
 
     /** Swerve Drive Specialties - MK4i Module*/
@@ -73,15 +73,15 @@ public class COTSFalconSwerveConstants {
         /** (150 / 7) : 1 */
         double angleGearRatio = ((150.0 / 7.0) / 1.0);
 
-        double angleKP = 0.3;
+        double angleKP = 7.2;//0.3;
         double angleKI = 0.0;
         double angleKD = 0.0;
         double angleKF = 0.0;
 
         boolean driveMotorInvert = false;
         boolean angleMotorInvert = true;
-        boolean canCoderInvert = false;
-        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, canCoderInvert);
+        boolean angleEncoderInvert = false;
+        return new COTSFalconSwerveConstants(wheelDiameter, angleGearRatio, driveGearRatio, angleKP, angleKI, angleKD, angleKF, driveMotorInvert, angleMotorInvert, angleEncoderInvert);
     }
 
     /* Drive Gear Ratios for all supported modules */

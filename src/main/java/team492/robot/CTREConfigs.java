@@ -4,15 +4,11 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
 public final class CTREConfigs {
-    public TalonFXConfiguration swerveAngleFXConfig;
-    public TalonFXConfiguration swerveDriveFXConfig;
-    // public CANCoderConfiguration swerveCanCoderConfig;
+    public TalonFXConfiguration swerveAngleFXConfig = new TalonFXConfiguration();
+    public TalonFXConfiguration swerveDriveFXConfig = new TalonFXConfiguration();
+    // public CANCoderConfiguration swerveCanCoderConfig = new CANCoderConfiguration();
 
     public CTREConfigs(){
-        swerveAngleFXConfig = new TalonFXConfiguration();
-        swerveDriveFXConfig = new TalonFXConfiguration();
-        // swerveCanCoderConfig = new CANCoderConfiguration();
-
         /* Swerve Angle Motor Configurations */
         SupplyCurrentLimitConfiguration angleSupplyLimit = new SupplyCurrentLimitConfiguration(
             Constants.Swerve.angleEnableCurrentLimit,

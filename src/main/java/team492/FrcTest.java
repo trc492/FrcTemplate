@@ -110,16 +110,19 @@ public class FrcTest extends FrcTeleOp
             //
             testMenu.addChoice("Sensors Test", Test.SENSORS_TEST, true, false);
             testMenu.addChoice("Subsystems Test", Test.SUBSYSTEMS_TEST);
-            testMenu.addChoice("Swerve Calibration", Test.SWERVE_CALIBRATION);
-            testMenu.addChoice("Drive Speed Test", Test.DRIVE_SPEED_TEST);
-            testMenu.addChoice("Drive Motors Test", Test.DRIVE_MOTORS_TEST);
-            testMenu.addChoice("X Timed Drive", Test.X_TIMED_DRIVE);
-            testMenu.addChoice("Y Timed Drive", Test.Y_TIMED_DRIVE);
-            testMenu.addChoice("PurePursuit Drive", Test.PP_DRIVE);
-            testMenu.addChoice("PID Drive", Test.PID_DRIVE);
-            testMenu.addChoice("Tune X PID", Test.TUNE_X_PID);
-            testMenu.addChoice("Tune Y PID", Test.TUNE_Y_PID);
-            testMenu.addChoice("Tune Turn PID", Test.TUNE_TURN_PID);
+            if (!RobotParams.Preferences.hybridMode)
+            {
+                testMenu.addChoice("Swerve Calibration", Test.SWERVE_CALIBRATION);
+                testMenu.addChoice("Drive Speed Test", Test.DRIVE_SPEED_TEST);
+                testMenu.addChoice("Drive Motors Test", Test.DRIVE_MOTORS_TEST);
+                testMenu.addChoice("X Timed Drive", Test.X_TIMED_DRIVE);
+                testMenu.addChoice("Y Timed Drive", Test.Y_TIMED_DRIVE);
+                testMenu.addChoice("PurePursuit Drive", Test.PP_DRIVE);
+                testMenu.addChoice("PID Drive", Test.PID_DRIVE);
+                testMenu.addChoice("Tune X PID", Test.TUNE_X_PID);
+                testMenu.addChoice("Tune Y PID", Test.TUNE_Y_PID);
+                testMenu.addChoice("Tune Turn PID", Test.TUNE_TURN_PID);
+            }
             testMenu.addChoice("Live Window", Test.LIVE_WINDOW, false, true);
             //
             // Initialize dashboard with default choice values.
@@ -227,7 +230,7 @@ public class FrcTest extends FrcTeleOp
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
             // Cancels all running commands at the start of test mode.
             CommandScheduler.getInstance().cancelAll();

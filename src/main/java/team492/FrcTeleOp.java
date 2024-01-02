@@ -82,7 +82,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
         }
 
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
             // This makes sure that the autonomous stops running when
             // teleop starts running. If you want the autonomous to
@@ -92,8 +92,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             {
                 robot.m_autonomousCommand.cancel();
             }
-            robot.m_robotContainer.s_Swerve.resetOdometry(Robot.new_pose);
-            //robot.m_robotContainer.s_Swerve.resetModulesToAbsolute();
         }
     }   //startMode
 
@@ -129,7 +127,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
             Command command = robot.m_robotContainer.s_Swerve.getCurrentCommand();
         }

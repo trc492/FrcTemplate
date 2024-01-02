@@ -46,7 +46,6 @@ import TrcFrcLib.frclib.FrcRobotBattery;
 import TrcFrcLib.frclib.FrcXboxController;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -76,10 +75,9 @@ public class Robot extends FrcRobotBase
     private double nextDashboardUpdateTime = TrcTimer.getModeElapsedTime();
     private boolean traceLogOpened = false;
     //
-    // Command Based objects.
+    // Hybrid mode objects.
     //
     public static CTREConfigs ctreConfigs;
-    public static Pose2d new_pose = new Pose2d();
     public RobotContainer m_robotContainer;
     public Command m_autonomousCommand;
     //
@@ -137,7 +135,7 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotInit()
     {
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
             ctreConfigs = new CTREConfigs();
             // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
@@ -151,18 +149,22 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize inputs.
         //
-        if (RobotParams.Preferences.useDriverXboxController)
+        // Give driver control to command-based if Hybrid Mode is ON.
+        if (!RobotParams.Preferences.hybridMode)
         {
-            driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVER_CONTROLLER);
-            driverController.setLeftYInverted(true);
-            driverController.setRightYInverted(true);
-        }
-        else
-        {
-            leftDriveStick = new FrcJoystick("DriverLeftStick", RobotParams.JSPORT_DRIVER_LEFTSTICK);
-            leftDriveStick.setYInverted(true);
-            rightDriveStick = new FrcJoystick("DriverRightStick", RobotParams.JSPORT_DRIVER_RIGHTSTICK);
-            rightDriveStick.setYInverted(true);
+            if (RobotParams.Preferences.useDriverXboxController)
+            {
+                driverController = new FrcXboxController("DriverController", RobotParams.XBOX_DRIVER_CONTROLLER);
+                driverController.setLeftYInverted(true);
+                driverController.setRightYInverted(true);
+            }
+            else
+            {
+                leftDriveStick = new FrcJoystick("DriverLeftStick", RobotParams.JSPORT_DRIVER_LEFTSTICK);
+                leftDriveStick.setYInverted(true);
+                rightDriveStick = new FrcJoystick("DriverRightStick", RobotParams.JSPORT_DRIVER_RIGHTSTICK);
+                rightDriveStick.setYInverted(true);
+            }
         }
 
         operatorStick = new FrcJoystick("operatorStick", RobotParams.JSPORT_OPERATORSTICK);
@@ -227,7 +229,7 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize RobotDrive subsystem.
         //
-        if (!RobotParams.Preferences.allowCommandBased)
+        if (!RobotParams.Preferences.hybridMode)
         {
             robotDrive = new SwerveDrive(this);
         }
@@ -245,8 +247,9 @@ public class Robot extends FrcRobotBase
             pdp.registerEnergyUsedForAllUnregisteredChannels();
         }
 
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
+            // Hybrid mode uses command-based, let's enable command-based support.
             TrcTaskMgr.TaskObject robotPeriodicTask = TrcTaskMgr.createTask(
                 "RobotPeriodicTask", this::robotPeriodicTask);
             robotPeriodicTask.registerTask(TaskType.POST_PERIODIC_TASK);

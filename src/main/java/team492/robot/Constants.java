@@ -16,28 +16,34 @@ public final class Constants {
     public static final class Swerve {
         public static final boolean invertGyro = true; // Always ensure Gyro is CCW+ CW-
 
+        // public static final COTSFalconSwerveConstants chosenModule =  //TODO: This must be tuned to specific robot
+        //     COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
+
         /* Drivetrain Constants */
         public static final double trackWidth = Units.inchesToMeters(RobotParams.ROBOT_WHEELBASE_WIDTH);
-        public static final double trackLength = Units.inchesToMeters(RobotParams.ROBOT_WHEELBASE_LENGTH);
+        public static final double wheelBase = Units.inchesToMeters(RobotParams.ROBOT_WHEELBASE_LENGTH);
         public static final double wheelCircumference = RobotParams.SWERVE_DRIVE_WHEEL_CIRCUMFERENCE;
 
         /* Swerve Kinematics
          * No need to ever change this unless you are not doing a traditional rectangular/square 4 module swerve */
          public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
-            new Translation2d(trackLength / 2.0, trackWidth / 2.0),
-            new Translation2d(trackLength / 2.0, -trackWidth / 2.0),
-            new Translation2d(-trackLength / 2.0, trackWidth / 2.0),
-            new Translation2d(-trackLength / 2.0, -trackWidth / 2.0));
-
-        // Most of these should be presets found in the COTS module
+            new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
+            new Translation2d(wheelBase / 2.0, -trackWidth / 2.0),
+            new Translation2d(-wheelBase / 2.0, trackWidth / 2.0),
+            new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0));
 
         /* Module Gear Ratios */
         public static final double driveGearRatio = RobotParams.SWERVE_DRIVE_GEAR_RATIO;
         public static final double angleGearRatio = RobotParams.SWERVE_STEER_GEAR_RATIO;
 
         /* Motor Inverts */
+        // Our code allows motors to be inverted individually, their code assumes all motors must be the same.
+        // Steer motors should all be the same but drive motors could be different depending on how we zero align them.
         public static final boolean angleMotorInvert = true;
         public static final boolean driveMotorInvert = true;
+
+        /* Angle Encoder Invert */
+        public static final boolean angleEncoderInvert = false;
 
         /* Swerve Current Limiting */
         public static final int angleContinuousCurrentLimit = 25;
@@ -83,8 +89,6 @@ public final class Constants {
         /* Neutral Modes */
         public static final NeutralMode angleNeutralMode = NeutralMode.Coast;
         public static final NeutralMode driveNeutralMode = NeutralMode.Brake;
-
-        public static boolean resetEncoder = false;
 
         /* Module Specific Constants */
         /* Left Front Module - Module 0 */

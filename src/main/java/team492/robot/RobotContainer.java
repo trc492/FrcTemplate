@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import team492.Robot;
 import team492.robot.autos.exampleAuto;
 import team492.robot.commands.TeleopSwerve;
 import team492.robot.subsystems.Swerve;
@@ -32,7 +31,6 @@ public class RobotContainer {
 
     /* Subsystems */
     public final Swerve s_Swerve = new Swerve();
-    // SendableChooser<Command> chooser = new SendableChooser<>();
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -48,9 +46,6 @@ public class RobotContainer {
 
         // Configure the button bindings
         configureButtonBindings();
-        // chooser.addOption("Auto_Path", followTrajectoryCommand("New_Path", true));
-        // Shuffleboard.getTab("Autonomous").add(chooser);
-        s_Swerve.resetOdometry(Robot.new_pose);
     }
 
     /**
@@ -64,38 +59,13 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     }
 
-    // // Assuming this method is part of a drivetrain subsystem that provides the necessary methods
-    // public Command followTrajectoryCommand(String name, boolean isFirstPath) {
-    //     PathPlannerTrajectory traj = PathPlanner.loadPath(name, new PathConstraints(4, 3));
-
-    //     return new SequentialCommandGroup(
-    //         new InstantCommand(() -> {
-    //           // Reset odometry for the first path you run during auto
-    //           if(isFirstPath){
-    //               s_Swerve.resetOdometry(traj.getInitialTargetHolonomicPose());
-    //           }
-    //         }),
-    //         new PPSwerveControllerCommand(
-    //             traj,
-    //             s_Swerve::getPose, // Pose supplier
-    //             Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
-    //             new PIDController(Constants.AutoConstants.kPXController, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-    //             new PIDController(Constants.AutoConstants.kPYController, 0, 0), // Y controller (usually the same values as X controller)
-    //             new PIDController(Constants.AutoConstants.kPThetaController, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-    //             s_Swerve::setModuleStates, // Module states consumer
-    //             true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-    //             s_Swerve // Requires this drive subsystem
-    //         )
-    //     );
-    // }
-
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-       //return followTrajectoryCommand("New_Path", true);
+        // An ExampleCommand will run in autonomous
         return new exampleAuto(s_Swerve);
     }
 }

@@ -50,9 +50,9 @@ public class RobotParams
     public static class Preferences
     {
         // Global config
-        public static RobotType robotType = RobotType.SwerveRobot;
-        public static boolean inCompetition = false;
-        public static final boolean allowCommandBased           = false;
+        public static RobotType robotType                       = RobotType.SwerveRobot;
+        public static boolean inCompetition                     = false;
+        public static final boolean hybridMode                  = false;
         public static final boolean useTraceLog                 = true;
         // Status Update
         public static final boolean doStatusUpdate              = true;

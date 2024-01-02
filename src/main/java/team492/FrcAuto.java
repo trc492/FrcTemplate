@@ -51,7 +51,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     public static enum AutoStrategy
     {
-        COMMAND_BASED_AUTO,
+        HYBRID_MODE_AUTO,
         PP_DRIVE,
         PID_DRIVE,
         TIMED_DRIVE,
@@ -115,13 +115,16 @@ public class FrcAuto implements TrcRobot.RobotMode
             allianceMenu.addChoice("Red", DriverStation.Alliance.Red);
             allianceMenu.addChoice("Blue", DriverStation.Alliance.Blue, true, true);
 
-            if (RobotParams.Preferences.allowCommandBased)
+            if (RobotParams.Preferences.hybridMode)
             {
-                autoStrategyMenu.addChoice("Command-based Auto", AutoStrategy.COMMAND_BASED_AUTO);
+                autoStrategyMenu.addChoice("Hybrid-mode Auto", AutoStrategy.HYBRID_MODE_AUTO);
             }
-            autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
-            autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
-            autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
+            else
+            {
+                autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
+                autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
+                autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
+            }
             autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, true);
 
             autoStartPosMenu.addChoice("Start Position 1", AutoStartPos.POS_1, true, false);
@@ -288,14 +291,13 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         switch (autoChoices.getStrategy())
         {
-            case COMMAND_BASED_AUTO:
+            case HYBRID_MODE_AUTO:
                 robot.m_autonomousCommand = robot.m_robotContainer.getAutonomousCommand();
                 // schedule the autonomous command (example)
                 if (robot.m_autonomousCommand != null)
                 {
                     robot.m_autonomousCommand.schedule();
                 }
-                robot.m_robotContainer.s_Swerve.resetOdometry(Robot.new_pose);
                 break;
 
             case PP_DRIVE:
@@ -377,7 +379,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             autoCommand.cmdPeriodic(elapsedTime);
         }
 
-        if (RobotParams.Preferences.allowCommandBased)
+        if (RobotParams.Preferences.hybridMode)
         {
             Command command = robot.m_robotContainer.s_Swerve.getCurrentCommand();
         }
