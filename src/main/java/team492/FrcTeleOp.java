@@ -22,26 +22,31 @@
 
 package team492;
 
-import TrcCommonLib.trclib.TrcRobot;
-import TrcCommonLib.trclib.TrcDriveBase.DriveOrientation;
-import TrcCommonLib.trclib.TrcRobot.RunMode;
-import TrcFrcLib.frclib.FrcJoystick;
-import TrcFrcLib.frclib.FrcXboxController;
-import edu.wpi.first.wpilibj2.command.Command;
+import frclib.driverio.FrcLogitechJoystick;
+import frclib.driverio.FrcPanelButtons;
+import frclib.driverio.FrcSideWinderJoystick;
+import frclib.driverio.FrcXboxController;
+import trclib.drivebase.TrcDriveBase.DriveOrientation;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcRobot.RunMode;
 
 /**
  * This class implements the code to run in TeleOp Mode.
  */
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
+    private static final String moduleName = FrcTeleOp.class.getSimpleName();
     private static final boolean traceButtonEvents = true;
     //
     // Global objects.
     //
     protected final Robot robot;
     private boolean controlsEnabled = false;
-    private double driveSpeedScale = RobotParams.DRIVE_NORMAL_SCALE;
-    private double turnSpeedScale = RobotParams.TURN_NORMAL_SCALE;
+    private double driveSpeedScale = RobotParams.DriveParams.DRIVE_NORMAL_SCALE;
+    private double turnSpeedScale = RobotParams.DriveParams.TURN_NORMAL_SCALE;
+    protected boolean driverAltFunc = false;
+    protected boolean operatorAltFunc = false;
+    private boolean subsystemStatusOn = true;
 
     /**
      * Constructor: Create an instance of the object.
@@ -112,7 +117,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Disable subsystems before exiting if necessary.
         //
-        releaseAutoAssistAndSubsystems();
+        robot.autoAssistCancel();
     }   //stopMode
 
     /**
@@ -127,10 +132,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
-        if (RobotParams.Preferences.hybridMode)
-        {
-            Command command = robot.m_robotContainer.s_Swerve.getCurrentCommand();
-        }
+        int lineNum = 1;
 
         if (slowPeriodicLoop)
         {
@@ -141,27 +143,49 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (robot.robotDrive != null)
                 {
-                    double[] inputs = robot.robotDrive.getDriveInputs(
-                        RobotParams.ROBOT_DRIVE_MODE, true, driveSpeedScale, turnSpeedScale);
+                    double[] driveInputs = robot.robotDrive.getDriveInputs(
+                        RobotParams.DriveParams.ROBOT_DRIVE_MODE, true, driveSpeedScale, turnSpeedScale);
 
                     if (robot.robotDrive.driveBase.supportsHolonomicDrive())
                     {
+                        double gyroAngle = robot.robotDrive.driveBase.getDriveGyroAngle();
                         robot.robotDrive.driveBase.holonomicDrive(
-                            null, inputs[0], inputs[1], inputs[2], robot.robotDrive.driveBase.getDriveGyroAngle());
-                        robot.dashboard.displayPrintf(
-                            1, "Holonomic: x=%.3f, y=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
+                            null, driveInputs[0], driveInputs[1], driveInputs[2], gyroAngle);
+                        if (subsystemStatusOn)
+                        {
+                            robot.dashboard.displayPrintf(
+                                lineNum++, "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
+                                driveInputs[0], driveInputs[1], driveInputs[2], gyroAngle);
+                        }
                     }
                     else if (RobotParams.Preferences.useTankDrive)
                     {
-                        robot.robotDrive.driveBase.tankDrive(inputs[0], inputs[1]);
-                        robot.dashboard.displayPrintf(
-                            1, "Tank: left=%.3f, right=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
+                        robot.robotDrive.driveBase.tankDrive(driveInputs[0], driveInputs[1]);
+                        if (subsystemStatusOn)
+                        {
+                            robot.dashboard.displayPrintf(
+                                lineNum++, "Tank: left=%.2f, right=%.2f, rot=%.2f",
+                                driveInputs[0], driveInputs[1], driveInputs[2]);
+                        }
                     }
                     else
                     {
-                        robot.robotDrive.driveBase.arcadeDrive(inputs[1], inputs[2]);
+                        robot.robotDrive.driveBase.arcadeDrive(driveInputs[1], driveInputs[2]);
+                        if (subsystemStatusOn)
+                        {
+                            robot.dashboard.displayPrintf(
+                                lineNum++, "Arcade: x=%.2f, y=%.2f, rot=%.2f",
+                                driveInputs[0], driveInputs[1], driveInputs[2]);
+                        }
+                    }
+
+                    if (subsystemStatusOn)
+                    {
                         robot.dashboard.displayPrintf(
-                            1, "Arcade: x=%.3f, y=%.3f, rot=%.3f", inputs[0], inputs[1], inputs[2]);
+                            lineNum++, "RobotPose=%s, Orient=%s, GyroAssist=%s",
+                            robot.robotDrive.driveBase.getFieldPosition(),
+                            robot.robotDrive.driveBase.getDriveOrientation(),
+                            robot.robotDrive.driveBase.isGyroAssistEnabled());
                     }
                 }
                 //
@@ -190,20 +214,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         controlsEnabled = enabled;
 
-        if (!RobotParams.Preferences.hybridMode)
+        if (RobotParams.Preferences.useDriverXboxController)
         {
-            if (RobotParams.Preferences.useDriverXboxController)
-            {
-                robot.driverController.setButtonHandler(enabled? this::driverControllerButtonEvent: null);
-            }
-            else
-            {
-                robot.leftDriveStick.setButtonHandler(enabled? this::leftDriveStickButtonEvent: null);
-                robot.rightDriveStick.setButtonHandler(enabled? this::rightDriveStickButtonEvent: null);
-            }
+            robot.driverController.setButtonHandler(enabled? this::driverControllerButtonEvent: null);
+        }
+        else
+        {
+            robot.leftDriveStick.setButtonHandler(enabled? this::leftDriveStickButtonEvent: null);
+            robot.rightDriveStick.setButtonHandler(enabled? this::rightDriveStickButtonEvent: null);
         }
 
-        robot.operatorStick.setButtonHandler(enabled? this::operatorStickButtonEvent: null);
+        if (RobotParams.Preferences.useOperatorXboxController)
+        {
+            robot.operatorController.setButtonHandler(enabled? this::operatorControllerButtonEvent: null);
+        }
+        else
+        {
+            robot.operatorStick.setButtonHandler(enabled? this::operatorStickButtonEvent: null);
+        }
 
         if (RobotParams.Preferences.useButtonPanels)
         {
@@ -217,83 +245,88 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
 
     /**
-     * This method is called when a driver stick button event is detected.
+     * This method is called when a driver controller button event is detected.
      *
-     * @param button specifies the button ID that generates the event.
+     * @param buttonValue specifies the button enum value that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void driverControllerButtonEvent(int button, boolean pressed)
+    protected void driverControllerButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "driverControllerButtonEvent";
+        FrcXboxController.Button button = FrcXboxController.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "DriverController: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "DriverController: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcXboxController.BUTTON_A:
+            case BUTTON_A:
                 // Toggle between field or robot oriented driving.
                 if (robot.robotDrive != null && pressed)
                 {
                     if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
                     {
-                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
+                        robot.setDriveOrientation(DriveOrientation.FIELD, true);
                     }
                     else
                     {
-                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.ROBOT, false);
+                        robot.setDriveOrientation(DriveOrientation.ROBOT, false);
                     }
                 }
                 break;
 
-            case FrcXboxController.BUTTON_B:
-                break;
-
-            case FrcXboxController.BUTTON_X:
-                break;
-
-            case FrcXboxController.BUTTON_Y:
-                break;
-
-            case FrcXboxController.LEFT_BUMPER:
+            case BUTTON_B:
+                // Turtle mode.
                 if (pressed)
                 {
-                    driveSpeedScale = RobotParams.DRIVE_SLOW_SCALE;
-                    turnSpeedScale = RobotParams.TURN_SLOW_SCALE;
+                    robot.turtle();
+                }
+                break;
+
+            case BUTTON_X:
+            case BUTTON_Y:
+                break;
+
+            case LEFT_BUMPER:
+                driverAltFunc = pressed;
+                break;
+
+            case RIGHT_BUMPER:
+                if (pressed)
+                {
+                    driveSpeedScale = RobotParams.DriveParams.DRIVE_SLOW_SCALE;
+                    turnSpeedScale = RobotParams.DriveParams.TURN_SLOW_SCALE;
                 }
                 else
                 {
-                    driveSpeedScale = RobotParams.DRIVE_NORMAL_SCALE;
-                    turnSpeedScale = RobotParams.TURN_NORMAL_SCALE;
+                    driveSpeedScale = RobotParams.DriveParams.DRIVE_NORMAL_SCALE;
+                    turnSpeedScale = RobotParams.DriveParams.TURN_NORMAL_SCALE;
                 }
                 break;
 
-            case FrcXboxController.RIGHT_BUMPER:
-                if (robot.robotDrive != null &&
-                    robot.robotDrive.driveBase.getDriveOrientation() == DriveOrientation.ROBOT)
+            case DPAD_RIGHT:
+            case DPAD_LEFT:
+            case BACK:
+                if (pressed)
                 {
-                    // Inverted drive only makes sense for robot oriented driving.
-                    robot.robotDrive.driveBase.setDriveOrientation(
-                        pressed? DriveOrientation.INVERTED: DriveOrientation.ROBOT, false);
+                    robot.autoAssistCancel();
                 }
                 break;
 
-            case FrcXboxController.BACK:
-                // Code review: Need to add zero calibrate code here for titler.
+            case START:
+                if (pressed)
+                {
+                    subsystemStatusOn = !subsystemStatusOn;
+                }
                 break;
 
-            case FrcXboxController.START:
-                break;
-
-            case FrcXboxController.LEFT_STICK_BUTTON:
-                break;
-
-            case FrcXboxController.RIGHT_STICK_BUTTON:
+        case LEFT_STICK_BUTTON:
+            case RIGHT_STICK_BUTTON:
+            default:
                 break;
         }
     }   //driverControllerButtonEvent
@@ -301,57 +334,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     /**
      * This method is called when a right driver stick button event is detected.
      *
-     * @param button specifies the button ID that generates the event
+     * @param buttonValue specifies the button enum value that generates the event
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void leftDriveStickButtonEvent(int button, boolean pressed)
+    protected void leftDriveStickButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "leftDriveStickButtonEvent";
+        FrcLogitechJoystick.Button button = FrcLogitechJoystick.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "LeftDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "LeftDriveStick: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcJoystick.LOGITECH_TRIGGER:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON2:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON3:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON4:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON5:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON6:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON7:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON8:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON9:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
+            default:
                 break;
         }
     }   //leftDriveStickButtonEvent
@@ -359,104 +359,155 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     /**
      * This method is called when a right driver stick button event is detected.
      *
-     * @param button specifies the button ID that generates the event
+     * @param buttonValue specifies the button enum value that generates the event
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void rightDriveStickButtonEvent(int button, boolean pressed)
+    protected void rightDriveStickButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "rightDriveStickButtonEvent";
+        FrcSideWinderJoystick.Button button = FrcSideWinderJoystick.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "RightDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "RightDriveStick: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcJoystick.SIDEWINDER_TRIGGER:
+            case TRIGGER:
                 // Toggle between field or robot oriented driving.
                 if (robot.robotDrive != null && pressed)
                 {
                     if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
                     {
-                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.FIELD, true);
+                        robot.setDriveOrientation(DriveOrientation.FIELD, true);
                     }
                     else
                     {
-                        robot.robotDrive.driveBase.setDriveOrientation(DriveOrientation.ROBOT, false);
+                        robot.setDriveOrientation(DriveOrientation.ROBOT, false);
                     }
                 }
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
-                // Inverted drive only makes sense for robot oriented driving.
-                if (robot.robotDrive != null &&
-                    robot.robotDrive.driveBase.getDriveOrientation() == DriveOrientation.ROBOT)
+            case BUTTON2:
+                if (pressed)
                 {
-                    robot.robotDrive.driveBase.setDriveOrientation(
-                        pressed? DriveOrientation.INVERTED: DriveOrientation.ROBOT, false);
+                    driveSpeedScale = RobotParams.DriveParams.DRIVE_SLOW_SCALE;
+                    turnSpeedScale = RobotParams.DriveParams.TURN_SLOW_SCALE;
                 }
+                else
+                {
+                    driveSpeedScale = RobotParams.DriveParams.DRIVE_NORMAL_SCALE;
+                    turnSpeedScale = RobotParams.DriveParams.TURN_NORMAL_SCALE;
+                }
+                break;
+
+            case BUTTON3:
+                driverAltFunc = pressed;
+                break;
+
+            case BUTTON5:
+                // Turtle mode.
+                if (pressed)
+                {
+                    robot.turtle();
+                }
+                break;
+
+            case BUTTON6:
+                if (pressed)
+                {
+                    robot.autoAssistCancel();
+                }
+                break;
+
+            case BUTTON7:
+                if (pressed)
+                {
+                    subsystemStatusOn = !subsystemStatusOn;
+                }
+                break;
+
+            default:
                 break;
         }
     }   //rightDriveStickButtonEvent
 
     /**
-     * This method is called when an operator stick button event is detected.
+     * This method is called when an operator controller button event is detected.
      *
-     * @param button specifies the button ID that generates the event
+     * @param buttonValue specifies the button enum value that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void operatorStickButtonEvent(int button, boolean pressed)
+    protected void operatorControllerButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "operatorStickButtonEvent";
+        FrcXboxController.Button button = FrcXboxController.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "OperatorController: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcJoystick.LOGITECH_TRIGGER:
+            case BUTTON_A:
+            case BUTTON_B:
+            case BUTTON_X:
+            case BUTTON_Y:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON2:
+            case LEFT_BUMPER:
+                operatorAltFunc = pressed;
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
+            case RIGHT_BUMPER:
+            case DPAD_UP:
+            case DPAD_DOWN:
+            case DPAD_LEFT:
+            case DPAD_RIGHT:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON4:
+            case BACK:
+                if (pressed)
+                {
+                    robot.zeroCalibrate();
+                }
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON5:
+            case START:
+            case LEFT_STICK_BUTTON:
+            case RIGHT_STICK_BUTTON:
+            default:
                 break;
+        }
+    }   //operatorControllerButtonEvent
 
-            case FrcJoystick.LOGITECH_BUTTON6:
-                break;
+    /**
+     * This method is called when an operator stick button event is detected.
+     *
+     * @param buttonValue specifies the button enum value that generates the event.
+     * @param pressed specifies true if the button is pressed, false otherwise.
+     */
+    protected void operatorStickButtonEvent(int buttonValue, boolean pressed)
+    {
+        FrcLogitechJoystick.Button button = FrcLogitechJoystick.Button.values()[buttonValue];
 
-            case FrcJoystick.LOGITECH_BUTTON7:
-                break;
+        if (traceButtonEvents)
+        {
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
+        }
 
-            case FrcJoystick.LOGITECH_BUTTON8:
-                break;
+        robot.dashboard.displayPrintf(
+            8, "OperatorStick: button %s %s", button, pressed ? "pressed" : "released");
 
-            case FrcJoystick.LOGITECH_BUTTON9:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
+        switch (button)
+        {
+            default:
                 break;
         }
     }   //operatorStickButtonEvent
@@ -464,51 +515,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     /**
      * This method is called when a button panel button event is detected.
      *
-     * @param button specifies the button ID that generates the event
+     * @param buttonValue specifies the button enum value that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void buttonPanelButtonEvent(int button, boolean pressed)
+    protected void buttonPanelButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "buttonPanelButtonEvent";
+        FrcPanelButtons.Button button = FrcPanelButtons.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "ButtonPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "ButtonPanel: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcJoystick.PANEL_BUTTON_RED1:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_GREEN1:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_BLUE1:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_YELLOW1:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_WHITE1:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_RED2:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_GREEN2:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_BLUE2:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_YELLOW2:
-                break;
-
-            case FrcJoystick.PANEL_BUTTON_WHITE2:
+            default:
                 break;
         }
     }   //buttonPanelButtonEvent
@@ -516,60 +540,26 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     /**
      * This method is called when a switch panel button event is detected.
      *
-     * @param button specifies the button ID that generates the event
+     * @param buttonValue specifies the button enum value that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    private void switchPanelButtonEvent(int button, boolean pressed)
+    protected void switchPanelButtonEvent(int buttonValue, boolean pressed)
     {
-        final String funcName = "switchPanelButtonEvent";
+        FrcPanelButtons.Button button = FrcPanelButtons.Button.values()[buttonValue];
 
         if (traceButtonEvents)
         {
-            robot.globalTracer.traceInfo(funcName, ">>>>> button=%d, pressed=%s", button, pressed);
+            robot.globalTracer.traceInfo(moduleName, "##### button=%s, pressed=%s", button, pressed);
         }
 
         robot.dashboard.displayPrintf(
-            8, "SwitchPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
+            8, "SwitchPanel: button %s %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
-            case FrcJoystick.PANEL_SWITCH_WHITE1:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_RED1:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_GREEN1:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_BLUE1:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_YELLOW1:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_WHITE2:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_RED2:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_GREEN2:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_BLUE2:
-                break;
-
-            case FrcJoystick.PANEL_SWITCH_YELLOW2:
+            default:
                 break;
         }
     }   //switchPanelButtonEvent
-
-    /**
-     * This method is called to cancel all pending auto-assist operations and release the ownership of all subsystems.
-     */
-    private void releaseAutoAssistAndSubsystems()
-    {
-    }   //releaseAutoAssistAndSubsystems
 
 }   //class FrcTeleOp

@@ -22,12 +22,12 @@
 
 package team492.autocommands;
 
-import TrcCommonLib.trclib.TrcEvent;
-import TrcCommonLib.trclib.TrcRobot;
-import TrcCommonLib.trclib.TrcStateMachine;
-import TrcCommonLib.trclib.TrcTimer;
-import team492.Robot;
 import team492.FrcAuto.AutoChoices;
+import team492.Robot;
+import trclib.robotcore.TrcEvent;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcStateMachine;
+import trclib.timer.TrcTimer;
 
 /**
  * This class implements an autonomous strategy.
@@ -108,13 +108,14 @@ public class CmdAuto implements TrcRobot.RobotCommand
         else
         {
             robot.dashboard.displayPrintf(8, "State: " + state);
-
+            robot.globalTracer.tracePreStateInfo(sm.toString(), state);
             switch (state)
             {
                 case START:
                     double startDelay = autoChoices.getStartDelay();
                     if (startDelay > 0.0)
                     {
+                        robot.globalTracer.traceInfo(moduleName, "***** Do delay " + startDelay + "s.");
                         timer.set(startDelay, event);
                         sm.waitForSingleEvent(event, State.DONE);
                     }
@@ -130,8 +131,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
                     cancel();
                     break;
             }
-
-            robot.globalTracer.traceStateInfo(
+            robot.globalTracer.tracePostStateInfo(
                 sm.toString(), state, robot.robotDrive.driveBase, robot.robotDrive.pidDrive,
                 robot.robotDrive.purePursuitDrive, null);
         }

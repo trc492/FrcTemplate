@@ -32,25 +32,36 @@ import java.util.Scanner;
 import com.ctre.phoenix6.StatusCode;
 import com.reduxrobotics.canand.CanandEventLoop;
 
-import TrcCommonLib.trclib.TrcWatchdogMgr;
-import TrcCommonLib.trclib.TrcDbgTrace.MsgLevel;
-import TrcCommonLib.trclib.TrcEncoder;
-import TrcCommonLib.trclib.TrcMotor;
-import TrcCommonLib.trclib.TrcPidController;
-import TrcCommonLib.trclib.TrcPidDrive;
-import TrcCommonLib.trclib.TrcPurePursuitDrive;
-import TrcCommonLib.trclib.TrcSwerveDriveBase;
-import TrcCommonLib.trclib.TrcSwerveModule;
-import TrcCommonLib.trclib.TrcTimer;
-import TrcCommonLib.trclib.TrcRobot.RunMode;
-import TrcCommonLib.trclib.TrcWatchdogMgr.Watchdog;
-import TrcFrcLib.frclib.FrcAnalogEncoder;
-import TrcFrcLib.frclib.FrcCANCoder;
-import TrcFrcLib.frclib.FrcCANFalcon;
-import TrcFrcLib.frclib.FrcCanandcoder;
-import TrcFrcLib.frclib.FrcPdp;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frclib.motor.FrcCANTalonFX;
+import frclib.sensor.FrcAHRSGyro;
+import frclib.sensor.FrcAnalogEncoder;
+import frclib.sensor.FrcCANCoder;
+import frclib.sensor.FrcCanandmag;
+import frclib.sensor.FrcPdp;
 import team492.Robot;
 import team492.RobotParams;
+import team492.RobotParams.SteerEncoderType;
+import trclib.dataprocessor.TrcUtil;
+import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveModule;
+import trclib.motor.TrcMotor;
+import trclib.pathdrive.TrcPidDrive;
+import trclib.pathdrive.TrcPurePursuitDrive;
+import trclib.robotcore.TrcDbgTrace;
+import trclib.robotcore.TrcDbgTrace.MsgLevel;
+import trclib.robotcore.TrcPidController;
+import trclib.robotcore.TrcRobot.RunMode;
+import trclib.robotcore.TrcWatchdogMgr;
+import trclib.robotcore.TrcWatchdogMgr.Watchdog;
+import trclib.sensor.TrcEncoder;
+import trclib.timer.TrcTimer;
 
 /**
  * This class creates the RobotDrive subsystem that consists of wheel motors and related objects for driving the
@@ -60,147 +71,117 @@ public class SwerveDrive extends RobotDrive
 {
     private static final String moduleName = SwerveDrive.class.getSimpleName();
 
-    private final String[] driveMotorNames = {
-        RobotParams.LFDRIVE_MOTOR_NAME, RobotParams.RFDRIVE_MOTOR_NAME,
-        RobotParams.LBDRIVE_MOTOR_NAME, RobotParams.RBDRIVE_MOTOR_NAME};
-    private final int[] driveMotorIds = {
-        RobotParams.CANID_LFDRIVE_MOTOR, RobotParams.CANID_RFDRIVE_MOTOR,
-        RobotParams.CANID_LBDRIVE_MOTOR, RobotParams.CANID_RBDRIVE_MOTOR};
-    private final boolean[] driveMotorInverted = {
-        RobotParams.LFDRIVE_MOTOR_INVERTED, RobotParams.RFDRIVE_MOTOR_INVERTED,
-        RobotParams.LBDRIVE_MOTOR_INVERTED, RobotParams.RBDRIVE_MOTOR_INVERTED};
-    private final String[] steerEncoderNames = {
-        RobotParams.LFSTEER_ENCODER_NAME, RobotParams.RFSTEER_ENCODER_NAME,
-        RobotParams.LBSTEER_ENCODER_NAME, RobotParams.RBSTEER_ENCODER_NAME};
-    private final int[] steerEncoderCanIds = {
-        RobotParams.CANID_LFSTEER_ENCODER, RobotParams.CANID_RFSTEER_ENCODER,
-        RobotParams.CANID_LBSTEER_ENCODER, RobotParams.CANID_RBSTEER_ENCODER};
-    private final int[] steerEncoderAIds = {
-        RobotParams.AIN_LFSTEER_ENCODER, RobotParams.AIN_RFSTEER_ENCODER,
-        RobotParams.AIN_LBSTEER_ENCODER, RobotParams.AIN_RBSTEER_ENCODER};
-    private final boolean[] steerEncoderInverted = {
-        RobotParams.LFSTEER_ENCODER_INVERTED, RobotParams.RFSTEER_ENCODER_INVERTED,
-        RobotParams.LBSTEER_ENCODER_INVERTED, RobotParams.RBSTEER_ENCODER_INVERTED};
-    private final String[] steerMotorNames = {
-        RobotParams.LFSTEER_MOTOR_NAME, RobotParams.RFSTEER_MOTOR_NAME,
-        RobotParams.LBSTEER_MOTOR_NAME, RobotParams.RBSTEER_MOTOR_NAME};
-    private final int[] steerMotorIds = {
-        RobotParams.CANID_LFSTEER_MOTOR, RobotParams.CANID_RFSTEER_MOTOR,
-        RobotParams.CANID_LBSTEER_MOTOR, RobotParams.CANID_RBSTEER_MOTOR};
-    private final boolean[] steerMotorInverted = {
-        RobotParams.LFSTEER_INVERTED, RobotParams.RFSTEER_INVERTED,
-        RobotParams.LBSTEER_INVERTED, RobotParams.RBSTEER_INVERTED};
-    private final String[] swerveModuleNames = {
-        RobotParams.LFSWERVE_MODULE_NAME, RobotParams.RFSWERVE_MODULE_NAME,
-        RobotParams.LBSWERVE_MODULE_NAME, RobotParams.RBSWERVE_MODULE_NAME};
     //
     // Swerve steering motors and modules.
     //
-    public final TrcEncoder[] steerEncoders;
+    public final RobotParams.SwerveDriveBase driveBaseParams;
     public final TrcMotor[] steerMotors;
+    public final TrcEncoder[] steerEncoders;
     public final TrcSwerveModule[] swerveModules;
-    public int steerZeroCalibrationCount = 0;
-    private String antiDefenseOwner = null;
+    public final SwerveDriveOdometry swerveOdometry;
+    private final SimpleMotorFeedforward driveFeedForward;
+
+    private double[] steerZeros = new double[4];
+    private int steerZeroCalibrationCount = 0;
+    private String xModeOwner = null;
     private boolean steerEncodersSynced = false;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param robot specifies the robot object.
+     * @param driveBaseParams specifies the drivebase parameters.
      */
-    public SwerveDrive(Robot robot)
+    public SwerveDrive(Robot robot, RobotParams.SwerveDriveBase driveBaseParams)
     {
         super(robot);
 
-        driveMotors = createMotors(MotorType.CanFalcon, false, driveMotorNames, driveMotorIds, driveMotorInverted);
+        this.driveBaseParams = driveBaseParams;
+        driveMotors = createMotors(
+            MotorType.CanTalonFx, false, driveBaseParams.driveMotorNames, driveBaseParams.driveMotorIds,
+            driveBaseParams.driveMotorInverted);
+        steerMotors = createMotors(
+            MotorType.CanTalonFx, false, driveBaseParams.steerMotorNames, driveBaseParams.steerMotorIds,
+            driveBaseParams.steerMotorInverted);
         steerEncoders = createSteerEncoders(
-            steerEncoderNames, RobotParams.Preferences.useSteeringAnalogEncoder? steerEncoderAIds: steerEncoderCanIds,
-            steerEncoderInverted, readSteeringCalibrationData());
-        steerMotors = createMotors(MotorType.CanFalcon, false, steerMotorNames, steerMotorIds, steerMotorInverted);
-        swerveModules = createSwerveModules(swerveModuleNames, driveMotors, steerMotors, steerEncoders);
+            driveBaseParams.steerEncoderNames,
+            driveBaseParams.steerEncoderIds,
+            driveBaseParams.steerEncoderInverted, readSteeringCalibrationData());
+        swerveModules = createSwerveModules(
+            driveBaseParams.swerveModuleNames, driveMotors, steerMotors, steerEncoders);
+
+        swerveOdometry = new SwerveDriveOdometry(driveBaseParams.swerveKinematics, getGyroYaw(), getModulePositions());
+        driveFeedForward = new SimpleMotorFeedforward(
+            driveBaseParams.DRIVE_KS, driveBaseParams.DRIVE_KV, driveBaseParams.DRIVE_KA);
+
         driveBase = new TrcSwerveDriveBase(
-            swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
-            swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK], gyro,
-            RobotParams.ROBOT_WHEELBASE_WIDTH, RobotParams.ROBOT_WHEELBASE_LENGTH);
-        driveBase.setOdometryScales(
-            RobotParams.SWERVE_DRIVE_INCHES_PER_ENCODER_UNIT, RobotParams.SWERVE_DRIVE_INCHES_PER_ENCODER_UNIT);
+            swerveModules[RobotDrive.INDEX_LEFT_FRONT], swerveModules[RobotDrive.INDEX_LEFT_BACK],
+            swerveModules[RobotDrive.INDEX_RIGHT_FRONT], swerveModules[RobotDrive.INDEX_RIGHT_BACK],
+            gyro, RobotParams.Robot.WHEELBASE_WIDTH, RobotParams.Robot.WHEELBASE_LENGTH);
+        driveBase.setOdometryScales(driveBaseParams.xDriveScaleInchPerRot, driveBaseParams.yDriveScaleInchPerRot);
 
         if (RobotParams.Preferences.useAntiTipping)
         {
             driveBase.enableAntiTipping(
-                new TrcPidController.PidCoefficients(
-                    RobotParams.X_TIPPING_KP, RobotParams.X_TIPPING_KI, RobotParams.X_TIPPING_KD),
-                    RobotParams.X_TIPPING_TOLERANCE, this::getGyroRoll,
-                new TrcPidController.PidCoefficients(
-                    RobotParams.Y_TIPPING_KP, RobotParams.Y_TIPPING_KI, RobotParams.Y_TIPPING_KD),
-                    RobotParams.Y_TIPPING_TOLERANCE, this::getGyroPitch);
+                driveBaseParams.xTippingPidCoeff, driveBaseParams.tippingPidTolerance, this::getGyroRoll,
+                driveBaseParams.yTippingPidCoeff, driveBaseParams.tippingPidTolerance, this::getGyroPitch);
         }
-        // if (RobotParams.Preferences.useExternalOdometry)
-        // {
-        //     //
-        //     // Create the external odometry device that uses the right back encoder port as the X odometry and
-        //     // the left and right front encoder ports as the Y1 and Y2 odometry. Gyro will serve as the angle
-        //     // odometry.
-        //     //
-        //     TrcDriveBaseOdometry driveBaseOdometry = new TrcDriveBaseOdometry(
-        //         new TrcDriveBaseOdometry.AxisSensor(rbDriveMotor, RobotParams.X_ODOMETRY_WHEEL_OFFSET),
-        //         new TrcDriveBaseOdometry.AxisSensor[] {
-        //             new TrcDriveBaseOdometry.AxisSensor(lfDriveMotor, RobotParams.Y_LEFT_ODOMETRY_WHEEL_OFFSET),
-        //             new TrcDriveBaseOdometry.AxisSensor(rfDriveMotor, RobotParams.Y_RIGHT_ODOMETRY_WHEEL_OFFSET)},
-        //         gyro);
-        //     //
-        //     // Set the drive base to use the external odometry device overriding the built-in one.
-        //     //
-        //     driveBase.setDriveBaseOdometry(driveBaseOdometry);
-        //     driveBase.setOdometryScales(RobotParams.ODWHEEL_X_INCHES_PER_COUNT, RobotParams.ODWHEEL_Y_INCHES_PER_COUNT);
-        // }
-        // else
-        // {
-        //     driveBase.setOdometryScales(RobotParams.SWERVE_INCHES_PER_COUNT);
-        // }
 
         if (robot.pdp != null)
         {
             robot.pdp.registerEnergyUsed(
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LBDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_BACK]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RBDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_BACK]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFSTEER_MOTOR, steerMotorNames[INDEX_LEFT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LBSTEER_MOTOR, steerMotorNames[INDEX_LEFT_BACK]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFSTEER_MOTOR, steerMotorNames[INDEX_RIGHT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RBSTEER_MOTOR, steerMotorNames[INDEX_RIGHT_BACK]));
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LFDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LBDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_LEFT_BACK]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RFDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_RIGHT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RBDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_RIGHT_BACK]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LFSTEER_MOTOR,
+                    driveBaseParams.steerMotorNames[RobotDrive.INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LBSTEER_MOTOR,
+                    driveBaseParams.steerMotorNames[RobotDrive.INDEX_LEFT_BACK]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RFSTEER_MOTOR,
+                    driveBaseParams.steerMotorNames[RobotDrive.INDEX_RIGHT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RBSTEER_MOTOR,
+                    driveBaseParams.steerMotorNames[RobotDrive.INDEX_RIGHT_BACK]));
         }
         //
         // Create and initialize PID controllers.
         //
         // PID Parameters for X and Y are the same for Swerve Drive.
-        xPosPidCoeff = yPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.SWERVE_DRIVE_KP, RobotParams.SWERVE_DRIVE_KI, RobotParams.SWERVE_DRIVE_KD,
-            RobotParams.SWERVE_DRIVE_KF, RobotParams.SWERVE_DRIVE_IZONE);
-        turnPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.GYRO_TURN_KP, RobotParams.GYRO_TURN_KI, RobotParams.GYRO_TURN_KD, RobotParams.GYRO_TURN_KF,
-            RobotParams.GYRO_TURN_IZONE);
-        velPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.ROBOT_VEL_KP, RobotParams.ROBOT_VEL_KI, RobotParams.ROBOT_VEL_KD, RobotParams.ROBOT_VEL_KF);
+        xPosPidCoeff = driveBaseParams.xDrivePidCoeff;
+        yPosPidCoeff = driveBaseParams.yDrivePidCoeff;
+        turnPidCoeff = driveBaseParams.turnPidCoeff;
+        velPidCoeff = driveBaseParams.velPidCoeff;
 
         pidDrive = new TrcPidDrive(
             "pidDrive", driveBase,
-            xPosPidCoeff, RobotParams.SWERVE_DRIVE_TOLERANCE, driveBase::getXPosition,
-            yPosPidCoeff, RobotParams.SWERVE_DRIVE_TOLERANCE, driveBase::getYPosition,
-            turnPidCoeff, RobotParams.GYRO_TURN_TOLERANCE, driveBase::getHeading);
+            xPosPidCoeff, driveBaseParams.drivePidTolerance, driveBase::getXPosition,
+            yPosPidCoeff, driveBaseParams.drivePidTolerance, driveBase::getYPosition,
+            turnPidCoeff, driveBaseParams.turnPidTolerance, driveBase::getHeading);
 
-        TrcPidController xPidCtrl = pidDrive.getXPidCtrl();
-        xPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_XPID_POWER);
-        xPidCtrl.setRampRate(RobotParams.DRIVE_MAX_XPID_RAMP_RATE);
+        TrcPidController xPidCtrl, yPidCtrl, turnPidCtrl;
+        xPidCtrl = pidDrive.getXPidCtrl();
+        xPidCtrl.setOutputLimit(driveBaseParams.xDriveMaxPidPower);
+        xPidCtrl.setRampRate(driveBaseParams.xDriveMaxPidRampRate);
 
-        TrcPidController yPidCtrl = pidDrive.getYPidCtrl();
-        yPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_YPID_POWER);
-        yPidCtrl.setRampRate(RobotParams.DRIVE_MAX_YPID_RAMP_RATE);
+        yPidCtrl = pidDrive.getYPidCtrl();
+        yPidCtrl.setOutputLimit(driveBaseParams.yDriveMaxPidPower);
+        yPidCtrl.setRampRate(driveBaseParams.yDriveMaxPidRampRate);
 
-        TrcPidController turnPidCtrl = pidDrive.getTurnPidCtrl();
-        turnPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_TURNPID_POWER);
-        turnPidCtrl.setRampRate(RobotParams.DRIVE_MAX_TURNPID_RAMP_RATE);
+        turnPidCtrl = pidDrive.getTurnPidCtrl();
+        turnPidCtrl.setOutputLimit(driveBaseParams.turnMaxPidPower);
+        turnPidCtrl.setRampRate(driveBaseParams.turnMaxPidRampRate);
         turnPidCtrl.setAbsoluteSetPoint(true);
 
         // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
@@ -209,11 +190,13 @@ public class SwerveDrive extends RobotDrive
         pidDrive.setTraceLevel(MsgLevel.INFO, false, false, false);
 
         purePursuitDrive = new TrcPurePursuitDrive(
-            "purePursuitDrive", driveBase, RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE,
-            RobotParams.PPD_TURN_TOLERANCE, xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
-        purePursuitDrive.setMoveOutputLimit(RobotParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
-        purePursuitDrive.setRotOutputLimit(RobotParams.PPD_ROT_DEF_OUTPUT_LIMIT);
-        purePursuitDrive.setFastModeEnabled(true);
+            "purePursuitDrive", driveBase,
+            driveBaseParams.PPD_FOLLOWING_DISTANCE, driveBaseParams.PPD_POS_TOLERANCE,
+            driveBaseParams.PPD_TURN_TOLERANCE, xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+        purePursuitDrive.setStallDetectionEnabled(0.1, 0.1, 1.0);
+        purePursuitDrive.setMoveOutputLimit(driveBaseParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
+        purePursuitDrive.setRotOutputLimit(driveBaseParams.PPD_ROT_DEF_OUTPUT_LIMIT);
+        // purePursuitDrive.setFastModeEnabled(true);
         purePursuitDrive.setTraceLevel(MsgLevel.INFO, false, false, false);
     }   //SwerveDrive
 
@@ -231,29 +214,36 @@ public class SwerveDrive extends RobotDrive
     {
         TrcEncoder[] encoders = null;
 
-        if (RobotParams.Preferences.useSteeringCANCoder)
+        if (driveBaseParams.steerEncoderType.equals(SteerEncoderType.CANCoder))
         {
             encoders = new FrcCANCoder[names.length];
             for (int i = 0; i < names.length; i++)
             {
                 FrcCANCoder canCoder = new FrcCANCoder(names[i], encoderIds[i]);
-                canCoder.resetFactoryDefault();
-
-                // Configure the sensor direction to match the steering motor direction.
-                canCoder.setInverted(inverted[i]);
-                canCoder.setAbsoluteRange(true);
-                // Normalize encoder to the range of 0 to 1.0 for a revolution (revolution per count).
-                canCoder.setScaleAndOffset(1.0 / RobotParams.CANCODER_CPR, 0.0, steerZeros[i]);
-                encoders[i] = canCoder;
+                try
+                {
+                    canCoder.resetFactoryDefault();
+                    // Configure the sensor direction to match the steering motor direction.
+                    canCoder.setInverted(inverted[i]);
+                    canCoder.setAbsoluteRange(true);
+                    // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
+                    // (revolution per count).
+                    canCoder.setScaleAndOffset(1.0, 0.0, steerZeros[i]);
+                    encoders[i] = canCoder;
+                }
+                finally
+                {
+                    canCoder.close();
+                }
             }
         }
-        else if (RobotParams.Preferences.useSteeringCanandcoder)
+        else if (driveBaseParams.steerEncoderType.equals(SteerEncoderType.Canandmag))
         {
             CanandEventLoop.getInstance();
-            encoders = new FrcCanandcoder[names.length];
+            encoders = new FrcCanandmag[names.length];
             for (int i = 0; i < names.length; i++)
             {
-                try (FrcCanandcoder canandcoder = new FrcCanandcoder(names[i], encoderIds[i]))
+                try (FrcCanandmag canandcoder = new FrcCanandmag(names[i], encoderIds[i]))
                 {
                     canandcoder.resetFactoryDefaults(false);
                     // Configure the sensor direction to match the steering motor direction.
@@ -265,25 +255,73 @@ public class SwerveDrive extends RobotDrive
                 }
             }
         }
-        else if (RobotParams.Preferences.useSteeringAnalogEncoder)
+        else if (driveBaseParams.steerEncoderType.equals(SteerEncoderType.AnalogEncoder))
         {
-            encoders = new FrcAnalogEncoder[names.length];
+            encoders = new TrcEncoder[names.length];
             for (int i = 0; i < names.length; i++)
             {
-                FrcAnalogEncoder analogEncoder = new FrcAnalogEncoder(names[i], encoderIds[i]);
+                TrcEncoder analogEncoder = new FrcAnalogEncoder(names[i], encoderIds[i]).getAbsoluteEncoder();
                 analogEncoder.setInverted(inverted[i]);
-                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution (revolution per count).
+                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution
+                // (revolution per count).
                 analogEncoder.setScaleAndOffset(1.0, 0.0, steerZeros[i]);
                 encoders[i] = analogEncoder;
             }
         }
         else
         {
-            throw new IllegalArgumentException("Must enable either useCANCoder, useCanandcoder or useAnalogEncoder.");
+            throw new IllegalArgumentException("Encoder type must either CANCoder, Canandcoder or AnalogEncoder.");
         }
 
         return encoders;
     }   //createSteerEncoders
+
+    /**
+     * This method reads the absolute steering encoder and synchronize the steering motor encoder with it.
+     *
+     * @param index specifies the swerve module index.
+     */
+    private void syncSteerEncoder(int index)
+    {
+        // getPosition returns a value in the range of 0 to 1.0 of one revolution.
+        double motorEncoderPos =
+            steerEncoders[index].getScaledPosition() * driveBaseParams.STEER_GEAR_RATIO;
+        StatusCode statusCode = ((FrcCANTalonFX) steerMotors[index]).motor.setPosition(motorEncoderPos);
+        if (statusCode != StatusCode.OK)
+        {
+            robot.globalTracer.traceWarn(
+                moduleName,
+                driveBaseParams.swerveModuleNames[index] + ": TalonFx.setPosition failed (code=" + statusCode +
+                ", pos=" + motorEncoderPos + ").");
+        }
+
+        double actualEncoderPos = ((FrcCANTalonFX) steerMotors[index]).motor.getPosition().getValueAsDouble();
+        if (Math.abs(motorEncoderPos - actualEncoderPos) > 0.1)
+        {
+            robot.globalTracer.traceWarn(
+                driveBaseParams.swerveModuleNames[index],
+                "Steer encoder out-of-sync (expected=" + motorEncoderPos + ", actual=" + actualEncoderPos + ")");
+        }
+    }   //syncSteerEncoder
+
+    /**
+     * This method resets the steer motor encoder for emergency steering alignment in case the absolute encoder is
+     * malfunctioning.
+     */
+    public void resetSteerEncoders()
+    {
+        for (TrcMotor motor: steerMotors)
+        {
+            FrcCANTalonFX steerMotor = (FrcCANTalonFX) motor;
+            StatusCode statusCode = steerMotor.motor.setPosition(0.0);
+            if (statusCode != StatusCode.OK)
+            {
+                robot.globalTracer.traceWarn(
+                    moduleName,
+                    steerMotor.toString() + ": TalonFx.setPosition failed (code=" + statusCode + ").");
+            }
+        }
+    }   //resetSteerEncoders
 
     /**
      * This method creates an array of swerve modules and configure them.
@@ -301,27 +339,23 @@ public class SwerveDrive extends RobotDrive
 
         for (int i = 0; i < names.length; i++)
         {
+            driveMotors[i].setBrakeModeEnabled(true);
+            // Do not scale motor odometry. DriveBase is taking care of scaling.
+            driveMotors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+
+            driveMotors[i].setCloseLoopRampRate(0.02);
+            driveMotors[i].setCurrentLimit(40.0, 45.0, 0.2);
+            driveMotors[i].setStatorCurrentLimit(55.0);
+
             steerMotors[i].setBrakeModeEnabled(false);
-            steerMotors[i].setPositionSensorScaleAndOffset(RobotParams.SWERVE_STEER_DEGREES_PER_ENCODER_UNIT, 0.0);
-            steerMotors[i].setPositionPidCoefficients(RobotParams.steerCoeffs);
-            // getPosition returns a value in the range of 0 to 1.0 of one revolution.
-            double motorEncoderPos = steerEncoders[i].getScaledPosition() * RobotParams.SWERVE_STEER_GEAR_RATIO;
-            StatusCode statusCode = ((FrcCANFalcon) steerMotors[i]).motor.setPosition(motorEncoderPos);
-            if (statusCode != StatusCode.OK)
-            {
-                robot.globalTracer.traceWarn(
-                    moduleName, names[i] + ": Falcon.setPosition failed (code=" + statusCode +
-                    ", pos=" + motorEncoderPos + ").");
-            }
-            double actualEncoderPos = ((FrcCANFalcon) steerMotors[i]).motor.getPosition().getValueAsDouble();
-            if (Math.abs(motorEncoderPos - actualEncoderPos) > 0.001)
-            {
-                robot.globalTracer.traceWarn(
-                    names[i],
-                    "Steer encoder out-of-sync (expected=" + motorEncoderPos + ", actual=" + actualEncoderPos + ")");
-            }
-            // We have already synchronized the Falcon internal encoder with the zero adjusted absolute encoder, so
-            // Falcon servo does not need to compensate for zero position.
+            steerMotors[i].setPositionSensorScaleAndOffset(driveBaseParams.steerScaleDegPerRot, 0.0);
+            steerMotors[i].setPositionPidParameters(
+                driveBaseParams.steerPosPidCoeff, driveBaseParams.steerPosPidTolerance);
+            steerMotors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+            syncSteerEncoder(i);
+
+            // We have already synchronized the TalonFx internal encoder with the zero adjusted absolute encoder, so
+            // motor does not need to compensate for zero position.
             modules[i] = new TrcSwerveModule(names[i], driveMotors[i], steerMotors[i]);
         }
 
@@ -336,22 +370,26 @@ public class SwerveDrive extends RobotDrive
      */
     public void displaySteerEncoders(int lineNum)
     {
-        double lfSteerAbsEnc = steerEncoders[INDEX_LEFT_FRONT].getScaledPosition()*360.0;
+        double lfSteerAbsEnc = steerEncoders[RobotDrive.INDEX_LEFT_FRONT].getScaledPosition()*360.0;
         // if (lfSteerAbsEnc > 90.0) lfSteerAbsEnc = 180.0 - lfSteerAbsEnc;
-        double rfSteerAbsEnc = steerEncoders[INDEX_RIGHT_FRONT].getScaledPosition()*360.0;
+        double rfSteerAbsEnc = steerEncoders[RobotDrive.INDEX_RIGHT_FRONT].getScaledPosition()*360.0;
         // if (rfSteerAbsEnc > 90.0) rfSteerAbsEnc = 180.0 - rfSteerAbsEnc;
-        double lbSteerAbsEnc = steerEncoders[INDEX_LEFT_BACK].getScaledPosition()*360.0;
+        double lbSteerAbsEnc = steerEncoders[RobotDrive.INDEX_LEFT_BACK].getScaledPosition()*360.0;
         // if (lbSteerAbsEnc > 90.0) lbSteerAbsEnc = 180.0 - lbSteerAbsEnc;
-        double rbSteerAbsEnc = steerEncoders[INDEX_RIGHT_BACK].getScaledPosition()*360.0;
+        double rbSteerAbsEnc = steerEncoders[RobotDrive.INDEX_RIGHT_BACK].getScaledPosition()*360.0;
         // if (rbSteerAbsEnc > 90.0) rbSteerAbsEnc = 180.0 - rbSteerAbsEnc;
         double lfSteerEnc =
-            (360.0 * steerMotors[INDEX_LEFT_FRONT].getMotorPosition() / RobotParams.SWERVE_STEER_GEAR_RATIO) % 360.0;
+            (360.0 * steerMotors[RobotDrive.INDEX_LEFT_FRONT].getMotorPosition() /
+             driveBaseParams.STEER_GEAR_RATIO) % 360.0;
         double rfSteerEnc =
-            (360.0 * steerMotors[INDEX_RIGHT_FRONT].getMotorPosition() / RobotParams.SWERVE_STEER_GEAR_RATIO) % 360.0;
+            (360.0 * steerMotors[RobotDrive.INDEX_RIGHT_FRONT].getMotorPosition() /
+             driveBaseParams.STEER_GEAR_RATIO) % 360.0;
         double lbSteerEnc =
-            (360.0 * steerMotors[INDEX_LEFT_BACK].getMotorPosition() / RobotParams.SWERVE_STEER_GEAR_RATIO) % 360.0;
+            (360.0 * steerMotors[RobotDrive.INDEX_LEFT_BACK].getMotorPosition() /
+             driveBaseParams.STEER_GEAR_RATIO) % 360.0;
         double rbSteerEnc =
-            (360.0 * steerMotors[INDEX_RIGHT_BACK].getMotorPosition() / RobotParams.SWERVE_STEER_GEAR_RATIO) % 360.0;
+            (360.0 * steerMotors[RobotDrive.INDEX_RIGHT_BACK].getMotorPosition() /
+             driveBaseParams.STEER_GEAR_RATIO) % 360.0;
 
         robot.dashboard.displayPrintf(
             lineNum, "SteerEnc: lf=%6.1f/%6.1f, rf=%6.1f/%6.1f, lb=%6.1f/%6.1f, rb=%6.1f/%6.1f",
@@ -397,7 +435,7 @@ public class SwerveDrive extends RobotDrive
      */
     public void syncSteerEncoders(boolean forceSync)
     {
-        final double encErrThreshold = 20.0;
+        final double encErrThreshold = 0.01;
         final double timeout = 0.5;
 
         if (!steerEncodersSynced || forceSync)
@@ -433,9 +471,7 @@ public class SwerveDrive extends RobotDrive
             {
                 for (int i = 0; i < steerMotors.length; i++)
                 {
-                    double encoderPos = steerEncoders[i].getScaledPosition();
-                    ((FrcCANFalcon) steerMotors[i]).motor.getConfigurator().setPosition(encoderPos);
-                    robot.globalTracer.traceInfo(moduleName, "syncSteerEncPos[" + i + "]=" + encoderPos);
+                    syncSteerEncoder(i);
                 }
             }
 
@@ -457,7 +493,6 @@ public class SwerveDrive extends RobotDrive
         if (runMode != RunMode.TEST_MODE && runMode != RunMode.DISABLED_MODE)
         {
             setSteerAngleZero(false);
-            syncSteerEncoders(false);
         }
     }   //startMode
 
@@ -476,10 +511,8 @@ public class SwerveDrive extends RobotDrive
 
     /**
      * This method starts the steering calibration.
-     *
-     * @param steerZeros specifies the steer zero calibration data array to be initialized.
      */
-    public void startSteeringCalibration(double[] steerZeros)
+    public void startSteeringCalibration()
     {
         steerZeroCalibrationCount = 0;
         Arrays.fill(steerZeros, 0.0);
@@ -487,10 +520,8 @@ public class SwerveDrive extends RobotDrive
 
     /**
      * This method stops the steering calibration and saves the calibration data to a file.
-     *
-     * @param steerZeros specifies the steer zero calibration data array to be saved.
      */
-    public void stopSteeringCalibration(double[] steerZeros)
+    public void stopSteeringCalibration()
     {
         for (int i = 0; i < steerZeros.length; i++)
         {
@@ -502,10 +533,8 @@ public class SwerveDrive extends RobotDrive
 
     /**
      * This method is called periodically to sample the steer encoders for averaging the zero position data.
-     *
-     * @param steerZeros specifies the steer zero calibration data array to be updated.
      */
-    public void runSteeringCalibration(double[] steerZeros)
+    public void runSteeringCalibration()
     {
         for (int i = 0; i < steerZeros.length; i++)
         {
@@ -522,16 +551,17 @@ public class SwerveDrive extends RobotDrive
     public void saveSteeringCalibrationData(double[] steerZeros)
     {
         try (PrintStream out = new PrintStream(new FileOutputStream(
-            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.STEER_ZERO_CAL_FILE)))
+            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.SwerveDriveBase.STEER_ZERO_CAL_FILE)))
         {
-            for (int i = 0; i < steerMotorNames.length; i++)
+            for (int i = 0; i < driveBaseParams.steerMotorNames.length; i++)
             {
-                out.println(steerMotorNames[i] + ": " + steerZeros[i]);
+                out.println(driveBaseParams.steerMotorNames[i] + ": " + steerZeros[i]);
             }
             out.close();
             robot.globalTracer.traceInfo(
                 moduleName,
-                "SteeringCalibrationData" + Arrays.toString(steerMotorNames) + "=" + Arrays.toString(steerZeros));
+                "SteeringCalibrationData" + Arrays.toString(driveBaseParams.steerMotorNames) +
+                "=" + Arrays.toString(steerZeros));
         }
         catch (FileNotFoundException e)
         {
@@ -549,7 +579,7 @@ public class SwerveDrive extends RobotDrive
         String line = null;
 
         try (Scanner in = new Scanner(new FileReader(
-            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.STEER_ZERO_CAL_FILE)))
+            RobotParams.TEAM_FOLDER_PATH + "/" + RobotParams.SwerveDriveBase.STEER_ZERO_CAL_FILE)))
         {
             double[] steerZeros = new double[steerMotors.length];
 
@@ -559,7 +589,7 @@ public class SwerveDrive extends RobotDrive
                 int colonPos = line.indexOf(':');
                 String name = colonPos == -1? null: line.substring(0, colonPos);
 
-                if (name == null || !name.equals(steerMotorNames[i]))
+                if (name == null || !name.equals(driveBaseParams.steerMotorNames[i]))
                 {
                     throw new RuntimeException("Invalid steer motor name in line " + line);
                 }
@@ -568,7 +598,8 @@ public class SwerveDrive extends RobotDrive
             }
             robot.globalTracer.traceInfo(
                 moduleName,
-                "SteeringCalibrationData" + Arrays.toString(steerMotorNames) + "=" + Arrays.toString(steerZeros));
+                "SteeringCalibrationData" + Arrays.toString(driveBaseParams.steerMotorNames) +
+                "=" + Arrays.toString(steerZeros));
 
             return steerZeros;
         }
@@ -576,7 +607,7 @@ public class SwerveDrive extends RobotDrive
         {
             robot.globalTracer.traceWarn(
                 moduleName, "Steering calibration data file not found, using built-in defaults.");
-            return RobotParams.SWERVE_STEER_ZEROS;
+            return driveBaseParams.steerEncoderZeros;
         }
         catch (NumberFormatException e)
         {
@@ -589,41 +620,125 @@ public class SwerveDrive extends RobotDrive
     }   //readSteeringCalibrationData
 
     /**
-     * This method checks if anti-defense mode is enabled.
+     * This method set all the wheels into an X configuration so that nobody can bump us out of position. If owner
+     * is specifies, it will acquire execlusive ownership of the drivebase on behalf of the specified owner. On
+     * disable, it will release the ownership.
      *
-     * @return true if anti-defense mode is enabled, false if disabled.
-     */
-    public boolean isAntiDefenseEnabled()
-    {
-        return ((TrcSwerveDriveBase) driveBase).isAntiDefenseEnabled();
-    }   //isAntiDefenseEnabled
-
-    /**
-     * This method enables/disables the anti-defense mode where it puts all swerve wheels into an X-formation.
-     * By doing so, it is very difficult for others to push us around.
-     *
-     * @param owner     specifies the ID string of the caller for checking ownership, can be null if caller is not
-     *                  ownership aware.
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *        ownership aware.
      * @param enabled   specifies true to enable anti-defense mode, false to disable.
      */
-    public void setAntiDefenseEnabled(String owner, boolean enabled)
+    public void setXModeEnabled(String owner, boolean enabled)
     {
-        boolean requireOwnership = owner != null && enabled && !driveBase.hasOwnership(owner);
-
-        if (requireOwnership && driveBase.acquireExclusiveAccess(owner))
+        if (enabled)
         {
-            antiDefenseOwner = owner;
-        }
-
-        if (!requireOwnership || antiDefenseOwner != null)
-        {
-            ((TrcSwerveDriveBase) driveBase).setAntiDefenseEnabled(owner, enabled);
-            if (antiDefenseOwner != null)
+            if (owner != null && !driveBase.hasOwnership(owner) && driveBase.acquireExclusiveAccess(owner))
             {
-                driveBase.releaseExclusiveAccess(antiDefenseOwner);
-                antiDefenseOwner = null;
+                xModeOwner = owner;
+            }
+
+            ((TrcSwerveDriveBase) driveBase).setXMode(owner);
+        }
+        else if (xModeOwner != null)
+        {
+            driveBase.releaseExclusiveAccess(xModeOwner);
+            xModeOwner = null;
+        }
+    }   //setXModeEnabled
+
+    //
+    // Command-based required methods.
+    //
+
+    private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop)
+    {
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, driveBaseParams.maxSpeed);
+        for (int i = 0; i < desiredStates.length; i++)
+        {
+            // Set steer angle.
+            desiredStates[i] = SwerveModuleState.optimize(
+                desiredStates[i], Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
+            steerMotors[i].setMotorPosition(desiredStates[i].angle.getRotations(), null, 0.0, 0.0);
+            // Set drive wheel speed.
+            if (isOpenLoop)
+            {
+                double dutyCycle = desiredStates[i].speedMetersPerSecond / driveBaseParams.maxSpeed;
+                driveMotors[i].setMotorPower(dutyCycle);
+                TrcDbgTrace.globalTraceInfo(
+                    "SwerveMod" + i, "DriveSpeedOpenLoop: speed=%.3f, dutyCycle=%.3f, SteerAngle=%.3f",
+                    desiredStates[i].speedMetersPerSecond, dutyCycle, desiredStates[i].angle.getRotations());
+            }
+            else
+            {
+                double velocity = Conversions.MPSToRPS(
+                    desiredStates[i].speedMetersPerSecond, driveBaseParams.wheelCircumference) /
+                    driveBaseParams.DRIVE_GEAR_RATIO;
+                double feedForward = driveFeedForward.calculate(desiredStates[i].speedMetersPerSecond);
+                driveMotors[i].setMotorVelocity(velocity, 0.0, feedForward);
+                TrcDbgTrace.globalTraceInfo(
+                    "SwerveMod" + i,
+                    "DriveSpeedClosedLoop: speed=%.3f, motorVel=%.3f, feedForward=%.3f, SteerAngle=%.3f",
+                    desiredStates[i].speedMetersPerSecond, velocity, feedForward, desiredStates[i].angle.getRotations());
             }
         }
-    }   //setAntiDefenseEnabled
+    }
+
+    public void setModuleStates(SwerveModuleState[] desiredStates)
+    {
+        setModuleStates(desiredStates, false);
+    }
+
+    public SwerveModulePosition[] getModulePositions()
+    {
+        SwerveModulePosition[] positions = new SwerveModulePosition[4];
+
+        for (int i = 0; i < positions.length; i++)
+        {
+            positions[i] = new SwerveModulePosition(
+                Conversions.rotationsToMeters(driveMotors[i].getMotorPosition(), driveBaseParams.wheelCircumference),
+                Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
+        }
+
+        return positions;
+    }
+
+    public Pose2d getPose()
+    {
+        return swerveOdometry.getPoseMeters();
+    }   //getPose
+
+    public void setPose(Pose2d pose)
+    {
+        swerveOdometry.resetPosition(getGyroYaw(), getModulePositions(), pose);
+    }
+
+    public Rotation2d getHeading()
+    {
+        return getPose().getRotation();
+    }
+
+    public void setHeading(Rotation2d heading)
+    {
+        swerveOdometry.resetPosition(
+            getGyroYaw(), getModulePositions(), new Pose2d(getPose().getTranslation(), heading));
+    }
+
+    public void zeroHeading()
+    {
+        swerveOdometry.resetPosition(
+            getGyroYaw(), getModulePositions(), new Pose2d(getPose().getTranslation(), new Rotation2d()));
+    }
+
+    public Rotation2d getGyroYaw()
+    {
+        double gyroYaw = ((FrcAHRSGyro) gyro).ahrs.getYaw();
+        return (driveBaseParams.invertGyro) ? Rotation2d.fromDegrees(360 - gyroYaw) : Rotation2d.fromDegrees(gyroYaw);
+    }
+
+    @Override
+    public void periodic()
+    {
+        swerveOdometry.update(getGyroYaw(), getModulePositions());
+    }
 
 }   //class SwerveDrive

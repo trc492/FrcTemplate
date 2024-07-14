@@ -22,26 +22,24 @@
 
 package team492;
 
-import java.util.Locale;
-
-import TrcCommonLib.command.CmdPidDrive;
-import TrcCommonLib.command.CmdPurePursuitDrive;
-import TrcCommonLib.command.CmdTimedDrive;
-import TrcCommonLib.trclib.TrcPose2D;
-import TrcCommonLib.trclib.TrcRobot;
-import TrcCommonLib.trclib.TrcRobot.RunMode;
-import TrcFrcLib.frclib.FrcChoiceMenu;
-import TrcFrcLib.frclib.FrcMatchInfo;
-import TrcFrcLib.frclib.FrcUserChoices;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
+import frclib.driverio.FrcChoiceMenu;
+import frclib.driverio.FrcMatchInfo;
+import frclib.driverio.FrcUserChoices;
+import team492.commandbased.exampleAuto;
+import trclib.command.CmdPidDrive;
+import trclib.command.CmdPurePursuitDrive;
+import trclib.command.CmdTimedDrive;
+import trclib.pathdrive.TrcPose2D;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcRobot.RunMode;
 
 /**
  * This class implements the code to run in Autonomous Mode.
  */
 public class FrcAuto implements TrcRobot.RobotMode
 {
-    private static final String moduleName = "FrcAuto";
+    private static final String moduleName = FrcAuto.class.getSimpleName();
     //
     // Global constants.
     //
@@ -49,7 +47,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     // Auto choices enums.
     //
-    public static enum AutoStrategy
+    public enum AutoStrategy
     {
         HYBRID_MODE_AUTO,
         PP_DRIVE,
@@ -58,13 +56,13 @@ public class FrcAuto implements TrcRobot.RobotMode
         DO_NOTHING
     }   //enum AutoStrategy
 
-    public static enum AutoStartPos
+    public enum AutoStartPos
     {
         POS_1(0),
         POS_2(1),
         POS_3(2);
         // The value can be used as index into arrays if necessary.
-        int value;
+        public int value;
         AutoStartPos(int value)
         {
             this.value = value;
@@ -161,9 +159,9 @@ public class FrcAuto implements TrcRobot.RobotMode
             return autoStrategyMenu.getCurrentChoiceObject();
         }   //getStrategy
 
-        public int getStartPos()
+        public AutoStartPos getStartPos()
         {
-            return autoStartPosMenu.getCurrentChoiceObject().value;
+            return autoStartPosMenu.getCurrentChoiceObject();
         }   //getStartPos
 
         public double getStartDelay()
@@ -204,20 +202,16 @@ public class FrcAuto implements TrcRobot.RobotMode
         @Override
         public String toString()
         {
-            return String.format(
-                Locale.US,
-                "alliance=\"%s\" " +
-                "strategy=\"%s\" " +
-                "startPos=\"%s\" " +
-                "startDelay=%.0f sec " +
-                "pathFile=\"%s\" " +
-                "xDistance=%.1f ft " +
-                "yDistance=%.1f ft " +
-                "turnDegrees=%.0f deg " +
-                "driveTime=%.0f sec " +
-                "drivePower=%.1f",
-                getAlliance(), getStrategy(), getStartPos(), getStartDelay(), getPathFile(), getXDriveDistance(),
-                getYDriveDistance(), getTurnAngle(), getDriveTime(), getDrivePower());
+            return "alliance=\"" + getAlliance() + "\" " +
+                   "strategy=\"" + getStrategy() + "\" " +
+                   "startPos=\"" + getStartPos() + "\" " +
+                   "startDelay=" + getStartDelay() + " sec " +
+                   "pathFile=\"" + getPathFile() + "\" " +
+                   "xDistance=" + getXDriveDistance() + " ft " +
+                   "yDistance=" + getYDriveDistance() + " ft " +
+                   "turnDegrees=" + getTurnAngle() + " deg " +
+                   "driveTime=" + getDriveTime() + " sec " +
+                   "drivePower=" + getDrivePower();
         }   //toString
 
     }   //class AutoChoices
@@ -284,15 +278,15 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         // Retrieve Auto choices.
         //
-        robot.globalTracer.logInfo(moduleName, "MatchInfo", "%s", FrcMatchInfo.getMatchInfo());
-        robot.globalTracer.logInfo(moduleName, "AutoChoices", "%s", autoChoices);
+        robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
+        robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
         //
         // Create autonomous command.
         //
         switch (autoChoices.getStrategy())
         {
             case HYBRID_MODE_AUTO:
-                robot.m_autonomousCommand = robot.m_robotContainer.getAutonomousCommand();
+                robot.m_autonomousCommand = new exampleAuto(robot.robotDrive);
                 // schedule the autonomous command (example)
                 if (robot.m_autonomousCommand != null)
                 {
@@ -377,11 +371,6 @@ public class FrcAuto implements TrcRobot.RobotMode
             // Run the autonomous command.
             //
             autoCommand.cmdPeriodic(elapsedTime);
-        }
-
-        if (RobotParams.Preferences.hybridMode)
-        {
-            Command command = robot.m_robotContainer.s_Swerve.getCurrentCommand();
         }
 
         if (slowPeriodicLoop)

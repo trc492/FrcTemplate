@@ -22,14 +22,14 @@
 
 package team492.drivebases;
 
-import TrcCommonLib.trclib.TrcMecanumDriveBase;
-import TrcCommonLib.trclib.TrcPidController;
-import TrcCommonLib.trclib.TrcPidDrive;
-import TrcCommonLib.trclib.TrcPurePursuitDrive;
-import TrcCommonLib.trclib.TrcDbgTrace.MsgLevel;
-import TrcFrcLib.frclib.FrcPdp;
+import frclib.sensor.FrcPdp;
 import team492.Robot;
 import team492.RobotParams;
+import trclib.drivebase.TrcMecanumDriveBase;
+import trclib.pathdrive.TrcPidDrive;
+import trclib.pathdrive.TrcPurePursuitDrive;
+import trclib.robotcore.TrcDbgTrace.MsgLevel;
+import trclib.robotcore.TrcPidController;
 
 /**
  * This class creates the RobotDrive subsystem that consists of wheel motors and related objects for driving the
@@ -37,69 +37,66 @@ import team492.RobotParams;
  */
 public class MecanumDrive extends RobotDrive
 {
-    private final String[] driveMotorNames = {
-        RobotParams.LFDRIVE_MOTOR_NAME, RobotParams.RFDRIVE_MOTOR_NAME,
-        RobotParams.LBDRIVE_MOTOR_NAME, RobotParams.RBDRIVE_MOTOR_NAME};
-    private final int[] driveMotorIds = {
-        RobotParams.CANID_LFDRIVE_MOTOR, RobotParams.CANID_RFDRIVE_MOTOR,
-        RobotParams.CANID_LBDRIVE_MOTOR, RobotParams.CANID_RBDRIVE_MOTOR};
-    private final boolean[] driveMotorInverted = {
-        RobotParams.LFDRIVE_MOTOR_INVERTED, RobotParams.RFDRIVE_MOTOR_INVERTED,
-        RobotParams.LBDRIVE_MOTOR_INVERTED, RobotParams.RBDRIVE_MOTOR_INVERTED};
-
     /**
      * Constructor: Create an instance of the object.
      *
      * @param robot specifies the robot object.
+     * @param driveBaseParams specifies the drivebase parameters.
      */
-    public MecanumDrive(Robot robot)
+    public MecanumDrive(Robot robot, RobotParams.MecanumDriveBase driveBaseParams)
     {
         super(robot);
 
-        driveMotors = createMotors(MotorType.CanFalcon, false, driveMotorNames, driveMotorIds, driveMotorInverted);
+        driveMotors = createMotors(
+            MotorType.CanTalonFx, false, driveBaseParams.driveMotorNames, driveBaseParams.driveMotorIds,
+            driveBaseParams.driveMotorInverted);
         driveBase = new TrcMecanumDriveBase(
-            driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_BACK],
-            driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], gyro);
+            driveMotors[RobotDrive.INDEX_LEFT_FRONT], driveMotors[RobotDrive.INDEX_LEFT_BACK],
+            driveMotors[RobotDrive.INDEX_RIGHT_FRONT], driveMotors[RobotDrive.INDEX_RIGHT_BACK], gyro);
         driveBase.setOdometryScales(
-            RobotParams.MECANUM_X_INCHES_PER_ENCODER_UNIT, RobotParams.MECANUM_Y_INCHES_PER_ENCODER_UNIT);
+            driveBaseParams.xDriveScaleInchPerRot, driveBaseParams.yDriveScaleInchPerRot);
 
         if (robot.pdp != null)
         {
             robot.pdp.registerEnergyUsed(
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LFDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_LBDRIVE_MOTOR, driveMotorNames[INDEX_LEFT_BACK]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RFDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_FRONT]),
-                new FrcPdp.Channel(RobotParams.PDP_CHANNEL_RBDRIVE_MOTOR, driveMotorNames[INDEX_RIGHT_BACK]));
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LFDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_LEFT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_LBDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_LEFT_BACK]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RFDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_RIGHT_FRONT]),
+                new FrcPdp.Channel(
+                    RobotParams.HWConfig.PDP_CHANNEL_RBDRIVE_MOTOR,
+                    driveBaseParams.driveMotorNames[RobotDrive.INDEX_RIGHT_BACK]));
         }
         //
         // Create and initialize PID controllers.
         //
-        xPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.MECANUM_X_KP, RobotParams.MECANUM_X_KI, RobotParams.MECANUM_X_KD, RobotParams.MECANUM_X_KF);
-        yPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.MECANUM_Y_KP, RobotParams.MECANUM_Y_KI, RobotParams.MECANUM_Y_KD, RobotParams.MECANUM_Y_KF);
-        turnPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.GYRO_TURN_KP, RobotParams.GYRO_TURN_KI, RobotParams.GYRO_TURN_KD, RobotParams.GYRO_TURN_KF);
-        velPidCoeff = new TrcPidController.PidCoefficients(
-            RobotParams.ROBOT_VEL_KP, RobotParams.ROBOT_VEL_KI, RobotParams.ROBOT_VEL_KD, RobotParams.ROBOT_VEL_KF);
+        xPosPidCoeff = driveBaseParams.xDrivePidCoeff;
+        yPosPidCoeff = driveBaseParams.yDrivePidCoeff;
+        turnPidCoeff = driveBaseParams.turnPidCoeff;
+        velPidCoeff = driveBaseParams.velPidCoeff;
 
         pidDrive = new TrcPidDrive(
             "pidDrive", driveBase,
-            xPosPidCoeff, RobotParams.MECANUM_X_TOLERANCE, driveBase::getXPosition,
-            yPosPidCoeff, RobotParams.MECANUM_Y_TOLERANCE, driveBase::getYPosition,
-            turnPidCoeff, RobotParams.GYRO_TURN_TOLERANCE, driveBase::getHeading);
+            xPosPidCoeff, driveBaseParams.drivePidTolerance, driveBase::getXPosition,
+            yPosPidCoeff, driveBaseParams.drivePidTolerance, driveBase::getYPosition,
+            turnPidCoeff, driveBaseParams.turnPidTolerance, driveBase::getHeading);
 
         TrcPidController xPidCtrl = pidDrive.getXPidCtrl();
-        xPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_XPID_POWER);
-        xPidCtrl.setRampRate(RobotParams.DRIVE_MAX_XPID_RAMP_RATE);
+        xPidCtrl.setOutputLimit(driveBaseParams.xDriveMaxPidPower);
+        xPidCtrl.setRampRate(driveBaseParams.xDriveMaxPidRampRate);
 
         TrcPidController yPidCtrl = pidDrive.getYPidCtrl();
-        yPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_YPID_POWER);
-        yPidCtrl.setRampRate(RobotParams.DRIVE_MAX_YPID_RAMP_RATE);
+        yPidCtrl.setOutputLimit(driveBaseParams.yDriveMaxPidPower);
+        yPidCtrl.setRampRate(driveBaseParams.yDriveMaxPidRampRate);
 
         TrcPidController turnPidCtrl = pidDrive.getTurnPidCtrl();
-        turnPidCtrl.setOutputLimit(RobotParams.DRIVE_MAX_TURNPID_POWER);
-        turnPidCtrl.setRampRate(RobotParams.DRIVE_MAX_TURNPID_RAMP_RATE);
+        turnPidCtrl.setOutputLimit(driveBaseParams.turnMaxPidPower);
+        turnPidCtrl.setRampRate(driveBaseParams.turnMaxPidRampRate);
         turnPidCtrl.setAbsoluteSetPoint(true);
 
         // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
@@ -110,11 +107,11 @@ public class MecanumDrive extends RobotDrive
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase,
-            RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
-            xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+            driveBaseParams.PPD_FOLLOWING_DISTANCE, driveBaseParams.PPD_POS_TOLERANCE,
+            driveBaseParams.PPD_TURN_TOLERANCE, xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
         purePursuitDrive.setStallDetectionEnabled(true);
-        purePursuitDrive.setMoveOutputLimit(RobotParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
-        purePursuitDrive.setRotOutputLimit(RobotParams.PPD_ROT_DEF_OUTPUT_LIMIT);
+        purePursuitDrive.setMoveOutputLimit(driveBaseParams.PPD_MOVE_DEF_OUTPUT_LIMIT);
+        purePursuitDrive.setRotOutputLimit(driveBaseParams.PPD_ROT_DEF_OUTPUT_LIMIT);
         purePursuitDrive.setFastModeEnabled(true);
         purePursuitDrive.setTraceLevel(MsgLevel.INFO, false, false, false);
     }   //MecanumDrive
