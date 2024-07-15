@@ -119,9 +119,6 @@ public class RobotParams
         // Robot dimensions in inches.
         public static final double WIDTH                        = 34.5;     // Frame dimensions, including bumpers.
         public static final double LENGTH                       = 34.5;     // Frame dimensions, including bumpers.
-
-        public static final double WHEELBASE_WIDTH              = 23.25;    // Required by swerve drive base.
-        public static final double WHEELBASE_LENGTH             = 23.25;    // Required by swerve drive base.
     }   //class Robot
 
     public static class Game
@@ -378,6 +375,8 @@ public class RobotParams
         public final double DRIVE_KS                            = 0.32;     //TODO: This must be tuned to specific robot
         public final double DRIVE_KV                            = 1.51;
         public final double DRIVE_KA                            = 0.27;
+        // Swwerve Robot Parameters
+        public double wheelBaseLength, wheelBaseWidth;
         // Steer Motors
         public String[] steerMotorNames;
         public int[] steerMotorIds;
@@ -407,6 +406,8 @@ public class RobotParams
 
         public SwerveDriveBase()
         {
+            wheelBaseLength = 23.25;    // Required by Swerve Drive Base.
+            wheelBaseWidth = 23.25;     // Required by Swerve Drive Base.
             // Drive Motors
             driveMotorNames = new String[] {"lfDriveMotor", "rfDriveMotor", "lbDriveMotor", "rbDriveMotor"};
             driveMotorIds = new int[] {
@@ -469,8 +470,8 @@ public class RobotParams
             //
             invertGyro = true;  // Always ensure Gyro is CCW+ CW-
             // Drivetrain Constants
-            trackWidth = Units.inchesToMeters(Robot.WHEELBASE_WIDTH);
-            wheelBase = Units.inchesToMeters(Robot.WHEELBASE_LENGTH);
+            wheelBase = Units.inchesToMeters(wheelBaseLength);
+            trackWidth = Units.inchesToMeters(wheelBaseWidth);
             wheelCircumference = Units.inchesToMeters(DRIVE_WHEEL_DIAMETER * Math.PI);
             // Swerve Kinematics
             // No need to ever change this unless you are not doing a traditional rectangular/square 4 module swerve

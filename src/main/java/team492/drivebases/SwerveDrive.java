@@ -118,7 +118,7 @@ public class SwerveDrive extends RobotDrive
         driveBase = new TrcSwerveDriveBase(
             swerveModules[RobotDrive.INDEX_LEFT_FRONT], swerveModules[RobotDrive.INDEX_LEFT_BACK],
             swerveModules[RobotDrive.INDEX_RIGHT_FRONT], swerveModules[RobotDrive.INDEX_RIGHT_BACK],
-            gyro, RobotParams.Robot.WHEELBASE_WIDTH, RobotParams.Robot.WHEELBASE_LENGTH);
+            gyro, driveBaseParams.wheelBaseWidth, driveBaseParams.wheelBaseLength);
         driveBase.setOdometryScales(driveBaseParams.xDriveScaleInchPerRot, driveBaseParams.yDriveScaleInchPerRot);
 
         if (RobotParams.Preferences.useAntiTipping)
