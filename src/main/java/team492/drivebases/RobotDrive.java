@@ -211,10 +211,7 @@ public class RobotDrive extends SubsystemBase
 
         for (int i = 0; i < names.length; i++)
         {
-            motors[i] = FrcMotor.createMotor(motorType, brushless, false, names[i], motorCanIds[i]);
-            motors[i].resetFactoryDefault();
-            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-            motors[i].setBrakeModeEnabled(true);
+            motors[i] = FrcMotor.createMotor(names[i], motorCanIds[i], motorType, brushless, false);
             motors[i].setMotorInverted(inverted[i]);
         }
 
