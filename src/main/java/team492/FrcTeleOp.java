@@ -310,6 +310,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
             case DPAD_RIGHT:
             case DPAD_LEFT:
+                break;
+
             case BACK:
                 if (pressed)
                 {
