@@ -286,11 +286,14 @@ public class FrcAuto implements TrcRobot.RobotMode
         switch (autoChoices.getStrategy())
         {
             case HYBRID_MODE_AUTO:
-                robot.m_autonomousCommand = new exampleAuto(robot.robotDrive);
-                // schedule the autonomous command (example)
-                if (robot.m_autonomousCommand != null)
+                if (robot.robotDrive != null)
                 {
-                    robot.m_autonomousCommand.schedule();
+                    robot.m_autonomousCommand = new exampleAuto(robot.robotDrive);
+                    // schedule the autonomous command (example)
+                    if (robot.m_autonomousCommand != null)
+                    {
+                        robot.m_autonomousCommand.schedule();
+                    }
                 }
                 break;
 

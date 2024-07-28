@@ -236,7 +236,10 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize RobotDrive subsystem.
         //
-        robotDrive = new SwerveDrive(this, new RobotParams.SwerveDriveBase());
+        if (RobotParams.Preferences.useDriveBase)
+        {
+            robotDrive = new SwerveDrive(this, new RobotParams.SwerveDriveBase());
+        }
         //
         // Create and initialize other subsystems.
         //

@@ -86,12 +86,13 @@ public class RobotParams
         public static final boolean usePdp                      = false;
         public static final boolean usePressureSensor           = false;
         // Vision
-        public static final boolean useVision                   = true;
+        public static final boolean useVision                   = false;
         public static final boolean usePhotonVision             = true;
         public static final boolean usePhotonVisionRaw          = false;
         public static final boolean useOpenCvVision             = false;
         public static final boolean useStreamCamera             = false;
         // Drive Base
+        public static final boolean useDriveBase                = true;
         public static final boolean useExternalOdometry         = false;
         public static final boolean useVelocityControl          = false;
         public static final boolean useGyroAssist               = false;
