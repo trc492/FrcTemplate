@@ -74,7 +74,7 @@ public class RobotParams
         public static final boolean showPurePursuitDrive        = false;
         public static final boolean showPidDrive                = false;
         public static final boolean showVision                  = false;
-        public static final boolean showSubsystems              = false;
+        public static final boolean showSubsystems              = true;
         // Inputs
         public static final boolean useDriverXboxController     = true;
         public static final boolean useOperatorXboxController   = true;
@@ -102,6 +102,8 @@ public class RobotParams
         public static final boolean useSteeringAnalogEncoder    = false;
         // Subsystems
         public static final boolean useSubsystems               = true;
+        public static final boolean useSimpleMotor              = true;
+        public static final boolean useSimpleServo              = true;
     }   //class Preferences
 
     public static final String TEAM_FOLDER_PATH                 = "/home/lvuser/trc492";

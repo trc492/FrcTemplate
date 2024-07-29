@@ -193,6 +193,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (RobotParams.Preferences.useSubsystems)
                 {
+                    if (robot.simpleMotor != null)
+                    {
+                        double motorPower = robot.driverController.getLeftYWithDeadband(true);
+                        robot.simpleMotor.setPower(motorPower);
+                    }
+
+                    if (robot.simpleServo != null)
+                    {
+                        double servoPower = robot.driverController.getRightYWithDeadband(true);
+                        robot.simpleServo.setPower(servoPower);
+                    }
                 }
             }
             //
@@ -288,6 +299,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case BUTTON_X:
+                if (robot.simpleServo != null)
+                {
+                    if (pressed)
+                    {
+                        robot.simpleServo.setPosition(90.0);
+                    }
+                    else
+                    {
+                        robot.simpleServo.setPosition(0.0);
+                    }
+                }
+                break;
+
             case BUTTON_Y:
                 break;
 

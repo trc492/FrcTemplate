@@ -34,6 +34,8 @@ import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcJoystick;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcXboxController;
+import frclib.motor.FrcCANTalonSRX;
+import frclib.motor.FrcServo;
 import frclib.robotcore.FrcRobotBase;
 import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
@@ -109,6 +111,8 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
+    public FrcCANTalonSRX simpleMotor;
+    public FrcServo simpleServo;
 
     //
     // Auto-Assists.
@@ -245,6 +249,23 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useSubsystems)
         {
+            if (RobotParams.Preferences.useSimpleMotor)
+            {
+                simpleMotor = new FrcCANTalonSRX("SimpleMotor", 10);
+                simpleMotor.resetFactoryDefault();
+                simpleMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+                simpleMotor.setBrakeModeEnabled(true);
+                simpleMotor.setMotorInverted(true);
+            }
+
+            if (RobotParams.Preferences.useSimpleServo)
+            {
+                simpleServo = new FrcServo("SimpleServo", 0);
+                simpleServo.setLogicalPosRange(0.2, 0.6);
+                simpleServo.setPhysicalPosRange(0.0, 90.0);
+                simpleServo.setMaxStepRate(250.0);
+                simpleServo.setPosition(0.0);   // in degrees
+            }
         }
         //
         // Miscellaneous.
@@ -535,6 +556,19 @@ public class Robot extends FrcRobotBase
 
             if (RobotParams.Preferences.showSubsystems)
             {
+                if (simpleMotor != null)
+                {
+                    dashboard.displayPrintf(
+                        lineNum++, "MikeMotor: power=%.3f, enc=%.0f",
+                        simpleMotor.getPower(), simpleMotor.getPosition());
+                }
+
+                if (simpleServo != null)
+                {
+                    dashboard.displayPrintf(
+                        lineNum++, "MikeServo: power=%.3f, pos=%.3f",
+                        simpleServo.getPower(), simpleServo.getPosition());
+                }
             }
         }
     }   //updateStatus
