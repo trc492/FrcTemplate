@@ -251,11 +251,13 @@ public class Robot extends FrcRobotBase
         {
             if (RobotParams.Preferences.useSimpleMotor)
             {
+                final double goBilda1620CPR = ((1.0 + (46.0/17.0)) * 28.0);
                 simpleMotor = new FrcCANTalonSRX("SimpleMotor", 10);
                 simpleMotor.resetFactoryDefault();
                 simpleMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 simpleMotor.setBrakeModeEnabled(true);
                 simpleMotor.setMotorInverted(true);
+                simpleMotor.setPositionSensorScaleAndOffset(1.0/goBilda1620CPR, 0.0);
             }
 
             if (RobotParams.Preferences.useSimpleServo)
@@ -559,14 +561,14 @@ public class Robot extends FrcRobotBase
                 if (simpleMotor != null)
                 {
                     dashboard.displayPrintf(
-                        lineNum++, "MikeMotor: power=%.3f, enc=%.0f",
-                        simpleMotor.getPower(), simpleMotor.getPosition());
+                        lineNum++, "SimpleMotor: power=%.3f, pos=%.3f rev, vel=%.3f rpm",
+                        simpleMotor.getPower(), simpleMotor.getPosition(), simpleMotor.getVelocity()*60.0);
                 }
 
                 if (simpleServo != null)
                 {
                     dashboard.displayPrintf(
-                        lineNum++, "MikeServo: power=%.3f, pos=%.3f",
+                        lineNum++, "SimpleServo: power=%.3f, pos=%.3f",
                         simpleServo.getPower(), simpleServo.getPosition());
                 }
             }
