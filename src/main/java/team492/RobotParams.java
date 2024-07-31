@@ -92,7 +92,7 @@ public class RobotParams
         public static final boolean useOpenCvVision             = false;
         public static final boolean useStreamCamera             = false;
         // Drive Base
-        public static final boolean useDriveBase                = true;
+        public static final boolean useDriveBase                = false;
         public static final boolean useExternalOdometry         = false;
         public static final boolean useVelocityControl          = false;
         public static final boolean useGyroAssist               = false;
@@ -102,8 +102,9 @@ public class RobotParams
         public static final boolean useSteeringAnalogEncoder    = false;
         // Subsystems
         public static final boolean useSubsystems               = true;
-        public static final boolean useSimpleMotor              = true;
+        public static final boolean useSimpleMotor              = false;
         public static final boolean useSimpleServo              = true;
+        public static final boolean useElevator                 = true;
     }   //class Preferences
 
     public static final String TEAM_FOLDER_PATH                 = "/home/lvuser/trc492";
@@ -598,5 +599,27 @@ public class RobotParams
     //
     // Other subsystems.
     //
+
+    public static final class Elevator
+    {
+        public static final boolean MOTOR_INVERTED              = true;
+        public static final boolean VOLTAGE_COMP_ENABLED        = true;
+        public static final double POWER_LIMIT                  = 1.0;
+        public static final double ZERO_CAL_POWER               = -0.25;
+        public static final double INCHES_PER_COUNT             = 18.25/4941.0;
+        public static final double POS_OFFSET                   = 10.875;
+        public static final double MIN_POS                      = POS_OFFSET;
+        public static final double MAX_POS                      = 30.25;
+        public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0};
+        public static final double POS_PRESET_TOLERANCE         = 1.0;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.5, 0.0, 0.0, 0.0, 0.0);
+        public static final double POS_PID_TOLERANCE            = 0.1;
+        public static final double GRAVITY_COMP_POWER           = 0.0;
+        public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
+        public static final double STALL_TOLERANCE              = 0.1;
+        public static final double STALL_TIMEOUT                = 0.1;
+        public static final double STALL_RESET_TIMEOUT          = 0.0;
+    }   //class Elevator
 
 }   //class RobotParams

@@ -204,6 +204,21 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         double servoPower = robot.driverController.getRightYWithDeadband(true);
                         robot.simpleServo.setPower(servoPower);
                     }
+
+                    if (robot.elevator != null)
+                    {
+                        double elevatorPower = robot.driverController.getLeftYWithDeadband(true);
+                        if (driverAltFunc)
+                        {
+                            // Manual override.
+                            robot.elevator.setPower(elevatorPower);
+                        }
+                        else
+                        {
+                            robot.elevator.setPidPower(
+                                elevatorPower, RobotParams.Elevator.MIN_POS, RobotParams.Elevator.MAX_POS, true);
+                        }
+                    }
                 }
             }
             //
@@ -313,6 +328,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case BUTTON_Y:
+                if (pressed)
+                {
+                    robot.zeroCalibrate();
+                }
                 break;
 
             case LEFT_BUMPER:
@@ -333,7 +352,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case DPAD_UP:
+                if (robot.elevator != null && pressed)
+                {
+                    robot.elevator.presetPositionUp(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                }
+                break;
+
             case DPAD_DOWN:
+                if (robot.elevator != null && pressed)
+                {
+                    robot.elevator.presetPositionDown(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                }
+                break;
+
             case DPAD_LEFT:
             case DPAD_RIGHT:
                 break;

@@ -43,12 +43,14 @@ import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVisionRaw;
 import team492.drivebases.RobotDrive;
 import team492.drivebases.SwerveDrive;
+import team492.subsystems.Elevator;
 import team492.subsystems.LEDIndicator;
 import team492.vision.OpenCvVision;
 import team492.vision.PhotonVision;
 import team492.vision.PhotonVisionRaw;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
+import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcPidController;
@@ -113,6 +115,7 @@ public class Robot extends FrcRobotBase
     //
     public FrcCANTalonSRX simpleMotor;
     public FrcServo simpleServo;
+    public TrcMotor elevator;
 
     //
     // Auto-Assists.
@@ -267,6 +270,12 @@ public class Robot extends FrcRobotBase
                 simpleServo.setPhysicalPosRange(0.0, 90.0);
                 simpleServo.setMaxStepRate(250.0);
                 simpleServo.setPosition(0.0);   // in degrees
+            }
+
+            if (RobotParams.Preferences.useElevator)
+            {
+                elevator = new Elevator().getElevatorMotor();
+                elevator.zeroCalibrate(RobotParams.Elevator.ZERO_CAL_POWER);
             }
         }
         //
@@ -571,6 +580,14 @@ public class Robot extends FrcRobotBase
                         lineNum++, "SimpleServo: power=%.3f, pos=%.3f",
                         simpleServo.getPower(), simpleServo.getPosition());
                 }
+
+                if (elevator != null)
+                {
+                    dashboard.displayPrintf(
+                        lineNum++, "Elevator: power=%.3f, pos=%.3f/%.3f, limitSw=%s/%s",
+                        elevator.getPower(), elevator.getPosition(), elevator.getPidTarget(),
+                        elevator.isLowerLimitSwitchActive(), elevator.isUpperLimitSwitchActive());
+                }
             }
         }
     }   //updateStatus
@@ -649,6 +666,10 @@ public class Robot extends FrcRobotBase
      */
     public void zeroCalibrate()
     {
+        if (elevator != null)
+        {
+            elevator.zeroCalibrate(moduleName, RobotParams.Elevator.ZERO_CAL_POWER);
+        }
     }   //zeroCalibrate
 
     /**
