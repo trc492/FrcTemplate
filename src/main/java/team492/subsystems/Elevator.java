@@ -22,7 +22,6 @@
 
 package team492.subsystems;
 
-import frclib.motor.FrcMotor.MotorType;
 import frclib.subsystem.FrcMotorActuator;
 import team492.RobotParams;
 import trclib.motor.TrcMotor;
@@ -46,8 +45,9 @@ public class Elevator
             .setPositionPresets(RobotParams.Elevator.POS_PRESET_TOLERANCE, RobotParams.Elevator.posPresets);
 
         elevatorMotor = new FrcMotorActuator(
-            "Elevator", 10, MotorType.CanTalonSrx, false, false, motorParams).getActuator();
-        elevatorMotor.setSoftwarePidEnabled(true);
+            RobotParams.Elevator.SUBSYSTEM_NAME, RobotParams.Elevator.MOTOR_ID, RobotParams.Elevator.MOTOR_TYPE,
+            RobotParams.Elevator.MOTOR_BRUSHLESS, RobotParams.Elevator.MOTOR_ENC_ABS, motorParams).getActuator();
+        elevatorMotor.setSoftwarePidEnabled(RobotParams.Elevator.SOFTWARE_PID_ENABLED);
         elevatorMotor.setPositionPidParameters(RobotParams.Elevator.posPidCoeffs, RobotParams.Elevator.POS_PID_TOLERANCE);
         // elevatorMotor.setPositionPidPowerComp(this::getGravityComp);
         elevatorMotor.setStallProtection(

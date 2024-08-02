@@ -29,6 +29,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import frclib.motor.FrcMotor.MotorType;
 import team492.drivebases.RobotDrive.DriveMode;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcPidController;
@@ -103,8 +104,10 @@ public class RobotParams
         // Subsystems
         public static final boolean useSubsystems               = true;
         public static final boolean useSimpleMotor              = false;
-        public static final boolean useSimpleServo              = true;
-        public static final boolean useElevator                 = true;
+        public static final boolean useSimpleServo              = false;
+        public static final boolean useElevator                 = false;
+        public static final boolean useArm                      = false;
+        public static final boolean useShooter                  = true;
     }   //class Preferences
 
     public static final String TEAM_FOLDER_PATH                 = "/home/lvuser/trc492";
@@ -602,16 +605,26 @@ public class RobotParams
 
     public static final class Elevator
     {
+        public static final String SUBSYSTEM_NAME               = "Elevator";
+
+        public static final int MOTOR_ID                        = 10;
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+        public static final boolean MOTOR_BRUSHLESS             = false;
+        public static final boolean MOTOR_ENC_ABS               = false;
+
         public static final boolean MOTOR_INVERTED              = true;
         public static final boolean VOLTAGE_COMP_ENABLED        = true;
-        public static final double POWER_LIMIT                  = 1.0;
-        public static final double ZERO_CAL_POWER               = -0.25;
         public static final double INCHES_PER_COUNT             = 18.25/4941.0;
         public static final double POS_OFFSET                   = 10.875;
+        public static final double POWER_LIMIT                  = 1.0;
+        public static final double ZERO_CAL_POWER               = -0.25;
+
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 30.25;
         public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0};
         public static final double POS_PRESET_TOLERANCE         = 1.0;
+
+        public static final boolean SOFTWARE_PID_ENABLED        = true;
         public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.5, 0.0, 0.0, 0.0, 0.0);
         public static final double POS_PID_TOLERANCE            = 0.1;
@@ -621,5 +634,71 @@ public class RobotParams
         public static final double STALL_TIMEOUT                = 0.1;
         public static final double STALL_RESET_TIMEOUT          = 0.0;
     }   //class Elevator
+
+    public static final class Arm
+    {
+        public static final String SUBSYSTEM_NAME               = "Arm";
+
+        public static final int MOTOR_ID                        = 10;
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+        public static final boolean MOTOR_BRUSHLESS             = false;
+        public static final boolean MOTOR_ENC_ABS               = false;
+
+        public static final boolean MOTOR_INVERTED              = true;
+        public static final boolean VOLTAGE_COMP_ENABLED        = true;
+        public static final double DEG_PER_COUNT                = 18.25/4941.0; //???
+        public static final double POS_OFFSET                   = 10.875;
+        public static final double POWER_LIMIT                  = 1.0;
+        public static final double ZERO_CAL_POWER               = -0.25;
+
+        public static final double MIN_POS                      = POS_OFFSET;
+        public static final double MAX_POS                      = 30.25;
+        public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0};
+        public static final double POS_PRESET_TOLERANCE         = 1.0;
+
+        public static final boolean SOFTWARE_PID_ENABLED        = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.5, 0.0, 0.0, 0.0, 0.0);
+        public static final double POS_PID_TOLERANCE            = 0.1;
+        public static final double GRAVITY_COMP_MAX_POWER       = 0.0;
+        public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
+        public static final double STALL_TOLERANCE              = 0.1;
+        public static final double STALL_TIMEOUT                = 0.1;
+        public static final double STALL_RESET_TIMEOUT          = 0.0;
+    }   //class Arm
+
+    public static final class Shooter
+    {
+        public static final String SUBSYSTEM_NAME               = "Shooter";
+
+        public static final int MOTOR1_ID                       = 10;
+        public static final MotorType MOTOR1_TYPE               = MotorType.CanTalonSrx;
+        public static final boolean MOTOR1_BRUSHLESS            = false;
+        public static final boolean MOTOR1_ENC_ABS              = false;
+        public static final boolean MOTOR1_INVERTED             = false;
+
+        public static final boolean HAS_TWO_SHOOTER_MOTORS      = true;
+        public static final int MOTOR2_ID                       = 12;
+        public static final MotorType MOTOR2_TYPE               = MotorType.CanTalonSrx;
+        public static final boolean MOTOR2_BRUSHLESS            = false;
+        public static final boolean MOTOR2_ENC_ABS              = false;
+        public static final boolean MOTOR2_INVERTED             = true;
+        public static final boolean MOTOR2_IS_FOLLOWER          = false;
+
+        public static final double GOBILDA1620_RPC              = 1.0 / ((1.0 + (46.0/17.0)) * 28.0);
+        public static final boolean SOFTWARE_PID_ENABLED        = true;
+        public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
+            new TrcPidController.PidCoefficients(0.025, 0.0, 0.0, 0.0363, 0.0);
+        public static final TrcPidController.PidCoefficients shooter2PidCoeffs =
+            new TrcPidController.PidCoefficients(0.025, 0.0, 0.0, 0.0378, 0.0);
+        public static final double SHOOTER_PID_TOLERANCE        = 10.0;
+
+        public static final double SHOOTER_MIN_VEL              = 10.0;     // in RPM
+        public static final double SHOOTER_MAX_VEL              = 1620.0;   // in RPM
+        public static final double SHOOTER_MIN_VEL_INC          = 1.0;      // in RPM
+        public static final double SHOOTER_MAX_VEL_INC          = 100.0;    // in RPM
+        public static final double SHOOTER_DEF_VEL              = 1000.0;   // in RPM
+        public static final double SHOOTER_DEF_VEL_INC          = 10.0;     // in RPM
+    }   //class Shooter
 
 }   //class RobotParams

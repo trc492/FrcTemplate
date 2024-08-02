@@ -47,6 +47,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     protected boolean driverAltFunc = false;
     protected boolean operatorAltFunc = false;
     private boolean subsystemStatusOn = true;
+    private boolean shooterOn = false;
+    private double prevSimpleMotorPower = 0.0;
+    private double prevSimpleServoPower = 0.0;
+    private double prevElevatorPower = 0.0;
+    private double prevArmPower = 0.0;
+    private double prevShooterVelocity = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -196,27 +202,79 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (robot.simpleMotor != null)
                     {
                         double motorPower = robot.driverController.getLeftYWithDeadband(true);
-                        robot.simpleMotor.setPower(motorPower);
+                        if (motorPower != prevSimpleMotorPower)
+                        {
+                            robot.simpleMotor.setPower(motorPower);
+                            prevSimpleMotorPower = motorPower;
+                        }
                     }
 
                     if (robot.simpleServo != null)
                     {
                         double servoPower = robot.driverController.getRightYWithDeadband(true);
-                        robot.simpleServo.setPower(servoPower);
+                        if (servoPower != prevSimpleServoPower)
+                        {
+                            robot.simpleServo.setPower(servoPower);
+                            prevSimpleServoPower = servoPower;
+                        }
                     }
 
                     if (robot.elevator != null)
                     {
                         double elevatorPower = robot.driverController.getLeftYWithDeadband(true);
-                        if (driverAltFunc)
+                        if (elevatorPower != prevElevatorPower)
                         {
-                            // Manual override.
-                            robot.elevator.setPower(elevatorPower);
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.elevator.setPower(elevatorPower);
+                            }
+                            else
+                            {
+                                robot.elevator.setPidPower(
+                                    elevatorPower, RobotParams.Elevator.MIN_POS, RobotParams.Elevator.MAX_POS, true);
+                            }
+                            prevElevatorPower = elevatorPower;
+                        }
+                    }
+
+                    if (robot.arm != null)
+                    {
+                        double armPower = robot.driverController.getLeftYWithDeadband(true);
+                        if (armPower != prevArmPower)
+                        {
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.arm.setPower(armPower);
+                            }
+                            else
+                            {
+                                robot.arm.setPidPower(
+                                    armPower, RobotParams.Arm.MIN_POS, RobotParams.Arm.MAX_POS, true);
+                            }
+                            prevArmPower = armPower;
+                        }
+                    }
+
+                    if (robot.shooter != null)
+                    {
+                        if (shooterOn)
+                        {
+                            double shooterVel = robot.shooterVelocity.getValue();
+                            if (shooterVel != prevShooterVelocity)
+                            {
+                                robot.shooter.setShooterMotorRPM(shooterVel, shooterVel);
+                                prevShooterVelocity = shooterVel;
+                            }
                         }
                         else
                         {
-                            robot.elevator.setPidPower(
-                                elevatorPower, RobotParams.Elevator.MIN_POS, RobotParams.Elevator.MAX_POS, true);
+                            if (prevShooterVelocity != 0.0)
+                            {
+                                robot.shooter.stopShooter();
+                                prevShooterVelocity = 0.0;
+                            }
                         }
                     }
                 }
@@ -325,6 +383,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.simpleServo.setPosition(0.0);
                     }
                 }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        shooterOn = !shooterOn;
+                    }
+                }
                 break;
 
             case BUTTON_Y:
@@ -352,21 +417,71 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case DPAD_UP:
-                if (robot.elevator != null && pressed)
+                if (robot.elevator != null)
                 {
-                    robot.elevator.presetPositionUp(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                    if (pressed)
+                    {
+                        robot.elevator.presetPositionUp(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                    }
+                }
+                else if (robot.arm != null)
+                {
+                    if (pressed)
+                    {
+                        robot.arm.presetPositionUp(moduleName, RobotParams.Arm.POWER_LIMIT);
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterVelocity.upValue();
+                    }
                 }
                 break;
 
             case DPAD_DOWN:
-                if (robot.elevator != null && pressed)
+                if (robot.elevator != null)
                 {
-                    robot.elevator.presetPositionDown(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                    if (pressed)
+                    {
+                        robot.elevator.presetPositionDown(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                    }
+                }
+                else if (robot.arm != null)
+                {
+                    if (pressed)
+                    {
+                        robot.arm.presetPositionDown(moduleName, RobotParams.Arm.POWER_LIMIT);
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterVelocity.downValue();
+                    }
                 }
                 break;
 
             case DPAD_LEFT:
+                if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterVelocity.downIncrement();
+                    }
+                }
+                break;
+
             case DPAD_RIGHT:
+                if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterVelocity.upIncrement();
+                    }
+                }
                 break;
 
             case BACK:
