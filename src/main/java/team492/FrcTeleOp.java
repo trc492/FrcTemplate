@@ -421,14 +421,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.elevator.presetPositionUp(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                        robot.elevator.presetPositionUp(null, RobotParams.Elevator.POWER_LIMIT);
                     }
                 }
                 else if (robot.arm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionUp(moduleName, RobotParams.Arm.POWER_LIMIT);
+                        robot.arm.presetPositionUp(null, RobotParams.Arm.POWER_LIMIT);
                     }
                 }
                 else if (robot.shooter != null)
@@ -445,14 +445,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.elevator.presetPositionDown(moduleName, RobotParams.Elevator.POWER_LIMIT);
+                        robot.elevator.presetPositionDown(null, RobotParams.Elevator.POWER_LIMIT);
                     }
                 }
                 else if (robot.arm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionDown(moduleName, RobotParams.Arm.POWER_LIMIT);
+                        robot.arm.presetPositionDown(null, RobotParams.Arm.POWER_LIMIT);
                     }
                 }
                 else if (robot.shooter != null)

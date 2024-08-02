@@ -57,6 +57,7 @@ import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcPidController;
+import trclib.robotcore.TrcDbgTrace.MsgLevel;
 import trclib.robotcore.TrcRobot.RunMode;
 import trclib.sensor.TrcRobotBattery;
 import trclib.subsystem.TrcShooter;
@@ -282,13 +283,11 @@ public class Robot extends FrcRobotBase
             if (RobotParams.Preferences.useElevator)
             {
                 elevator = new Elevator().getElevatorMotor();
-                elevator.zeroCalibrate(RobotParams.Elevator.ZERO_CAL_POWER);    //TODO: Investigate (not working)
             }
 
             if (RobotParams.Preferences.useArm)
             {
                 arm = new Arm().getArmMotor();
-                arm.zeroCalibrate(RobotParams.Arm.ZERO_CAL_POWER);              //TODO: Investigate (not working)
             }
 
             if (RobotParams.Preferences.useShooter)
@@ -716,6 +715,11 @@ public class Robot extends FrcRobotBase
         if (elevator != null)
         {
             elevator.zeroCalibrate(moduleName, RobotParams.Elevator.ZERO_CAL_POWER);
+        }
+
+        if (arm != null)
+        {
+            arm.zeroCalibrate(moduleName, RobotParams.Arm.ZERO_CAL_POWER);
         }
     }   //zeroCalibrate
 
