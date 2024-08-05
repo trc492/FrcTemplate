@@ -57,7 +57,6 @@ import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcPidController;
-import trclib.robotcore.TrcDbgTrace.MsgLevel;
 import trclib.robotcore.TrcRobot.RunMode;
 import trclib.sensor.TrcRobotBattery;
 import trclib.subsystem.TrcShooter;
