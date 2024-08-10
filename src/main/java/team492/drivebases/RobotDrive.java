@@ -31,8 +31,8 @@ import java.util.Scanner;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frclib.motor.FrcMotor;
-import frclib.motor.FrcMotor.MotorType;
+import frclib.motor.FrcMotorActuator;
+import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcAHRSGyro;
 import team492.FrcAuto;
 import team492.Robot;
@@ -211,8 +211,9 @@ public class RobotDrive extends SubsystemBase
 
         for (int i = 0; i < names.length; i++)
         {
-            motors[i] = FrcMotor.createMotor(names[i], motorCanIds[i], motorType, brushless, false);
-            motors[i].setMotorInverted(inverted[i]);
+            FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params().setPrimaryMotor(
+                motorCanIds[i], motorType, brushless, false, inverted[i]);
+            motors[i] = new FrcMotorActuator(names[i], motorParams).getMotor();
         }
 
         return motors;
