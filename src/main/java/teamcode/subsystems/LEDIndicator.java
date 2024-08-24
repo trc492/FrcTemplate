@@ -20,12 +20,12 @@
  * SOFTWARE.
  */
 
-package team492.subsystems;
+package teamcode.subsystems;
 
 import frclib.dataprocessor.FrcColor;
 import frclib.driverio.FrcAddressableLED;
-import team492.RobotParams;
-import team492.vision.PhotonVision;
+import teamcode.RobotParams;
+import teamcode.vision.PhotonVision;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.driverio.TrcAddressableLED;
 import trclib.pathdrive.TrcPose2D;
@@ -33,19 +33,19 @@ import trclib.pathdrive.TrcPose2D;
 public class LEDIndicator
 {
     private static final TrcAddressableLED.Pattern aprilTagLockedPattern =  // Magenta
-        new TrcAddressableLED.Pattern("AprilTagLocked", new FrcColor(63, 0, 63), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("AprilTagLocked", new FrcColor(63, 0, 63), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern aprilTagPattern =        // Green
-        new TrcAddressableLED.Pattern("AprilTag", new FrcColor(0, 63, 0), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("AprilTag", new FrcColor(0, 63, 0), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern seeNothingPattern =      // Red
-        new TrcAddressableLED.Pattern("SeeNothing", new FrcColor(63, 0, 0), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("SeeNothing", new FrcColor(63, 0, 0), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern fieldOrientedPattern =   // White
-        new TrcAddressableLED.Pattern("FieldOriented", new FrcColor(63, 63, 63), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("FieldOriented", new FrcColor(63, 63, 63), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern robotOrientedPattern =   // Blue
-        new TrcAddressableLED.Pattern("RobotOriented", new FrcColor(0, 0, 63), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("RobotOriented", new FrcColor(0, 0, 63), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern inverseOrientedPattern = // Magenta
-        new TrcAddressableLED.Pattern("InverseOriented", new FrcColor(63, 0, 63), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("InverseOriented", new FrcColor(63, 0, 63), RobotParams.HwConfig.NUM_LEDS);
     private static final TrcAddressableLED.Pattern nominalPattern =         // Black
-        new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.HWConfig.NUM_LEDS);
+        new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.HwConfig.NUM_LEDS);
 
     private static final TrcAddressableLED.Pattern[] priorities =
         new TrcAddressableLED.Pattern[]
@@ -68,7 +68,7 @@ public class LEDIndicator
      */
     public LEDIndicator()
     {
-        led = new FrcAddressableLED("LED", RobotParams.HWConfig.NUM_LEDS, RobotParams.HWConfig.PWM_CHANNEL_LED);
+        led = new FrcAddressableLED("LED", RobotParams.HwConfig.NUM_LEDS, RobotParams.HwConfig.PWM_CHANNEL_LED);
         reset();
     }   //LEDIndicator
 

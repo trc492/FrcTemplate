@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
-package team492.autocommands;
+package teamcode.autocommands;
 
-import team492.FrcAuto.AutoChoices;
-import team492.Robot;
+import teamcode.Robot;
+import teamcode.FrcAuto.AutoChoices;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcStateMachine;

@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-package team492.autotasks;
+package teamcode.autotasks;
 
-import team492.Robot;
+import teamcode.Robot;
 import trclib.robotcore.TrcAutoTask;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcOwnershipMgr;

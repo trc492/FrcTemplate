@@ -20,18 +20,18 @@
  * SOFTWARE.
  */
 
-package team492;
+package teamcode;
 
 import java.util.Locale;
 
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frclib.drivebase.FrcRobotDrive;
+import frclib.drivebase.FrcSwerveDrive;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcUserChoices;
 import frclib.vision.FrcPhotonVision;
-import team492.drivebases.RobotDrive;
-import team492.drivebases.SwerveDrive;
-import team492.vision.PhotonVision.PipelineType;
+import teamcode.vision.PhotonVision.PipelineType;
 import trclib.command.CmdDriveMotorsTest;
 import trclib.command.CmdPidDrive;
 import trclib.command.CmdTimedDrive;
@@ -274,10 +274,10 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case SWERVE_CALIBRATION:
-                if (robot.robotDrive != null && robot.robotDrive instanceof SwerveDrive)
+                if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
                 {
                     setControlsEnabled(false);
-                    ((SwerveDrive) robot.robotDrive).startSteeringCalibration();
+                    ((FrcSwerveDrive) robot.robotDrive).startSteeringCalibration();
                 }
                 break;
 
@@ -290,10 +290,10 @@ public class FrcTest extends FrcTeleOp
                     //
                     testCommand = new CmdDriveMotorsTest(
                         new TrcMotor[] {
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT],
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT],
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK],
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK]},
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_FRONT],
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_FRONT],
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK],
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK]},
                         5.0, 0.5);
                 }
                 break;
@@ -332,19 +332,22 @@ public class FrcTest extends FrcTeleOp
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(testChoices.getDrivePower());
                     robot.robotDrive.purePursuitDrive.start(
                         null, robot.robotDrive.driveBase.getFieldPosition(), true,
-                        RobotParams.DriveParams.profiledMaxVelocity,
-                        RobotParams.DriveParams.profiledMaxAcceleration,
+                        robot.robotInfo.profiledMaxVelocity,
+                        robot.robotInfo.profiledMaxAcceleration,
                         new TrcPose2D(
                             testChoices.getXDriveDistance()*12.0, testChoices.getYDriveDistance()*12.0,
-                            testChoices.getTurnAngle()));
+                            testChoices.getTurnAngle()),
+                        new TrcPose2D(10, 20, 45),
+                        new TrcPose2D(20, 40, 15));
                 }
                 break;
 
             case PID_DRIVE:
                 if (robot.robotDrive != null)
                 {
-                    testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.getDrivePower(), null,
+                    testCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    ((CmdPidDrive) testCommand).start(
+                        0.0, testChoices.getDrivePower(), null,
                         new TrcPose2D(
                             testChoices.getXDriveDistance()*12.0, testChoices.getYDriveDistance()*12.0,
                             testChoices.getTurnAngle()));
@@ -354,29 +357,30 @@ public class FrcTest extends FrcTeleOp
             case TUNE_X_PID:
                 if (robot.robotDrive != null && robot.robotDrive.driveBase.supportsHolonomicDrive())
                 {
-                    testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.getDrivePower(),
-                        testChoices.getTunePidCoefficients(), new TrcPose2D(testChoices.getXDriveDistance()*12.0,
-                        0.0, 0.0));
+                    testCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    ((CmdPidDrive) testCommand).start(
+                        0.0, testChoices.getDrivePower(), testChoices.getTunePidCoefficients(),
+                        new TrcPose2D(testChoices.getXDriveDistance()*12.0, 0.0, 0.0));
                 }
                 break;
 
             case TUNE_Y_PID:
                 if (robot.robotDrive != null)
                 {
-                    testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.getDrivePower(),
-                        testChoices.getTunePidCoefficients(), new TrcPose2D(0.0, testChoices.getYDriveDistance()*12.0,
-                        0.0));
+                    testCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    ((CmdPidDrive) testCommand).start(
+                        0.0, testChoices.getDrivePower(), testChoices.getTunePidCoefficients(),
+                        new TrcPose2D(0.0, testChoices.getYDriveDistance()*12.0, 0.0));
                 }
                 break;
 
             case TUNE_TURN_PID:
                 if (robot.robotDrive != null)
                 {
-                    testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.getDrivePower(),
-                        testChoices.getTunePidCoefficients(), new TrcPose2D(0.0, 0.0, testChoices.getTurnAngle()));
+                    testCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    ((CmdPidDrive) testCommand).start(
+                        0.0, testChoices.getDrivePower(), testChoices.getTunePidCoefficients(),
+                        new TrcPose2D(0.0, 0.0, testChoices.getTurnAngle()));
                 }
                 break;
 
@@ -402,9 +406,9 @@ public class FrcTest extends FrcTeleOp
         switch (testChoices.getTest())
         {
             case SWERVE_CALIBRATION:
-                if (robot.robotDrive != null && robot.robotDrive instanceof SwerveDrive)
+                if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
                 {
-                    ((SwerveDrive) robot.robotDrive).stopSteeringCalibration();
+                    ((FrcSwerveDrive) robot.robotDrive).stopSteeringCalibration();
                 }
                 break;
 
@@ -508,10 +512,11 @@ public class FrcTest extends FrcTeleOp
                     break;
 
                 case SWERVE_CALIBRATION:
-                    if (robot.robotDrive != null && robot.robotDrive instanceof SwerveDrive)
+                    if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
                     {
-                        ((SwerveDrive) robot.robotDrive).runSteeringCalibration();
-                        displaySensorStates(lineNum);
+                        FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robot.robotDrive;
+                        swerveDrive.runSteeringCalibration();
+                        swerveDrive.displaySteerZeroCalibration(lineNum);
                     }
                     break;
 
@@ -520,15 +525,15 @@ public class FrcTest extends FrcTeleOp
                     if (robot.robotDrive != null)
                     {
                         double lfEnc = Math.abs(
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getMotorPosition());
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_FRONT].getMotorPosition());
                         double rfEnc = Math.abs(
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getMotorPosition());
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_FRONT].getMotorPosition());
                         double lbEnc = Math.abs(
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
-                                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getMotorPosition(): 0.0);
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK] != null?
+                                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK].getMotorPosition(): 0.0);
                         double rbEnc = Math.abs(
-                            robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
-                                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getMotorPosition(): 0.0);
+                            robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK] != null?
+                                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getMotorPosition(): 0.0);
                         robot.dashboard.displayPrintf(lineNum++, "Enc:lf=%f,rf=%f", lfEnc, rfEnc);
                         robot.dashboard.displayPrintf(lineNum++, "Enc:lb=%f,rb=%f", lbEnc, rbEnc);
                         robot.dashboard.displayPrintf(lineNum++, "EncAverage=%f", (lfEnc + rfEnc + lbEnc + rbEnc) / 4.0);
@@ -616,27 +621,27 @@ public class FrcTest extends FrcTeleOp
                 lineNum++, "DriveBase: Pose=%s,Vel=%s", robot.robotDrive.driveBase.getFieldPosition(),
                 robot.robotDrive.driveBase.getFieldVelocity());
             robot.dashboard.displayPrintf(lineNum++, "DrivePower: lf=%.2f,rf=%.2f,lb=%.2f,rb=%.2f",
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getMotorPower(),
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getMotorPower(),
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
-                    robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getMotorPower(): 0.0,
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
-                    robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getMotorPower(): 0.0);
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_FRONT].getMotorPower(),
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_FRONT].getMotorPower(),
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK] != null?
+                    robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK].getMotorPower(): 0.0,
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK] != null?
+                    robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getMotorPower(): 0.0);
             robot.dashboard.displayPrintf(lineNum++, "DriveEnc: lf=%.1f,rf=%.1f,lb=%.1f,rb=%.1f",
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_FRONT].getPosition(),
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_FRONT].getPosition(),
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK] != null?
-                    robot.robotDrive.driveMotors[RobotDrive.INDEX_LEFT_BACK].getPosition(): 0.0,
-                robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK] != null?
-                    robot.robotDrive.driveMotors[RobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0);
-            if (robot.robotDrive instanceof SwerveDrive)
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_FRONT].getPosition(),
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_FRONT].getPosition(),
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK] != null?
+                    robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK].getPosition(): 0.0,
+                robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK] != null?
+                    robot.robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0);
+            if (robot.robotDrive instanceof FrcSwerveDrive)
             {
-                SwerveDrive swerveDrive = (SwerveDrive) robot.robotDrive;
+                FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robot.robotDrive;
                 robot.dashboard.displayPrintf(lineNum++, "SteerEnc: lf=%f, rf=%f, lb=%f, rb=%f",
-                    swerveDrive.steerEncoders[RobotDrive.INDEX_LEFT_FRONT].getRawPosition(),
-                    swerveDrive.steerEncoders[RobotDrive.INDEX_RIGHT_FRONT].getRawPosition(),
-                    swerveDrive.steerEncoders[RobotDrive.INDEX_LEFT_BACK].getRawPosition(),
-                    swerveDrive.steerEncoders[RobotDrive.INDEX_RIGHT_BACK].getRawPosition());
+                    swerveDrive.steerEncoders[FrcRobotDrive.INDEX_LEFT_FRONT].getRawPosition(),
+                    swerveDrive.steerEncoders[FrcRobotDrive.INDEX_RIGHT_FRONT].getRawPosition(),
+                    swerveDrive.steerEncoders[FrcRobotDrive.INDEX_LEFT_BACK].getRawPosition(),
+                    swerveDrive.steerEncoders[FrcRobotDrive.INDEX_RIGHT_BACK].getRawPosition());
             }
         }
 

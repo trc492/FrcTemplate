@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team492.vision;
+package teamcode.vision;
 
 import java.util.Comparator;
 
@@ -29,10 +29,10 @@ import org.opencv.imgproc.Imgproc;
 import edu.wpi.first.apriltag.AprilTagPoseEstimator;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.math.util.Units;
+import frclib.drivebase.FrcRobotDrive;
 import frclib.vision.FrcOpenCvAprilTagPipeline;
 import frclib.vision.FrcOpenCvDetector;
-import team492.RobotParams;
-import trclib.vision.TrcHomographyMapper;
 import trclib.vision.TrcOpenCvColorBlobPipeline;
 import trclib.vision.TrcOpenCvDetector;
 import trclib.vision.TrcOpenCvPipeline;
@@ -77,6 +77,7 @@ public class OpenCvVision extends FrcOpenCvDetector
 
     }   //enum ObjectType
 
+    private final FrcRobotDrive.VisionInfo cameraInfo;
     private final TrcOpenCvPipeline<DetectedObject<?>> aprilTagPipeline;
     private final TrcOpenCvPipeline<DetectedObject<?>> redBlobPipeline;
     private final TrcOpenCvPipeline<DetectedObject<?>> blueBlobPipeline;
@@ -87,17 +88,16 @@ public class OpenCvVision extends FrcOpenCvDetector
      *
      * @param instanceName specifies the instance name.
      * @param numImageBuffers specifies the number of image buffers to allocate.
-     * @param cameraRect specifies the camera rectangle for Homography Mapper, can be null if not provided.
-     * @param worldRect specifies the world rectangle for Homography Mapper, can be null if not provided.
+     * @param cameraInfo specifies the camera parameters.
      * @param cvSink specifies the object to capture the video frames.
      * @param cvSource specifies the object to stream video output.
      */
     public OpenCvVision(
-        String instanceName, int numImageBuffers, TrcHomographyMapper.Rectangle cameraRect,
-        TrcHomographyMapper.Rectangle worldRect, CvSink cvSink, CvSource cvSource)
+        String instanceName, int numImageBuffers, FrcRobotDrive.VisionInfo cameraInfo,
+        CvSink cvSink, CvSource cvSource)
     {
-        super(instanceName, numImageBuffers, cameraRect, worldRect, cvSink, cvSource);
-
+        super(instanceName, numImageBuffers, cameraInfo.cameraRect, cameraInfo.worldRect, cvSink, cvSource);
+        this.cameraInfo = cameraInfo;
         TrcOpenCvColorBlobPipeline.FilterContourParams redBlobFilterContourParams =
             new TrcOpenCvColorBlobPipeline.FilterContourParams()
                 .setMinArea(10000.0)
@@ -119,8 +119,8 @@ public class OpenCvVision extends FrcOpenCvDetector
 
         aprilTagPipeline = new FrcOpenCvAprilTagPipeline(
             "tag16h5", null, new AprilTagPoseEstimator.Config(
-                RobotParams.Vision.APRILTAG_SIZE, RobotParams.Vision.WEBCAM_FX, RobotParams.Vision.WEBCAM_FY,
-                RobotParams.Vision.WEBCAM_CX, RobotParams.Vision.WEBCAM_CY));
+                Units.inchesToMeters(cameraInfo.aprilTagSize), cameraInfo.camFx, cameraInfo.camFy, cameraInfo.camCx,
+                cameraInfo.camCy));
         redBlobPipeline = new TrcOpenCvColorBlobPipeline(
             "redBlobPipeline", colorConversion, redBlobColorThresholds, redBlobFilterContourParams, true);
         blueBlobPipeline = new TrcOpenCvColorBlobPipeline(
@@ -224,8 +224,7 @@ public class OpenCvVision extends FrcOpenCvDetector
         FilterTarget filter, Comparator<? super TrcVisionTargetInfo<DetectedObject<?>>> comparator)
     {
         TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>>[] targets =
-            getDetectedTargetsInfo(filter, comparator, RobotParams.Vision.VISION_TARGET_HEIGHT,
-            RobotParams.Vision.BACKCAM_Z_OFFSET);
+            getDetectedTargetsInfo(filter, comparator, cameraInfo.targetZOffset, cameraInfo.camZOffset);
 
         return targets != null? targets[0]: null;
     }   //getDetectedTargetInfo

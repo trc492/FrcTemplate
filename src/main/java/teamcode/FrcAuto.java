@@ -20,13 +20,14 @@
  * SOFTWARE.
  */
 
-package team492;
+package teamcode;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import frclib.drivebase.FrcSwerveDrive;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcUserChoices;
-import team492.commandbased.exampleAuto;
+import teamcode.commandbased.ExampleAuto;
 import trclib.command.CmdPidDrive;
 import trclib.command.CmdPurePursuitDrive;
 import trclib.command.CmdTimedDrive;
@@ -286,9 +287,9 @@ public class FrcAuto implements TrcRobot.RobotMode
         switch (autoChoices.getStrategy())
         {
             case HYBRID_MODE_AUTO:
-                if (robot.robotDrive != null)
+                if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
                 {
-                    robot.m_autonomousCommand = new exampleAuto(robot.robotDrive);
+                    robot.m_autonomousCommand = new ExampleAuto((FrcSwerveDrive) robot.robotDrive);
                     // schedule the autonomous command (example)
                     if (robot.m_autonomousCommand != null)
                     {
@@ -301,20 +302,20 @@ public class FrcAuto implements TrcRobot.RobotMode
                 if (robot.robotDrive != null)
                 {
                     autoCommand = new CmdPurePursuitDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
-                        robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
+                        robot.robotDrive.driveBase, robot.robotInfo.xDrivePidCoeffs, robot.robotInfo.yDrivePidCoeffs,
+                        robot.robotInfo.turnPidCoeffs, robot.robotInfo.velPidCoeffs);
                     ((CmdPurePursuitDrive) autoCommand).start(
                         0.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        RobotParams.TEAM_FOLDER_PATH + "/" + autoChoices.getPathFile(), false);
+                        RobotParams.Robot.TEAM_FOLDER_PATH + "/" + autoChoices.getPathFile(), false);
                 }
                 break;
 
             case PID_DRIVE:
                 if (robot.robotDrive != null)
                 {
-                    autoCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.getStartDelay(),
-                        autoChoices.getDrivePower(), null,
+                    autoCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    ((CmdPidDrive) autoCommand).start(
+                        autoChoices.getStartDelay(), autoChoices.getDrivePower(), null,
                         new TrcPose2D(autoChoices.getXDriveDistance()*12.0,
                                       autoChoices.getYDriveDistance()*12.0,
                                       autoChoices.getTurnAngle()));

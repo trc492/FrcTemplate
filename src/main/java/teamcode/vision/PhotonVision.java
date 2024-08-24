@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team492.vision;
+package teamcode.vision;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -33,7 +33,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import frclib.vision.FrcPhotonVision;
-import team492.subsystems.LEDIndicator;
+import teamcode.subsystems.LEDIndicator;
 import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.pathdrive.TrcPose3D;

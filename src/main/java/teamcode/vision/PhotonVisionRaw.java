@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team492.vision;
+package teamcode.vision;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -30,8 +30,8 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import frclib.vision.FrcPhotonVisionRaw;
-import team492.subsystems.LEDIndicator;
-import team492.vision.PhotonVision.PipelineType;
+import teamcode.subsystems.LEDIndicator;
+import teamcode.vision.PhotonVision.PipelineType;
 import trclib.pathdrive.TrcPose3D;
 import trclib.timer.TrcTimer;
 

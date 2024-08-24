@@ -1,7 +1,4 @@
-package team492.commandbased;
-
-import team492.RobotParams;
-import team492.drivebases.SwerveDrive;
+package teamcode.commandbased;
 
 import java.util.List;
 
@@ -16,14 +13,16 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import frclib.drivebase.FrcSwerveDrive;
+import teamcode.RobotParams;
 
-public class exampleAuto extends SequentialCommandGroup {
-    public exampleAuto(SwerveDrive s_Swerve){
+public class ExampleAuto extends SequentialCommandGroup {
+    public ExampleAuto(FrcSwerveDrive s_Swerve){
         TrajectoryConfig config =
             new TrajectoryConfig(
                     RobotParams.AutoConstants.kMaxSpeedMetersPerSecond,
                     RobotParams.AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-                .setKinematics(s_Swerve.driveBaseParams.swerveKinematics);
+                .setKinematics(s_Swerve.swerveInfo.swerveKinematics);
 
         // An example trajectory to follow.  All units in meters.
         Trajectory exampleTrajectory =
@@ -45,7 +44,7 @@ public class exampleAuto extends SequentialCommandGroup {
             new SwerveControllerCommand(
                 exampleTrajectory,
                 s_Swerve::getPose,
-                s_Swerve.driveBaseParams.swerveKinematics,
+                s_Swerve.swerveInfo.swerveKinematics,
                 new PIDController(RobotParams.AutoConstants.kPXController, 0, 0),
                 new PIDController(RobotParams.AutoConstants.kPYController, 0, 0),
                 thetaController,

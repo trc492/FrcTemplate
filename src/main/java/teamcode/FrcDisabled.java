@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team492;
+package teamcode;
 
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
