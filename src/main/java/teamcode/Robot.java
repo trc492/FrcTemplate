@@ -338,7 +338,7 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
-        autoAssistCancel();
+        cancelAll();
         // Read FMS Match info.
         FrcMatchInfo matchInfo = FrcMatchInfo.getMatchInfo();
         if (runMode != RunMode.DISABLED_MODE)
@@ -389,7 +389,7 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotStopMode(RunMode runMode, RunMode nextMode)
     {
-        autoAssistCancel();
+        cancelAll();
         // Stop RobotDrive.
         if (runMode != RunMode.DISABLED_MODE && robotDrive != null)
         {
@@ -725,7 +725,7 @@ public class Robot extends FrcRobotBase
         }
         catch (Exception e)
         {
-            TrcDbgTrace.globalTraceWarn(moduleName, "FieldZeroHeading file not found.");
+            globalTracer.traceWarn(moduleName, "FieldZeroHeading file not found.");
             return null;
         }
     }   //getFieldZeroHeading
@@ -743,7 +743,7 @@ public class Robot extends FrcRobotBase
 
                 out.println(fieldZeroHeading);
                 out.close();
-                TrcDbgTrace.globalTraceInfo(moduleName, "FieldZeroCompassHeading=" + fieldZeroHeading);
+                globalTracer.traceInfo(moduleName, "FieldZeroCompassHeading=" + fieldZeroHeading);
             }
             catch (FileNotFoundException e)
             {
@@ -897,7 +897,7 @@ public class Robot extends FrcRobotBase
             // We lost comm, do emergency shutdown to prevent damage.
             if (robotDrive != null && robotDrive instanceof FrcSwerveDrive)
             {
-                autoAssistCancel();
+                cancelAll();
                 ((FrcSwerveDrive) robotDrive).setXModeEnabled(null, true);
                 globalTracer.traceInfo(moduleName, "***** Putting robot in X-Mode. *****");
             }
@@ -905,10 +905,14 @@ public class Robot extends FrcRobotBase
     }   //commStatusCallback
 
     /**
-     * This method is called to cancel all pending auto-assist operations and release the ownership of all subsystems.
+     * This method is called to cancel all pending auto operations and release the ownership of all subsystems.
      */
-    public void autoAssistCancel()
+    public void cancelAll()
     {
+        if (robotDrive != null)
+        {
+            robotDrive.cancel();
+        }
     }   //autoAssistCancel
 
     /**

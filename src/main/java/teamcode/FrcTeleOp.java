@@ -124,7 +124,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Disable subsystems before exiting if necessary.
         //
-        robot.autoAssistCancel();
+        robot.cancelAll();
     }   //stopMode
 
     /**
@@ -422,32 +422,35 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 else if (robot.grabber != null)
                 {
-                    if (pressed)
+                    if (driverAltFunc)
                     {
-                        robot.grabber.enableAutoAssist(null, 0.0, null, 0.0);
+                        if (pressed)
+                        {
+                            if (robot.grabber.isClosed())
+                            {
+                                robot.grabber.open();
+                            }
+                            else
+                            {
+                                robot.grabber.close();
+                            }
+                        }
                     }
                     else
                     {
-                        robot.grabber.cancelAutoAssist();
+                        if (pressed)
+                        {
+                            robot.grabber.enableAutoAssist(null, 0.0, null, 0.0);
+                        }
+                        else
+                        {
+                            robot.grabber.cancelAutoAssist();
+                        }
                     }
                 }
                 break;
 
             case Y:
-                if (robot.grabber != null)
-                {
-                    if (pressed)
-                    {
-                        if (robot.grabber.isClosed())
-                        {
-                            robot.grabber.open();
-                        }
-                        else
-                        {
-                            robot.grabber.close();
-                        }
-                    }
-                }
                 break;
 
             case LeftBumper:
@@ -538,7 +541,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case Back:
                 if (pressed)
                 {
-                    robot.autoAssistCancel();
+                    robot.cancelAll();
                     robot.zeroCalibrate();
                 }
                 break;
@@ -639,6 +642,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case Back:
                 if (pressed)
                 {
+                    robot.cancelAll();
                     robot.zeroCalibrate();
                 }
                 break;
