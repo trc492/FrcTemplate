@@ -117,7 +117,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Disable subsystems before exiting if necessary.
         //
-        robot.autoAssistCancel();
+        robot.cancelAll();
     }   //stopMode
 
     /**
@@ -333,7 +333,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case Back:
                 if (pressed)
                 {
-                    robot.autoAssistCancel();
+                    robot.cancelAll();
+                    robot.zeroCalibrate();
                 }
                 break;
 
@@ -433,6 +434,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case Back:
                 if (pressed)
                 {
+                    robot.cancelAll();
                     robot.zeroCalibrate();
                 }
                 break;
