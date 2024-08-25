@@ -676,7 +676,7 @@ public class RobotParams
     public static final class Intake
     {
         public static final String SUBSYSTEM_NAME               = "Intake";
-        public static final boolean TWO_MOTOR_INTAKE            = true;
+        public static final boolean TWO_MOTOR_INTAKE            = false;
 
         public static final String PRIMARY_MOTOR_NAME           = "intakePrimaryMotor";
         public static final int PRIMARY_MOTOR_ID                = 10;

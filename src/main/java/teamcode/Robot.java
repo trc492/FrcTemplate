@@ -916,6 +916,15 @@ public class Robot extends FrcRobotBase
      */
     public void zeroCalibrate()
     {
+        if (elevator != null)
+        {
+            elevator.zeroCalibrate(moduleName, RobotParams.Elevator.ZERO_CAL_POWER);
+        }
+
+        if (arm != null)
+        {
+            arm.zeroCalibrate(moduleName, RobotParams.Arm.ZERO_CAL_POWER);
+        }
     }   //zeroCalibrate
 
     /**
