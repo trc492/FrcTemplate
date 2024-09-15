@@ -39,6 +39,7 @@ import frclib.motor.FrcMotorActuator.MotorType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.driverio.TrcGameController.DriveMode;
 import trclib.pathdrive.TrcPose2D;
+import trclib.pathdrive.TrcPose3D;
 import trclib.robotcore.TrcPidController.PidCoefficients;
 
 /**
@@ -285,7 +286,7 @@ public class RobotParams
                 new Rotation3d(Units.degreesToRadians(camRoll),
                                Units.degreesToRadians(-camPitch),
                                Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose2D(camXOffset, camYOffset, camYaw);
+            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
         }   //FrontCamParams
     }   //class FrontCamParams
 
@@ -312,7 +313,7 @@ public class RobotParams
                 new Rotation3d(Units.degreesToRadians(camRoll),
                                Units.degreesToRadians(-camPitch),
                                Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose2D(camXOffset, camYOffset, camYaw);
+            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
         }   //BackCamParams
     }   //class BackCamParams
 
