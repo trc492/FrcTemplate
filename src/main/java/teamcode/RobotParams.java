@@ -37,6 +37,7 @@ import frclib.drivebase.FrcRobotDrive.GyroType;
 import frclib.drivebase.FrcSwerveDrive.SteerEncoderType;
 import frclib.motor.FrcMotorActuator.MotorType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
+import trclib.drivebase.TrcDriveBase.OdometryType;
 import trclib.driverio.TrcGameController.DriveMode;
 import trclib.pathdrive.TrcPose2D;
 import trclib.pathdrive.TrcPose3D;
@@ -168,7 +169,6 @@ public class RobotParams
         public static final boolean useStreamCamera             = false;
         // Drive Base
         public static final boolean useDriveBase                = false;
-        public static final boolean useExternalOdometry         = false;
         public static final boolean useVelocityControl          = false;
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
@@ -346,6 +346,9 @@ public class RobotParams
                 HwConfig.CANID_LFDRIVE_MOTOR, HwConfig.CANID_RFDRIVE_MOTOR,
                 HwConfig.CANID_LBDRIVE_MOTOR, HwConfig.CANID_RBDRIVE_MOTOR};
             driveMotorInverted = new boolean[] {false, false, false, false};
+            odometryType = OdometryType.MotorOdometry;
+            // Absolute Odometry
+            absoluteOdometry = null;
             // Drive Motor Odometry
             xDrivePosScale = yDrivePosScale = DRIVE_WHEEL_DIAMETER * Math.PI / DRIVE_GEAR_RATIO;    // inch/rev
             // Robot Drive Characteristics
@@ -448,6 +451,9 @@ public class RobotParams
                 {HwConfig.CANID_LFDRIVE_MOTOR, HwConfig.CANID_RFDRIVE_MOTOR,
                  HwConfig.CANID_LBDRIVE_MOTOR, HwConfig.CANID_RBDRIVE_MOTOR};
             driveMotorInverted = new boolean[] {false, true, false, true};
+            odometryType = OdometryType.MotorOdometry;
+            // Absolute Odometry
+            absoluteOdometry = null;
             // Drive Motor Odometry
             xDrivePosScale = 1.6577438;         // inch/rev
             yDrivePosScale = 2.355935875;       // inch/rev
@@ -497,6 +503,9 @@ public class RobotParams
             driveMotorNames = new String[] {"leftDriveMotor", "rightDriveMotor"};
             driveMotorIds = new int[] {HwConfig.CANID_LFDRIVE_MOTOR, HwConfig.CANID_RFDRIVE_MOTOR};
             driveMotorInverted = new boolean[] {false, true};
+            odometryType = OdometryType.MotorOdometry;
+            // Absolute Odometry
+            absoluteOdometry = null;
             // Drive Motor Odometry
             yDrivePosScale = 2.355935875;       // inch/rev
             // Robot Drive Characteristics
