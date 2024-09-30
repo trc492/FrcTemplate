@@ -444,7 +444,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         }
                         else
                         {
-                            robot.grabber.cancelAutoAssist();
+                            robot.grabber.cancel();
                         }
                     }
                 }
