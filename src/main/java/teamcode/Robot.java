@@ -36,8 +36,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frclib.drivebase.FrcRobotDrive;
-import frclib.drivebase.FrcRobotDrive.GyroType;
 import frclib.drivebase.FrcSwerveDrive;
+import frclib.drivebase.FrcRobotDrive.ImuType;
 import frclib.driverio.FrcButtonPanel;
 import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcDualJoystick;
@@ -57,9 +57,12 @@ import teamcode.vision.PhotonVision;
 import teamcode.vision.PhotonVisionRaw;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
+import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
+import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcPidController;
+import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
 import trclib.sensor.TrcRobotBattery;
 import trclib.timer.TrcTimer;
@@ -76,8 +79,8 @@ public class Robot extends FrcRobotBase
 {
     // Global objects.
     public static final String moduleName = Robot.class.getSimpleName();
-    public final FrcDashboard dashboard = FrcDashboard.getInstance();
     public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
+    public final FrcDashboard dashboard = FrcDashboard.getInstance();
     private double nextDashboardUpdateTime = TrcTimer.getCurrentTime();
     private boolean traceLogOpened = false;
     // Inputs.
@@ -208,25 +211,25 @@ public class Robot extends FrcRobotBase
         {
             if (RobotParams.Preferences.usePhotonVision)
             {
-                photonVisionFront = robotInfo.frontCam != null?
-                    new PhotonVision(robotInfo.frontCam.camName, robotInfo.frontCam.robotToCam, ledIndicator): null;
-                photonVisionBack = robotInfo.backCam != null?
-                    new PhotonVision(robotInfo.backCam.camName, robotInfo.backCam.robotToCam, ledIndicator): null;
+                photonVisionFront = robotInfo.cam1 != null?
+                    new PhotonVision(robotInfo.cam1.camName, robotInfo.cam1.robotToCam, ledIndicator): null;
+                photonVisionBack = robotInfo.cam2 != null?
+                    new PhotonVision(robotInfo.cam2.camName, robotInfo.cam2.robotToCam, ledIndicator): null;
             }
-            else if (RobotParams.Preferences.usePhotonVisionRaw && robotInfo.backCam != null)
+            else if (RobotParams.Preferences.usePhotonVisionRaw && robotInfo.cam2 != null)
             {
-                photonVisionRaw = new PhotonVisionRaw("photonvision", robotInfo.backCam.camName, ledIndicator);
+                photonVisionRaw = new PhotonVisionRaw("photonvision", robotInfo.cam2.camName, ledIndicator);
             }
-            else if (RobotParams.Preferences.useOpenCvVision && robotInfo.backCam != null)
+            else if (RobotParams.Preferences.useOpenCvVision && robotInfo.cam2 != null)
             {
                 UsbCamera camera = CameraServer.startAutomaticCapture();
-                camera.setResolution(robotInfo.frontCam.camImageWidth, robotInfo.frontCam.camImageHeight);
+                camera.setResolution(robotInfo.cam1.camImageWidth, robotInfo.cam1.camImageHeight);
                 camera.setFPS(10);
                 openCvVision = new OpenCvVision(
-                    "OpenCvVision", 1, robotInfo.frontCam,
+                    "OpenCvVision", 1, robotInfo.cam1,
                     CameraServer.getVideo(),
                     CameraServer.putVideo(
-                        "UsbWebcam", robotInfo.backCam.camImageWidth, robotInfo.backCam.camImageHeight));
+                        "UsbWebcam", robotInfo.cam2.camImageWidth, robotInfo.cam2.camImageHeight));
             }
 
             if (RobotParams.Preferences.useStreamCamera)
@@ -242,6 +245,12 @@ public class Robot extends FrcRobotBase
         //
         if (RobotParams.Preferences.useSubsystems)
         {
+            // Create subsystems.
+
+            // Zero calibrate all subsystems only in Auto or if TeleOp is run standalone without prior Auto.
+            zeroCalibrate(null, null);
+
+            // Create autotasks.
         }
 
         // Miscellaneous.
@@ -249,11 +258,6 @@ public class Robot extends FrcRobotBase
         {
             pdp.registerEnergyUsedForAllUnregisteredChannels();
         }
-
-        //
-        // Create Auto-Assists.
-        //
-
         //
         // Create Robot Modes.
         //
@@ -378,14 +382,16 @@ public class Robot extends FrcRobotBase
      * This method is called periodically to update various hardware/subsystem status of the robot to the dashboard
      * and trace log. In order to lower the potential impact these updates, this method will only update the dashboard
      * at DASHBOARD_UPDATE_INTERVAL.
+     *
+     * @param lineNum specifies the first Dashboard line for printing status.
      */
-    public void updateStatus()
+    public void updateStatus(int lineNum)
     {
         double currTime = TrcTimer.getCurrentTime();
         RunMode runMode = getCurrentRunMode();
+
         if (currTime >= nextDashboardUpdateTime)
         {
-            int lineNum = 9;
             nextDashboardUpdateTime = currTime + RobotParams.Robot.DASHBOARD_UPDATE_INTERVAL;
             if (RobotParams.Preferences.showPowerConsumption)
             {
@@ -522,12 +528,42 @@ public class Robot extends FrcRobotBase
                     }
                 }
             }
-
+            //
+            // Display other subsystem status here.
+            //
             if (RobotParams.Preferences.showSubsystems)
             {
             }
         }
     }   //updateStatus
+
+    /**
+     * This method is called to cancel all pending operations and release the ownership of all subsystems.
+     */
+    public void cancelAll()
+    {
+        globalTracer.traceInfo(moduleName, "Cancel all operations.");
+        // Cancel subsystems.
+        if (robotDrive != null) robotDrive.cancel();
+        // Cancel auto tasks.
+    }   //cancelAll
+
+    /**
+     * This method zero calibrates all subsystems.
+     *
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param event specifies the event to signal when the zero calibration is done.
+     */
+    public void zeroCalibrate(String owner, TrcEvent event)
+    {
+    }   //zeroCalibrate
+
+    /**
+     * This method retracts all appendages for robot high speed travelling.
+     */
+    public void turtle()
+    {
+    }   //turtle
 
     /**
      * This method creates and opens the trace log with the file name derived from the given match info.
@@ -596,11 +632,11 @@ public class Robot extends FrcRobotBase
      */
     public void saveFieldZeroCompassHeading()
     {
-        if (robotDrive != null && robotDrive.gyro != null && robotInfo.gyroType == GyroType.NavX)
+        if (robotDrive != null && robotDrive.imu != null && robotInfo.imuType == ImuType.NavX)
         {
             try (PrintStream out = new PrintStream(new FileOutputStream(RobotParams.Robot.FIELD_ZERO_CAL_FILE)))
             {
-                double fieldZeroHeading = ((FrcAHRSGyro) robotDrive.gyro).ahrs.getCompassHeading();
+                double fieldZeroHeading = ((FrcAHRSGyro) robotDrive.imu).ahrs.getCompassHeading();
 
                 out.println(fieldZeroHeading);
                 out.close();
@@ -639,13 +675,13 @@ public class Robot extends FrcRobotBase
             robotPose = pose.clone();
         }
 
-        if (useCompassHeading && robotDrive.gyro != null && robotInfo.gyroType == GyroType.NavX)
+        if (useCompassHeading && robotDrive.imu != null && robotInfo.imuType == ImuType.NavX)
         {
             Double fieldZero = getFieldZeroCompassHeading();
 
             if (fieldZero != null)
             {
-                robotPose.angle = ((FrcAHRSGyro) robotDrive.gyro).ahrs.getCompassHeading() - fieldZero;
+                robotPose.angle = ((FrcAHRSGyro) robotDrive.imu).ahrs.getCompassHeading() - fieldZero;
             }
         }
 
@@ -766,36 +802,11 @@ public class Robot extends FrcRobotBase
     }   //commStatusCallback
 
     /**
-     * This method is called to cancel all pending auto operations and release the ownership of all subsystems.
-     */
-    public void cancelAll()
-    {
-        if (robotDrive != null)
-        {
-            robotDrive.cancel();
-        }
-    }   //autoAssistCancel
-
-    /**
-     * This method performs zero calibration for all subsystems.
-     */
-    public void zeroCalibrate()
-    {
-    }   //zeroCalibrate
-
-    /**
-     * This method retracts all appendages for robot high speed travelling.
-     */
-    public void turtle()
-    {
-    }   //turtle
-
-    /**
      * This method adjusts the given pose in the blue alliance to be the specified alliance.
      *
-     * @param x specifies x position in the blue alliance.
-     * @param y specifies y position in the blue alliance.
-     * @param heading specifies heading in the blue alliance.
+     * @param x specifies x position in the blue alliance in the specified unit.
+     * @param y specifies y position in the blue alliance in the specified unit.
+     * @param heading specifies heading in the blue alliance in degrees.
      * @param alliance specifies the alliance to be converted to.
      * @return pose adjusted to be in the specified alliance in inches.
      */
@@ -805,9 +816,21 @@ public class Robot extends FrcRobotBase
 
         if (alliance == Alliance.Red)
         {
-            double angleDelta = (newPose.angle - 90.0) * 2.0;
-            newPose.angle -= angleDelta;
-            newPose.y = RobotParams.Field.LENGTH - newPose.y;
+            // Translate blue alliance pose to red alliance pose.
+            if (RobotParams.Game.fieldIsMirrored)
+            {
+                // Mirrored field.
+                double angleDelta = (newPose.angle - 90.0)*2.0;
+                newPose.angle -= angleDelta;
+                newPose.y = RobotParams.Field.LENGTH - newPose.y;
+            }
+            else
+            {
+                // Symmetrical field.
+                newPose.x = -RobotParams.Field.WIDTH - newPose.x;
+                newPose.y = RobotParams.Field.LENGTH - newPose.y;
+                newPose.angle = (newPose.angle + 180.0) % 360.0;
+            }
         }
 
         return newPose;
@@ -816,7 +839,7 @@ public class Robot extends FrcRobotBase
     /**
      * This method adjusts the given pose in the blue alliance to be the specified alliance.
      *
-     * @param pose specifies pose in the blue alliance in tile unit.
+     * @param pose specifies pose in the blue alliance in the specified unit.
      * @param alliance specifies the alliance to be converted to.
      * @return pose adjusted to be in the specified alliance in inches.
      */

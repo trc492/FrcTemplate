@@ -305,8 +305,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                         robot.robotDrive.driveBase, robot.robotInfo.xDrivePidCoeffs, robot.robotInfo.yDrivePidCoeffs,
                         robot.robotInfo.turnPidCoeffs, robot.robotInfo.velPidCoeffs);
                     ((CmdPurePursuitDrive) autoCommand).start(
-                        0.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        RobotParams.Robot.TEAM_FOLDER_PATH + "/" + autoChoices.getPathFile(), false);
+                        0.0, false, RobotParams.Robot.TEAM_FOLDER_PATH + "/" + autoChoices.getPathFile(), false);
                 }
                 break;
 
@@ -384,7 +383,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             //
             if (RobotParams.Preferences.doStatusUpdate)
             {
-                robot.updateStatus();
+                robot.updateStatus(2);
             }
         }
     }   //periodic

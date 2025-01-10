@@ -331,9 +331,10 @@ public class FrcTest extends FrcTeleOp
                 {
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(testChoices.getDrivePower());
                     robot.robotDrive.purePursuitDrive.start(
-                        null, robot.robotDrive.driveBase.getFieldPosition(), true,
+                        null, true,
                         robot.robotInfo.profiledMaxVelocity,
                         robot.robotInfo.profiledMaxAcceleration,
+                        robot.robotInfo.profiledMaxDeceleration,
                         new TrcPose2D(
                             testChoices.getXDriveDistance()*12.0, testChoices.getYDriveDistance()*12.0,
                             testChoices.getTurnAngle()),
@@ -571,7 +572,7 @@ public class FrcTest extends FrcTeleOp
             //
             if (RobotParams.Preferences.doStatusUpdate)
             {
-                robot.updateStatus();
+                robot.updateStatus(2);
             }
         }
     }   //periodic

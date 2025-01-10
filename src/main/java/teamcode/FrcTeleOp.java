@@ -215,7 +215,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             //
             if (RobotParams.Preferences.doStatusUpdate)
             {
-                robot.updateStatus();
+                robot.updateStatus(2);
             }
         }
     }   //periodic
@@ -334,7 +334,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.cancelAll();
-                    robot.zeroCalibrate();
+                    robot.zeroCalibrate(null, null);
                 }
                 break;
 
@@ -435,7 +435,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.cancelAll();
-                    robot.zeroCalibrate();
+                    robot.zeroCalibrate(null, null);
                 }
                 break;
 

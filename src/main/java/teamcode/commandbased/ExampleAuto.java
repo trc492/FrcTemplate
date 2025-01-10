@@ -14,14 +14,14 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frclib.drivebase.FrcSwerveDrive;
-import teamcode.RobotParams;
+import teamcode.subsystems.RobotBase.AutoConstants;
 
 public class ExampleAuto extends SequentialCommandGroup {
     public ExampleAuto(FrcSwerveDrive s_Swerve){
         TrajectoryConfig config =
             new TrajectoryConfig(
-                    RobotParams.AutoConstants.kMaxSpeedMetersPerSecond,
-                    RobotParams.AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+                    AutoConstants.kMaxSpeedMetersPerSecond,
+                    AutoConstants.kMaxAccelerationMetersPerSecondSquared)
                 .setKinematics(s_Swerve.swerveInfo.swerveKinematics);
 
         // An example trajectory to follow.  All units in meters.
@@ -37,7 +37,7 @@ public class ExampleAuto extends SequentialCommandGroup {
 
         var thetaController =
             new ProfiledPIDController(
-                RobotParams.AutoConstants.kPThetaController, 0, 0, RobotParams.AutoConstants.kThetaControllerConstraints);
+                AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
         SwerveControllerCommand swerveControllerCommand =
@@ -45,8 +45,8 @@ public class ExampleAuto extends SequentialCommandGroup {
                 exampleTrajectory,
                 s_Swerve::getPose,
                 s_Swerve.swerveInfo.swerveKinematics,
-                new PIDController(RobotParams.AutoConstants.kPXController, 0, 0),
-                new PIDController(RobotParams.AutoConstants.kPYController, 0, 0),
+                new PIDController(AutoConstants.kPXController, 0, 0),
+                new PIDController(AutoConstants.kPYController, 0, 0),
                 thetaController,
                 s_Swerve::setModuleStates,
                 s_Swerve);
