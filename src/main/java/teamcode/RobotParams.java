@@ -49,6 +49,7 @@ public class RobotParams
      */
     public static class Game
     {
+        public static final boolean fieldIsMirrored             = false;
         //
         // Robot starting positions.
         //
