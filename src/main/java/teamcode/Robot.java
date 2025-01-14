@@ -220,11 +220,11 @@ public class Robot extends FrcRobotBase
             }
             else if (RobotParams.Preferences.useOpenCvVision && robotInfo.cam2 != null)
             {
-                UsbCamera camera = CameraServer.startAutomaticCapture();
-                camera.setResolution(robotInfo.cam1.camImageWidth, robotInfo.cam1.camImageHeight);
+                UsbCamera camera = CameraServer.startAutomaticCapture(1);
+                camera.setResolution(robotInfo.cam2.camImageWidth, robotInfo.cam2.camImageHeight);
                 camera.setFPS(10);
                 openCvVision = new OpenCvVision(
-                    "OpenCvVision", 1, robotInfo.cam1,
+                    "OpenCvVision", 1, robotInfo.cam2,
                     CameraServer.getVideo(),
                     CameraServer.putVideo(
                         "UsbWebcam", robotInfo.cam2.camImageWidth, robotInfo.cam2.camImageHeight));
