@@ -34,70 +34,6 @@ import trclib.pathdrive.TrcPose2D;
 public class RobotParams
 {
     /**
-     * This class contains field dimension constants. Generally, these should not change. But some seasons may have
-     * slight variations of the field dimensions.
-     */
-    public static class Field
-    {
-        // Field dimensions in inches.
-        public static final double LENGTH                       = 54.0*12.0;
-        public static final double WIDTH                        = 27.0*12.0;
-    }   //class Field
-
-    /**
-     * This class contains season specific game element information.
-     */
-    public static class Game
-    {
-        public static final boolean fieldIsMirrored             = false;
-        //
-        // Robot starting positions.
-        //
-        public static final double STARTPOS_BLUE_Y              = Robot.ROBOT_LENGTH / 2.0;
-        public static final double STARTPOS_RED_Y               = Field.LENGTH - STARTPOS_BLUE_Y;
-        public static final double STARTPOS_1_X                 = -42.19;
-        public static final double STARTPOS_2_X                 = -108.19;
-        public static final double STARTPOS_3_X                 = -174.19;
-        public static final TrcPose2D STARTPOS_BLUE_1           = new TrcPose2D(STARTPOS_1_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_BLUE_2           = new TrcPose2D(STARTPOS_2_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_BLUE_3           = new TrcPose2D(STARTPOS_3_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_RED_1            = new TrcPose2D(STARTPOS_1_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D STARTPOS_RED_2            = new TrcPose2D(STARTPOS_2_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D STARTPOS_RED_3            = new TrcPose2D(STARTPOS_3_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D[][] startPoses            =
-        {
-            {STARTPOS_BLUE_1, STARTPOS_BLUE_2, STARTPOS_BLUE_3},
-            {STARTPOS_RED_1, STARTPOS_RED_2, STARTPOS_RED_3}
-        };
-        //
-        // Game element locations and dimensions.
-        //
-    }   //class Game
-
-    /**
-     * This class contains Robot parameters.
-     */
-     public static class Robot
-    {
-        public static final String TEAM_FOLDER_PATH             = "/home/lvuser/trc492";
-        public static final String LOG_FOLDER_PATH              = TEAM_FOLDER_PATH + "/tracelogs";
-        public static final String STEER_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/SteerZeroCalibration.txt";
-        public static final String FIELD_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/FieldZeroCalibration.txt";
-        public static final double DASHBOARD_UPDATE_INTERVAL    = 0.1;      // in msec
-        public static final String ROBOT_CODEBASE               = "Robot2025";
-        public static final double ROBOT_LENGTH                 = 34.5;
-        public static final double ROBOT_WIDTH                  = 34.5;
-        // Robot Drive Parameters.
-        public static final DriveMode DRIVE_MODE                = DriveMode.ArcadeMode;
-        public static final DriveOrientation DRIVE_ORIENTATION  = DriveOrientation.ROBOT;
-        public static final double DRIVE_SLOW_SCALE             = 0.3;
-        public static final double DRIVE_NORMAL_SCALE           = 1.0;
-        public static final double TURN_SLOW_SCALE              = 0.3;
-        public static final double TURN_NORMAL_SCALE            = 0.6;
-        public static final double DRIVE_RAMP_RATE              = 0.25;
-    }   //class Robot
- 
-    /**
      * This class contains robot preferences. It enables/disables various robot features. This is especially useful
      * during robot development where some subsystems may not be available or ready yet. By disabling unavailable
      * subsystems, one can test the rest of the robot without the fear of code crashing when some subsystems are not
@@ -183,7 +119,7 @@ public class RobotParams
         // PDP Channels.
         // Drive Base PDP Channels.
         public static final ModuleType PDP_MODULE_TYPE          = ModuleType.kRev;
-        public static final int PDP_CHANNEL_LFDRIVE_MOTOR       = 11;   // TODO: Need updating
+        public static final int PDP_CHANNEL_LFDRIVE_MOTOR       = 11;
         public static final int PDP_CHANNEL_RFDRIVE_MOTOR       = 5;
         public static final int PDP_CHANNEL_LBDRIVE_MOTOR       = 13;
         public static final int PDP_CHANNEL_RBDRIVE_MOTOR       = 3;
@@ -222,9 +158,28 @@ public class RobotParams
         // public static final double SONAR_ERROR_THRESHOLD        = 50.0; //value should not jump 50-in per time slice.
     }   //class HwConfig
 
-    //
-    // Robot Parameters.
-    //
+    /**
+     * This class contains Robot parameters.
+     */
+    public static class Robot
+    {
+        public static final String TEAM_FOLDER_PATH             = "/home/lvuser/trc492";
+        public static final String LOG_FOLDER_PATH              = TEAM_FOLDER_PATH + "/tracelogs";
+        public static final String STEER_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/SteerZeroCalibration.txt";
+        public static final String FIELD_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/FieldZeroCalibration.txt";
+        public static final double DASHBOARD_UPDATE_INTERVAL    = 0.1;      // in msec
+        public static final String ROBOT_CODEBASE               = "Robot2025";
+        public static final double ROBOT_LENGTH                 = 34.5;
+        public static final double ROBOT_WIDTH                  = 34.5;
+        // Robot Drive Parameters.
+        public static final DriveMode DRIVE_MODE                = DriveMode.ArcadeMode;
+        public static final DriveOrientation DRIVE_ORIENTATION  = DriveOrientation.ROBOT;
+        public static final double DRIVE_SLOW_SCALE             = 0.3;
+        public static final double DRIVE_NORMAL_SCALE           = 1.0;
+        public static final double TURN_SLOW_SCALE              = 0.3;
+        public static final double TURN_NORMAL_SCALE            = 0.6;
+        public static final double DRIVE_RAMP_RATE              = 0.25;
+    }   //class Robot
 
     public static class Vision
     {
@@ -233,14 +188,44 @@ public class RobotParams
     }   //class Vision
 
     /**
-     * This class contains Drive parameters of the Drive Base.
+     * This class contains season specific game element information.
      */
-    public static class DriveParams
+    public static class Game
     {
-    }   //class DriveParams
+        public static final boolean fieldIsMirrored             = false;
+        //
+        // Robot starting positions.
+        //
+        public static final double STARTPOS_BLUE_Y              = Robot.ROBOT_LENGTH / 2.0;
+        public static final double STARTPOS_RED_Y               = Field.LENGTH - STARTPOS_BLUE_Y;
+        public static final double STARTPOS_1_X                 = -42.19;
+        public static final double STARTPOS_2_X                 = -108.19;
+        public static final double STARTPOS_3_X                 = -174.19;
+        public static final TrcPose2D STARTPOS_BLUE_1           = new TrcPose2D(STARTPOS_1_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_BLUE_2           = new TrcPose2D(STARTPOS_2_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_BLUE_3           = new TrcPose2D(STARTPOS_3_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_RED_1            = new TrcPose2D(STARTPOS_1_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D STARTPOS_RED_2            = new TrcPose2D(STARTPOS_2_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D STARTPOS_RED_3            = new TrcPose2D(STARTPOS_3_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D[][] startPoses            =
+        {
+            {STARTPOS_BLUE_1, STARTPOS_BLUE_2, STARTPOS_BLUE_3},
+            {STARTPOS_RED_1, STARTPOS_RED_2, STARTPOS_RED_3}
+        };
+        //
+        // Game element locations and dimensions.
+        //
+    }   //class Game
 
-    //
-    // Other subsystems.
-    //
+    /**
+     * This class contains field dimension constants. Generally, these should not change. But some seasons may have
+     * slight variations of the field dimensions.
+     */
+    public static class Field
+    {
+        // Field dimensions in inches.
+        public static final double LENGTH                       = 54.0*12.0;
+        public static final double WIDTH                        = 27.0*12.0;
+    }   //class Field
 
 }   //class RobotParams
