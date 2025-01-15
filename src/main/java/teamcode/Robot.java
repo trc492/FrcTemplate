@@ -49,12 +49,10 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
-import frclib.vision.FrcPhotonVisionRaw;
 import teamcode.subsystems.LEDIndicator;
 import teamcode.subsystems.RobotBase;
 import teamcode.vision.OpenCvVision;
 import teamcode.vision.PhotonVision;
-import teamcode.vision.PhotonVisionRaw;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.pathdrive.TrcPose2D;
@@ -103,7 +101,6 @@ public class Robot extends FrcRobotBase
     // Vision.
     public PhotonVision photonVisionFront;
     public PhotonVision photonVisionBack;
-    public PhotonVisionRaw photonVisionRaw;
     public OpenCvVision openCvVision;
     // Hybrid mode objects.
     public Command m_autonomousCommand;
@@ -213,10 +210,6 @@ public class Robot extends FrcRobotBase
                     new PhotonVision(robotInfo.cam1.camName, robotInfo.cam1.robotToCam, ledIndicator): null;
                 photonVisionBack = robotInfo.cam2 != null?
                     new PhotonVision(robotInfo.cam2.camName, robotInfo.cam2.robotToCam, ledIndicator): null;
-            }
-            else if (RobotParams.Preferences.usePhotonVisionRaw && robotInfo.cam2 != null)
-            {
-                photonVisionRaw = new PhotonVisionRaw("photonvision", robotInfo.cam2.camName, ledIndicator);
             }
             else if (RobotParams.Preferences.useOpenCvVision && robotInfo.cam2 != null)
             {
@@ -492,19 +485,6 @@ public class Robot extends FrcRobotBase
                     {
                         dashboard.displayPrintf(
                             lineNum++, "PhotonBack: pipeline=%s, obj=%s", photonVisionBack.getPipeline(), object);
-                    }
-                    else
-                    {
-                        lineNum++;
-                    }
-                }
-
-                if (photonVisionRaw != null)
-                {
-                    FrcPhotonVisionRaw.DetectedObject object = photonVisionRaw.getDetectedObject();
-                    if (object != null)
-                    {
-                        dashboard.displayPrintf(lineNum++, "PhotonRaw: obj=%s", object);
                     }
                     else
                     {

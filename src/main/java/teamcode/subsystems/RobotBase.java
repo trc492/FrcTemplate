@@ -22,6 +22,8 @@
 
 package teamcode.subsystems;
 
+import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -29,7 +31,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.SPI;
 import frclib.drivebase.FrcDifferentialDrive;
 import frclib.drivebase.FrcMecanumDrive;
 import frclib.drivebase.FrcRobotDrive;
@@ -139,7 +140,7 @@ public class RobotBase
             // Gyro parameters.
             imuName = "NavX";
             imuType = FrcRobotDrive.ImuType.NavX;
-            imuPort = SPI.Port.kMXP;
+            imuPort = NavXComType.kMXP_SPI;
             // Drive Motor parameters.
             driveMotorType = MotorType.CanTalonFx;
             driveMotorNames = new String[] {"lfDriveMotor", "rfDriveMotor", "lbDriveMotor", "rbDriveMotor"};
@@ -244,7 +245,7 @@ public class RobotBase
             // Gyro parameters.
             imuName = "NavX";
             imuType = FrcRobotDrive.ImuType.NavX;
-            imuPort = SPI.Port.kMXP;
+            imuPort = NavXComType.kMXP_SPI;
             // Drive Motor parameters.
             driveMotorType = MotorType.CanTalonFx;
             driveMotorNames = new String[] {"lfDriveMotor", "rfDriveMotor", "lbDriveMotor", "rbDriveMotor"};
@@ -298,7 +299,7 @@ public class RobotBase
             // Gyro parameters.
             imuName = "NavX";
             imuType = FrcRobotDrive.ImuType.NavX;
-            imuPort = SPI.Port.kMXP;
+            imuPort = NavXComType.kMXP_SPI;
             // Drive Motor parameters.
             driveMotorType = MotorType.CanTalonFx;
             driveMotorNames = new String[] {"leftDriveMotor", "rightDriveMotor"};
