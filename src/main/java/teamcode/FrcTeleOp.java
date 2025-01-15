@@ -26,6 +26,9 @@ import frclib.driverio.FrcButtonPanel;
 import frclib.driverio.FrcDualJoystick;
 import frclib.driverio.FrcJoystick;
 import frclib.driverio.FrcXboxController;
+import teamcode.subsystems.Arm;
+import teamcode.subsystems.Elevator;
+import teamcode.subsystems.Intake;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
@@ -248,7 +251,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.elevator.setPidPower(
-                                    elevatorPower, RobotParams.Elevator.MIN_POS, RobotParams.Elevator.MAX_POS, true);
+                                    elevatorPower, Elevator.Params.MIN_POS, Elevator.Params.MAX_POS, true);
                             }
                             prevElevatorPower = elevatorPower;
                         }
@@ -267,7 +270,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.arm.setPidPower(
-                                    armPower, RobotParams.Arm.MIN_POS, RobotParams.Arm.MAX_POS, true);
+                                    armPower, Arm.Params.MIN_POS, Arm.Params.MAX_POS, true);
                             }
                             prevArmPower = armPower;
                         }
@@ -300,7 +303,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             //
             if (RobotParams.Preferences.doStatusUpdate)
             {
-                robot.updateStatus();
+                robot.updateStatus(2);
             }
         }
     }   //periodic
@@ -412,8 +415,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.intake.autoIntakeForward(
-                            RobotParams.Intake.INTAKE_FORWARD_POWER, RobotParams.Intake.RETAIN_POWER,
-                            RobotParams.Intake.FINISH_DELAY);
+                            Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
+                            Intake.Params.FINISH_DELAY);
                     }
                     else
                     {
@@ -440,7 +443,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         if (pressed)
                         {
-                            robot.grabber.enableAutoAssist(null, 0.0, null, 0.0);
+                            robot.grabber.autoGrab(null, 0.0, null, 0.0);
                         }
                         else
                         {
@@ -475,14 +478,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.elevator.presetPositionUp(null, RobotParams.Elevator.POWER_LIMIT);
+                        robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.arm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionUp(null, RobotParams.Arm.POWER_LIMIT);
+                        robot.arm.presetPositionUp(null, Arm.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.shooter != null)
@@ -499,14 +502,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.elevator.presetPositionDown(null, RobotParams.Elevator.POWER_LIMIT);
+                        robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.arm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionDown(null, RobotParams.Arm.POWER_LIMIT);
+                        robot.arm.presetPositionDown(null, Arm.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.shooter != null)
@@ -542,7 +545,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.cancelAll();
-                    robot.zeroCalibrate();
+                    robot.zeroCalibrate(null, null);
                 }
                 break;
 
@@ -643,7 +646,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.cancelAll();
-                    robot.zeroCalibrate();
+                    robot.zeroCalibrate(null, null);
                 }
                 break;
 

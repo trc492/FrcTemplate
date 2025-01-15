@@ -22,8 +22,8 @@
 
 package teamcode.subsystems;
 
+import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcShooter;
-import teamcode.RobotParams;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
 import trclib.subsystem.TrcShooter;
@@ -33,6 +33,41 @@ import trclib.subsystem.TrcShooter;
  */
 public class Shooter
 {
+    public static final class Params
+    {
+        public static final String SUBSYSTEM_NAME               = "Shooter";
+
+        public static final String MOTOR1_NAME                  = SUBSYSTEM_NAME + ".motor1";
+        public static final int MOTOR1_ID                       = 10;
+        public static final MotorType MOTOR1_TYPE               = MotorType.CanTalonSrx;
+        public static final boolean MOTOR1_BRUSHLESS            = false;
+        public static final boolean MOTOR1_ENC_ABS              = false;
+        public static final boolean MOTOR1_INVERTED             = false;
+
+        public static final boolean HAS_TWO_SHOOTER_MOTORS      = true;
+        public static final String MOTOR2_NAME                  = SUBSYSTEM_NAME + ".motor2";
+        public static final int MOTOR2_ID                       = 12;
+        public static final MotorType MOTOR2_TYPE               = MotorType.CanTalonSrx;
+        public static final boolean MOTOR2_BRUSHLESS            = false;
+        public static final boolean MOTOR2_ENC_ABS              = false;
+        public static final boolean MOTOR2_INVERTED             = true;
+
+        public static final double GOBILDA1620_RPC              = 1.0 / ((1.0 + (46.0/17.0)) * 28.0);
+        public static final boolean SOFTWARE_PID_ENABLED        = true;
+        public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
+            new TrcPidController.PidCoefficients(0.025, 0.0, 0.0, 0.039, 0.0);
+        public static final TrcPidController.PidCoefficients shooter2PidCoeffs =
+            new TrcPidController.PidCoefficients(0.025, 0.0, 0.0, 0.041, 0.0);
+        public static final double SHOOTER_PID_TOLERANCE        = 10.0;
+
+        public static final double SHOOTER_MIN_VEL              = 10.0;     // in RPM
+        public static final double SHOOTER_MAX_VEL              = 1620.0;   // in RPM
+        public static final double SHOOTER_MIN_VEL_INC          = 1.0;      // in RPM
+        public static final double SHOOTER_MAX_VEL_INC          = 100.0;    // in RPM
+        public static final double SHOOTER_DEF_VEL              = 1000.0;   // in RPM
+        public static final double SHOOTER_DEF_VEL_INC          = 10.0;     // in RPM
+    }   //class Params
+
     private final TrcShooter shooter;
 
     /**
@@ -42,35 +77,33 @@ public class Shooter
     {
         FrcShooter.Params shooterParams = new FrcShooter.Params()
             .setShooterMotor1(
-                RobotParams.Shooter.MOTOR1_NAME, RobotParams.Shooter.MOTOR1_ID, RobotParams.Shooter.MOTOR1_TYPE,
-                RobotParams.Shooter.MOTOR1_BRUSHLESS, RobotParams.Shooter.MOTOR1_ENC_ABS,
-                RobotParams.Shooter.MOTOR1_INVERTED);
-        if (RobotParams.Shooter.HAS_TWO_SHOOTER_MOTORS)
+                Params.MOTOR1_NAME, Params.MOTOR1_ID, Params.MOTOR1_TYPE, Params.MOTOR1_BRUSHLESS,
+                Params.MOTOR1_ENC_ABS, Params.MOTOR1_INVERTED);
+        if (Params.HAS_TWO_SHOOTER_MOTORS)
         {
             shooterParams.setShooterMotor2(
-                RobotParams.Shooter.MOTOR1_NAME, RobotParams.Shooter.MOTOR2_ID, RobotParams.Shooter.MOTOR2_TYPE,
-                RobotParams.Shooter.MOTOR2_BRUSHLESS, RobotParams.Shooter.MOTOR2_ENC_ABS,
-                RobotParams.Shooter.MOTOR2_INVERTED);
+                Params.MOTOR1_NAME, Params.MOTOR2_ID, Params.MOTOR2_TYPE, Params.MOTOR2_BRUSHLESS,
+                Params.MOTOR2_ENC_ABS, Params.MOTOR2_INVERTED);
         }
-        shooter = new FrcShooter(RobotParams.Shooter.SUBSYSTEM_NAME, shooterParams).getShooter();
-        configShooterMotor(shooter.getShooterMotor1(), RobotParams.Shooter.shooter1PidCoeffs);
+        shooter = new FrcShooter(Params.SUBSYSTEM_NAME, shooterParams).getShooter();
+        configShooterMotor(shooter.getShooterMotor1(), Params.shooter1PidCoeffs);
         TrcMotor shooterMotor2 = shooter.getShooterMotor2();
         if (shooterMotor2 != null)
         {
-            configShooterMotor(shooterMotor2, RobotParams.Shooter.shooter2PidCoeffs);
+            configShooterMotor(shooterMotor2, Params.shooter2PidCoeffs);
         }
-    }
+    }   //Shooter
 
     public TrcShooter getShooter()
     {
         return shooter;
-    }
+    }   //getShooter
 
     private void configShooterMotor(TrcMotor motor, TrcPidController.PidCoefficients pidCoeffs)
     {
-        motor.setPositionSensorScaleAndOffset(RobotParams.Shooter.GOBILDA1620_RPC, 0.0);
-        motor.setSoftwarePidEnabled(RobotParams.Shooter.SOFTWARE_PID_ENABLED);
-        motor.setVelocityPidParameters(pidCoeffs, RobotParams.Shooter.SHOOTER_PID_TOLERANCE);
+        motor.setPositionSensorScaleAndOffset(Params.GOBILDA1620_RPC, 0.0);
+        motor.setSoftwarePidEnabled(Params.SOFTWARE_PID_ENABLED);
+        motor.setVelocityPidParameters(pidCoeffs, Params.SHOOTER_PID_TOLERANCE);
     }   //configShooterMotor
 
 }   //class Shooter

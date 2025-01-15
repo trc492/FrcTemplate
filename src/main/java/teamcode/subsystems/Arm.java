@@ -23,14 +23,47 @@
 package teamcode.subsystems;
 
 import frclib.motor.FrcMotorActuator;
-import teamcode.RobotParams;
+import frclib.motor.FrcMotorActuator.MotorType;
 import trclib.motor.TrcMotor;
+import trclib.robotcore.TrcPidController;
 
 /**
  * This class implements an Arm Subsystem.
  */
 public class Arm
 {
+    public static final class Params
+    {
+        public static final String SUBSYSTEM_NAME               = "Arm";
+
+        public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
+        public static final int MOTOR_ID                        = 10;
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+        public static final boolean MOTOR_BRUSHLESS             = false;
+        public static final boolean MOTOR_ENC_ABS               = false;
+        public static final boolean MOTOR_INVERTED              = true;
+        public static final double GOBILDA312_CPR               = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
+        public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
+        public static final double POS_OFFSET                   = 39.0;
+        public static final double POWER_LIMIT                  = 0.5;
+        public static final double ZERO_CAL_POWER               = -0.25;
+
+        public static final double MIN_POS                      = POS_OFFSET;
+        public static final double MAX_POS                      = 270.0;
+        public static final double[] posPresets                 = {MIN_POS, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0};
+        public static final double POS_PRESET_TOLERANCE         = 10.0;
+
+        public static final boolean SOFTWARE_PID_ENABLED        = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.018, 0.1, 0.001, 0.0, 2.0);
+        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final double GRAVITY_COMP_MAX_POWER       = 0.158;
+        public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
+        public static final double STALL_TOLERANCE              = 0.1;
+        public static final double STALL_TIMEOUT                = 0.1;
+        public static final double STALL_RESET_TIMEOUT          = 0.0;
+    }   //class Params
+
     private final TrcMotor armMotor;
 
     /**
@@ -40,27 +73,26 @@ public class Arm
     {
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                RobotParams.Arm.MOTOR_NAME, RobotParams.Arm.MOTOR_ID, RobotParams.Arm.MOTOR_TYPE,
-                RobotParams.Arm.MOTOR_BRUSHLESS, RobotParams.Arm.MOTOR_ENC_ABS, RobotParams.Arm.MOTOR_INVERTED)
-            .setPositionScaleAndOffset(RobotParams.Arm.DEG_PER_COUNT, RobotParams.Arm.POS_OFFSET)
-            .setPositionPresets(RobotParams.Arm.POS_PRESET_TOLERANCE, RobotParams.Arm.posPresets);
+                Params.MOTOR_NAME, Params.MOTOR_ID, Params.MOTOR_TYPE, Params.MOTOR_BRUSHLESS, Params.MOTOR_ENC_ABS,
+                Params.MOTOR_INVERTED)
+            .setPositionScaleAndOffset(Params.DEG_PER_COUNT, Params.POS_OFFSET)
+            .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
         armMotor = new FrcMotorActuator(motorParams).getMotor();
-        armMotor.setSoftwarePidEnabled(RobotParams.Arm.SOFTWARE_PID_ENABLED);
-        armMotor.setPositionPidParameters(RobotParams.Arm.posPidCoeffs, RobotParams.Arm.POS_PID_TOLERANCE);
+        armMotor.setSoftwarePidEnabled(Params.SOFTWARE_PID_ENABLED);
+        armMotor.setPositionPidParameters(Params.posPidCoeffs, Params.POS_PID_TOLERANCE);
         armMotor.setPositionPidPowerComp(this::getGravityComp);
         armMotor.setStallProtection(
-            RobotParams.Arm.STALL_MIN_POWER, RobotParams.Arm.STALL_TOLERANCE,
-            RobotParams.Arm.STALL_TIMEOUT, RobotParams.Arm.STALL_RESET_TIMEOUT);
-    }
+            Params.STALL_MIN_POWER, Params.STALL_TOLERANCE, Params.STALL_TIMEOUT, Params.STALL_RESET_TIMEOUT);
+    }   //Arm
 
     public TrcMotor getArmMotor()
     {
         return armMotor;
-    }
+    }   //getArmMotor
 
     private double getGravityComp(double currPower)
     {
-        return RobotParams.Arm.GRAVITY_COMP_MAX_POWER * Math.sin(Math.toRadians(armMotor.getPosition()));
-    }
+        return Params.GRAVITY_COMP_MAX_POWER * Math.sin(Math.toRadians(armMotor.getPosition()));
+    }   //getGravityComp
 
 }   //class Arm

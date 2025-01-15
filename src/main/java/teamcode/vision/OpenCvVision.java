@@ -33,6 +33,7 @@ import edu.wpi.first.math.util.Units;
 import frclib.drivebase.FrcRobotDrive;
 import frclib.vision.FrcOpenCvAprilTagPipeline;
 import frclib.vision.FrcOpenCvDetector;
+import trclib.robotcore.TrcDbgTrace;
 import trclib.vision.TrcOpenCvColorBlobPipeline;
 import trclib.vision.TrcOpenCvDetector;
 import trclib.vision.TrcOpenCvPipeline;
@@ -40,9 +41,19 @@ import trclib.vision.TrcVisionTargetInfo;
 
 public class OpenCvVision extends FrcOpenCvDetector
 {
-    private static final int colorConversion = Imgproc.COLOR_BGRA2BGR;
-    private static final double[] redBlobColorThresholds = {100.0, 255.0, 0.0, 100.0, 0.0, 60.0};
-    private static final double[] blueBlobColorThresholds = {0.0, 60.0, 0.0, 100.0, 100, 255.0};
+    // YCrCb Color Space.
+    private static final int colorConversion = Imgproc.COLOR_BGR2YCrCb;
+    private static final double[] redBlobColorThresholds = {10.0, 180.0, 170.0, 240.0, 80.0, 120.0};
+    private static final double[] blueBlobColorThresholds = {0.0, 180.0, 80.0, 150.0, 150.0, 200.0};
+    private static final TrcOpenCvColorBlobPipeline.FilterContourParams colorBlobFilterContourParams =
+        new TrcOpenCvColorBlobPipeline.FilterContourParams()
+            .setMinArea(10000.0)
+            .setMinPerimeter(200.0)
+            .setWidthRange(100.0, 1000.0)
+            .setHeightRange(100.0, 1000.0)
+            .setSolidityRange(0.0, 100.0)
+            .setVerticesRange(0.0, 1000.0)
+            .setAspectRatioRange(0.0, 1000.0);
 
     public enum ObjectType
     {
@@ -77,6 +88,7 @@ public class OpenCvVision extends FrcOpenCvDetector
 
     }   //enum ObjectType
 
+    public final TrcDbgTrace tracer;
     private final FrcRobotDrive.VisionInfo cameraInfo;
     private final TrcOpenCvPipeline<DetectedObject<?>> aprilTagPipeline;
     private final TrcOpenCvPipeline<DetectedObject<?>> redBlobPipeline;
@@ -97,34 +109,17 @@ public class OpenCvVision extends FrcOpenCvDetector
         CvSink cvSink, CvSource cvSource)
     {
         super(instanceName, numImageBuffers, cameraInfo.cameraRect, cameraInfo.worldRect, cvSink, cvSource);
+        this.tracer = new TrcDbgTrace();
         this.cameraInfo = cameraInfo;
-        TrcOpenCvColorBlobPipeline.FilterContourParams redBlobFilterContourParams =
-            new TrcOpenCvColorBlobPipeline.FilterContourParams()
-                .setMinArea(10000.0)
-                .setMinPerimeter(200.0)
-                .setWidthRange(100.0, 1000.0)
-                .setHeightRange(100.0, 1000.0)
-                .setSolidityRange(0.0, 100.0)
-                .setVerticesRange(0.0, 1000.0)
-                .setAspectRatioRange(0.0, 1000.0);
-        TrcOpenCvColorBlobPipeline.FilterContourParams blueBlobFilterContourParams =
-            new TrcOpenCvColorBlobPipeline.FilterContourParams()
-                .setMinArea(10000.0)
-                .setMinPerimeter(200.0)
-                .setWidthRange(100.0, 1000.0)
-                .setHeightRange(100.0, 1000.0)
-                .setSolidityRange(0.0, 100.0)
-                .setVerticesRange(0.0, 1000.0)
-                .setAspectRatioRange(0.0, 1000.0);
 
         aprilTagPipeline = new FrcOpenCvAprilTagPipeline(
             "tag16h5", null, new AprilTagPoseEstimator.Config(
                 Units.inchesToMeters(cameraInfo.aprilTagSize), cameraInfo.camFx, cameraInfo.camFy, cameraInfo.camCx,
                 cameraInfo.camCy));
         redBlobPipeline = new TrcOpenCvColorBlobPipeline(
-            "redBlobPipeline", colorConversion, redBlobColorThresholds, redBlobFilterContourParams, true);
+            "redBlobPipeline", colorConversion, redBlobColorThresholds, colorBlobFilterContourParams, true);
         blueBlobPipeline = new TrcOpenCvColorBlobPipeline(
-            "blueBlobPipeline", colorConversion, blueBlobColorThresholds, blueBlobFilterContourParams, true);
+            "blueBlobPipeline", colorConversion, blueBlobColorThresholds, colorBlobFilterContourParams, true);
     }   //OpenCvVision
 
     /**

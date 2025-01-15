@@ -26,7 +26,6 @@ import com.revrobotics.Rev2mDistanceSensor;
 import com.revrobotics.Rev2mDistanceSensor.Port;
 
 import frclib.subsystem.FrcServoGrabber;
-import teamcode.RobotParams;
 import trclib.subsystem.TrcServoGrabber;
 
 /**
@@ -34,6 +33,34 @@ import trclib.subsystem.TrcServoGrabber;
  */
 public class Grabber
 {
+    public static final class Params
+    {
+        public static final String SUBSYSTEM_NAME               = "Grabber";
+
+        public static final String PRIMARY_SERVO_NAME           = SUBSYSTEM_NAME + ".leftClaw";
+        public static final int PRIMARY_SERVO_CHANNEL           = 0;
+        public static final boolean PRIMARY_SERVO_INVERTED      = false;
+
+        public static final String FOLLOWER_SERVO_NAME          = SUBSYSTEM_NAME + ".rightClaw";
+        public static final int FOLLOWER_SERVO_CHANNEL          = 1;
+        public static final boolean FOLLOWER_SERVO_INVERTED     = !PRIMARY_SERVO_INVERTED;
+
+        public static final double OPEN_POS                     = 0.2;
+        public static final double OPEN_TIME                    = 0.5;
+        public static final double CLOSE_POS                    = 0.55;
+        public static final double CLOSE_TIME                   = 0.5;
+
+        public static final boolean USE_REV_2M_SENSOR           = true;
+        public static final double SENSOR_TRIGGER_THRESHOLD     = 2.0;
+        public static final double HAS_OBJECT_THRESHOLD         = 2.0;
+        public static final boolean ANALOG_TRIGGER_INVERTED     = true;
+
+        public static final boolean USE_DIGITAL_SENSOR          = false;
+        public static final int SENSOR_DIGITAL_CHANNEL          = 0;
+        public static final boolean DIGITAL_TRIGGER_INVERTED    = false;
+
+    }   //class Params
+
     private final Rev2mDistanceSensor rev2mSensor;
     private final TrcServoGrabber grabber;
     
@@ -42,7 +69,7 @@ public class Grabber
      */
     public Grabber()
     {
-        if (RobotParams.Grabber.USE_REV_2M_SENSOR)
+        if (Params.USE_REV_2M_SENSOR)
         {
             rev2mSensor = new Rev2mDistanceSensor(Port.kOnboard);
             rev2mSensor.setAutomaticMode(true);
@@ -54,37 +81,29 @@ public class Grabber
 
         FrcServoGrabber.Params grabberParams = new FrcServoGrabber.Params()
             .setPrimaryServo(
-                RobotParams.Grabber.PRIMARY_SERVO_NAME, RobotParams.Grabber.PRIMARY_SERVO_CHANNEL,
-                RobotParams.Grabber.PRIMARY_SERVO_INVERTED)
+                Params.PRIMARY_SERVO_NAME, Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
             .setFollowerServo(
-                RobotParams.Grabber.FOLLOWER_SERVO_NAME, RobotParams.Grabber.FOLLOWER_SERVO_CHANNEL,
-                RobotParams.Grabber.FOLLOWER_SERVO_INVERTED)
-            .setOpenCloseParams(
-                RobotParams.Grabber.OPEN_POS, RobotParams.Grabber.OPEN_TIME,
-                RobotParams.Grabber.CLOSE_POS, RobotParams.Grabber.CLOSE_TIME);
+                Params.FOLLOWER_SERVO_NAME, Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
+            .setOpenCloseParams(Params.OPEN_POS, Params.OPEN_TIME, Params.CLOSE_POS, Params.CLOSE_TIME);
 
         if (rev2mSensor != null)
         {
             grabberParams.setAnalogSensorTrigger(
-                this::getSensorData, RobotParams.Grabber.ANALOG_TRIGGER_INVERTED,
-                RobotParams.Grabber.SENSOR_TRIGGER_THRESHOLD, RobotParams.Grabber.HAS_OBJECT_THRESHOLD,
-                null);
+                this::getSensorData, Params.ANALOG_TRIGGER_INVERTED, Params.SENSOR_TRIGGER_THRESHOLD);
         }
-        else if (RobotParams.Grabber.USE_DIGITAL_SENSOR)
+        else if (Params.USE_DIGITAL_SENSOR)
         {
-            grabberParams.setDigitalInputTrigger(
-                RobotParams.Grabber.SENSOR_DIGITAL_CHANNEL, RobotParams.Grabber.DIGITAL_TRIGGER_INVERTED,
-                null);
+            grabberParams.setDigitalInputTrigger(Params.SENSOR_DIGITAL_CHANNEL, Params.DIGITAL_TRIGGER_INVERTED);
         }
 
-        grabber = new FrcServoGrabber(RobotParams.Grabber.SUBSYSTEM_NAME, grabberParams).getGrabber();
+        grabber = new FrcServoGrabber(Params.SUBSYSTEM_NAME, grabberParams).getGrabber();
         grabber.open();
-    }
+    }   //Grabber
 
     public TrcServoGrabber getGrabber()
     {
         return grabber;
-    }
+    }   //getGrabber
 
     private double getSensorData()
     {
@@ -96,6 +115,6 @@ public class Grabber
         {
             return 0.0;
         }
-    }
+    }   //getSensorData
 
 }   //class Grabber
