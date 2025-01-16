@@ -58,7 +58,6 @@ public class Grabber
         public static final boolean USE_DIGITAL_SENSOR          = false;
         public static final int SENSOR_DIGITAL_CHANNEL          = 0;
         public static final boolean DIGITAL_TRIGGER_INVERTED    = false;
-
     }   //class Params
 
     private final Rev2mDistanceSensor rev2mSensor;
