@@ -49,6 +49,7 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
+import teamcode.FrcAuto.AutoChoices;
 import teamcode.subsystems.LEDIndicator;
 import teamcode.subsystems.RobotBase;
 import teamcode.vision.OpenCvVision;
@@ -193,9 +194,6 @@ public class Robot extends FrcRobotBase
             pressureSensor = new AnalogInput(RobotParams.HwConfig.AIN_PRESSURE_SENSOR);
         }
 
-        // Create and initialize miscellaneous hardware.
-        ledIndicator = new LEDIndicator();
-
         // Create and initialize RobotInfo. This must be done early because subsequent components may require it.
         robotBase = new RobotBase();
         robotInfo = robotBase.getRobotInfo();
@@ -234,14 +232,24 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize other subsystems.
         //
-        if (RobotParams.Preferences.useSubsystems)
+
+        // If robotType is VisionOnly, the robot controller is disconnected from the robot for testing vision.
+        // In this case, we should not instantiate any robot hardware.
+        if (RobotParams.Preferences.robotType != RobotBase.RobotType.VisionOnly)
         {
-            // Create subsystems.
+            if (robotInfo.ledName != null)
+            {
+                ledIndicator = new LEDIndicator(robotInfo.ledName, robotInfo.ledChannel, robotInfo.numLEDs);
+            }
 
-            // Zero calibrate all subsystems only in Auto or if TeleOp is run standalone without prior Auto.
-            zeroCalibrate(null, null);
+            if (RobotParams.Preferences.useSubsystems)
+            {
+                // Create subsystems.
+                // Zero calibrate all subsystems only once in robot initialization.
+                zeroCalibrate(null, null);
 
-            // Create autotasks.
+                // Create autotasks.
+            }
         }
 
         // Miscellaneous.
@@ -544,6 +552,15 @@ public class Robot extends FrcRobotBase
     }   //turtle
 
     /**
+     * This method sets the robot's starting position according to the autonomous choices.
+     *
+     * @param autoChoices specifies all the auto choices.
+     */
+    public void setRobotStartPosition(AutoChoices autoChoices)
+    {
+    }   //setRobotStartPosition
+
+    /**
      * This method creates and opens the trace log with the file name derived from the given match info.
      * Note that the trace log is disabled after it is opened. The caller must explicitly call setTraceLogEnabled
      * to enable/disable it.
@@ -795,7 +812,7 @@ public class Robot extends FrcRobotBase
         if (alliance == Alliance.Red)
         {
             // Translate blue alliance pose to red alliance pose.
-            if (RobotParams.Game.fieldIsMirrored)
+            if (RobotParams.Field.mirroredField)
             {
                 // Mirrored field.
                 double angleDelta = (newPose.angle - 90.0)*2.0;

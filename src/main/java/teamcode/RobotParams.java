@@ -192,7 +192,6 @@ public class RobotParams
      */
     public static class Game
     {
-        public static final boolean fieldIsMirrored             = false;
         //
         // Robot starting positions.
         //
@@ -223,6 +222,7 @@ public class RobotParams
      */
     public static class Field
     {
+        public static final boolean mirroredField               = false;
         // Field dimensions in inches.
         public static final double LENGTH                       = 54.0*12.0;
         public static final double WIDTH                        = 27.0*12.0;
