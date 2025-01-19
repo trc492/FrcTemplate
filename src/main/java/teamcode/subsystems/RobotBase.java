@@ -178,6 +178,10 @@ public class RobotBase
             cam1 = new FrontCamParams();
             // Back Camera
             cam2 = new BackCamParams();
+            // Miscellaneous
+            ledName = "LED";
+            ledChannel = HwConfig.PWM_CHANNEL_LED;
+            numLEDs = HwConfig.NUM_LEDS;
             // Steer Encoder parameters.
             steerEncoderType = SteerEncoderType.Canandmag;
             steerEncoderNames = new String[] {"lfSteerEncoder", "rfSteerEncoder", "lbSteerEncoder", "rbSteerEncoder"};

@@ -51,9 +51,14 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
+import teamcode.FrcAuto.AutoChoices;
+import teamcode.subsystems.Arm;
+import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Grabber;
+import teamcode.subsystems.Intake;
 import teamcode.subsystems.LEDIndicator;
 import teamcode.subsystems.RobotBase;
+import teamcode.subsystems.Shooter;
 import teamcode.vision.OpenCvVision;
 import teamcode.vision.PhotonVision;
 import trclib.dataprocessor.TrcDiscreteValue;
@@ -209,9 +214,6 @@ public class Robot extends FrcRobotBase
             pressureSensor = new AnalogInput(RobotParams.HwConfig.AIN_PRESSURE_SENSOR);
         }
 
-        // Create and initialize miscellaneous hardware.
-        ledIndicator = new LEDIndicator();
-
         // Create and initialize RobotInfo. This must be done early because subsequent components may require it.
         robotBase = new RobotBase();
         robotInfo = robotBase.getRobotInfo();
@@ -250,8 +252,77 @@ public class Robot extends FrcRobotBase
         //
         // Create and initialize other subsystems.
         //
-        if (RobotParams.Preferences.useSubsystems)
+
+        // If robotType is VisionOnly, the robot controller is disconnected from the robot for testing vision.
+        // In this case, we should not instantiate any robot hardware.
+        if (RobotParams.Preferences.robotType != RobotBase.RobotType.VisionOnly)
         {
+            if (robotInfo.ledName != null)
+            {
+                ledIndicator = new LEDIndicator(robotInfo.ledName, robotInfo.ledChannel, robotInfo.numLEDs);
+            }
+
+            if (RobotParams.Preferences.useSubsystems)
+            {
+                // Create subsystems.
+                if (RobotParams.Preferences.useSubsystems)
+                {
+                    if (RobotParams.Preferences.useSimpleMotor)
+                    {
+                        final double goBilda1620CPR = ((1.0 + (46.0/17.0)) * 28.0);
+                        simpleMotor = new FrcCANTalonSRX("SimpleMotor", 10);
+                        simpleMotor.resetFactoryDefault();
+                        simpleMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+                        simpleMotor.setBrakeModeEnabled(true);
+                        simpleMotor.setMotorInverted(true);
+                        simpleMotor.setPositionSensorScaleAndOffset(1.0/goBilda1620CPR, 0.0);
+                    }
+
+                    if (RobotParams.Preferences.useSimpleServo)
+                    {
+                        simpleServo = new FrcServo("SimpleServo", 0);
+                        simpleServo.setLogicalPosRange(0.2, 0.6);
+                        simpleServo.setPhysicalPosRange(0.0, 90.0);
+                        simpleServo.setMaxStepRate(250.0);
+                        simpleServo.setPosition(0.0);   // in degrees
+                    }
+
+                    if (RobotParams.Preferences.useElevator)
+                    {
+                        elevator = new Elevator().getElevatorMotor();
+                    }
+
+                    if (RobotParams.Preferences.useArm)
+                    {
+                        arm = new Arm().getArmMotor();
+                    }
+
+                    if (RobotParams.Preferences.useShooter)
+                    {
+                        shooter = new Shooter().getShooter();
+                        shooterVelocity = new TrcDiscreteValue(
+                            Shooter.Params.SUBSYSTEM_NAME + ".motorVel",
+                            Shooter.Params.SHOOTER_MIN_VEL, Shooter.Params.SHOOTER_MAX_VEL,
+                            Shooter.Params.SHOOTER_MIN_VEL_INC, Shooter.Params.SHOOTER_MAX_VEL_INC,
+                            Shooter.Params.SHOOTER_DEF_VEL, Shooter.Params.SHOOTER_DEF_VEL_INC);
+                    }
+
+                    if (RobotParams.Preferences.useIntake)
+                    {
+                        intake = new Intake().getIntake();
+                    }
+
+                    if (RobotParams.Preferences.useGrabber)
+                    {
+                        grabber = new Grabber().getGrabber();
+                    }
+
+                    // Zero calibrate all subsystems only in Auto or if TeleOp is run standalone without prior Auto.
+                    zeroCalibrate(null, null);
+
+                    // Create autotasks.
+                }
+            }
         }
 
         // Miscellaneous.
@@ -624,6 +695,15 @@ public class Robot extends FrcRobotBase
     }   //turtle
 
     /**
+     * This method sets the robot's starting position according to the autonomous choices.
+     *
+     * @param autoChoices specifies all the auto choices.
+     */
+    public void setRobotStartPosition(AutoChoices autoChoices)
+    {
+    }   //setRobotStartPosition
+
+    /**
      * This method creates and opens the trace log with the file name derived from the given match info.
      * Note that the trace log is disabled after it is opened. The caller must explicitly call setTraceLogEnabled
      * to enable/disable it.
@@ -875,7 +955,7 @@ public class Robot extends FrcRobotBase
         if (alliance == Alliance.Red)
         {
             // Translate blue alliance pose to red alliance pose.
-            if (RobotParams.Game.fieldIsMirrored)
+            if (RobotParams.Field.mirroredField)
             {
                 // Mirrored field.
                 double angleDelta = (newPose.angle - 90.0)*2.0;
