@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 package teamcode.subsystems;
 
+import com.ctre.phoenix6.StatusCode;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -35,19 +36,27 @@ import frclib.drivebase.FrcDifferentialDrive;
 import frclib.drivebase.FrcMecanumDrive;
 import frclib.drivebase.FrcRobotDrive;
 import frclib.drivebase.FrcSwerveDrive;
-import frclib.drivebase.FrcSwerveDrive.SteerEncoderType;
+import frclib.driverio.FrcDashboard;
+import frclib.motor.FrcCANTalonFX;
 import frclib.motor.FrcMotorActuator.MotorType;
+import frclib.sensor.FrcEncoder.EncoderType;
+import teamcode.Dashboard;
 import teamcode.RobotParams;
 import teamcode.RobotParams.HwConfig;
+import trclib.controller.TrcPidController;
+import trclib.controller.TrcPidController.PidCoefficients;
 import trclib.drivebase.TrcDriveBase.OdometryType;
 import trclib.pathdrive.TrcPose3D;
-import trclib.robotcore.TrcPidController.PidCoefficients;
+import trclib.robotcore.TrcDbgTrace;
+import trclib.sensor.TrcEncoder;
 
 /**
  * This class creates the appropriate Robot Drive Base according to the specified robot type.
  */
 public class RobotBase
 {
+    private static final String moduleName = RobotBase.class.getSimpleName();
+
     /**
      * When the season starts, the competition robot may not be ready for programmers. It's crucial to save time by
      * developing code on robots of previous seasons. By adding previous robots to the list of RobotType, one can
@@ -156,9 +165,11 @@ public class RobotBase
             // Robot Drive Characteristics
             robotMaxVelocity = 171.0;           // inch/sec
             robotMaxAcceleration = 23000.0;     // inch/sec sq
+            robotMaxDeceleration = robotMaxAcceleration;
             robotMaxTurnRate = 1450.0;          // degree/sec
             profiledMaxVelocity = 157.48;       // inch/sec
             profiledMaxAcceleration = 10000.0;  // inch/sec sq
+            profiledMaxDeceleration = profiledMaxAcceleration;
             profiledMaxTurnRate = 180.0;        // degree/sec
             // DriveBase PID Parameters
             drivePidTolerance = 1.0;
@@ -171,9 +182,15 @@ public class RobotBase
             turnMaxPidRampRate = 1.0;           // %power per sec
             // PID Stall Detection
             pidStallDetectionEnabled = true;
+            // PidDrive Parameters
+            usePidDrive = true;
+            enablePidDriveSquareRootPid = false;
             // PurePursuit Parameters
+            usePurePursuitDrive = true;
+            enablePurePursuitDriveSquareRootPid = false;
             ppdFollowingDistance = 10.0;
             velPidCoeffs = new PidCoefficients(0.0, 0.0, 0.0, 1.0 / robotMaxVelocity, 0.0);
+            fastModeEnabled = true;
             // Front Camera
             cam1 = new FrontCamParams();
             // Back Camera
@@ -183,7 +200,7 @@ public class RobotBase
             ledChannel = HwConfig.PWM_CHANNEL_LED;
             numLEDs = HwConfig.NUM_LEDS;
             // Steer Encoder parameters.
-            steerEncoderType = SteerEncoderType.Canandmag;
+            steerEncoderType = EncoderType.Canandmag;
             steerEncoderNames = new String[] {"lfSteerEncoder", "rfSteerEncoder", "lbSteerEncoder", "rbSteerEncoder"};
             steerEncoderIds = new int[] {
                 HwConfig.CANID_LFSTEER_ENCODER, HwConfig.CANID_RFSTEER_ENCODER,
@@ -203,6 +220,8 @@ public class RobotBase
             // Swerve Module parameters.
             swerveModuleNames = new String[] {"lfWheel", "rfWheel", "lbWheel", "rbWheel"};
             driveGearRatio = DRIVE_GEAR_RATIO;
+            steerGearRatio = STEER_GEAR_RATIO;
+            steerPositionScale = 360.0 / steerGearRatio;
             //
             // WPILib Parameters.
             //
@@ -266,24 +285,35 @@ public class RobotBase
             // Robot Drive Characteristics
             robotMaxVelocity = 177.1654;        // inch/sec
             robotMaxAcceleration = 799.1;       // inch/sec sq
+            robotMaxDeceleration = robotMaxAcceleration;
             robotMaxTurnRate = 572.9578;        // degree/sec
             profiledMaxVelocity = 157.48;       // inch/sec
             profiledMaxAcceleration = 600.0;    // inch/sec sq
+            profiledMaxDeceleration = profiledMaxAcceleration;
             profiledMaxTurnRate = 180.0;        // degree/sec
             // DriveBase PID Parameters
             drivePidTolerance = 2.0;
             turnPidTolerance = 2.0;
             xDrivePidCoeffs = new PidCoefficients(0.017, 0.0, 0.0, 0.0, 0.0);
             xDrivePidPowerLimit = 1.0;
+            xDriveMaxPidRampRate = 0.5;         // %power per sec
             yDrivePidCoeffs = new PidCoefficients(0.011, 0.0, 0.001, 0.0, 0.0);
             yDrivePidPowerLimit = 1.0;
+            yDriveMaxPidRampRate = 0.5;         // %power per sec
             turnPidCoeffs = new PidCoefficients(0.012, 0.0, 0.0008, 0.0, 0.0);
             turnPidPowerLimit = 0.5;
+            turnMaxPidRampRate = 1.0;           // %power per sec
             // PID Stall Detection
             pidStallDetectionEnabled = true;
+            // PidDrive Parameters
+            usePidDrive = true;
+            enablePidDriveSquareRootPid = false;
             // PurePursuit Parameters
-            ppdFollowingDistance = 12.0;
+            usePurePursuitDrive = true;
+            enablePurePursuitDriveSquareRootPid = false;
+            ppdFollowingDistance = 10.0;
             velPidCoeffs = new PidCoefficients(0.0, 0.0, 0.0, 1.0 / robotMaxVelocity, 0.0);
+            fastModeEnabled = true;
         }   //MecanumParams
     }   //class MecanumParams
 
@@ -317,22 +347,32 @@ public class RobotBase
             // Robot Drive Characteristics
             robotMaxVelocity = 177.1654;        // inch/sec
             robotMaxAcceleration = 799.1;       // inch/sec sq
+            robotMaxDeceleration = robotMaxAcceleration;
             robotMaxTurnRate = 572.9578;        // degree/sec
             profiledMaxVelocity = 157.48;       // inch/sec
             profiledMaxAcceleration = 600.0;    // inch/sec sq
+            profiledMaxDeceleration = profiledMaxAcceleration;
             profiledMaxTurnRate = 180.0;        // degree/sec
             // DriveBase PID Parameters
             drivePidTolerance = 1.0;
             turnPidTolerance = 2.0;
             yDrivePidCoeffs = new PidCoefficients(0.011, 0.0, 0.0013, 0.0, 0.0);
             yDrivePidPowerLimit = 1.0;
+            yDriveMaxPidRampRate = 0.5;         // %power per sec
             turnPidCoeffs = new PidCoefficients(0.012, 0.0, 0.00008, 0.0, 0.0);
             turnPidPowerLimit = 0.5;
+            turnMaxPidRampRate = 1.0;           // %power per sec
             // PID Stall Detection
             pidStallDetectionEnabled = true;
+            // PidDrive Parameters
+            usePidDrive = true;
+            enablePidDriveSquareRootPid = false;
             // PurePursuit Parameters
-            ppdFollowingDistance = 12.0;
+            usePurePursuitDrive = true;
+            enablePurePursuitDriveSquareRootPid = false;
+            ppdFollowingDistance = 10.0;
             velPidCoeffs = new PidCoefficients(0.0, 0.0, 0.0, 1.0 / robotMaxVelocity, 0.0);
+            fastModeEnabled = true;
         }   //DifferentialParams
     }   //class DifferentialParams
 
@@ -366,6 +406,12 @@ public class RobotBase
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
     }   //class AutoConstants
 
+    public static final String DBKEY_ROBOT_POSE                 = "DriveBase/RobotPose";
+    public static final String DBKEY_DRIVE_ENC                  = "DriveBase/DriveEnc";
+    public static final String DBKEY_STEER_FRONT                = "DriveBase/SteerFront";
+    public static final String DBKEY_STEER_BACK                 = "DriveBase/SteerBack";
+
+    private final FrcDashboard dashboard;
     private final FrcRobotDrive.RobotInfo robotInfo;
     private final FrcRobotDrive robotDrive;
 
@@ -374,6 +420,12 @@ public class RobotBase
      */
     public RobotBase()
     {
+        dashboard = FrcDashboard.getInstance();
+        dashboard.refreshKey(DBKEY_ROBOT_POSE, "");
+        dashboard.refreshKey(DBKEY_DRIVE_ENC, "");
+        dashboard.refreshKey(DBKEY_STEER_FRONT, "");
+        dashboard.refreshKey(DBKEY_STEER_BACK, "");
+
         switch (RobotParams.Preferences.robotType)
         {
             case VisionOnly:
@@ -401,6 +453,7 @@ public class RobotBase
                 robotDrive = null;
                 break;
         }
+        configureRobotDrive();
     }   //RobotBase
 
     /**
@@ -422,5 +475,142 @@ public class RobotBase
     {
         return robotDrive;
     }   //getRobotDrive
+
+    /**
+     * This method configures robotDrive with implementation details.
+     */
+    private void configureRobotDrive()
+    {
+        if (robotDrive != null)
+        {
+            if (robotDrive instanceof FrcSwerveDrive)
+            {
+                FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robotDrive;
+                FrcSwerveDrive.SwerveInfo swerveInfo = (FrcSwerveDrive.SwerveInfo) robotInfo;
+                // Prevent Krakens from browning out.
+                for (int i = 0; i < swerveInfo.driveMotorNames.length; i++)
+                {
+                    swerveDrive.driveMotors[i].setCloseLoopRampRate(0.02);
+                    swerveDrive.driveMotors[i].setCurrentLimit(40.0, 45.0, 0.2);
+                    swerveDrive.driveMotors[i].setStatorCurrentLimit(55.0);
+                }
+                // Sync absolute encoders to steer motor internal encoders.
+                for (int i = 0; i < swerveInfo.steerEncoderNames.length; i++)
+                {
+                    syncSteerEncoder((FrcSwerveDrive.SwerveInfo) robotInfo, i);
+                }
+            }
+        }
+    }   //configureRobotDrive
+
+    /**
+     * This method reads the absolute steering encoder and synchronize the steering motor encoder with it.
+     *
+     * @param swerveInfo specifies the swerve drive parameters.
+     * @param index specifies the swerve module index.
+     */
+    private void syncSteerEncoder(FrcSwerveDrive.SwerveInfo swerveInfo, int index)
+    {
+        // Note this method is implementation specific. If your implementation is not with an absolute encoder that
+        // syncs with a TalonFX motor, you need to modify this method accordingly.
+        FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robotDrive;
+        TrcEncoder steerEncoder = swerveDrive.steerEncoders[index];
+        FrcCANTalonFX steerMotor = (FrcCANTalonFX)swerveDrive.steerMotors[index];
+        // getPosition returns a value in the range of 0 to 1.0 of one revolution.
+        double motorEncoderPos = steerEncoder.getScaledPosition() * swerveInfo.steerGearRatio;
+        StatusCode statusCode = steerMotor.motor.setPosition(motorEncoderPos);
+
+        if (statusCode != StatusCode.OK)
+        {
+            TrcDbgTrace.globalTraceWarn(
+                moduleName,
+                swerveInfo.swerveModuleNames[index] + ": TalonFx.setPosition failed (code=" + statusCode +
+                ", pos=" + motorEncoderPos + ").");
+        }
+
+        double actualEncoderPos = steerMotor.motor.getPosition().getValueAsDouble();
+        if (Math.abs(motorEncoderPos - actualEncoderPos) > 0.1)
+        {
+            TrcDbgTrace.globalTraceWarn(
+                moduleName,
+                swerveInfo.swerveModuleNames[index] +
+                ": Steer encoder out-of-sync (expected=" + motorEncoderPos + ", actual=" + actualEncoderPos + ")");
+        }
+    }   //syncSteerEncoder
+
+    /**
+     * This method update the dashboard with the drive base status.
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @return updated line number for the next subsystem to print.
+     */
+    public int updateStatus(int lineNum)
+    {
+        if (robotDrive != null)
+        {
+            dashboard.putString(DBKEY_ROBOT_POSE, robotDrive.driveBase.getFieldPosition().toString());
+            if (dashboard.getBoolean(
+                    Dashboard.DBKEY_PREFERENCE_DEBUG_DRIVEBASE, RobotParams.Preferences.debugDriveBase))
+            {
+                // DriveBase debug info.
+                double lfDriveEnc =
+                    robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_FRONT].getPosition();
+                double rfDriveEnc =
+                    robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_FRONT].getPosition();
+                double lbDriveEnc =
+                    robotDrive.driveMotors.length > 2?
+                        robotDrive.driveMotors[FrcRobotDrive.INDEX_LEFT_BACK].getPosition(): 0.0;
+                double rbDriveEnc =
+                    robotDrive.driveMotors.length > 2?
+                    robotDrive.driveMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getPosition(): 0.0;
+                dashboard.putString(
+                    DBKEY_DRIVE_ENC,
+                    String.format(
+                        "lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
+                        lfDriveEnc, rfDriveEnc, lbDriveEnc, rbDriveEnc,
+                        (lfDriveEnc + rfDriveEnc + lbDriveEnc + rbDriveEnc) / robotDrive.driveMotors.length));
+                if (robotDrive instanceof FrcSwerveDrive)
+                {
+                    FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robotDrive;
+                    dashboard.putString(
+                        DBKEY_STEER_FRONT,
+                        String.format(
+                            "angle/motorEnc/absEnc: lf=%.1f/%.3f/%.3f, rf=%.1f/%.3f/%.3f",
+                            swerveDrive.swerveModules[FrcRobotDrive.INDEX_LEFT_FRONT].getSteerAngle(),
+                            swerveDrive.steerMotors[FrcRobotDrive.INDEX_LEFT_FRONT].getMotorPosition(),
+                            swerveDrive.steerEncoders[FrcRobotDrive.INDEX_LEFT_FRONT].getRawPosition(),
+                            swerveDrive.swerveModules[FrcRobotDrive.INDEX_RIGHT_FRONT].getSteerAngle(),
+                            swerveDrive.steerMotors[FrcRobotDrive.INDEX_RIGHT_FRONT].getMotorPosition(),
+                            swerveDrive.steerEncoders[FrcRobotDrive.INDEX_RIGHT_FRONT].getRawPosition()));
+                    dashboard.putString(
+                        DBKEY_STEER_BACK,
+                        String.format(
+                            "angle/motorEnc/absEnc: lb=%.1f/%.3f/%.3f, rb=%.1f/%.3f/%.3f",
+                            swerveDrive.swerveModules[FrcRobotDrive.INDEX_LEFT_BACK].getSteerAngle(),
+                            swerveDrive.steerMotors[FrcRobotDrive.INDEX_LEFT_BACK].getMotorPosition(),
+                            swerveDrive.steerEncoders[FrcRobotDrive.INDEX_LEFT_BACK].getRawPosition(),
+                            swerveDrive.swerveModules[FrcRobotDrive.INDEX_RIGHT_BACK].getSteerAngle(),
+                            swerveDrive.steerMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getMotorPosition(),
+                            swerveDrive.steerEncoders[FrcRobotDrive.INDEX_RIGHT_BACK].getRawPosition()));
+                }
+
+                if (dashboard.getBoolean(
+                        Dashboard.DBKEY_PREFERENCE_DEBUG_PIDDRIVE, RobotParams.Preferences.showPidDrive))
+                {
+                    TrcPidController xPidCtrl = robotDrive.pidDrive.getXPidCtrl();
+                    if (xPidCtrl != null)
+                    {
+                        xPidCtrl.displayPidInfo(lineNum);
+                        lineNum += 2;
+                    }
+                    robotDrive.pidDrive.getYPidCtrl().displayPidInfo(lineNum);
+                    lineNum += 2;
+                    robotDrive.pidDrive.getTurnPidCtrl().displayPidInfo(lineNum);
+                    lineNum += 2;
+                }
+            }
+        }
+        return lineNum;
+    }   //updateStatus
 
 }   //class RobotDrive

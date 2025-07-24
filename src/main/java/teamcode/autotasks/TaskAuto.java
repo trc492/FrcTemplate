@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,35 +47,39 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
         TaskParams()
         {
         }   //TaskParams
+
+        public String toString()
+        {
+            return "";
+        }   //toString
     }   //class TaskParams
 
-    private final String ownerName;
     private final Robot robot;
-
-    private String currOwner = null;
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param ownerName specifies the owner name to take subsystem ownership, can be null if no ownership required.
      * @param robot specifies the robot object that contains all the necessary subsystems.
      */
-    public TaskAuto(String ownerName, Robot robot)
+    public TaskAuto(Robot robot)
     {
-        super(moduleName, ownerName, TrcTaskMgr.TaskType.POST_PERIODIC_TASK);
-        this.ownerName = ownerName;
+        super(moduleName, TrcTaskMgr.TaskType.POST_PERIODIC_TASK);
         this.robot = robot;
     }   //TaskAuto
 
     /**
      * This method starts the auto-assist operation.
      *
+     * @param owner specifies the owner to acquire subsystem ownerships, can be null if not requiring ownership.
      * @param completionEvent specifies the event to signal when done, can be null if none provided.
      */
-    public void autoAssist(TrcEvent completionEvent)
+    public void autoAssist(String owner, TrcEvent completionEvent)
     {
-        tracer.traceInfo(moduleName, "event=" + completionEvent);
-        startAutoTask(State.START, new TaskParams(), completionEvent);
+        TaskParams taskParams = new TaskParams();
+        tracer.traceInfo(
+            moduleName,
+            "autoAssist(owner=" + owner + ", taskParams=(" + taskParams + "), event=" + completionEvent + ")");
+        startAutoTask(owner, State.START, taskParams, completionEvent);
     }   //autoAssist
 
     //
@@ -83,68 +87,56 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
     //
 
     /**
-     * This method is called by the super class to acquire ownership of all subsystems involved in the auto-assist
-     * operation. This is typically done before starting an auto-assist operation.
+     * This method is called to acquire ownership of all subsystems involved in the auto task operation. This is
+     * typically called before starting an auto task operation.
      *
+     * @param owner specifies the owner to acquire the subsystem ownerships.
      * @return true if acquired all subsystems ownership, false otherwise. It releases all ownership if any acquire
      *         failed.
      */
     @Override
-    protected boolean acquireSubsystemsOwnership()
+    protected boolean acquireSubsystemsOwnership(String owner)
     {
-        boolean success = ownerName == null ||
-                          (robot.robotDrive.driveBase.acquireExclusiveAccess(ownerName));
-
-        if (success)
-        {
-            currOwner = ownerName;
-            tracer.traceInfo(moduleName, "Successfully acquired subsystem ownerships.");
-        }
-        else
-        {
-            TrcOwnershipMgr ownershipMgr = TrcOwnershipMgr.getInstance();
-            tracer.traceWarn(
-                moduleName,
-                "Failed to acquire subsystem ownership (currOwner=" + currOwner +
-                ", robotDrive=" + ownershipMgr.getOwner(robot.robotDrive.driveBase) + ").");
-            releaseSubsystemsOwnership();
-        }
-
-        return success;
+        return owner == null || robot.robotDrive.driveBase.acquireExclusiveAccess(owner);
     }   //acquireSubsystemsOwnership
 
     /**
-     * This method is called by the super class to release ownership of all subsystems involved in the auto-assist
-     * operation. This is typically done if the auto-assist operation is completed or canceled.
+     * This method is called to release ownership of all subsystems involved in the auto task operation. This is
+     * typically called if the auto task operation is completed or canceled.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
      */
     @Override
-    protected void releaseSubsystemsOwnership()
+    protected void releaseSubsystemsOwnership(String owner)
     {
-        if (ownerName != null)
+        if (owner != null)
         {
             TrcOwnershipMgr ownershipMgr = TrcOwnershipMgr.getInstance();
             tracer.traceInfo(
                 moduleName,
-                "Releasing subsystem ownership (currOwner=" + currOwner +
-                ", robotDrive=" + ownershipMgr.getOwner(robot.robotDrive.driveBase) + ").");
-            robot.robotDrive.driveBase.releaseExclusiveAccess(currOwner);
-            currOwner = null;
+                "Releasing subsystem ownership on behalf of " + owner +
+                "\n\trobotDrive=" + ownershipMgr.getOwner(robot.robotDrive.driveBase));
+            robot.robotDrive.driveBase.releaseExclusiveAccess(owner);
         }
     }   //releaseSubsystemsOwnership
 
     /**
-     * This method is called by the super class to stop all the subsystems.
+     * This method is called to stop all the subsystems. This is typically called if the auto task operation is
+     * completed or canceled.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
      */
     @Override
-    protected void stopSubsystems()
+    protected void stopSubsystems(String owner)
     {
         tracer.traceInfo(moduleName, "Stopping subsystems.");
-        robot.robotDrive.cancel(currOwner);
+        robot.robotDrive.cancel(owner);
     }   //stopSubsystems
 
     /**
      * This methods is called periodically to run the auto-assist task.
      *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
      * @param params specifies the task parameters.
      * @param state specifies the current state of the task.
      * @param taskType specifies the type of task being run.
@@ -154,7 +146,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      */
     @Override
     protected void runTaskState(
-        Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
+        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
     {
         TaskParams taskParams = (TaskParams) params;
 

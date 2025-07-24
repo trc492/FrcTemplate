@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -84,18 +84,19 @@ public class FrcAuto implements TrcRobot.RobotMode
     public static class AutoChoices
     {
         // Smart dashboard keys for Autonomous choices.
-        private static final String DBKEY_AUTO_ALLIANCE = "Auto/Alliance";
-        private static final String DBKEY_AUTO_STRATEGY = "Auto/Strategy";
-        private static final String DBKEY_AUTO_START_POS = "Auto/StartPos";
-        private static final String DBKEY_AUTO_START_DELAY = "Auto/StartDelay";
-        private static final String DBKEY_AUTO_PATHFILE = "Auto/PathFile";
-        private static final String DBKEY_AUTO_X_DRIVE_DISTANCE = "Auto/XDriveDistance";
-        private static final String DBKEY_AUTO_Y_DRIVE_DISTANCE = "Auto/YDriveDistance";
-        private static final String DBKEY_AUTO_TURN_ANGLE = "Auto/TurnAngle";
-        private static final String DBKEY_AUTO_DRIVE_TIME = "Auto/DriveTime";
-        private static final String DBKEY_AUTO_DRIVE_POWER = "Auto/DrivePower";
+        private static final String DBKEY_AUTO_ALLIANCE = "Auto/Alliance";                  //Choices
+        private static final String DBKEY_AUTO_STRATEGY = "Auto/Strategy";                  //Choices
+        private static final String DBKEY_AUTO_START_POS = "Auto/StartPos";                 //Choices
+        private static final String DBKEY_AUTO_START_DELAY = "Auto/StartDelay";             //Number
+        private static final String DBKEY_AUTO_PATHFILE = "Auto/PathFile";                  //String
+        private static final String DBKEY_AUTO_X_DRIVE_DISTANCE = "Auto/XDriveDistance";    //Number
+        private static final String DBKEY_AUTO_Y_DRIVE_DISTANCE = "Auto/YDriveDistance";    //Number
+        private static final String DBKEY_AUTO_TURN_ANGLE = "Auto/TurnAngle";               //Number
+        private static final String DBKEY_AUTO_DRIVE_TIME = "Auto/DriveTime";               //Number
+        private static final String DBKEY_AUTO_DRIVE_POWER = "Auto/DrivePower";             //Number
 
         private final FrcUserChoices userChoices = new FrcUserChoices();
+        // Choice menus
         private final FrcChoiceMenu<DriverStation.Alliance> allianceMenu;
         private final FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
         private final FrcChoiceMenu<AutoStartPos> autoStartPosMenu;
@@ -137,11 +138,11 @@ public class FrcAuto implements TrcRobot.RobotMode
             userChoices.addChoiceMenu(DBKEY_AUTO_START_POS, autoStartPosMenu);
             userChoices.addNumber(DBKEY_AUTO_START_DELAY, 0.0);
             userChoices.addString(DBKEY_AUTO_PATHFILE, "DrivePath.csv");
-            userChoices.addNumber(DBKEY_AUTO_X_DRIVE_DISTANCE, 6.0);    // in feet
-            userChoices.addNumber(DBKEY_AUTO_Y_DRIVE_DISTANCE, 6.0);    // in feet
-            userChoices.addNumber(DBKEY_AUTO_TURN_ANGLE, 90.0);         // in degrees
-            userChoices.addNumber(DBKEY_AUTO_DRIVE_TIME, 4.0);          // in seconds
-            userChoices.addNumber(DBKEY_AUTO_DRIVE_POWER, 0.5);
+            userChoices.addNumber(DBKEY_AUTO_X_DRIVE_DISTANCE, 0.0);    // in feet
+            userChoices.addNumber(DBKEY_AUTO_Y_DRIVE_DISTANCE, 0.0);    // in feet
+            userChoices.addNumber(DBKEY_AUTO_TURN_ANGLE, 0.0);          // in degrees
+            userChoices.addNumber(DBKEY_AUTO_DRIVE_TIME, 0.0);          // in seconds
+            userChoices.addNumber(DBKEY_AUTO_DRIVE_POWER, 0.0);
         }   //AutoChoices
 
         //
@@ -381,10 +382,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             //
             // Update robot status.
             //
-            if (RobotParams.Preferences.doStatusUpdate)
-            {
-                robot.updateStatus(2);
-            }
+            Dashboard.updateDashboard(robot, 1);
         }
     }   //periodic
 

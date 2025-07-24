@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,6 @@ public class LEDIndicator
         new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.HwConfig.NUM_LEDS);
 
     private static final TrcAddressableLED.Pattern[] priorities =
-        new TrcAddressableLED.Pattern[]
         {
             // Highest priority
             aprilTagLockedPattern,                     
@@ -134,8 +133,7 @@ public class LEDIndicator
             switch (pipelineType)
             {
                 case APRILTAG:
-                    // led.setPatternState(aprilTagPattern, true, 0.5);
-                    if (Math.abs(objPose.angle) < RobotParams.Vision.ONTARGET_THRESHOLD)
+                    if (Math.abs(Math.atan(objPose.x / objPose.y)) < PhotonVision.ONTARGET_THRESHOLD)
                     {
                         led.setPatternState(aprilTagLockedPattern, true, 0.5);
                     }
