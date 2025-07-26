@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,24 @@
 
 package teamcode.subsystems;
 
+import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcShooter;
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
+import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcShooter;
+import trclib.subsystem.TrcSubsystem;
 
 /**
  * This class implements an Shooter Subsystem.
  */
-public class Shooter
+public class Shooter extends TrcSubsystem
 {
     public static final class Params
     {
         public static final String SUBSYSTEM_NAME               = "Shooter";
+        public static final boolean NEED_ZERO_CAL               = false;
 
         public static final String MOTOR1_NAME                  = SUBSYSTEM_NAME + ".motor1";
         public static final int MOTOR1_ID                       = 10;
@@ -52,7 +56,8 @@ public class Shooter
         public static final boolean MOTOR2_ENC_ABS              = false;
         public static final boolean MOTOR2_INVERTED             = true;
 
-        public static final double GOBILDA1620_RPC              = 1.0 / ((1.0 + (46.0/17.0)) * 28.0);
+        public static final double GOBILDA1620_CPR              = ((1.0 + (46.0/17.0)) * 28.0);
+        public static final double MOTOR_REV_PER_COUNT          = 1.0/GOBILDA1620_CPR;
         public static final boolean SOFTWARE_PID_ENABLED        = true;
         public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
             new TrcPidController.PidCoefficients(0.025, 0.0, 0.0, 0.039, 0.0);
@@ -68,6 +73,14 @@ public class Shooter
         public static final double SHOOTER_DEF_VEL_INC          = 10.0;     // in RPM
     }   //class Params
 
+    private static final String DBKEY_SHOOTER1_POWER            = Params.SUBSYSTEM_NAME + "/Power1";
+    private static final String DBKEY_SHOOTER1_CURRENT          = Params.SUBSYSTEM_NAME + "/Current1";
+    private static final String DBKEY_SHOOTER1_VELOCITY         = Params.SUBSYSTEM_NAME + "/Velocity1";
+    private static final String DBKEY_SHOOTER2_POWER            = Params.SUBSYSTEM_NAME + "/Power2";
+    private static final String DBKEY_SHOOTER2_CURRENT          = Params.SUBSYSTEM_NAME + "/Current2";
+    private static final String DBKEY_SHOOTER2_VELOCITY         = Params.SUBSYSTEM_NAME + "/Velocity2";
+
+    private final FrcDashboard dashboard;
     private final TrcShooter shooter;
 
     /**
@@ -75,6 +88,16 @@ public class Shooter
      */
     public Shooter()
     {
+        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+
+        dashboard = FrcDashboard.getInstance();
+        dashboard.refreshKey(DBKEY_SHOOTER1_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_VELOCITY, "");
+        dashboard.refreshKey(DBKEY_SHOOTER2_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER2_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER2_VELOCITY, "");
+
         FrcShooter.Params shooterParams = new FrcShooter.Params()
             .setShooterMotor1(
                 Params.MOTOR1_NAME, Params.MOTOR1_ID, Params.MOTOR1_TYPE, Params.MOTOR1_BRUSHLESS,
@@ -99,11 +122,75 @@ public class Shooter
         return shooter;
     }   //getShooter
 
+    /**
+     * This method configures the shooter motor.
+     *
+     * @param motor specifies the motor to be configured.
+     * @param pidCoeffs specifies the velocity PID control coefficients applied to the motor.
+     */
     private void configShooterMotor(TrcMotor motor, TrcPidController.PidCoefficients pidCoeffs)
     {
-        motor.setPositionSensorScaleAndOffset(Params.GOBILDA1620_RPC, 0.0);
-        motor.setSoftwarePidEnabled(Params.SOFTWARE_PID_ENABLED);
-        motor.setVelocityPidParameters(pidCoeffs, Params.SHOOTER_PID_TOLERANCE);
+        motor.setPositionSensorScaleAndOffset(Params.MOTOR_REV_PER_COUNT, 0.0);
+        motor.setVelocityPidParameters(pidCoeffs, Params.SHOOTER_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
     }   //configShooterMotor
+
+    //
+    // Implements TrcSubsystem abstract methods.
+    //
+
+    /**
+     * This method cancels any pending operations.
+     */
+    @Override
+    public void cancel()
+    {
+        shooter.cancel();
+    }   //cancel
+
+    /**
+     * This method starts zero calibrate of the subsystem.
+     *
+     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
+     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     */
+    @Override
+    public void zeroCalibrate(String owner, TrcEvent event)
+    {
+        // Shooter does not need zero calibration.
+    }   //zeroCalibrate
+
+    /**
+     * This method resets the subsystem state. Typically, this is used to retract the subsystem for turtle mode.
+     */
+    @Override
+    public void resetState()
+    {
+        // Shooter does not support resetState.
+    }   //resetState
+
+    /**
+     * This method update the dashboard with the subsystem status.
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @return updated line number for the next subsystem to print.
+     */
+    @Override
+    public int updateStatus(int lineNum)
+    {
+        dashboard.putNumber(DBKEY_SHOOTER1_POWER, shooter.getShooterMotor1Power());
+        dashboard.putNumber(DBKEY_SHOOTER1_CURRENT, shooter.getShooterMotor1Current());
+        dashboard.putString(
+            DBKEY_SHOOTER1_VELOCITY,
+            String.format("%.1f/%.1f", shooter.getShooterMotor1RPM(), shooter.getShooterMotor1TargetRPM()));
+        if (Params.HAS_TWO_SHOOTER_MOTORS)
+        {
+            dashboard.putNumber(DBKEY_SHOOTER2_POWER, shooter.getShooterMotor2Power());
+            dashboard.putNumber(DBKEY_SHOOTER2_CURRENT, shooter.getShooterMotor2Current());
+            dashboard.putString(
+                DBKEY_SHOOTER2_VELOCITY,
+                String.format("%.1f/%.1f", shooter.getShooterMotor2RPM(), shooter.getShooterMotor2TargetRPM()));
+        }
+        return lineNum;
+    }   //updateStatus
 
 }   //class Shooter
