@@ -39,10 +39,6 @@ public class Dashboard
     public static final String DBKEY_PREFERENCE_DEBUG_PIDDRIVE      = "Preferences/DebugPidDrive";
     public static final String DBKEY_PREFERENCE_VISION_STATUS       = "Preferences/VisionStatus";
     public static final String DBKEY_PREFERENCE_SUBSYSTEM_STATUS    = "Preferences/SubsystemStatus";
-    // Vision
-    public static final String DBKEY_VISION_FRONTCAM                = "Vision/FrontCam";
-    public static final String DBKEY_VISION_BACKCAM                 = "Vision/BackCam";
-    public static final String DBKEY_VISION_OPENCV                  = "Vision/OpenCv";
 
     private static FrcDashboard dashboard;
     private static double nextDashboardUpdateTime;

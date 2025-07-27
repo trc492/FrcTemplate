@@ -116,13 +116,12 @@ public class Robot extends FrcRobotBase
      * This method is called when the robot is first started up and should be used for any initialization code
      * including creation and initialization of all robot hardware and subsystems.
      *
-     * To create new hardware or subsystem, follow the steps below:
-     * 1. Create a public class variable for the new hardware/subsystem.
-     * 2. Instantiate and initialize the new hardware/subsystem object in this method.
-     * 3. Put code in updateStatus to display status of the new hardware/subsystem if necessary.
-     * 4. Put code in robotStartMode or robotStopMode to configure/reset hardware/subsystem if necessary.
+     * To create a new subsystem, follow the steps below:
+     * 1. Create the new subsystem class.
+     * 2. Add a switch in RobotParams.Preferences to enable/disable the subsystem.
+     * 3. Create a public class variable for the new subsystem.
+     * 4. Instantiate and initialize the new subsystem object in robotInit under the "Create other subsystems" section.
      * 5. Put code in FrcTeleOp to operate the subsystem if necessary (i.e. slowPeriodic/xxxButtonEvent).
-     * 6. Create a getter method for the new sensor only if necessary (e.g. sensor value needs translation).
      */
     @Override
     public void robotInit()

@@ -194,8 +194,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (robot.robotDrive != null)
                 {
-                    boolean showDriveBaseStatus = robot.dashboard.getBoolean(
-                        DBKEY_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
                     if (relocalizing)
                     {
                         if (robotFieldPose == null)
@@ -220,6 +218,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                     else
                     {
+                        boolean showDriveBaseStatus = robot.dashboard.getBoolean(
+                            DBKEY_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
                         double[] driveInputs;
 
                         driveInputs = robot.driverController.getDriveInputs(

@@ -146,7 +146,8 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      */
     @Override
     protected void runTaskState(
-        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
+        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode,
+        boolean slowPeriodicLoop)
     {
         TaskParams taskParams = (TaskParams) params;
 
