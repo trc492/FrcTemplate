@@ -67,7 +67,6 @@ public class RobotParams
         public static final boolean doVisionRelocalize          = false;
         // Drive Base
         public static final boolean useDriveBase                = false;
-        public static final boolean useVelocityControl          = false;
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
         // Subsystems
