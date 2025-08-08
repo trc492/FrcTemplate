@@ -52,7 +52,7 @@ public class RobotParams
         public static final boolean showPidDrive                = false;
         public static final boolean showDrivePower              = false;
         public static final boolean showVision                  = false;
-        public static final boolean showSubsystems              = false;
+        public static final boolean showSubsystems              = true;
         // Sensors and Indicators
         public static final boolean useNavX                     = true;
         public static final boolean usePdp                      = false;
@@ -70,6 +70,7 @@ public class RobotParams
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
         // Subsystems
+        public static final String tuneSubsystemName            = null;
         public static final boolean useSubsystems               = true;
     }   //class Preferences
 
