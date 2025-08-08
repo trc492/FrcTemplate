@@ -41,6 +41,7 @@ import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
+import trclib.subsystem.TrcSubsystem;
 import trclib.timer.TrcTimer;
 
 /**
@@ -79,6 +80,13 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_TEST_TARGET_VEL = "Test/targetVelocity";
     private static final String DBKEY_TEST_ROBOT_POS = "Test/robotPosition";
     private static final String DBKEY_TEST_TARGET_POS = "Test/targetPosition";
+    private static final String DBKEY_TEST_SUBSYSTEM_KP = "Test/subsystemKp";
+    private static final String DBKEY_TEST_SUBSYSTEM_KI = "Test/subsystemKi";
+    private static final String DBKEY_TEST_SUBSYSTEM_KD = "Test/subsystemKd";
+    private static final String DBKEY_TEST_SUBSYSTEM_KF = "Test/subsystemKf";
+    private static final String DBKEY_TEST_SUBSYSTEM_IZONE = "Test/subsystemIZone";
+    private static final String DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE = "Test/subsystemPidTolerance";
+    private static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER = "Test/subsystemGravityCompPower";
     //
     // Global constants.
     //
@@ -98,6 +106,7 @@ public class FrcTest extends FrcTeleOp
         PP_DRIVE,
         PID_DRIVE,
         TUNE_DRIVE_PID,
+        TUNE_SUBSYSTEM,
         LIVE_WINDOW
     }   //enum Test
 
@@ -136,6 +145,7 @@ public class FrcTest extends FrcTeleOp
             testMenu.addChoice("PurePursuit Drive", Test.PP_DRIVE);
             testMenu.addChoice("PID Drive", Test.PID_DRIVE);
             testMenu.addChoice("Tune Drive PID", Test.TUNE_DRIVE_PID);
+            testMenu.addChoice("Tune Subsystem", Test.TUNE_SUBSYSTEM);
             testMenu.addChoice("Live Window", Test.LIVE_WINDOW, false, true);
             //
             // Initialize dashboard with default choice values.
@@ -169,6 +179,13 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_TEST_TARGET_VEL, 0.0);
             userChoices.addNumber(DBKEY_TEST_ROBOT_POS, 0.0);
             userChoices.addNumber(DBKEY_TEST_TARGET_POS, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KP, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KI, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KD, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KF, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_IZONE, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER, 0.0);
         }   //TestChoices
 
         //
@@ -255,6 +272,26 @@ public class FrcTest extends FrcTeleOp
             return userChoices.getUserNumber(DBKEY_TEST_MAX_ACCELERATION);
         }   //getMaxDeceleration
 
+        public TrcPidController.PidCoefficients getSubsystemPidCoefficients()
+        {
+            return new TrcPidController.PidCoefficients(
+                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KP),
+                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KI),
+                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KD),
+                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KF),
+                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_IZONE));
+        }   //getSubsystemPidCoefficients
+
+        public double getSubsystemPidTolerance()
+        {
+            return userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE);
+        }   //getSubsystemPidTolerance
+
+        public double getSubsystemGravityCompPower()
+        {
+            return userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER);
+        }   //getSubsystemGravityCompPower
+
         @Override
         public String toString()
         {
@@ -272,10 +309,14 @@ public class FrcTest extends FrcTeleOp
                 "turnPidCoeff=\"%s\" " +
                 "maxVelocity=\"%s\" " +
                 "maxAcceleration=\"%s\" " +
-                "maxDeceleration=\"%s\" ",
+                "maxDeceleration=\"%s\" " +
+                "subsystemPidCoeff=\"%s\" " +
+                "subsystemPidTolerance=\"%f\" " +
+                "subsystemGravityCompPower=\"%f\" ",
                 getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
                 getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
-                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration());
+                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemPidCoefficients(),
+                getSubsystemPidTolerance(), getSubsystemGravityCompPower());
         }   //toString
 
     }   //class TestChocies
@@ -342,9 +383,6 @@ public class FrcTest extends FrcTeleOp
             case SENSORS_TEST:
                 // Make sure no joystick controls on sensors test.
                 setControlsEnabled(false);
-                // Sensors Test is the same as Subsystems Test without joystick control.
-                // So let it flow to the next case.
-            case SUBSYSTEMS_TEST:
                 break;
 
             case VISION_TEST:
@@ -613,17 +651,17 @@ public class FrcTest extends FrcTeleOp
                     {
                         TrcPidController xPidCtrl = null, yPidCtrl = null, turnPidCtrl = null;
 
-                        if (testChoices.getTest() == Test.PID_DRIVE && robot.robotDrive.pidDrive != null)
-                        {
-                            xPidCtrl = robot.robotDrive.pidDrive.getXPidCtrl();
-                            yPidCtrl = robot.robotDrive.pidDrive.getYPidCtrl();
-                            turnPidCtrl = robot.robotDrive.pidDrive.getTurnPidCtrl();
-                        }
-                        else if (robot.robotDrive.purePursuitDrive != null)
+                        if (robot.robotDrive.purePursuitDrive != null)
                         {
                             xPidCtrl = robot.robotDrive.purePursuitDrive.getXPosPidCtrl();
                             yPidCtrl = robot.robotDrive.purePursuitDrive.getYPosPidCtrl();
                             turnPidCtrl = robot.robotDrive.purePursuitDrive.getTurnPidCtrl();
+                        }
+                        else if (testChoices.getTest() == Test.PID_DRIVE && robot.robotDrive.pidDrive != null)
+                        {
+                            xPidCtrl = robot.robotDrive.pidDrive.getXPidCtrl();
+                            yPidCtrl = robot.robotDrive.pidDrive.getYPidCtrl();
+                            turnPidCtrl = robot.robotDrive.pidDrive.getTurnPidCtrl();
                         }
 
                         robot.dashboard.displayPrintf(
@@ -665,7 +703,8 @@ public class FrcTest extends FrcTeleOp
     {
         Test test = testChoices.getTest();
 
-        return test == Test.SUBSYSTEMS_TEST || test == Test.VISION_TEST || test == Test.DRIVE_SPEED_TEST;
+        return test == Test.SUBSYSTEMS_TEST || test == Test.TUNE_SUBSYSTEM || test == Test.VISION_TEST ||
+               test == Test.DRIVE_SPEED_TEST;
     }   //allowTeleOp
 
     //
@@ -692,7 +731,22 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case A:
-                if (testChoices.getTest() == Test.TUNE_DRIVE_PID)
+            case B:
+            case X:
+            case Y:
+            case LeftBumper:
+            case RightBumper:
+            case DpadUp:
+            case DpadDown:
+            case DpadLeft:
+            case DpadRight:
+            case Back:
+                break;
+
+            case Start:
+                Test test = testChoices.getTest();
+
+                if (test == Test.TUNE_DRIVE_PID)
                 {
                     if (robot.robotDrive != null && robot.robotDrive.purePursuitDrive != null)
                     {
@@ -727,19 +781,28 @@ public class FrcTest extends FrcTeleOp
                         passToTeleOp = false;
                     }
                 }
+                else if (test == Test.TUNE_SUBSYSTEM)
+                {
+                    if (RobotParams.Preferences.tuneSubsystemName != null)
+                    {
+                        if (pressed)
+                        {
+                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(
+                                RobotParams.Preferences.tuneSubsystemName);
+
+                            if (subsystem != null)
+                            {
+                                subsystem.prepSubsystemForTuning(
+                                    testChoices.getSubsystemPidCoefficients(),
+                                    testChoices.getSubsystemPidTolerance(),
+                                    testChoices.getSubsystemGravityCompPower());
+                            }
+                        }
+                        passToTeleOp = false;
+                    }
+                }
                 break;
 
-            case B:
-            case X:
-            case Y:
-            case LeftBumper:
-            case RightBumper:
-            case DpadUp:
-            case DpadDown:
-            case DpadLeft:
-            case DpadRight:
-            case Back:
-            case Start:
             default:
                 break;
         }
