@@ -50,8 +50,8 @@ public class Arm extends TrcSubsystem
         public static final double GOBILDA312_CPR               = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
         public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
         public static final double POS_OFFSET                   = 39.0;
-        public static final double POWER_LIMIT                  = 0.5;
-        public static final double ZERO_CAL_POWER               = -0.25;
+        public static final double POWER_LIMIT                  = 0.25;
+        public static final double ZERO_CAL_POWER               = -0.2;
 
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 270.0;
@@ -62,9 +62,9 @@ public class Arm extends TrcSubsystem
 
         public static final boolean SOFTWARE_PID_ENABLED        = true;
         public static final TrcPidController.PidCoefficients posPidCoeffs =
-            new TrcPidController.PidCoefficients(0.018, 0.1, 0.001, 0.0, 2.0);
+            new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
         public static final double POS_PID_TOLERANCE            = 1.0;
-        public static final double GRAVITY_COMP_MAX_POWER       = 0.158;
+        public static final double GRAVITY_COMP_MAX_POWER       = 0.161;
 
         public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
         public static final double STALL_TOLERANCE              = 0.1;
