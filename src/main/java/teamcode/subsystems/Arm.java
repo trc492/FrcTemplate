@@ -78,6 +78,7 @@ public class Arm extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor armMotor;
+    private Double tuneGravityCompPower = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -112,7 +113,8 @@ public class Arm extends TrcSubsystem
 
     private double getGravityComp(double currPower)
     {
-        return Params.GRAVITY_COMP_MAX_POWER * Math.sin(Math.toRadians(armMotor.getPosition()));
+        double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_MAX_POWER;
+        return gravityCompPower * Math.sin(Math.toRadians(armMotor.getPosition()));
     }   //getGravityComp
 
     //
@@ -164,5 +166,20 @@ public class Arm extends TrcSubsystem
             DBKEY_POSITION, String.format("%.1f/%.1f", armMotor.getPosition(), armMotor.getPidTarget()));
         return lineNum;
     }   //updateStatus
+
+    /**
+     * This method is called to prep the subsystem for tuning.
+     *
+     * @param pidCoeffs specifies the PID coefficients for the subsystem.
+     * @param pidTolerance specifies the PID tolerance.
+     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     */
+    @Override
+    public void prepSubsystemForTuning(
+        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    {
+        armMotor.setPositionPidParameters(pidCoeffs, pidTolerance, true);
+        tuneGravityCompPower = gravityCompPower;
+    }   //prepSubsystemForTuning
 
 }   //class Arm

@@ -164,4 +164,18 @@ public class Elevator extends TrcSubsystem
         return lineNum;
     }   //updateStatus
 
+    /**
+     * This method is called to prep the subsystem for tuning.
+     *
+     * @param pidCoeffs specifies the PID coefficients for the subsystem.
+     * @param pidTolerance specifies the PID tolerance.
+     * @param gravityCompPower specifies the gravity compensation power for the subsystem (not used).
+     */
+    @Override
+    public void prepSubsystemForTuning(
+        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    {
+        elevatorMotor.setPositionPidParameters(pidCoeffs, pidTolerance, true);
+    }   //prepSubsystemForTuning
+
 }   //class Elevator

@@ -25,6 +25,7 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcIntake;
+import trclib.controller.TrcPidController;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcIntake;
 import trclib.subsystem.TrcSubsystem;
@@ -171,5 +172,19 @@ public class Intake extends TrcSubsystem
         dashboard.putBoolean(DBKEY_EXIT_SENSOR_STATE, intake.getSensorState(intake.exitTrigger));
         return lineNum;
     }   //updateStatus
+
+    /**
+     * This method is called to prep the subsystem for tuning.
+     *
+     * @param pidCoeffs specifies the PID coefficients for the subsystem.
+     * @param pidTolerance specifies the PID tolerance.
+     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     */
+    @Override
+    public void prepSubsystemForTuning(
+        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    {
+        // Intake subsystem doesn't have PID control.
+    }   //prepSubsystemForTuning
 
 }   //class Intake

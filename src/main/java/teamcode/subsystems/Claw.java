@@ -27,6 +27,7 @@ import com.revrobotics.Rev2mDistanceSensor.Port;
 
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcServoClaw;
+import trclib.controller.TrcPidController;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcSubsystem;
@@ -191,5 +192,19 @@ public class Claw extends TrcSubsystem
         }
         return lineNum;
     }   //updateStatus
+
+    /**
+     * This method is called to prep the subsystem for tuning.
+     *
+     * @param pidCoeffs specifies the PID coefficients for the subsystem.
+     * @param pidTolerance specifies the PID tolerance.
+     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     */
+    @Override
+    public void prepSubsystemForTuning(
+        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    {
+        // Claw subsystem doesn't have PID control.
+    }   //prepSubsystemForTuning
 
 }   //class Claw
