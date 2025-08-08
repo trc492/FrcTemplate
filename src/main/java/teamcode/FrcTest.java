@@ -731,6 +731,19 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case A:
+            case B:
+            case X:
+            case Y:
+            case LeftBumper:
+            case RightBumper:
+            case DpadUp:
+            case DpadDown:
+            case DpadLeft:
+            case DpadRight:
+            case Back:
+                break;
+
+            case Start:
                 Test test = testChoices.getTest();
 
                 if (test == Test.TUNE_DRIVE_PID)
@@ -790,17 +803,6 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
-            case B:
-            case X:
-            case Y:
-            case LeftBumper:
-            case RightBumper:
-            case DpadUp:
-            case DpadDown:
-            case DpadLeft:
-            case DpadRight:
-            case Back:
-            case Start:
             default:
                 break;
         }
