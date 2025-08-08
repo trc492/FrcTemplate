@@ -772,14 +772,20 @@ public class FrcTest extends FrcTeleOp
                 {
                     if (RobotParams.Preferences.tuneSubsystemName != null)
                     {
-                        TrcSubsystem subsystem = TrcSubsystem.getSubsystem(RobotParams.Preferences.tuneSubsystemName);
-
-                        if (subsystem != null)
+                        if (pressed)
                         {
-                            subsystem.prepSubsystemForTuning(
-                                testChoices.getSubsystemPidCoefficients(), testChoices.getSubsystemPidTolerance(),
-                                testChoices.getSubsystemGravityCompPower());
+                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(
+                                RobotParams.Preferences.tuneSubsystemName);
+
+                            if (subsystem != null)
+                            {
+                                subsystem.prepSubsystemForTuning(
+                                    testChoices.getSubsystemPidCoefficients(),
+                                    testChoices.getSubsystemPidTolerance(),
+                                    testChoices.getSubsystemGravityCompPower());
+                            }
                         }
+                        passToTeleOp = false;
                     }
                 }
                 break;
