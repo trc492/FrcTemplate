@@ -422,6 +422,9 @@ public class RobotBase
     public static final String DBKEY_DRIVE_ENC                  = "DriveBase/DriveEnc";
     public static final String DBKEY_STEER_FRONT                = "DriveBase/SteerFront";
     public static final String DBKEY_STEER_BACK                 = "DriveBase/SteerBack";
+    public static final String DBKEY_XPID_INFO                  = "DriveBase/XPidInfo";
+    public static final String DBKEY_YPID_INFO                  = "DriveBase/YPidInfo";
+    public static final String DBKEY_TURNPID_INFO               = "DriveBase/TurnPidInfo";
 
     private final FrcDashboard dashboard;
     private final FrcRobotDrive.RobotInfo robotInfo;
@@ -437,6 +440,9 @@ public class RobotBase
         dashboard.refreshKey(DBKEY_DRIVE_ENC, "");
         dashboard.refreshKey(DBKEY_STEER_FRONT, "");
         dashboard.refreshKey(DBKEY_STEER_BACK, "");
+        dashboard.refreshKey(DBKEY_XPID_INFO, "");
+        dashboard.refreshKey(DBKEY_YPID_INFO, "");
+        dashboard.refreshKey(DBKEY_TURNPID_INFO, "");
 
         switch (RobotParams.Preferences.robotType)
         {
@@ -605,23 +611,42 @@ public class RobotBase
                             swerveDrive.steerMotors[FrcRobotDrive.INDEX_RIGHT_BACK].getMotorPosition(),
                             swerveDrive.steerEncoders[FrcRobotDrive.INDEX_RIGHT_BACK].getRawPosition()));
                 }
+            }
 
-                if (dashboard.getBoolean(
-                        Dashboard.DBKEY_PREFERENCE_DEBUG_PIDDRIVE, RobotParams.Preferences.showPidDrive))
+            if (dashboard.getBoolean(
+                Dashboard.DBKEY_PREFERENCE_DEBUG_PIDDRIVE, RobotParams.Preferences.debugPidDrive))
+            {
+                TrcPidController pidCtrl = robotDrive.pidDrive.getXPidCtrl();
+                double[] pidInfo;
+                if (pidCtrl != null)
                 {
-                    TrcPidController xPidCtrl = robotDrive.pidDrive.getXPidCtrl();
-                    if (xPidCtrl != null)
-                    {
-                        xPidCtrl.displayPidInfo(lineNum);
-                        lineNum += 2;
-                    }
-                    robotDrive.pidDrive.getYPidCtrl().displayPidInfo(lineNum);
-                    lineNum += 2;
-                    robotDrive.pidDrive.getTurnPidCtrl().displayPidInfo(lineNum);
-                    lineNum += 2;
+                    pidInfo = pidCtrl.getPidStateInfo();
+                    dashboard.putString(
+                        DBKEY_XPID_INFO,
+                        String.format(
+                            "%s: Input=%.3f, Target=%.3f, Error=%.3f, Output=%.3f(%.3f/%.3f)",
+                            pidCtrl, pidInfo[0], pidInfo[1], pidInfo[2], pidInfo[3], pidInfo[4], pidInfo[5],
+                            pidInfo[6]));
                 }
+                pidCtrl = robotDrive.pidDrive.getYPidCtrl();
+                pidInfo = pidCtrl.getPidStateInfo();
+                dashboard.putString(
+                    DBKEY_YPID_INFO,
+                    String.format(
+                        "%s: Input=%.3f, Target=%.3f, Error=%.3f, Output=%.3f(%.3f/%.3f)",
+                        pidCtrl, pidInfo[0], pidInfo[1], pidInfo[2], pidInfo[3], pidInfo[4], pidInfo[5],
+                        pidInfo[6]));
+                pidCtrl = robotDrive.pidDrive.getTurnPidCtrl();
+                pidInfo = pidCtrl.getPidStateInfo();
+                dashboard.putString(
+                    DBKEY_YPID_INFO,
+                    String.format(
+                        "%s: Input=%.3f, Target=%.3f, Error=%.3f, Output=%.3f(%.3f/%.3f)",
+                        pidCtrl, pidInfo[0], pidInfo[1], pidInfo[2], pidInfo[3], pidInfo[4], pidInfo[5],
+                        pidInfo[6]));
             }
         }
+
         return lineNum;
     }   //updateStatus
 
