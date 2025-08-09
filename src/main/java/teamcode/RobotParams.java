@@ -23,6 +23,7 @@
 package teamcode;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import teamcode.subsystems.Arm;
 import teamcode.subsystems.RobotBase.RobotType;
 import trclib.pathdrive.TrcPose2D;
 
@@ -47,9 +48,9 @@ public class RobotParams
         public static final boolean useCommStatusMonitor        = false;
         // Dashboard Update
         public static final boolean updateDashboard             = !inCompetition;
-        public static final boolean showDriveBase               = false;
+        public static final boolean driveBaseStatus             = false;
         public static final boolean debugDriveBase              = false;
-        public static final boolean showPidDrive                = false;
+        public static final boolean debugPidDrive               = false;
         public static final boolean showDrivePower              = false;
         public static final boolean showVision                  = false;
         public static final boolean showSubsystems              = true;
@@ -70,8 +71,9 @@ public class RobotParams
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
         // Subsystems
-        public static final String tuneSubsystemName            = null;
+        public static final String tuneSubsystemName            = Arm.Params.SUBSYSTEM_NAME;
         public static final boolean useSubsystems               = true;
+        public static final boolean useArm                      = true;
     }   //class Preferences
 
     /**
