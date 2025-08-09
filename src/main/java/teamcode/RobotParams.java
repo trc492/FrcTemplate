@@ -23,7 +23,6 @@
 package teamcode;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import teamcode.subsystems.Arm;
 import teamcode.subsystems.RobotBase.RobotType;
 import trclib.pathdrive.TrcPose2D;
 
