@@ -42,8 +42,6 @@ import frclib.drivebase.FrcRobotDrive.ImuType;
 import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcXboxController;
-import frclib.motor.FrcCANTalonSRX;
-import frclib.motor.FrcServo;
 import frclib.robotcore.FrcRobotBase;
 import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPdp;
@@ -112,8 +110,6 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
-    public FrcCANTalonSRX simpleMotor;
-    public FrcServo simpleServo;
     public TrcMotor elevator;
     public TrcMotor arm;
     public TrcShooter shooter;
@@ -230,26 +226,6 @@ public class Robot extends FrcRobotBase
             if (RobotParams.Preferences.useSubsystems)
             {
                 // Create subsystems.
-                if (RobotParams.Preferences.useSimpleMotor)
-                {
-                    final double goBilda1620CPR = ((1.0 + (46.0/17.0)) * 28.0);
-                    simpleMotor = new FrcCANTalonSRX("SimpleMotor", 10);
-                    simpleMotor.resetFactoryDefault();
-                    simpleMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-                    simpleMotor.setBrakeModeEnabled(true);
-                    simpleMotor.setMotorInverted(true);
-                    simpleMotor.setPositionSensorScaleAndOffset(1.0/goBilda1620CPR, 0.0);
-                }
-
-                if (RobotParams.Preferences.useSimpleServo)
-                {
-                    simpleServo = new FrcServo("SimpleServo", 0);
-                    simpleServo.setLogicalPosRange(0.2, 0.6);
-                    simpleServo.setPhysicalPosRange(0.0, 90.0);
-                    simpleServo.setMaxStepRate(250.0);
-                    simpleServo.setPosition(0.0);   // in degrees
-                }
-
                 if (RobotParams.Preferences.useElevator)
                 {
                     elevator = new Elevator().getElevatorMotor();

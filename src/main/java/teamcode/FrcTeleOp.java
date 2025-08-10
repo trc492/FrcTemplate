@@ -71,8 +71,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private TrcPose2D robotFieldPose = null;
     private boolean rumbling = false;
 
-    private double prevSimpleMotorPower = 0.0;
-    private double prevSimpleServoPower = 0.0;
     private double prevElevatorPower = 0.0;
     private double prevArmPower = 0.0;
     private boolean shooterOn = false;
@@ -266,26 +264,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (RobotParams.Preferences.useSubsystems)
                 {
-                    if (robot.simpleMotor != null)
-                    {
-                        double motorPower = robot.driverController.getLeftStickY(true);
-                        if (motorPower != prevSimpleMotorPower)
-                        {
-                            robot.simpleMotor.setPower(motorPower);
-                            prevSimpleMotorPower = motorPower;
-                        }
-                    }
-
-                    if (robot.simpleServo != null)
-                    {
-                        double servoPower = robot.driverController.getRightStickY(true);
-                        if (servoPower != prevSimpleServoPower)
-                        {
-                            robot.simpleServo.setPower(servoPower);
-                            prevSimpleServoPower = servoPower;
-                        }
-                    }
-
                     if (robot.elevator != null)
                     {
                         double elevatorPower = robot.driverController.getLeftStickY(true);
