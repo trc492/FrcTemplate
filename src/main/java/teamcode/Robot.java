@@ -255,7 +255,6 @@ public class Robot extends FrcRobotBase
                 openTraceLog(matchInfo);
                 setTraceLogEnabled(true);
             }
-            globalTracer.traceInfo(moduleName, "%s: ***** %s *****", matchInfo.eventDate, runMode);
             // Start RobotDrive.
             if (robotDrive != null)
             {
@@ -287,6 +286,7 @@ public class Robot extends FrcRobotBase
                 ledIndicator.reset();
             }
         }
+        globalTracer.traceInfo(moduleName, "%s: ***** %s *****", matchInfo.eventDate, runMode);
         globalTracer.traceInfo(moduleName, "<BuildInfo " + buildInfo + " />");
     }   //robotStartMode
 
