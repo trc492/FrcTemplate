@@ -73,6 +73,7 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_TEST_TURN_KD = "Test/TurnKd";
     private static final String DBKEY_TEST_TURN_KF = "Test/TurnKf";
     private static final String DBKEY_TEST_TURN_IZONE = "Test/TurnIZone";
+    private static final String DBKEY_TEST_SUBSYSTEM_NAME = "Test/SubsystemName";
     private static final String DBKEY_TEST_SUBSYSTEM_KP = "Test/SubsystemKp";
     private static final String DBKEY_TEST_SUBSYSTEM_KI = "Test/SubsystemKi";
     private static final String DBKEY_TEST_SUBSYSTEM_KD = "Test/SubsystemKd";
@@ -179,6 +180,7 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_TEST_TARGET_VEL, 0.0);
             userChoices.addNumber(DBKEY_TEST_ROBOT_POS, 0.0);
             userChoices.addNumber(DBKEY_TEST_TARGET_POS, 0.0);
+            userChoices.addString(DBKEY_TEST_SUBSYSTEM_NAME, "");
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KP, 0.0);
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KI, 0.0);
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KD, 0.0);
@@ -272,6 +274,11 @@ public class FrcTest extends FrcTeleOp
             return userChoices.getUserNumber(DBKEY_TEST_MAX_ACCELERATION);
         }   //getMaxDeceleration
 
+        public String getSubsystemName()
+        {
+            return userChoices.getUserString(DBKEY_TEST_SUBSYSTEM_NAME);
+        }   //getSubsystemName
+
         public TrcPidController.PidCoefficients getSubsystemPidCoefficients()
         {
             return new TrcPidController.PidCoefficients(
@@ -310,13 +317,14 @@ public class FrcTest extends FrcTeleOp
                 "maxVelocity=\"%s\" " +
                 "maxAcceleration=\"%s\" " +
                 "maxDeceleration=\"%s\" " +
+                "subsystemName=\"%s\" " +
                 "subsystemPidCoeff=\"%s\" " +
                 "subsystemPidTolerance=\"%f\" " +
                 "subsystemGravityCompPower=\"%f\" ",
                 getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
                 getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
-                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemPidCoefficients(),
-                getSubsystemPidTolerance(), getSubsystemGravityCompPower());
+                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemName(),
+                getSubsystemPidCoefficients(), getSubsystemPidTolerance(), getSubsystemGravityCompPower());
         }   //toString
 
     }   //class TestChocies
@@ -783,12 +791,12 @@ public class FrcTest extends FrcTeleOp
                 }
                 else if (test == Test.TUNE_SUBSYSTEM)
                 {
-                    if (RobotParams.Preferences.tuneSubsystemName != null)
+                    if (pressed)
                     {
-                        if (pressed)
+                        String subsystemName = testChoices.getSubsystemName();
+                        if (subsystemName.length() > 0)
                         {
-                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(
-                                RobotParams.Preferences.tuneSubsystemName);
+                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(subsystemName);
 
                             if (subsystem != null)
                             {
@@ -798,8 +806,8 @@ public class FrcTest extends FrcTeleOp
                                     testChoices.getSubsystemGravityCompPower());
                             }
                         }
-                        passToTeleOp = false;
                     }
+                    passToTeleOp = false;
                 }
                 break;
 

@@ -70,7 +70,6 @@ public class RobotParams
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
         // Subsystems
-        public static final String tuneSubsystemName            = null;
         public static final boolean useSubsystems               = true;
     }   //class Preferences
 
