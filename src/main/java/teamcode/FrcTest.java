@@ -51,42 +51,43 @@ public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = FrcTest.class.getSimpleName();
     // Smart dashboard keys for Autonomous choices.
-    private static final String DBKEY_TEST_TESTS = "Test/tests";
-    private static final String DBKEY_TEST_X_TARGET = "Test/xTarget";
-    private static final String DBKEY_TEST_Y_TARGET = "Test/yTarget";
-    private static final String DBKEY_TEST_TURN_TARGET = "Test/turnTarget";
-    private static final String DBKEY_TEST_DRIVE_POWER = "Test/drivePower";
-    private static final String DBKEY_TEST_TURN_POWER = "Test/turnPower";
-    private static final String DBKEY_TEST_DRIVE_TIME = "Test/driveTime";
-    private static final String DBKEY_TEST_X_KP = "Test/xKp";
-    private static final String DBKEY_TEST_X_KI = "Test/xKi";
-    private static final String DBKEY_TEST_X_KD = "Test/xKd";
-    private static final String DBKEY_TEST_X_KF = "Test/xKf";
-    private static final String DBKEY_TEST_X_IZONE = "Test/xIZone";
-    private static final String DBKEY_TEST_Y_KP = "Test/yKp";
-    private static final String DBKEY_TEST_Y_KI = "Test/yKi";
-    private static final String DBKEY_TEST_Y_KD = "Test/yKd";
-    private static final String DBKEY_TEST_Y_KF = "Test/yKf";
-    private static final String DBKEY_TEST_Y_IZONE = "Test/yIZone";
-    private static final String DBKEY_TEST_TURN_KP = "Test/turnKp";
-    private static final String DBKEY_TEST_TURN_KI = "Test/turnKi";
-    private static final String DBKEY_TEST_TURN_KD = "Test/turnKd";
-    private static final String DBKEY_TEST_TURN_KF = "Test/turnKf";
-    private static final String DBKEY_TEST_TURN_IZONE = "Test/turnIZone";
-    private static final String DBKEY_TEST_MAX_VELOCITY = "Test/maxVelocity";
-    private static final String DBKEY_TEST_MAX_ACCELERATION = "Test/maxAcceleration";
-    private static final String DBKEY_TEST_MAX_DECELERATION = "Test/maxDeceleration";
-    private static final String DBKEY_TEST_ROBOT_VEL = "Test/robotVelocity";
-    private static final String DBKEY_TEST_TARGET_VEL = "Test/targetVelocity";
-    private static final String DBKEY_TEST_ROBOT_POS = "Test/robotPosition";
-    private static final String DBKEY_TEST_TARGET_POS = "Test/targetPosition";
-    private static final String DBKEY_TEST_SUBSYSTEM_KP = "Test/subsystemKp";
-    private static final String DBKEY_TEST_SUBSYSTEM_KI = "Test/subsystemKi";
-    private static final String DBKEY_TEST_SUBSYSTEM_KD = "Test/subsystemKd";
-    private static final String DBKEY_TEST_SUBSYSTEM_KF = "Test/subsystemKf";
-    private static final String DBKEY_TEST_SUBSYSTEM_IZONE = "Test/subsystemIZone";
-    private static final String DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE = "Test/subsystemPidTolerance";
-    private static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER = "Test/subsystemGravityCompPower";
+    private static final String DBKEY_TEST_TESTS = "Test/Tests";
+    private static final String DBKEY_TEST_X_TARGET = "Test/XTarget";
+    private static final String DBKEY_TEST_Y_TARGET = "Test/YTarget";
+    private static final String DBKEY_TEST_TURN_TARGET = "Test/TurnTarget";
+    private static final String DBKEY_TEST_DRIVE_POWER = "Test/DrivePower";
+    private static final String DBKEY_TEST_TURN_POWER = "Test/TurnPower";
+    private static final String DBKEY_TEST_DRIVE_TIME = "Test/DriveTime";
+    private static final String DBKEY_TEST_X_KP = "Test/XKp";
+    private static final String DBKEY_TEST_X_KI = "Test/XKi";
+    private static final String DBKEY_TEST_X_KD = "Test/XKd";
+    private static final String DBKEY_TEST_X_KF = "Test/XKf";
+    private static final String DBKEY_TEST_X_IZONE = "Test/XIZone";
+    private static final String DBKEY_TEST_Y_KP = "Test/YKp";
+    private static final String DBKEY_TEST_Y_KI = "Test/YKi";
+    private static final String DBKEY_TEST_Y_KD = "Test/YKd";
+    private static final String DBKEY_TEST_Y_KF = "Test/YKf";
+    private static final String DBKEY_TEST_Y_IZONE = "Test/YIZone";
+    private static final String DBKEY_TEST_TURN_KP = "Test/TurnKp";
+    private static final String DBKEY_TEST_TURN_KI = "Test/TurnKi";
+    private static final String DBKEY_TEST_TURN_KD = "Test/TurnKd";
+    private static final String DBKEY_TEST_TURN_KF = "Test/TurnKf";
+    private static final String DBKEY_TEST_TURN_IZONE = "Test/TurnIZone";
+    private static final String DBKEY_TEST_SUBSYSTEM_NAME = "Test/SubsystemName";
+    private static final String DBKEY_TEST_SUBSYSTEM_KP = "Test/SubsystemKp";
+    private static final String DBKEY_TEST_SUBSYSTEM_KI = "Test/SubsystemKi";
+    private static final String DBKEY_TEST_SUBSYSTEM_KD = "Test/SubsystemKd";
+    private static final String DBKEY_TEST_SUBSYSTEM_KF = "Test/SubsystemKf";
+    private static final String DBKEY_TEST_SUBSYSTEM_IZONE = "Test/SubsystemIZone";
+    private static final String DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE = "Test/SubsystemPidTolerance";
+    private static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER = "Test/SubsystemGravityCompPower";
+    private static final String DBKEY_TEST_MAX_VELOCITY = "Test/MaxVelocity";
+    private static final String DBKEY_TEST_MAX_ACCELERATION = "Test/MaxAcceleration";
+    private static final String DBKEY_TEST_MAX_DECELERATION = "Test/MaxDeceleration";
+    private static final String DBKEY_TEST_ROBOT_VEL = "Test/RobotVelocity";
+    private static final String DBKEY_TEST_TARGET_VEL = "Test/TargetVelocity";
+    private static final String DBKEY_TEST_ROBOT_POS = "Test/RobotPosition";
+    private static final String DBKEY_TEST_TARGET_POS = "Test/TargetPosition";
     //
     // Global constants.
     //
@@ -179,6 +180,7 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_TEST_TARGET_VEL, 0.0);
             userChoices.addNumber(DBKEY_TEST_ROBOT_POS, 0.0);
             userChoices.addNumber(DBKEY_TEST_TARGET_POS, 0.0);
+            userChoices.addString(DBKEY_TEST_SUBSYSTEM_NAME, "");
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KP, 0.0);
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KI, 0.0);
             userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KD, 0.0);
@@ -272,6 +274,11 @@ public class FrcTest extends FrcTeleOp
             return userChoices.getUserNumber(DBKEY_TEST_MAX_ACCELERATION);
         }   //getMaxDeceleration
 
+        public String getSubsystemName()
+        {
+            return userChoices.getUserString(DBKEY_TEST_SUBSYSTEM_NAME);
+        }   //getSubsystemName
+
         public TrcPidController.PidCoefficients getSubsystemPidCoefficients()
         {
             return new TrcPidController.PidCoefficients(
@@ -310,13 +317,14 @@ public class FrcTest extends FrcTeleOp
                 "maxVelocity=\"%s\" " +
                 "maxAcceleration=\"%s\" " +
                 "maxDeceleration=\"%s\" " +
+                "subsystemName=\"%s\" " +
                 "subsystemPidCoeff=\"%s\" " +
                 "subsystemPidTolerance=\"%f\" " +
                 "subsystemGravityCompPower=\"%f\" ",
                 getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
                 getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
-                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemPidCoefficients(),
-                getSubsystemPidTolerance(), getSubsystemGravityCompPower());
+                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemName(),
+                getSubsystemPidCoefficients(), getSubsystemPidTolerance(), getSubsystemGravityCompPower());
         }   //toString
 
     }   //class TestChocies
@@ -783,12 +791,12 @@ public class FrcTest extends FrcTeleOp
                 }
                 else if (test == Test.TUNE_SUBSYSTEM)
                 {
-                    if (RobotParams.Preferences.tuneSubsystemName != null)
+                    if (pressed)
                     {
-                        if (pressed)
+                        String subsystemName = testChoices.getSubsystemName();
+                        if (subsystemName.length() > 0)
                         {
-                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(
-                                RobotParams.Preferences.tuneSubsystemName);
+                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(subsystemName);
 
                             if (subsystem != null)
                             {
@@ -798,8 +806,8 @@ public class FrcTest extends FrcTeleOp
                                     testChoices.getSubsystemGravityCompPower());
                             }
                         }
-                        passToTeleOp = false;
                     }
+                    passToTeleOp = false;
                 }
                 break;
 
