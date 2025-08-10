@@ -64,6 +64,7 @@ import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
+import trclib.robotcore.TrcBuildInfo;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot.RunMode;
@@ -314,6 +315,7 @@ public class Robot extends FrcRobotBase
 
         // Read FMS Match info.
         FrcMatchInfo matchInfo = FrcMatchInfo.getMatchInfo();
+        TrcBuildInfo buildInfo = TrcBuildInfo.getBuildInfo();
         if (runMode != RunMode.DISABLED_MODE)
         {
             // Start trace logging.
@@ -322,7 +324,6 @@ public class Robot extends FrcRobotBase
                 openTraceLog(matchInfo);
                 setTraceLogEnabled(true);
             }
-            globalTracer.traceInfo(moduleName, "%s: ***** %s *****", matchInfo.eventDate, runMode);
             // Start RobotDrive.
             if (robotDrive != null)
             {
@@ -354,6 +355,8 @@ public class Robot extends FrcRobotBase
                 ledIndicator.reset();
             }
         }
+        globalTracer.traceInfo(moduleName, "%s: ***** %s *****", matchInfo.eventDate, runMode);
+        globalTracer.traceInfo(moduleName, "<BuildInfo " + buildInfo + " />");
     }   //robotStartMode
 
     /**
