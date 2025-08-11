@@ -585,7 +585,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemKp",
+                  "topic": "/SmartDashboard/Test/SubsystemParam0",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -599,7 +599,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemKi",
+                  "topic": "/SmartDashboard/Test/SubsystemParam1",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -613,7 +613,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemKd",
+                  "topic": "/SmartDashboard/Test/SubsystemParam2",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -627,7 +627,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemKf",
+                  "topic": "/SmartDashboard/Test/SubsystemParam3",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -641,7 +641,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemIZone",
+                  "topic": "/SmartDashboard/Test/SubsystemParam4",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -655,7 +655,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemPidTolerance",
+                  "topic": "/SmartDashboard/Test/SubsystemParam5",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
@@ -669,7 +669,7 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemGravityCompPower",
+                  "topic": "/SmartDashboard/Test/SubsystemParam6",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true

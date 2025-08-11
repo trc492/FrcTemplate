@@ -22,6 +22,7 @@
 
 package teamcode;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -74,13 +75,13 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_TEST_TURN_KF = "Test/TurnKf";
     private static final String DBKEY_TEST_TURN_IZONE = "Test/TurnIZone";
     private static final String DBKEY_TEST_SUBSYSTEM_NAME = "Test/SubsystemName";
-    private static final String DBKEY_TEST_SUBSYSTEM_KP = "Test/SubsystemKp";
-    private static final String DBKEY_TEST_SUBSYSTEM_KI = "Test/SubsystemKi";
-    private static final String DBKEY_TEST_SUBSYSTEM_KD = "Test/SubsystemKd";
-    private static final String DBKEY_TEST_SUBSYSTEM_KF = "Test/SubsystemKf";
-    private static final String DBKEY_TEST_SUBSYSTEM_IZONE = "Test/SubsystemIZone";
-    private static final String DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE = "Test/SubsystemPidTolerance";
-    private static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER = "Test/SubsystemGravityCompPower";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM0 = "Test/SubsystemParam0";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM1 = "Test/SubsystemParam1";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM2 = "Test/SubsystemParam2";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM3 = "Test/SubsystemParam3";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM4 = "Test/SubsystemParam4";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM5 = "Test/SubsystemParam5";
+    private static final String DBKEY_TEST_SUBSYSTEM_PARAM6 = "Test/SubsystemParam6";
     private static final String DBKEY_TEST_MAX_VELOCITY = "Test/MaxVelocity";
     private static final String DBKEY_TEST_MAX_ACCELERATION = "Test/MaxAcceleration";
     private static final String DBKEY_TEST_MAX_DECELERATION = "Test/MaxDeceleration";
@@ -181,13 +182,13 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_TEST_ROBOT_POS, 0.0);
             userChoices.addNumber(DBKEY_TEST_TARGET_POS, 0.0);
             userChoices.addString(DBKEY_TEST_SUBSYSTEM_NAME, "");
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KP, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KI, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KD, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_KF, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_IZONE, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE, 0.0);
-            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM0, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM1, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM2, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM3, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM4, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM5, 0.0);
+            userChoices.addNumber(DBKEY_TEST_SUBSYSTEM_PARAM6, 0.0);
         }   //TestChoices
 
         //
@@ -279,25 +280,19 @@ public class FrcTest extends FrcTeleOp
             return userChoices.getUserString(DBKEY_TEST_SUBSYSTEM_NAME);
         }   //getSubsystemName
 
-        public TrcPidController.PidCoefficients getSubsystemPidCoefficients()
+        public double[] getSubsystemTuneParams()
         {
-            return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KP),
-                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KI),
-                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KD),
-                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_KF),
-                userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_IZONE));
-        }   //getSubsystemPidCoefficients
-
-        public double getSubsystemPidTolerance()
-        {
-            return userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PID_TOLERANCE);
-        }   //getSubsystemPidTolerance
-
-        public double getSubsystemGravityCompPower()
-        {
-            return userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_GRAVITY_COMP_POWER);
-        }   //getSubsystemGravityCompPower
+            return new double[]
+                {
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM0),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM1),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM2),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM3),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM4),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM5),
+                    userChoices.getUserNumber(DBKEY_TEST_SUBSYSTEM_PARAM6)
+                };
+        }   //getSubsystemTuneParams
 
         @Override
         public String toString()
@@ -318,13 +313,11 @@ public class FrcTest extends FrcTeleOp
                 "maxAcceleration=\"%s\" " +
                 "maxDeceleration=\"%s\" " +
                 "subsystemName=\"%s\" " +
-                "subsystemPidCoeff=\"%s\" " +
-                "subsystemPidTolerance=\"%f\" " +
-                "subsystemGravityCompPower=\"%f\" ",
+                "subsystemTuneParams=\"%s\" " +
                 getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
                 getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
                 getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemName(),
-                getSubsystemPidCoefficients(), getSubsystemPidTolerance(), getSubsystemGravityCompPower());
+                Arrays.toString(getSubsystemTuneParams()));
         }   //toString
 
     }   //class TestChocies
@@ -800,10 +793,7 @@ public class FrcTest extends FrcTeleOp
 
                             if (subsystem != null)
                             {
-                                subsystem.prepSubsystemForTuning(
-                                    testChoices.getSubsystemPidCoefficients(),
-                                    testChoices.getSubsystemPidTolerance(),
-                                    testChoices.getSubsystemGravityCompPower());
+                                subsystem.prepSubsystemForTuning(testChoices.getSubsystemTuneParams());
                             }
                         }
                     }
