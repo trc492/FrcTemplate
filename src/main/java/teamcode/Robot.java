@@ -229,14 +229,29 @@ public class Robot extends FrcRobotBase
             if (RobotParams.Preferences.useSubsystems)
             {
                 // Create subsystems.
+                if (RobotParams.Preferences.useArm)
+                {
+                    arm = new Arm().getArmMotor();
+                }
+
                 if (RobotParams.Preferences.useElevator)
                 {
                     elevator = new Elevator().getElevatorMotor();
                 }
 
-                if (RobotParams.Preferences.useArm)
+                if (RobotParams.Preferences.useLatch)
                 {
-                    arm = new Arm().getArmMotor();
+                    latch = new Latch().getLatchServo();
+                }
+
+                if (RobotParams.Preferences.useIntake)
+                {
+                    intake = new Intake().getIntake();
+                }
+
+                if (RobotParams.Preferences.useClaw)
+                {
+                    claw = new Claw().getClaw();
                 }
 
                 if (RobotParams.Preferences.useShooter)
@@ -247,21 +262,6 @@ public class Robot extends FrcRobotBase
                         Shooter.Params.SHOOTER_MIN_VEL, Shooter.Params.SHOOTER_MAX_VEL,
                         Shooter.Params.SHOOTER_MIN_VEL_INC, Shooter.Params.SHOOTER_MAX_VEL_INC,
                         Shooter.Params.SHOOTER_DEF_VEL, Shooter.Params.SHOOTER_DEF_VEL_INC);
-                }
-
-                if (RobotParams.Preferences.useIntake)
-                {
-                    intake = new Intake().getIntake();
-                }
-
-                if (RobotParams.Preferences.useLatch)
-                {
-                    latch = new Latch().getLatchServo();
-                }
-
-                if (RobotParams.Preferences.useClaw)
-                {
-                    claw = new Claw().getClaw();
                 }
 
                 // Create autotasks.

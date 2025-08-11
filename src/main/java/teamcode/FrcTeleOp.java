@@ -72,11 +72,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private TrcPose2D robotFieldPose = null;
     private boolean rumbling = false;
 
-    private double prevElevatorPower = 0.0;
     private double prevArmPower = 0.0;
+    private double prevElevatorPower = 0.0;
+    private double prevLatchPower = 0.0;
     private boolean shooterOn = false;
     private double prevShooterVelocity = 0.0;
-    private double prevLatchPower = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -266,6 +266,25 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 if (RobotParams.Preferences.useSubsystems)
                 {
+                    if (robot.arm != null)
+                    {
+                        double armPower = robot.driverController.getLeftStickY(true);
+                        if (armPower != prevArmPower)
+                        {
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.arm.setPower(armPower);
+                            }
+                            else
+                            {
+                                robot.arm.setPidPower(
+                                    armPower, Arm.Params.MIN_POS, Arm.Params.MAX_POS, true);
+                            }
+                            prevArmPower = armPower;
+                        }
+                    }
+
                     if (robot.elevator != null)
                     {
                         double elevatorPower = robot.driverController.getLeftStickY(true);
@@ -285,22 +304,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         }
                     }
 
-                    if (robot.arm != null)
+                    if (robot.latch != null)
                     {
-                        double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevArmPower)
+                        double latchPower = robot.driverController.getLeftStickY(true);
+                        if (latchPower != prevLatchPower)
                         {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.arm.setPower(armPower);
-                            }
-                            else
-                            {
-                                robot.arm.setPidPower(
-                                    armPower, Arm.Params.MIN_POS, Arm.Params.MAX_POS, true);
-                            }
-                            prevArmPower = armPower;
+                            robot.latch.setPower(latchPower);
+                            prevLatchPower = latchPower;
                         }
                     }
 
@@ -322,16 +332,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 robot.shooter.stopShooter();
                                 prevShooterVelocity = 0.0;
                             }
-                        }
-                    }
-
-                    if (robot.latch != null)
-                    {
-                        double latchPower = robot.driverController.getLeftStickY(true);
-                        if (latchPower != prevLatchPower)
-                        {
-                            robot.latch.setPower(latchPower);
-                            prevLatchPower = latchPower;
                         }
                     }
                 }
@@ -474,25 +474,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case DpadUp:
-                if (robot.elevator != null)
-                {
-                    if (pressed)
-                    {
-                        robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
-                    }
-                }
-                else if (robot.arm != null)
+                if (robot.arm != null)
                 {
                     if (pressed)
                     {
                         robot.arm.presetPositionUp(null, Arm.Params.POWER_LIMIT);
                     }
                 }
-                else if (robot.shooter != null)
+                else if (robot.elevator != null)
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.upValue();
+                        robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.latch != null)
@@ -502,28 +495,28 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.latch.presetPositionUp(null);
                     }
                 }
-                break;
-
-            case DpadDown:
-                if (robot.elevator != null)
+                else if (robot.shooter != null)
                 {
                     if (pressed)
                     {
-                        robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
+                        robot.shooterVelocity.upValue();
                     }
                 }
-                else if (robot.arm != null)
+                break;
+
+            case DpadDown:
+                if (robot.arm != null)
                 {
                     if (pressed)
                     {
                         robot.arm.presetPositionDown(null, Arm.Params.POWER_LIMIT);
                     }
                 }
-                else if (robot.shooter != null)
+                else if (robot.elevator != null)
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.downValue();
+                        robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
                     }
                 }
                 else if (robot.latch != null)
@@ -531,6 +524,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.latch.presetPositionDown(null);
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterVelocity.downValue();
                     }
                 }
                 break;
