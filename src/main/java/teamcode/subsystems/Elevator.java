@@ -47,13 +47,13 @@ public class Elevator extends TrcSubsystem
         public static final boolean MOTOR_ENC_ABS               = false;
         public static final boolean MOTOR_INVERTED              = true;
 
-        public static final double INCHES_PER_COUNT             = 18.25/4941.0;
-        public static final double POS_OFFSET                   = 10.875;
+        public static final double INCHES_PER_COUNT             = (29.875 - 10.8125) / 5250.0;
+        public static final double POS_OFFSET                   = 10.8125;
         public static final double POWER_LIMIT                  = 1.0;
         public static final double ZERO_CAL_POWER               = -0.25;
 
         public static final double MIN_POS                      = POS_OFFSET;
-        public static final double MAX_POS                      = 30.25;
+        public static final double MAX_POS                      = 30.0;
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
         public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0};
@@ -102,17 +102,13 @@ public class Elevator extends TrcSubsystem
         // elevatorMotor.setPositionPidPowerComp(this::getGravityComp);
         elevatorMotor.setStallProtection(
             Params.STALL_MIN_POWER, Params.STALL_TOLERANCE, Params.STALL_TIMEOUT, Params.STALL_RESET_TIMEOUT);
+        elevatorMotor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
     }   //Elevator
 
     public TrcMotor getElevatorMotor()
     {
         return elevatorMotor;
     }   //getElevatorMotor
-
-    // private double getGravityComp(double currPower)
-    // {
-    //     return RobotParams.Elevator.GRAVITY_COMP_POWER;
-    // }   //getGravityComp
 
     //
     // Implements TrcSubsystem abstract methods.
