@@ -41,14 +41,15 @@ public class Latch extends TrcSubsystem
 
         public static final String SERVO_NAME                   = SUBSYSTEM_NAME + ".servo";
         public static final int SERVO_CHANNEL                   = 0;
-        public static final boolean SERVO_INVERTED              = false;
+        public static final boolean SERVO_INVERTED              = true;
 
         public static final double PHYSICAL_MIN_POS             = 0.0;
         public static final double PHYSICAL_MAX_POS             = 90.0;
-        public static final double LOGICAL_MIN_POS              = 0.2;
-        public static final double LOGICAL_MAX_POS              = 0.5;
-        public static final double MAX_STEP_RATE                = 250.0;
+        public static final double LOGICAL_MIN_POS              = 0.17;
+        public static final double LOGICAL_MAX_POS              = 0.57;
+        public static final double MAX_STEP_RATE                = 420.0;
         public static final double[] posPresets                 = {PHYSICAL_MIN_POS, 30.0, 60.0, PHYSICAL_MAX_POS};
+        public static final double POS_PRESET_TOLERANCE         = 1.0;
     }   //class Params
 
     private static final String DBKEY_PHYSICAL_POS              = Params.SUBSYSTEM_NAME + "/PhysicalPos";
@@ -73,7 +74,7 @@ public class Latch extends TrcSubsystem
             .setPhysicalPosRange(Params.PHYSICAL_MIN_POS, Params.PHYSICAL_MAX_POS)
             .setLogicalPosRange(Params.LOGICAL_MIN_POS, Params.LOGICAL_MAX_POS)
             .setMaxStepRate(Params.MAX_STEP_RATE)
-            .setPositionPresets(0.0, Params.posPresets);
+            .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
 
         latch = new FrcServoActuator(latchParams).getServo();
         latch.setPosition(Params.PHYSICAL_MIN_POS);
