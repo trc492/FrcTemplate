@@ -75,6 +75,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double prevArmPower = 0.0;
     private boolean shooterOn = false;
     private double prevShooterVelocity = 0.0;
+    private double prevLatchPower = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -322,6 +323,16 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             }
                         }
                     }
+
+                    if (robot.latch != null)
+                    {
+                        double latchPower = robot.driverController.getLeftStickY(true);
+                        if (latchPower != prevLatchPower)
+                        {
+                            robot.latch.setPower(latchPower);
+                            prevLatchPower = latchPower;
+                        }
+                    }
                 }
 
                 if (RobotParams.Preferences.useRumble)
@@ -464,6 +475,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.shooterVelocity.upValue();
                     }
                 }
+                else if (robot.latch != null)
+                {
+                    if (pressed)
+                    {
+                        robot.latch.presetPositionUp(null);
+                    }
+                }
                 break;
 
             case DpadDown:
@@ -486,6 +504,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.shooterVelocity.downValue();
+                    }
+                }
+                else if (robot.latch != null)
+                {
+                    if (pressed)
+                    {
+                        robot.latch.presetPositionDown(null);
                     }
                 }
                 break;

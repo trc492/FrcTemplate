@@ -1,0 +1,149 @@
+/*
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package teamcode.subsystems;
+
+import frclib.driverio.FrcDashboard;
+import frclib.motor.FrcServoActuator;
+import trclib.controller.TrcPidController;
+import trclib.motor.TrcServo;
+import trclib.robotcore.TrcEvent;
+import trclib.subsystem.TrcSubsystem;
+
+/**
+ * This class implements a Servo Latch Subsystem.
+ */
+public class Latch extends TrcSubsystem
+{
+    public static final class Params
+    {
+        public static final String SUBSYSTEM_NAME               = "Latch";
+        public static final boolean NEED_ZERO_CAL               = false;
+
+        public static final String SERVO_NAME                   = SUBSYSTEM_NAME + ".servo";
+        public static final int SERVO_CHANNEL                   = 0;
+        public static final boolean SERVO_INVERTED              = false;
+
+        public static final double PHYSICAL_MIN_POS             = 0.0;
+        public static final double PHYSICAL_MAX_POS             = 90.0;
+        public static final double LOGICAL_MIN_POS              = 0.2;
+        public static final double LOGICAL_MAX_POS              = 0.5;
+        public static final double MAX_STEP_RATE                = 250.0;
+        public static final double[] posPresets                 = {PHYSICAL_MIN_POS, 30.0, 60.0, PHYSICAL_MAX_POS};
+    }   //class Params
+
+    private static final String DBKEY_PHYSICAL_POS              = Params.SUBSYSTEM_NAME + "/PhysicalPos";
+    private static final String DBKEY_LOGICAL_POS               = Params.SUBSYSTEM_NAME + "/LogicalPos";
+
+    private final FrcDashboard dashboard;
+    private final TrcServo latch;
+
+    /**
+     * Constructor: Creates an instance of the object.
+     */
+    public Latch()
+    {
+        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+
+        dashboard = FrcDashboard.getInstance();
+        dashboard.refreshKey(DBKEY_PHYSICAL_POS, 0.0);
+        dashboard.refreshKey(DBKEY_LOGICAL_POS, 0.0);
+
+        FrcServoActuator.Params latchParams = new FrcServoActuator.Params()
+            .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
+            .setPhysicalPosRange(Params.PHYSICAL_MIN_POS, Params.PHYSICAL_MAX_POS)
+            .setLogicalPosRange(Params.LOGICAL_MIN_POS, Params.LOGICAL_MAX_POS)
+            .setMaxStepRate(Params.MAX_STEP_RATE)
+            .setPositionPresets(0.0, Params.posPresets);
+
+        latch = new FrcServoActuator(latchParams).getServo();
+        latch.setPosition(Params.PHYSICAL_MIN_POS);
+    }   //Latch
+
+    public TrcServo getLatchServo()
+    {
+        return latch;
+    }   //getLatchServo
+
+    //
+    // Implements TrcSubsystem abstract methods.
+    //
+
+    /**
+     * This method cancels any pending operations.
+     */
+    @Override
+    public void cancel()
+    {
+        latch.cancel();
+    }   //cancel
+
+    /**
+     * This method starts zero calibrate of the subsystem.
+     *
+     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
+     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     */
+    @Override
+    public void zeroCalibrate(String owner, TrcEvent event)
+    {
+        // Servos don't need zero calibration.
+    }   //zeroCalibrate
+
+    /**
+     * This method resets the subsystem state. Typically, this is used to retract the subsystem for turtle mode.
+     */
+    @Override
+    public void resetState()
+    {
+        latch.setPosition(Params.PHYSICAL_MAX_POS);
+    }   //resetState
+
+    /**
+     * This method update the dashboard with the subsystem status.
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @return updated line number for the next subsystem to print.
+     */
+    @Override
+    public int updateStatus(int lineNum)
+    {
+        dashboard.putNumber(DBKEY_PHYSICAL_POS, latch.getPosition());
+        dashboard.putNumber(DBKEY_LOGICAL_POS, latch.getLogicalPosition());
+        return lineNum;
+    }   //updateStatus
+
+    /**
+     * This method is called to prep the subsystem for tuning.
+     *
+     * @param pidCoeffs specifies the PID coefficients for the subsystem.
+     * @param pidTolerance specifies the PID tolerance.
+     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     */
+    @Override
+    public void prepSubsystemForTuning(
+        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    {
+        // Latch subsystem doesn't have PID control.
+    }   //prepSubsystemForTuning
+
+}   //class Latch

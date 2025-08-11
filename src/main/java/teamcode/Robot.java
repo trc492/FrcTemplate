@@ -53,6 +53,7 @@ import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Claw;
 import teamcode.subsystems.Intake;
 import teamcode.subsystems.LEDIndicator;
+import teamcode.subsystems.Latch;
 import teamcode.subsystems.RobotBase;
 import teamcode.subsystems.Shooter;
 import teamcode.vision.OpenCvVision;
@@ -61,6 +62,7 @@ import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.motor.TrcMotor;
+import trclib.motor.TrcServo;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcBuildInfo;
 import trclib.robotcore.TrcDbgTrace;
@@ -115,6 +117,7 @@ public class Robot extends FrcRobotBase
     public TrcShooter shooter;
     public TrcDiscreteValue shooterVelocity;
     public TrcIntake intake;
+    public TrcServo latch;
     public TrcServoClaw claw;
 
     //
@@ -249,6 +252,11 @@ public class Robot extends FrcRobotBase
                 if (RobotParams.Preferences.useIntake)
                 {
                     intake = new Intake().getIntake();
+                }
+
+                if (RobotParams.Preferences.useLatch)
+                {
+                    latch = new Latch().getLatchServo();
                 }
 
                 if (RobotParams.Preferences.useClaw)
