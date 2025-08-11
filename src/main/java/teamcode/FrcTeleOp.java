@@ -27,6 +27,7 @@ import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcXboxController;
 import teamcode.subsystems.Arm;
 import teamcode.subsystems.Elevator;
+import teamcode.subsystems.Intake;
 import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
@@ -415,6 +416,25 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case B:
+                if (robot.intake != null)
+                {
+                    if (pressed)
+                    {
+                        if (driverAltFunc)
+                        {
+                            robot.intake.setPower(Intake.Params.INTAKE_FORWARD_POWER);
+                        }
+                        else
+                        {
+                            robot.intake.autoIntakeForward(
+                                Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER, Intake.Params.FINISH_DELAY);
+                        }
+                    }
+                    else
+                    {
+                        robot.intake.cancel();
+                    }
+                }
                 break;
 
             case X:
