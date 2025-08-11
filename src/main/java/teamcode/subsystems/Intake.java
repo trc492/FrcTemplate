@@ -25,7 +25,6 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcIntake;
-import trclib.controller.TrcPidController;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcIntake;
 import trclib.subsystem.TrcSubsystem;
@@ -176,15 +175,12 @@ public class Intake extends TrcSubsystem
     /**
      * This method is called to prep the subsystem for tuning.
      *
-     * @param pidCoeffs specifies the PID coefficients for the subsystem.
-     * @param pidTolerance specifies the PID tolerance.
-     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     * @param tuneParams specifies tuning parameters.
      */
     @Override
-    public void prepSubsystemForTuning(
-        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    public void prepSubsystemForTuning(double... tuneParams)
     {
-        // Intake subsystem doesn't have PID control.
+        // Intake subsystem doesn't need tuning.
     }   //prepSubsystemForTuning
 
 }   //class Intake

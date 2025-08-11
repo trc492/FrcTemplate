@@ -196,18 +196,24 @@ public class Shooter extends TrcSubsystem
     /**
      * This method is called to prep the subsystem for tuning.
      *
-     * @param pidCoeffs specifies the PID coefficients for the subsystem.
-     * @param pidTolerance specifies the PID tolerance.
-     * @param gravityCompPower specifies the gravity compensation power for the subsystem (not used).
+     * @param tuneParams specifies tuning parameters.
+     *        tuneParam0 - Kp
+     *        tuneParam1 - Ki
+     *        tuneParam2 - Kd
+     *        tuneParam3 - Kf
+     *        tuneParam4 - iZone
+     *        tuneParam5 - PidTolerance
+     *        tuneParam6 - GravityCompPower (not used)
      */
     @Override
-    public void prepSubsystemForTuning(
-        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    public void prepSubsystemForTuning(double... tuneParams)
     {
-        shooter.getShooterMotor1().setPositionPidParameters(pidCoeffs, pidTolerance, true);
+        shooter.getShooterMotor1().setPositionPidParameters(
+            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5], true);
         if (Params.HAS_TWO_SHOOTER_MOTORS)
         {
-            shooter.getShooterMotor2().setPositionPidParameters(pidCoeffs, pidTolerance, true);
+            shooter.getShooterMotor2().setPositionPidParameters(
+                tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5], true);
         }
     }   //prepSubsystemForTuning
 

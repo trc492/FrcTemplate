@@ -24,7 +24,6 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
-import trclib.controller.TrcPidController;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -136,15 +135,12 @@ public class Latch extends TrcSubsystem
     /**
      * This method is called to prep the subsystem for tuning.
      *
-     * @param pidCoeffs specifies the PID coefficients for the subsystem.
-     * @param pidTolerance specifies the PID tolerance.
-     * @param gravityCompPower specifies the gravity compensation power for the subsystem.
+     * @param tuneParams specifies tuning parameters.
      */
     @Override
-    public void prepSubsystemForTuning(
-        TrcPidController.PidCoefficients pidCoeffs, double pidTolerance, double gravityCompPower)
+    public void prepSubsystemForTuning(double... tuneParams)
     {
-        // Latch subsystem doesn't have PID control.
+        // Latch subsystem doesn't need tuning.
     }   //prepSubsystemForTuning
 
 }   //class Latch
