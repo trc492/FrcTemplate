@@ -75,13 +75,13 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_TEST_TURN_KF = "Test/TurnKf";
     private static final String DBKEY_TEST_TURN_IZONE = "Test/TurnIZone";
     private static final String DBKEY_TEST_SUBSYSTEM_NAME = "Test/SubsystemName";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM0 = "Test/SubsystemParam0";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM1 = "Test/SubsystemParam1";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM2 = "Test/SubsystemParam2";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM3 = "Test/SubsystemParam3";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM4 = "Test/SubsystemParam4";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM5 = "Test/SubsystemParam5";
-    private static final String DBKEY_TEST_SUBSYSTEM_PARAM6 = "Test/SubsystemParam6";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM0 = "Test/SubsystemParam0";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM1 = "Test/SubsystemParam1";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM2 = "Test/SubsystemParam2";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM3 = "Test/SubsystemParam3";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM4 = "Test/SubsystemParam4";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM5 = "Test/SubsystemParam5";
+    public static final String DBKEY_TEST_SUBSYSTEM_PARAM6 = "Test/SubsystemParam6";
     private static final String DBKEY_TEST_MAX_VELOCITY = "Test/MaxVelocity";
     private static final String DBKEY_TEST_MAX_ACCELERATION = "Test/MaxAcceleration";
     private static final String DBKEY_TEST_MAX_DECELERATION = "Test/MaxDeceleration";
@@ -309,11 +309,11 @@ public class FrcTest extends FrcTeleOp
                 "xPidCoeff=\"%s\" " +
                 "yPidCoeff=\"%s\" " +
                 "turnPidCoeff=\"%s\" " +
-                "maxVelocity=\"%s\" " +
-                "maxAcceleration=\"%s\" " +
-                "maxDeceleration=\"%s\" " +
+                "maxVelocity=\"%.1f\" " +
+                "maxAcceleration=\"%.1f\" " +
+                "maxDeceleration=\"%.1f\" " +
                 "subsystemName=\"%s\" " +
-                "subsystemTuneParams=\"%s\" " +
+                "subsystemTuneParams=\"%s\" ",
                 getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
                 getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
                 getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemName(),
@@ -787,6 +787,7 @@ public class FrcTest extends FrcTeleOp
                     if (pressed)
                     {
                         String subsystemName = testChoices.getSubsystemName();
+                        robot.globalTracer.traceInfo(moduleName, "Tune subsystem: " + subsystemName);
                         if (subsystemName.length() > 0)
                         {
                             TrcSubsystem subsystem = TrcSubsystem.getSubsystem(subsystemName);
