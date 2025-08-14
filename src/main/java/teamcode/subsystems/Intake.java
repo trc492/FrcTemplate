@@ -48,14 +48,14 @@ public class Intake extends TrcSubsystem
         public static final MotorType PRIMARY_MOTOR_TYPE        = MotorType.CanTalonSrx;
         public static final boolean PRIMARY_MOTOR_BRUSHLESS     = false;
         public static final boolean PRIMARY_MOTOR_ENC_ABS       = false;
-        public static final boolean PRIMARY_MOTOR_INVERTED      = !HAS_TWO_MOTORS;
+        public static final boolean PRIMARY_MOTOR_INVERTED      = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 12;
         public static final MotorType FOLLOWER_MOTOR_TYPE       = MotorType.CanTalonSrx;
         public static final boolean FOLLOWER_MOTOR_BRUSHLESS    = false;
         public static final boolean FOLLOWER_MOTOR_ENC_ABS      = false;
-        public static final boolean FOLLOWER_MOTOR_INVERTED     = PRIMARY_MOTOR_INVERTED;
+        public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
 
         public static final int ENTRY_SENSOR_DIGITAL_CHANNEL    = 0;
         public static final boolean ENTRY_SENSOR_INVERTED       = false;
@@ -72,7 +72,7 @@ public class Intake extends TrcSubsystem
     private static final String DBKEY_CURRENT                   = Params.SUBSYSTEM_NAME + "/Current";
     private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
     private static final String DBKEY_ENTRY_SENSOR_STATE        = Params.SUBSYSTEM_NAME + "/EntrySensorState";
-    private static final String DBKEY_EXIT_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/EntrySensorState";
+    private static final String DBKEY_EXIT_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/ExitSensorState";
 
     private final FrcDashboard dashboard;
     private final TrcIntake intake;

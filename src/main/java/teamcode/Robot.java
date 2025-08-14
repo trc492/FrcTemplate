@@ -58,7 +58,6 @@ import teamcode.subsystems.RobotBase;
 import teamcode.subsystems.Shooter;
 import teamcode.vision.OpenCvVision;
 import teamcode.vision.PhotonVision;
-import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.motor.TrcMotor;
@@ -112,12 +111,12 @@ public class Robot extends FrcRobotBase
     //
     // Other subsystems.
     //
-    public TrcMotor elevator;
     public TrcMotor arm;
-    public TrcShooter shooter;
-    public TrcDiscreteValue shooterVelocity;
-    public TrcIntake intake;
+    public TrcMotor elevator;
     public TrcServo latch;
+    public TrcIntake intake;
+    public Shooter shooterSubsystem;
+    public TrcShooter shooter;
     public TrcServoClaw claw;
 
     //
@@ -249,19 +248,15 @@ public class Robot extends FrcRobotBase
                     intake = new Intake().getIntake();
                 }
 
+                if (RobotParams.Preferences.useShooter)
+                {
+                    shooterSubsystem = new Shooter();
+                    shooter = shooterSubsystem.getShooter();
+                }
+
                 if (RobotParams.Preferences.useClaw)
                 {
                     claw = new Claw().getClaw();
-                }
-
-                if (RobotParams.Preferences.useShooter)
-                {
-                    shooter = new Shooter().getShooter();
-                    shooterVelocity = new TrcDiscreteValue(
-                        Shooter.Params.SUBSYSTEM_NAME + ".motorVel",
-                        Shooter.Params.SHOOTER_MIN_VEL, Shooter.Params.SHOOTER_MAX_VEL,
-                        Shooter.Params.SHOOTER_MIN_VEL_INC, Shooter.Params.SHOOTER_MAX_VEL_INC,
-                        Shooter.Params.SHOOTER_DEF_VEL, Shooter.Params.SHOOTER_DEF_VEL_INC);
                 }
 
                 // Create autotasks.

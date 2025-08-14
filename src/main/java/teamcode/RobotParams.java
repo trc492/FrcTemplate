@@ -75,8 +75,8 @@ public class RobotParams
         public static final boolean useElevator                 = false;
         public static final boolean useLatch                    = false;
         public static final boolean useIntake                   = false;
-        public static final boolean useClaw                     = false;
         public static final boolean useShooter                  = false;
+        public static final boolean useClaw                     = false;
     }   //class Preferences
 
     /**

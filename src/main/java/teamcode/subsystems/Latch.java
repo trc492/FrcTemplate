@@ -136,11 +136,14 @@ public class Latch extends TrcSubsystem
      * This method is called to prep the subsystem for tuning.
      *
      * @param tuneParams specifies tuning parameters.
+     *        tuneParam0 - Logical position min
+     *        tuneParam1 - Logical position max
+     *
      */
     @Override
     public void prepSubsystemForTuning(double... tuneParams)
     {
-        // Latch subsystem doesn't need tuning.
+        latch.setLogicalPosRange(tuneParams[0], tuneParams[1]);
     }   //prepSubsystemForTuning
 
 }   //class Latch

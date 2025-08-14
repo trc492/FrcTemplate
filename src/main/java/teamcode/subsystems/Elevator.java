@@ -176,7 +176,8 @@ public class Elevator extends TrcSubsystem
     public void prepSubsystemForTuning(double... tuneParams)
     {
         elevatorMotor.setPositionPidParameters(
-            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5], true);
+            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
+            Params.SOFTWARE_PID_ENABLED);
     }   //prepSubsystemForTuning
 
 }   //class Elevator

@@ -25,10 +25,10 @@ package teamcode;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcXboxController;
+import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.subsystems.Arm;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
-import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.drivebase.TrcSwerveDriveBase;
@@ -76,7 +76,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double prevElevatorPower = 0.0;
     private double prevLatchPower = 0.0;
     private boolean shooterOn = false;
-    private double prevShooterVelocity = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -313,27 +312,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             prevLatchPower = latchPower;
                         }
                     }
-
-                    if (robot.shooter != null)
-                    {
-                        if (shooterOn)
-                        {
-                            double shooterVel = robot.shooterVelocity.getValue();
-                            if (shooterVel != prevShooterVelocity)
-                            {
-                                robot.shooter.setShooterMotorRPM(shooterVel, shooterVel);
-                                prevShooterVelocity = shooterVel;
-                            }
-                        }
-                        else
-                        {
-                            if (prevShooterVelocity != 0.0)
-                            {
-                                robot.shooter.stopShooter();
-                                prevShooterVelocity = 0.0;
-                            }
-                        }
-                    }
                 }
 
                 if (RobotParams.Preferences.useRumble)
@@ -435,6 +413,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.intake.cancel();
                     }
                 }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        shooterOn = !shooterOn;
+                        robot.shooterSubsystem.setShooterEnabled(shooterOn);
+                    }
+                }
                 break;
 
             case X:
@@ -499,7 +485,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.upValue();
+                        robot.shooterSubsystem.shooterVelocity.upValue();
+                        robot.dashboard.putNumber(
+                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
                     }
                 }
                 break;
@@ -530,7 +518,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.downValue();
+                        robot.shooterSubsystem.shooterVelocity.downValue();
+                        robot.dashboard.putNumber(
+                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
                     }
                 }
                 break;
@@ -540,7 +530,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.downIncrement();
+                        robot.shooterSubsystem.shooterVelocity.downIncrement();
                     }
                 }
                 break;
@@ -550,7 +540,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterVelocity.upIncrement();
+                        robot.shooterSubsystem.shooterVelocity.upIncrement();
                     }
                 }
                 break;
