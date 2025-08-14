@@ -578,7 +578,7 @@
                 }
               },
               {
-                "title": "Kp",
+                "title": "Param0",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -592,7 +592,7 @@
                 }
               },
               {
-                "title": "Ki",
+                "title": "Param1",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -606,7 +606,7 @@
                 }
               },
               {
-                "title": "Kd",
+                "title": "Param2",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -620,7 +620,7 @@
                 }
               },
               {
-                "title": "Kf",
+                "title": "Param3",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -634,7 +634,7 @@
                 }
               },
               {
-                "title": "IZone",
+                "title": "Param4",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -648,7 +648,7 @@
                 }
               },
               {
-                "title": "PidTolerance",
+                "title": "Param5",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
@@ -662,7 +662,7 @@
                 }
               },
               {
-                "title": "GravityCompPower",
+                "title": "Param6",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
