@@ -401,16 +401,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         if (driverAltFunc)
                         {
                             robot.intake.setPower(Intake.Params.INTAKE_FORWARD_POWER);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake Forward");
                         }
                         else
                         {
                             robot.intake.autoIntakeForward(
                                 Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER, Intake.Params.FINISH_DELAY);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Intake Forward");
                         }
                     }
                     else
                     {
                         robot.intake.cancel();
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Intake");
                     }
                 }
                 else if (robot.shooter != null)
@@ -419,6 +422,40 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         shooterOn = !shooterOn;
                         robot.shooterSubsystem.setShooterEnabled(shooterOn);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetShooterEnabled=" + shooterOn);
+                    }
+                }
+                else if (robot.claw != null)
+                {
+                    if (pressed)
+                    {
+                        if (driverAltFunc)
+                        {
+                            if (robot.claw.isClosed())
+                            {
+                                robot.claw.open();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Opening claws");
+                            }
+                            else
+                            {
+                                robot.claw.close();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Closing claws");
+                            }
+                        }
+                        else
+                        {
+                            if (robot.claw.isAutoActive() || robot.claw.hasObject())
+                            {
+                                robot.claw.cancel();
+                                robot.claw.open();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Canceling AutoGrab.");
+                            }
+                            else
+                            {
+                                robot.claw.autoGrab(null, 0.0, null, 0.0);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Enabling AutoGrab.");
+                            }
+                        }
                     }
                 }
                 break;
@@ -465,6 +502,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.arm.presetPositionUp(null, Arm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Arm position up");
                     }
                 }
                 else if (robot.elevator != null)
@@ -472,6 +510,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position up");
                     }
                 }
                 else if (robot.latch != null)
@@ -479,6 +518,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.latch.presetPositionUp(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Latch position up");
                     }
                 }
                 else if (robot.shooter != null)
@@ -488,6 +528,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.shooterSubsystem.shooterVelocity.upValue();
                         robot.dashboard.putNumber(
                             FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
                     }
                 }
                 break;
@@ -498,6 +539,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.arm.presetPositionDown(null, Arm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Arm position down");
                     }
                 }
                 else if (robot.elevator != null)
@@ -505,6 +547,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position down");
                     }
                 }
                 else if (robot.latch != null)
@@ -512,6 +555,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.latch.presetPositionDown(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Latch position down");
                     }
                 }
                 else if (robot.shooter != null)
@@ -521,6 +565,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.shooterSubsystem.shooterVelocity.downValue();
                         robot.dashboard.putNumber(
                             FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
                     }
                 }
                 break;
@@ -531,6 +576,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.shooterSubsystem.shooterVelocity.downIncrement();
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment down");
                     }
                 }
                 break;
@@ -541,6 +587,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         robot.shooterSubsystem.shooterVelocity.upIncrement();
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment up");
                     }
                 }
                 break;
