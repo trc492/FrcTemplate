@@ -47,7 +47,7 @@ public class Shooter extends TrcSubsystem
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
         public static final boolean MOTOR_BRUSHLESS             = false;
         public static final boolean MOTOR_ENC_ABS               = false;
-        public static final boolean MOTOR_INVERTED              = false;
+        public static final boolean MOTOR_INVERTED              = true;
 
         public static final double GOBILDA6000_CPR              = 28.0;
         public static final double GEAR_RATIO                   = 24.0/36.0;
@@ -60,7 +60,7 @@ public class Shooter extends TrcSubsystem
         public static final double SHOOTER_MIN_VEL              = 10.0;     // in RPM
         public static final double SHOOTER_MAX_VEL              = 7360.0;   // in RPM
         public static final double SHOOTER_MIN_VEL_INC          = 1.0;      // in RPM
-        public static final double SHOOTER_MAX_VEL_INC          = 100.0;    // in RPM
+        public static final double SHOOTER_MAX_VEL_INC          = 1000.0;   // in RPM
         public static final double SHOOTER_DEF_VEL              = 1000.0;   // in RPM
         public static final double SHOOTER_DEF_VEL_INC          = 10.0;     // in RPM
     }   //class Params
@@ -97,7 +97,7 @@ public class Shooter extends TrcSubsystem
         shooterMotor.setVelocityPidParameters(Params.shooterPidCoeffs, Params.SHOOTER_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
 
         shooterVelocity = new TrcDiscreteValue(
-            Params.SUBSYSTEM_NAME + ".motorVel",
+            Params.SUBSYSTEM_NAME + ".motorTargetVel",
             Params.SHOOTER_MIN_VEL, Params.SHOOTER_MAX_VEL,
             Params.SHOOTER_MIN_VEL_INC, Params.SHOOTER_MAX_VEL_INC,
             Params.SHOOTER_DEF_VEL, Params.SHOOTER_DEF_VEL_INC);
@@ -116,7 +116,7 @@ public class Shooter extends TrcSubsystem
         }
         else
         {
-            shooter.stopShooter();
+            shooter.cancel();
         }
     }   //setShooterEnabled
 

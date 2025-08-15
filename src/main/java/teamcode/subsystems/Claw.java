@@ -49,10 +49,10 @@ public class Claw extends TrcSubsystem
         public static final int FOLLOWER_SERVO_CHANNEL          = 1;
         public static final boolean FOLLOWER_SERVO_INVERTED     = !PRIMARY_SERVO_INVERTED;
 
-        public static final double OPEN_POS                     = 0.2;
-        public static final double OPEN_TIME                    = 0.5;
-        public static final double CLOSE_POS                    = 0.55;
-        public static final double CLOSE_TIME                   = 0.5;
+        public static final double OPEN_POS                     = 0.065;
+        public static final double OPEN_TIME                    = 0.3;
+        public static final double CLOSE_POS                    = 0.0;
+        public static final double CLOSE_TIME                   = 0.3;
 
         public static final boolean USE_REV_2M_SENSOR           = true;
         public static final double SENSOR_TRIGGER_THRESHOLD     = 2.0;
@@ -64,6 +64,7 @@ public class Claw extends TrcSubsystem
     }   //class Params
 
     private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
+    private static final String DBKEY_IS_CLOSED                 = Params.SUBSYSTEM_NAME + "/IsClosed";
     private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
     private static final String DBKEY_AUTO_ACTIVE               = Params.SUBSYSTEM_NAME + "/AutoActive";
     private static final String DBKEY_SENSOR_VALUE              = Params.SUBSYSTEM_NAME + "/SensorValue";
@@ -82,6 +83,7 @@ public class Claw extends TrcSubsystem
 
         dashboard = FrcDashboard.getInstance();
         dashboard.refreshKey(DBKEY_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_IS_CLOSED, false);
         dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
         dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
         dashboard.refreshKey(DBKEY_SENSOR_VALUE, 0.0);
@@ -127,7 +129,7 @@ public class Claw extends TrcSubsystem
     {
         if (rev2mSensor != null)
         {
-            return rev2mSensor.getRange();
+            return rev2mSensor.isRangeValid()? rev2mSensor.getRange(): Double.MAX_VALUE;
         }
         else
         {
@@ -179,6 +181,7 @@ public class Claw extends TrcSubsystem
     public int updateStatus(int lineNum)
     {
         dashboard.putNumber(DBKEY_POSITION, claw.getPosition());
+        dashboard.putBoolean(DBKEY_IS_CLOSED, claw.isClosed());
         dashboard.putBoolean(DBKEY_HAS_OBJECT, claw.hasObject());
         dashboard.putBoolean(DBKEY_AUTO_ACTIVE, claw.isAutoActive());
         if (Claw.Params.USE_REV_2M_SENSOR)
