@@ -421,7 +421,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (pressed)
                     {
                         shooterOn = !shooterOn;
-                        robot.shooterSubsystem.setShooterEnabled(shooterOn);
+                        if (shooterOn)
+                        {
+                            robot.shooter.aimShooter(
+                                robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, 0.0, 0.0);
+                        }
+                        else
+                        {
+                            robot.shooter.cancel();
+                        }
                         robot.globalTracer.traceInfo(moduleName, ">>>>> SetShooterEnabled=" + shooterOn);
                     }
                 }
