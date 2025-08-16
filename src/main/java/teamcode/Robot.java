@@ -136,10 +136,13 @@ public class Robot extends FrcRobotBase
         driverController.setLeftStickInverted(false, true);
         driverController.setRightStickInverted(false, true);
 
-        operatorController = new FrcXboxController(
-            "OperatorController", RobotParams.HwConfig.XBOX_OPERATOR_CONTROLLER);
-        operatorController.setLeftStickInverted(false, true);
-        operatorController.setRightStickInverted(false, true);
+        if (!RobotParams.Preferences.useOneGameController)
+        {
+            operatorController = new FrcXboxController(
+                "OperatorController", RobotParams.HwConfig.XBOX_OPERATOR_CONTROLLER);
+            operatorController.setLeftStickInverted(false, true);
+            operatorController.setRightStickInverted(false, true);
+        }
 
         // Create and initialize sensors.
         if (RobotParams.Preferences.usePdp)
