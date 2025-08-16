@@ -340,7 +340,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         controlsEnabled = enabled;
 
         robot.driverController.setButtonEventHandler(enabled? this::driverControllerButtonEvent: null);
-        robot.operatorController.setButtonEventHandler(enabled? this::operatorControllerButtonEvent: null);
+        if (robot.operatorController != null)
+        {
+            robot.operatorController.setButtonEventHandler(enabled? this::operatorControllerButtonEvent: null);
+        }
     }   //setControlsEnabled
 
     //

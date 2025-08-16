@@ -59,6 +59,7 @@ public class RobotParams
         public static final boolean usePressureSensor           = false;
         public static final boolean useLED                      = false;
         public static final boolean useRumble                   = false;
+        public static final boolean useOneGameController        = false;
         // Vision
         public static final boolean useVision                   = false;
         public static final boolean usePhotonVision             = true;
