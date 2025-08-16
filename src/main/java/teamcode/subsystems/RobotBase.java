@@ -77,18 +77,21 @@ public class RobotBase
     /**
      * This class contains the parameters of the front camera.
      */
+    /**
+     * This class contains the parameters of the back camera.
+     */
     public static class FrontCamParams extends FrcRobotDrive.VisionInfo
     {
         public FrontCamParams()
         {
-            camName = "OV9281";
+            camName = "OV9782";
             camImageWidth = 1280;
             camImageHeight = 800;
-            camXOffset = -3.5;                  // Inches to the right from robot center
-            camYOffset = -2.375;                // Inches forward from robot center
-            camZOffset = 23.125;                // Inches up from the floor
-            camPitch = 33.0;                    // degrees up from horizontal
-            camYaw = 0.0;                       // degrees clockwise from robot front
+            camXOffset = -0.5;                  // Inches to the right from robot center
+            camYOffset = -5.375;                // Inches forward from robot center
+            camZOffset = 20.0;                  // Inches up from the floor
+            camPitch = -17.5;                   // degrees up from horizontal
+            camYaw = 180.0;                     // degrees clockwise from robot front
             camRoll = 0.0;
             robotToCam = new Transform3d(
                 new Translation3d(Units.inchesToMeters(camYOffset),
@@ -101,21 +104,18 @@ public class RobotBase
         }   //FrontCamParams
     }   //class FrontCamParams
 
-    /**
-     * This class contains the parameters of the back camera.
-     */
     public static class BackCamParams extends FrcRobotDrive.VisionInfo
     {
         public BackCamParams()
         {
-            camName = "OV9782";
+            camName = "OV9281";
             camImageWidth = 1280;
             camImageHeight = 800;
-            camXOffset = -0.5;                  // Inches to the right from robot center
-            camYOffset = -5.375;                // Inches forward from robot center
-            camZOffset = 20.0;                  // Inches up from the floor
-            camPitch = -17.5;                   // degrees up from horizontal
-            camYaw = 180.0;                     // degrees clockwise from robot front
+            camXOffset = -3.5;                  // Inches to the right from robot center
+            camYOffset = -2.375;                // Inches forward from robot center
+            camZOffset = 23.125;                // Inches up from the floor
+            camPitch = 33.0;                    // degrees up from horizontal
+            camYaw = 0.0;                       // degrees clockwise from robot front
             camRoll = 0.0;
             robotToCam = new Transform3d(
                 new Translation3d(Units.inchesToMeters(camYOffset),
