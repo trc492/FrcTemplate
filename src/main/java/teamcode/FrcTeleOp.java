@@ -406,7 +406,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         else
                         {
                             robot.intake.autoIntakeForward(
-                                Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER, Intake.Params.FINISH_DELAY);
+                                Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
+                                Intake.Params.INTAKE_FINISH_DELAY);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Intake Forward");
                         }
                     }
@@ -424,7 +425,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         if (shooterOn)
                         {
                             robot.shooter.aimShooter(
-                                robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, 0.0, 0.0);
+                                robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null);
                         }
                         else
                         {

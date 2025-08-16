@@ -1,0 +1,297 @@
+/*
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package teamcode.autotasks;
+
+import java.util.Arrays;
+
+import frclib.vision.FrcPhotonVision;
+import teamcode.Robot;
+import teamcode.subsystems.Intake;
+import teamcode.subsystems.ShootParamTable;
+import teamcode.subsystems.Shooter;
+import teamcode.vision.PhotonVision.PipelineType;
+import trclib.dataprocessor.TrcUtil;
+import trclib.pathdrive.TrcPose2D;
+import trclib.robotcore.TrcAutoTask;
+import trclib.robotcore.TrcEvent;
+import trclib.robotcore.TrcOwnershipMgr;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcTaskMgr;
+import trclib.timer.TrcTimer;
+
+/**
+ * This class implements auto-assist task.
+ */
+public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
+{
+    private static final String moduleName = TaskAutoShoot.class.getSimpleName();
+
+    public enum State
+    {
+        START,
+        FIND_APRILTAG,
+        AIM_AND_SHOOT,
+        DONE
+    }   //enum State
+
+    private static class TaskParams
+    {
+        boolean useVision;
+        int[] aprilTagIds;
+
+        TaskParams(boolean useVision, int... aprilTagIds)
+        {
+            this.useVision = useVision;
+            this.aprilTagIds = aprilTagIds;
+        }   //TaskParams
+
+        public String toString()
+        {
+            return "useVision=" + useVision + ", aprilTagIds=" + Arrays.toString(aprilTagIds);
+        }   //toString
+    }   //class TaskParams
+
+    private final Robot robot;
+    private final TrcEvent event;
+
+    private Double visionExpiredTime = null;
+    private int aprilTagId = -1;
+    private TrcPose2D aprilTagPose = null;
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param robot specifies the robot object that contains all the necessary subsystems.
+     */
+    public TaskAutoShoot(Robot robot)
+    {
+        super(moduleName, TrcTaskMgr.TaskType.POST_PERIODIC_TASK);
+        this.robot = robot;
+        this.event = new TrcEvent(moduleName + ".event");
+    }   //TaskAutoShoot
+
+    /**
+     * This method starts the auto-assist operation.
+     *
+     * @param owner specifies the owner to acquire subsystem ownerships, can be null if not requiring ownership.
+     * @param completionEvent specifies the event to signal when done, can be null if none provided.
+     * @param useVision specifies true to use Vision, false otherwise.
+     * @param aprilTagIds specifies multiple AprilTag IDs for vision to look for, can be null to look for any AprilTag.
+     */
+    public void autoAhoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTags)
+    {
+        TaskParams taskParams = new TaskParams(useVision, aprilTags);
+        tracer.traceInfo(
+            moduleName,
+            "autoShoot(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + ")");
+        startAutoTask(owner, State.START, taskParams, completionEvent);
+    }   //autoShoot
+
+    //
+    // Implement TrcAutoTask abstract methods.
+    //
+
+    /**
+     * This method is called to acquire ownership of all subsystems involved in the auto task operation. This is
+     * typically called before starting an auto task operation.
+     *
+     * @param owner specifies the owner to acquire the subsystem ownerships.
+     * @return true if acquired all subsystems ownership, false otherwise. It releases all ownership if any acquire
+     *         failed.
+     */
+    @Override
+    protected boolean acquireSubsystemsOwnership(String owner)
+    {
+        return owner == null ||
+               robot.shooter.acquireExclusiveAccess(owner) && robot.intake.acquireExclusiveAccess(owner);
+    }   //acquireSubsystemsOwnership
+
+    /**
+     * This method is called to release ownership of all subsystems involved in the auto task operation. This is
+     * typically called if the auto task operation is completed or canceled.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
+     */
+    @Override
+    protected void releaseSubsystemsOwnership(String owner)
+    {
+        if (owner != null)
+        {
+            TrcOwnershipMgr ownershipMgr = TrcOwnershipMgr.getInstance();
+            tracer.traceInfo(
+                moduleName,
+                "Releasing subsystem ownership on behalf of " + owner +
+                "\n\tshooter=" + ownershipMgr.getOwner(robot.shooter) +
+                "\n\tintake=" + ownershipMgr.getOwner(robot.intake));
+            robot.shooter.releaseExclusiveAccess(owner);
+            robot.intake.releaseExclusiveAccess(owner);
+        }
+    }   //releaseSubsystemsOwnership
+
+    /**
+     * This method is called to stop all the subsystems. This is typically called if the auto task operation is
+     * completed or canceled.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
+     */
+    @Override
+    protected void stopSubsystems(String owner)
+    {
+        tracer.traceInfo(moduleName, "Stopping subsystems.");
+        robot.shooter.cancel(owner);
+        robot.intake.cancel(owner);
+    }   //stopSubsystems
+
+    /**
+     * This methods is called periodically to run the auto-assist task.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
+     * @param params specifies the task parameters.
+     * @param state specifies the current state of the task.
+     * @param taskType specifies the type of task being run.
+     * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
+     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
+     *        false if running the fast loop on the main robot thread.
+     */
+    @Override
+    protected void runTaskState(
+        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode,
+        boolean slowPeriodicLoop)
+    {
+        TaskParams taskParams = (TaskParams) params;
+
+        switch (state)
+        {
+            case START:
+                aprilTagId = -1;
+                aprilTagPose = null;
+                if (!taskParams.useVision)
+                {
+                    // Not using AprilTag vision, skip vision and just score at current positon assuming operator
+                    // has manually aimed at target.
+                    tracer.traceInfo(moduleName, "***** Not using AprilTag Vision.");
+                    sm.setState(State.AIM_AND_SHOOT);
+                }
+                else if (robot.photonVisionFront != null)
+                {
+                    tracer.traceInfo(moduleName, "***** Using AprilTag Vision.");
+                    robot.photonVisionFront.setPipeline(PipelineType.APRILTAG);
+                    visionExpiredTime = null;
+                    sm.setState(State.FIND_APRILTAG);
+                }
+                else
+                {
+                    tracer.traceInfo(moduleName, "***** Using AprilTag Vision but Vision is not enabled.");
+                    sm.setState(State.DONE);
+                }
+                break;
+
+            case FIND_APRILTAG:
+                // Use vision to determine the appropriate AprilTag location.
+                FrcPhotonVision.DetectedObject object =
+                    robot.photonVisionFront.getBestDetectedAprilTag(taskParams.aprilTagIds);
+                if (object != null)
+                {
+                    aprilTagId = object.target.getFiducialId();
+                    tracer.traceInfo(
+                        moduleName,
+                        "***** Vision found AprilTag " + aprilTagId + ": aprilTagPose=" + object.targetPose);
+                    aprilTagPose = object.getObjectPose();
+                    sm.setState(State.AIM_AND_SHOOT);
+                }
+                else if (visionExpiredTime == null)
+                {
+                    // Can't find AprilTag, set a timeout and try again.
+                    visionExpiredTime = TrcTimer.getCurrentTime() + 1.0;
+                }
+                else if (TrcTimer.getCurrentTime() >= visionExpiredTime)
+                {
+                    // Timed out, moving on.
+                    tracer.traceInfo(moduleName, "***** No AprilTag found.");
+                    if (robot.ledIndicator != null)
+                    {
+                        // Indicate we timed out and found nothing.
+                        robot.ledIndicator.setPhotonDetectedObject(null, null);
+                    }
+                    sm.setState(State.DONE);
+                }
+                break;
+
+            case AIM_AND_SHOOT:
+                if (aprilTagPose != null)
+                {
+                    // Determine shooter speed, pan and tilt angle according to detected AprilTag pose.
+                    // Use vision distance to look up shooter parameters.
+                    double aprilTagDistance = TrcUtil.magnitude(aprilTagPose.x, aprilTagPose.y);
+                    ShootParamTable.Params shootParams = Shooter.Params.shootParamTable.get(aprilTagDistance);
+
+                    robot.shooter.aimShooter(
+                        owner, shootParams.shooterVelocity, 0.0, shootParams.tiltAngle, aprilTagPose.angle, event,
+                        0.0, this::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                    tracer.traceInfo(
+                        moduleName, "***** ShootParams: distance=" + aprilTagDistance + ", params=" + shootParams);
+                    }
+                else
+                {
+                    // We did not use vision, just shoot assuming operator manually aimed.
+                    double shooterVel = robot.shooterSubsystem.shooterVelocity.getValue();
+                    // ShooterVel is in RPM, aimShooter wants RPS.
+                    robot.shooter.aimShooter(
+                        owner, shooterVel / 60.0, 0.0, null, null, event, 0.0,
+                        this::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                    tracer.traceInfo(
+                        moduleName, "***** ManualShoot: shooterVel=" + shooterVel + " RPM");
+                }
+                sm.waitForSingleEvent(event, State.DONE);
+                break;
+
+            default:
+            case DONE:
+                // Stop task.
+                stopAutoTask(true);
+                break;
+        }
+    }   //runTaskState
+ 
+    /**
+     * This method is called when TrcShooter has reached shooting velocity. Pan/Tilt have aimed at the target and
+     * ready to shoot.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
+     * @param completionEvent specifies the event to signal when shooting is done, can be null.
+     */
+    private void shoot(String owner, TrcEvent completionEvent)
+    {
+        if (robot.intake != null)
+        {
+            robot.intake.autoEjectForward(
+                owner, 0.0, Intake.Params.EJECT_FORWARD_POWER, Intake.Params.EJECT_FINISH_DELAY, completionEvent,
+                0.0);
+        }
+        else if (completionEvent != null)
+        {
+            completionEvent.signal();
+        }
+    }   //shoot
+
+}   //class TaskAutoShoot

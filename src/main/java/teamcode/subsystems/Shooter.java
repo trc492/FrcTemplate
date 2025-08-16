@@ -66,6 +66,7 @@ public class Shooter extends TrcSubsystem
         public static final double SHOOTER_MAX_VEL_INC          = 1000.0;   // in RPM
         public static final double SHOOTER_DEF_VEL              = 1000.0;   // in RPM
         public static final double SHOOTER_DEF_VEL_INC          = 10.0;     // in RPM
+        public static final double SHOOTER_OFF_DELAY            = 0.5;      // in sec
 
         // Pan Motor
         public static final String PAN_MOTOR_NAME               = SUBSYSTEM_NAME + ".panMotor";
@@ -101,6 +102,15 @@ public class Shooter extends TrcSubsystem
         public static final double TILT_POWER_LIMIT             = 1.0;
         public static final double TILT_MIN_POS                 = 0.0;
         public static final double TILT_MAX_POS                 = 90.0;
+
+        public static final ShootParamTable shootParamTable = new ShootParamTable()
+            .add("1ft", 66.9, 90.0, 59.0)
+            .add("2ft", 78.2, 90.0, 54.0)
+            .add("3ft", 90.3, 90.0, 49.0)
+            .add("4ft", 102.0, 90.0, 47.0)
+            .add("5ft", 114.0, 90.0, 44.0)
+            .add("6ft", 125.3, 90.0, 42.0)
+            .add("7ft", 137.3, 90.0, 41.0);
     }   //class Params
 
     private static final String DBKEY_SHOOTER_POWER             = Params.SUBSYSTEM_NAME + "/ShooterPower";
@@ -248,22 +258,30 @@ public class Shooter extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum)
     {
+        TrcMotor motor;
+
         dashboard.putNumber(DBKEY_SHOOTER_POWER, shooter.getShooterMotor1Power());
         dashboard.putNumber(DBKEY_SHOOTER_CURRENT, shooter.getShooterMotor1Current());
         dashboard.putNumber(DBKEY_SHOOTER_VELOCITY, shooter.getShooterMotor1RPM());
         dashboard.putNumber(DBKEY_SHOOTER_TARGET_VEL, shooter.getShooterMotor1TargetRPM());
 
-        TrcMotor motor = shooter.getPanMotor();
-        dashboard.putNumber(DBKEY_PAN_POWER, motor.getPower());
-        dashboard.putNumber(DBKEY_PAN_CURRENT, motor.getCurrent());
-        dashboard.putNumber(DBKEY_PAN_POS, motor.getPosition());
-        dashboard.putNumber(DBKEY_PAN_TARGET_POS, motor.getPidTarget());
+        motor = shooter.getPanMotor();
+        if (motor != null)
+        {
+            dashboard.putNumber(DBKEY_PAN_POWER, motor.getPower());
+            dashboard.putNumber(DBKEY_PAN_CURRENT, motor.getCurrent());
+            dashboard.putNumber(DBKEY_PAN_POS, motor.getPosition());
+            dashboard.putNumber(DBKEY_PAN_TARGET_POS, motor.getPidTarget());
+        }
 
         motor = shooter.getTiltMotor();
-        dashboard.putNumber(DBKEY_TILT_POWER, motor.getPower());
-        dashboard.putNumber(DBKEY_TILT_CURRENT, motor.getCurrent());
-        dashboard.putNumber(DBKEY_TILT_POS, motor.getPosition());
-        dashboard.putNumber(DBKEY_TILT_TARGET_POS, motor.getPidTarget());
+        if (motor != null)
+        {
+            dashboard.putNumber(DBKEY_TILT_POWER, motor.getPower());
+            dashboard.putNumber(DBKEY_TILT_CURRENT, motor.getCurrent());
+            dashboard.putNumber(DBKEY_TILT_POS, motor.getPosition());
+            dashboard.putNumber(DBKEY_TILT_TARGET_POS, motor.getPidTarget());
+        }
 
         return lineNum;
     }   //updateStatus

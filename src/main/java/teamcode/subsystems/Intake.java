@@ -30,7 +30,7 @@ import trclib.subsystem.TrcIntake;
 import trclib.subsystem.TrcSubsystem;
 
 /**
- * This class implements an Elevator Subsystem.
+ * This class implements an Intake Subsystem.
  */
 public class Intake extends TrcSubsystem
 {
@@ -65,7 +65,9 @@ public class Intake extends TrcSubsystem
 
         public static final double INTAKE_FORWARD_POWER         = 1.0;
         public static final double RETAIN_POWER                 = 0.0;
-        public static final double FINISH_DELAY                 = 0.0;
+        public static final double INTAKE_FINISH_DELAY          = 0.0;
+        public static final double EJECT_FORWARD_POWER          = 1.0;
+        public static final double EJECT_FINISH_DELAY           = 0.5;
     }   //class Params
 
     private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
