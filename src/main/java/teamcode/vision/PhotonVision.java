@@ -46,8 +46,8 @@ public class PhotonVision extends FrcPhotonVision
 
     public enum PipelineType
     {
-        NONE(0),
-        APRILTAG(1);
+        APRILTAG(0),
+        COLOR_BLOB(1);
 
         public int pipelineIndex;
 
