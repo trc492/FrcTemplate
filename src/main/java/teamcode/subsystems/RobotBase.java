@@ -84,14 +84,14 @@ public class RobotBase
     {
         public FrontCamParams()
         {
-            camName = "OV9782";
+            camName = "HD-3000";
             camImageWidth = 1280;
-            camImageHeight = 800;
-            camXOffset = -0.5;                  // Inches to the right from robot center
-            camYOffset = -5.375;                // Inches forward from robot center
-            camZOffset = 20.0;                  // Inches up from the floor
-            camPitch = -17.5;                   // degrees up from horizontal
-            camYaw = 180.0;                     // degrees clockwise from robot front
+            camImageHeight = 720;
+            camXOffset = 0.0;                   // Inches to the right from robot center
+            camYOffset = 0.0;                   // Inches forward from robot center
+            camZOffset = 0.0;                   // Inches up from the floor
+            camPitch = 0.0;                     // degrees up from horizontal
+            camYaw = 0.0;                       // degrees clockwise from robot front
             camRoll = 0.0;
             robotToCam = new Transform3d(
                 new Translation3d(Units.inchesToMeters(camYOffset),
@@ -198,7 +198,7 @@ public class RobotBase
             // Front Camera
             cam1 = new FrontCamParams();
             // Back Camera
-            cam2 = new BackCamParams();
+            cam2 = null;//new BackCamParams();
             // Miscellaneous
             ledName = "LED";
             ledChannel = HwConfig.PWM_CHANNEL_LED;
