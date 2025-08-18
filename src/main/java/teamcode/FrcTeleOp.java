@@ -424,18 +424,38 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
+                        // Toggle shooter ON/OFF.
                         shooterOn = !shooterOn;
-                        if (shooterOn)
+                        if (robot.autoShootTask != null)
                         {
-                            robot.shooter.aimShooter(
-                                null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
-                                null, 0.0, robot.shooterSubsystem::shoot, 0.0);
+                            // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
+                            if (shooterOn)
+                            {
+                                robot.autoShootTask.autoShoot(moduleName, null, true, null);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
+                            }
+                            else
+                            {
+                                robot.autoShootTask.cancel();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
+                            }
                         }
                         else
                         {
-                            robot.shooter.cancel();
+                            // Auto Shoot Task is disabled, shoot manually.
+                            if (shooterOn)
+                            {
+                                robot.shooter.aimShooter(
+                                    null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
+                                    null, 0.0, robot.shooterSubsystem::shoot, 0.0);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
+                                }
+                            else
+                            {
+                                robot.shooter.cancel();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
+                            }
                         }
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetShooterEnabled=" + shooterOn);
                     }
                 }
                 else if (robot.claw != null)

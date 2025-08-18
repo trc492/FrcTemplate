@@ -48,6 +48,7 @@ import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
+import teamcode.autotasks.TaskAutoShoot;
 import teamcode.subsystems.Arm;
 import teamcode.subsystems.Claw;
 import teamcode.subsystems.Elevator;
@@ -122,6 +123,7 @@ public class Robot extends FrcRobotBase
     //
     // Auto Tasks.
     //
+    public TaskAutoShoot autoShootTask;
 
     /**
      * Constructor: Create an instance of the object.
@@ -263,6 +265,10 @@ public class Robot extends FrcRobotBase
                 }
 
                 // Create autotasks.
+                if (RobotParams.Preferences.useAutoShoot && shooter != null)
+                {
+                    autoShootTask = new TaskAutoShoot(this);
+                }
 
                 // Zero calibrate all subsystems only once in robot initialization.
                 zeroCalibrate(null, null);
