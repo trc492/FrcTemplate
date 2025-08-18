@@ -428,7 +428,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         if (shooterOn)
                         {
                             robot.shooter.aimShooter(
-                                robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null);
+                                null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
+                                null, 0.0, robot.shooterSubsystem::shoot, 0.0);
                         }
                         else
                         {

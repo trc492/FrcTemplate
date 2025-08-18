@@ -253,7 +253,7 @@ public class Robot extends FrcRobotBase
 
                 if (RobotParams.Preferences.useShooter)
                 {
-                    shooterSubsystem = new Shooter();
+                    shooterSubsystem = new Shooter(intake);
                     shooter = shooterSubsystem.getShooter();
                 }
 

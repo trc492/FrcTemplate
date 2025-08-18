@@ -26,7 +26,6 @@ import java.util.Arrays;
 
 import frclib.vision.FrcPhotonVision;
 import teamcode.Robot;
-import teamcode.subsystems.Intake;
 import teamcode.subsystems.ShootParamTable;
 import teamcode.subsystems.Shooter;
 import teamcode.vision.PhotonVision.PipelineType;
@@ -98,7 +97,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
      * @param useVision specifies true to use Vision, false otherwise.
      * @param aprilTagIds specifies multiple AprilTag IDs for vision to look for, can be null to look for any AprilTag.
      */
-    public void autoAhoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTags)
+    public void autoShoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTags)
     {
         TaskParams taskParams = new TaskParams(useVision, aprilTags);
         tracer.traceInfo(
@@ -247,7 +246,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
 
                     robot.shooter.aimShooter(
                         owner, shootParams.shooterVelocity, 0.0, shootParams.tiltAngle, aprilTagPose.angle, event,
-                        0.0, this::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                        0.0, robot.shooterSubsystem::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ShootParams: distance=" + aprilTagDistance + ", params=" + shootParams);
                     }
@@ -258,7 +257,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // ShooterVel is in RPM, aimShooter wants RPS.
                     robot.shooter.aimShooter(
                         owner, shooterVel / 60.0, 0.0, null, null, event, 0.0,
-                        this::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                        robot.shooterSubsystem::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ManualShoot: shooterVel=" + shooterVel + " RPM");
                 }
@@ -273,25 +272,4 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         }
     }   //runTaskState
  
-    /**
-     * This method is called when TrcShooter has reached shooting velocity. Pan/Tilt have aimed at the target and
-     * ready to shoot.
-     *
-     * @param owner specifies the owner that acquired the subsystem ownerships.
-     * @param completionEvent specifies the event to signal when shooting is done, can be null.
-     */
-    private void shoot(String owner, TrcEvent completionEvent)
-    {
-        if (robot.intake != null)
-        {
-            robot.intake.autoEjectForward(
-                owner, 0.0, Intake.Params.EJECT_FORWARD_POWER, Intake.Params.EJECT_FINISH_DELAY, completionEvent,
-                0.0);
-        }
-        else if (completionEvent != null)
-        {
-            completionEvent.signal();
-        }
-    }   //shoot
-
 }   //class TaskAutoShoot

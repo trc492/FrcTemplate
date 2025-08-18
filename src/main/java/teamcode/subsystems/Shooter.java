@@ -28,7 +28,9 @@ import frclib.subsystem.FrcShooter;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.motor.TrcMotor;
+import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
+import trclib.subsystem.TrcIntake;
 import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
 
@@ -129,17 +131,19 @@ public class Shooter extends TrcSubsystem
     private static final String DBKEY_TILT_TARGET_POS           = Params.SUBSYSTEM_NAME + "/TiltTargetPos";
 
     private final FrcDashboard dashboard;
+    private final TrcIntake intake;
     private final TrcShooter shooter;
     public final TrcDiscreteValue shooterVelocity;
 
     /**
      * Constructor: Creates an instance of the object.
      */
-    public Shooter()
+    public Shooter(TrcIntake intake)
     {
         super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
+        this.intake = intake;
 
         dashboard.refreshKey(DBKEY_SHOOTER_POWER, 0.0);
         dashboard.refreshKey(DBKEY_SHOOTER_CURRENT, 0.0);
@@ -211,6 +215,28 @@ public class Shooter extends TrcSubsystem
     {
         return shooter;
     }   //getShooter
+
+    /**
+     * This method is called to feed the game piece to the shooter, typically when TrcShooter has reached shooting
+     * velocity and Pan/Tilt have aimed at the target and ready to shoot.
+     *
+     * @param owner specifies the owner that acquired the subsystem ownerships.
+     * @param completionEvent specifies the event to signal when shooting is done, can be null.
+     */
+    public void shoot(String owner, TrcEvent completionEvent)
+    {
+        if (intake != null)
+        {
+            intake.autoEjectForward(
+                owner, 0.0, Intake.Params.EJECT_FORWARD_POWER, Intake.Params.EJECT_FINISH_DELAY, completionEvent,
+                0.0);
+        }
+        else if (completionEvent != null)
+        {
+            TrcDbgTrace.globalTraceWarn(instanceName, "There is no intake, signal completion anyway.");
+            completionEvent.signal();
+        }
+    }   //shoot
 
     //
     // Implements TrcSubsystem abstract methods.
