@@ -78,7 +78,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
         TaskParams taskParams = new TaskParams();
         tracer.traceInfo(
             moduleName,
-            "autoAssist(owner=" + owner + ", taskParams=(" + taskParams + "), event=" + completionEvent + ")");
+            "autoAssist(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + "))");
         startAutoTask(owner, State.START, taskParams, completionEvent);
     }   //autoAssist
 
