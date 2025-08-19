@@ -124,6 +124,7 @@ public class Robot extends FrcRobotBase
     // Auto Tasks.
     //
     public TaskAutoShoot autoShootTask;
+    // public TaskAutoPickup autoPickupTask;
 
     /**
      * Constructor: Create an instance of the object.
@@ -265,10 +266,21 @@ public class Robot extends FrcRobotBase
                 }
 
                 // Create autotasks.
-                if (RobotParams.Preferences.useAutoShoot && shooter != null)
+                if (RobotParams.Preferences.useAutoShoot)
                 {
-                    autoShootTask = new TaskAutoShoot(this);
+                    if (shooter != null)
+                    {
+                        autoShootTask = new TaskAutoShoot(this);
+                    }
                 }
+
+                // if (RobotParams.Preferences.useAutoPickup)
+                // {
+                //     if (intake != null)
+                //     {
+                //         autoPickupTask = new TaskAutoPickup(this);
+                //     }
+                // }
 
                 // Zero calibrate all subsystems only once in robot initialization.
                 zeroCalibrate(null, null);

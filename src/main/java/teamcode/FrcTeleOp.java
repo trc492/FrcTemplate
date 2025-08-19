@@ -75,7 +75,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double prevArmPower = 0.0;
     private double prevElevatorPower = 0.0;
     private double prevLatchPower = 0.0;
-    private boolean shooterOn = false;
+    private boolean intakeOn = false;
 
     /**
      * Constructor: Create an instance of the object.
@@ -401,60 +401,60 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        if (driverAltFunc)
-                        {
-                            robot.intake.setPower(Intake.Params.INTAKE_FORWARD_POWER);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake Forward");
-                        }
-                        else
-                        {
-                            robot.intake.autoIntakeForward(
-                                Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
-                                Intake.Params.INTAKE_FINISH_DELAY);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Intake Forward");
-                        }
-                    }
-                    else
-                    {
-                        robot.intake.cancel();
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Intake");
+                        // Toggle Intake ON/OFF.
+                        intakeOn = !intakeOn;
+                        // if (robot.autoPickupTask != null)
+                        // {
+                        //     if (intakeOn)
+                        //     {
+                        //         robot.autoPickupTask.autoPickup(moduleName, null, !driverAltFunc);
+                        //         robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
+                        //     }
+                        //     else
+                        //     {
+                        //         robot.autoPickupTask.cancel();
+                        //         robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Pickup");
+                        //     }
+                        // }
+                        // else
+                        // {
+                            if (!intakeOn)
+                            {
+                                robot.intake.cancel();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Intake");
+                            }
+                            else if (driverAltFunc)
+                            {
+                                robot.intake.setPower(Intake.Params.INTAKE_FORWARD_POWER);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake");
+                            }
+                            else
+                            {
+                                robot.intake.autoIntakeForward(
+                                    Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
+                                    Intake.Params.INTAKE_FINISH_DELAY);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Sensor Intake");
+                            }
+                        // }
                     }
                 }
                 else if (robot.shooter != null)
                 {
                     if (pressed)
                     {
-                        // Toggle shooter ON/OFF.
-                        shooterOn = !shooterOn;
                         if (robot.autoShootTask != null)
                         {
                             // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
-                            if (shooterOn)
-                            {
-                                robot.autoShootTask.autoShoot(moduleName, null, true, null);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
-                            }
-                            else
-                            {
-                                robot.autoShootTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
-                            }
+                            robot.autoShootTask.autoShoot(moduleName, null, true, null);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
                         }
                         else
                         {
                             // Auto Shoot Task is disabled, shoot manually.
-                            if (shooterOn)
-                            {
-                                robot.shooter.aimShooter(
-                                    null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
-                                    null, 0.0, robot.shooterSubsystem::shoot, 0.0);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
-                                }
-                            else
-                            {
-                                robot.shooter.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
-                            }
+                            robot.shooter.aimShooter(
+                                null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
+                                null, 0.0, robot.shooterSubsystem::shoot, 2.0);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
                         }
                     }
                 }

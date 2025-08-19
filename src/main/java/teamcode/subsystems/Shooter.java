@@ -31,6 +31,7 @@ import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcIntake;
+import trclib.subsystem.TrcShootParamTable;
 import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
 
@@ -59,8 +60,8 @@ public class Shooter extends TrcSubsystem
         public static final double SHOOTER_REV_PER_COUNT        = 1.0/(GOBILDA6000_CPR * SHOOTER_GEAR_RATIO);
         public static final boolean SHOOTER_SOFTWARE_PID_ENABLED= true;
         public static final TrcPidController.PidCoefficients shooterPidCoeffs =
-            new TrcPidController.PidCoefficients(0.05, 0.0, 0.0, 0.008, 0.0);
-        public static final double SHOOTER_PID_TOLERANCE        = 10.0;
+            new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.008, 0.0);
+        public static final double SHOOTER_PID_TOLERANCE        = 10.0/60.0;// in RPS (10 RPM)
 
         public static final double SHOOTER_MIN_VEL              = 10.0;     // in RPM
         public static final double SHOOTER_MAX_VEL              = 7360.0;   // in RPM
@@ -105,14 +106,11 @@ public class Shooter extends TrcSubsystem
         public static final double TILT_MIN_POS                 = 0.0;
         public static final double TILT_MAX_POS                 = 90.0;
 
-        public static final ShootParamTable shootParamTable = new ShootParamTable()
-            .add("1ft", 66.9, 90.0, 59.0)
-            .add("2ft", 78.2, 90.0, 54.0)
-            .add("3ft", 90.3, 90.0, 49.0)
-            .add("4ft", 102.0, 90.0, 47.0)
-            .add("5ft", 114.0, 90.0, 44.0)
-            .add("6ft", 125.3, 90.0, 42.0)
-            .add("7ft", 137.3, 90.0, 41.0);
+        public static final TrcShootParamTable shootParamTable = new TrcShootParamTable()
+            .add("test3ft", 36.0, 60.0, 60.0)
+            .add("test4ft", 48.0, 70.0, 60.0)
+            .add("test5ft", 60.0, 80.0, 60.0)
+            .add("test6ft", 72.0, 90.0, 60.0);
     }   //class Params
 
     private static final String DBKEY_SHOOTER_POWER             = Params.SUBSYSTEM_NAME + "/ShooterPower";
@@ -230,11 +228,12 @@ public class Shooter extends TrcSubsystem
             intake.autoEjectForward(
                 owner, 0.0, Intake.Params.EJECT_FORWARD_POWER, Intake.Params.EJECT_FINISH_DELAY, completionEvent,
                 0.0);
+            TrcDbgTrace.globalTraceInfo(instanceName, "Shooter ready, initiate shoot.");
         }
         else if (completionEvent != null)
         {
-            TrcDbgTrace.globalTraceWarn(instanceName, "There is no intake, signal completion anyway.");
             completionEvent.signal();
+            TrcDbgTrace.globalTraceWarn(instanceName, "There is no intake, signal completion anyway.");
         }
     }   //shoot
 

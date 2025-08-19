@@ -26,7 +26,6 @@ import java.util.Arrays;
 
 import frclib.vision.FrcPhotonVision;
 import teamcode.Robot;
-import teamcode.subsystems.ShootParamTable;
 import teamcode.subsystems.Shooter;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.dataprocessor.TrcUtil;
@@ -36,6 +35,7 @@ import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcOwnershipMgr;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcTaskMgr;
+import trclib.subsystem.TrcShootParamTable;
 import trclib.timer.TrcTimer;
 
 /**
@@ -102,7 +102,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         TaskParams taskParams = new TaskParams(useVision, aprilTags);
         tracer.traceInfo(
             moduleName,
-            "autoShoot(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + ")");
+            "autoShoot(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + "))");
         startAutoTask(owner, State.START, taskParams, completionEvent);
     }   //autoShoot
 
@@ -122,7 +122,8 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
     protected boolean acquireSubsystemsOwnership(String owner)
     {
         return owner == null ||
-               robot.shooter.acquireExclusiveAccess(owner) && robot.intake.acquireExclusiveAccess(owner);
+               robot.shooter.acquireExclusiveAccess(owner) &&
+               (robot.intake == null || robot.intake.acquireExclusiveAccess(owner));
     }   //acquireSubsystemsOwnership
 
     /**
@@ -141,9 +142,12 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                 moduleName,
                 "Releasing subsystem ownership on behalf of " + owner +
                 "\n\tshooter=" + ownershipMgr.getOwner(robot.shooter) +
-                "\n\tintake=" + ownershipMgr.getOwner(robot.intake));
+                (robot.intake != null? ("\n\tintake=" + ownershipMgr.getOwner(robot.intake)): ""));
             robot.shooter.releaseExclusiveAccess(owner);
-            robot.intake.releaseExclusiveAccess(owner);
+            if (robot.intake != null)
+            {
+                robot.intake.releaseExclusiveAccess(owner);
+            }
         }
     }   //releaseSubsystemsOwnership
 
@@ -158,7 +162,10 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
     {
         tracer.traceInfo(moduleName, "Stopping subsystems.");
         robot.shooter.cancel(owner);
-        robot.intake.cancel(owner);
+        if (robot.intake != null)
+        {
+            robot.intake.cancel(owner);
+        }
     }   //stopSubsystems
 
     /**
@@ -242,7 +249,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // Determine shooter speed, pan and tilt angle according to detected AprilTag pose.
                     // Use vision distance to look up shooter parameters.
                     double aprilTagDistance = TrcUtil.magnitude(aprilTagPose.x, aprilTagPose.y);
-                    ShootParamTable.Params shootParams = Shooter.Params.shootParamTable.get(aprilTagDistance);
+                    TrcShootParamTable.Params shootParams = Shooter.Params.shootParamTable.get(aprilTagDistance, false);
 
                     robot.shooter.aimShooter(
                         owner, shootParams.shooterVelocity, 0.0, shootParams.tiltAngle, aprilTagPose.angle, event,
