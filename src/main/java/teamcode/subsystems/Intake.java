@@ -44,14 +44,14 @@ public class Intake extends TrcSubsystem
         public static final boolean HAS_EXIT_SENSOR             = false;
 
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
-        public static final int PRIMARY_MOTOR_ID                = 10;
+        public static final int PRIMARY_MOTOR_ID                = 12;
         public static final MotorType PRIMARY_MOTOR_TYPE        = MotorType.CanTalonSrx;
         public static final boolean PRIMARY_MOTOR_BRUSHLESS     = false;
         public static final boolean PRIMARY_MOTOR_ENC_ABS       = false;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
-        public static final int FOLLOWER_MOTOR_ID               = 12;
+        public static final int FOLLOWER_MOTOR_ID               = 14;
         public static final MotorType FOLLOWER_MOTOR_TYPE       = MotorType.CanTalonSrx;
         public static final boolean FOLLOWER_MOTOR_BRUSHLESS    = false;
         public static final boolean FOLLOWER_MOTOR_ENC_ABS      = false;
