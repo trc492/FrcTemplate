@@ -48,6 +48,7 @@ import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
+import teamcode.autotasks.TaskAutoPickup;
 import teamcode.autotasks.TaskAutoShoot;
 import teamcode.subsystems.Arm;
 import teamcode.subsystems.Claw;
@@ -124,7 +125,7 @@ public class Robot extends FrcRobotBase
     // Auto Tasks.
     //
     public TaskAutoShoot autoShootTask;
-    // public TaskAutoPickup autoPickupTask;
+    public TaskAutoPickup autoPickupTask;
 
     /**
      * Constructor: Create an instance of the object.
@@ -274,13 +275,13 @@ public class Robot extends FrcRobotBase
                     }
                 }
 
-                // if (RobotParams.Preferences.useAutoPickup)
-                // {
-                //     if (intake != null)
-                //     {
-                //         autoPickupTask = new TaskAutoPickup(this);
-                //     }
-                // }
+                if (RobotParams.Preferences.useAutoPickup)
+                {
+                    if (intake != null)
+                    {
+                        autoPickupTask = new TaskAutoPickup(this);
+                    }
+                }
 
                 // Zero calibrate all subsystems only once in robot initialization.
                 zeroCalibrate(null, null);

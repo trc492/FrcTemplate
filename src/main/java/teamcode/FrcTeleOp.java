@@ -396,7 +396,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case B:
-                if (robot.shooter != null)
+                if (robot.shooter != null && robot.autoShootTask != null)
                 {
                     if (pressed)
                     {
@@ -410,7 +410,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             }
                             else
                             {
-                                robot.autoShootTask.autoShoot(moduleName, null, true, null);
+                                robot.autoShootTask.autoShoot(moduleName, null, !driverAltFunc, null);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
                             }
                         }
@@ -432,7 +432,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         }
                     }
                 }
-                else if (robot.intake != null)
+                else if (robot.intake != null && robot.autoPickupTask != null)
                 {
                     if (pressed)
                     {
