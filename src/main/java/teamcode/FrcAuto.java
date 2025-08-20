@@ -213,7 +213,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                    "yDistance=" + getYDriveDistance() + " ft " +
                    "turnDegrees=" + getTurnAngle() + " deg " +
                    "driveTime=" + getDriveTime() + " sec " +
-                   "drivePower=" + getDrivePower();
+                   "drivePower=" + getDrivePower() + "\" ";
         }   //toString
 
     }   //class AutoChoices
