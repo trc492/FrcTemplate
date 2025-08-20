@@ -405,7 +405,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
                             if (robot.autoShootTask.isActive())
                             {
-                                robot.shooter.cancel(moduleName);
+                                robot.autoShootTask.cancel();
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
                             }
                             else

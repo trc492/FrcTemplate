@@ -80,6 +80,7 @@ public class RobotParams
         public static final boolean useClaw                     = false;
         // Auto Tasks
         public static final boolean useAutoShoot                = false;
+        public static final boolean useAutoPickup               = false;
     }   //class Preferences
 
     /**
