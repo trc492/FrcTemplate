@@ -153,7 +153,7 @@
             "title": "Dashboard 00-07",
             "x": 0.0,
             "y": 0.0,
-            "width": 768.0,
+            "width": 896.0,
             "height": 640.0,
             "type": "List Layout",
             "properties": {
@@ -276,9 +276,9 @@
           },
           {
             "title": "Dashboard 08-15",
-            "x": 768.0,
+            "x": 896.0,
             "y": 0.0,
-            "width": 768.0,
+            "width": 896.0,
             "height": 640.0,
             "type": "List Layout",
             "properties": {
@@ -410,8 +410,8 @@
         "containers": [
           {
             "title": "DebugDriveBase/DriveEnc",
-            "x": 0.0,
-            "y": 128.0,
+            "x": 896.0,
+            "y": 0.0,
             "width": 768.0,
             "height": 128.0,
             "type": "Text Display",
@@ -424,7 +424,7 @@
           },
           {
             "title": "RobotPose",
-            "x": 768.0,
+            "x": 128.0,
             "y": 0.0,
             "width": 768.0,
             "height": 128.0,
@@ -438,8 +438,8 @@
           },
           {
             "title": "DebugDriveBase/SteerBack",
-            "x": 0.0,
-            "y": 256.0,
+            "x": 896.0,
+            "y": 128.0,
             "width": 768.0,
             "height": 128.0,
             "type": "Text Display",
@@ -452,7 +452,7 @@
           },
           {
             "title": "DebugDriveBase/SteerFront",
-            "x": 768.0,
+            "x": 128.0,
             "y": 128.0,
             "width": 768.0,
             "height": 128.0,
@@ -466,7 +466,7 @@
           },
           {
             "title": "DebugPidDrive/XPidInfo",
-            "x": 768.0,
+            "x": 128.0,
             "y": 256.0,
             "width": 768.0,
             "height": 128.0,
@@ -480,8 +480,8 @@
           },
           {
             "title": "DebugPidDrive/YPidInfo",
-            "x": 0.0,
-            "y": 384.0,
+            "x": 896.0,
+            "y": 256.0,
             "width": 768.0,
             "height": 128.0,
             "type": "Text Display",
@@ -494,7 +494,7 @@
           },
           {
             "title": "DebugPidDrive/TurnPidInfo",
-            "x": 768.0,
+            "x": 128.0,
             "y": 384.0,
             "width": 768.0,
             "height": 128.0,
@@ -508,8 +508,8 @@
           },
           {
             "title": "DebugPidDrive",
-            "x": 256.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 256.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Toggle Switch",
@@ -521,8 +521,8 @@
           },
           {
             "title": "DebugDriveBase",
-            "x": 128.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 128.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Toggle Switch",
@@ -775,8 +775,8 @@
         "containers": [
           {
             "title": "Alliance",
-            "x": 128.0,
-            "y": 128.0,
+            "x": 256.0,
+            "y": 0.0,
             "width": 128.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
@@ -788,8 +788,8 @@
           },
           {
             "title": "StartPos",
-            "x": 512.0,
-            "y": 128.0,
+            "x": 640.0,
+            "y": 0.0,
             "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
@@ -801,8 +801,8 @@
           },
           {
             "title": "Strategy",
-            "x": 256.0,
-            "y": 128.0,
+            "x": 384.0,
+            "y": 0.0,
             "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
@@ -814,8 +814,8 @@
           },
           {
             "title": "DrivePower",
-            "x": 384.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 384.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
@@ -828,8 +828,8 @@
           },
           {
             "title": "DriveTime",
-            "x": 512.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 512.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
@@ -842,8 +842,8 @@
           },
           {
             "title": "StartDelay",
-            "x": 0.0,
-            "y": 128.0,
+            "x": 128.0,
+            "y": 0.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
@@ -856,8 +856,8 @@
           },
           {
             "title": "PathFile",
-            "x": 640.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 640.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
@@ -870,8 +870,8 @@
           },
           {
             "title": "TurnAngle",
-            "x": 256.0,
-            "y": 0.0,
+            "x": 0.0,
+            "y": 256.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
@@ -897,14 +897,14 @@
             }
           },
           {
-            "title": "XDriveDistance",
-            "x": 128.0,
-            "y": 0.0,
+            "title": "YDriveDistance",
+            "x": 0.0,
+            "y": 128.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/SmartDashboard/Auto/XDriveDistance",
+              "topic": "/SmartDashboard/Auto/YDriveDistance",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": true
@@ -1379,61 +1379,6 @@
                 }
               }
             ]
-          },
-          {
-            "title": "MotionProfile",
-            "x": 512.0,
-            "y": 0.0,
-            "width": 128.0,
-            "height": 256.0,
-            "type": "List Layout",
-            "properties": {
-              "label_position": "TOP"
-            },
-            "children": [
-              {
-                "title": "MaxVelocity",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxVelocity",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              },
-              {
-                "title": "MaxAcceleration",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxAcceleration",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              },
-              {
-                "title": "MaxDeceleration",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxDeceleration",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              }
-            ]
           }
         ],
         "containers": [
@@ -1452,9 +1397,9 @@
           },
           {
             "title": "RobotVelocity",
-            "x": 640.0,
+            "x": 512.0,
             "y": 0.0,
-            "width": 384.0,
+            "width": 640.0,
             "height": 384.0,
             "type": "Graph",
             "properties": {
@@ -1468,9 +1413,9 @@
           },
           {
             "title": "TargetVelocity",
-            "x": 640.0,
+            "x": 512.0,
             "y": 384.0,
-            "width": 384.0,
+            "width": 640.0,
             "height": 384.0,
             "type": "Graph",
             "properties": {
@@ -1484,9 +1429,9 @@
           },
           {
             "title": "RobotPosition",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 0.0,
-            "width": 384.0,
+            "width": 640.0,
             "height": 384.0,
             "type": "Graph",
             "properties": {
@@ -1500,9 +1445,9 @@
           },
           {
             "title": "TargetPosition",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 384.0,
-            "width": 384.0,
+            "width": 640.0,
             "height": 384.0,
             "type": "Graph",
             "properties": {
@@ -1512,6 +1457,48 @@
               "time_displayed": 5.0,
               "color": 4278238420,
               "line_width": 2.0
+            }
+          },
+          {
+            "title": "MaxVelocity",
+            "x": 128.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxVelocity",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "MaxAcceleration",
+            "x": 256.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxAcceleration",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "MaxDeceleration",
+            "x": 384.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxDeceleration",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
             }
           }
         ]
