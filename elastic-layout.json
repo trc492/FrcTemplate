@@ -1379,61 +1379,6 @@
                 }
               }
             ]
-          },
-          {
-            "title": "MotionProfile",
-            "x": 512.0,
-            "y": 0.0,
-            "width": 128.0,
-            "height": 256.0,
-            "type": "List Layout",
-            "properties": {
-              "label_position": "TOP"
-            },
-            "children": [
-              {
-                "title": "MaxVelocity",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxVelocity",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              },
-              {
-                "title": "MaxAcceleration",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxAcceleration",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              },
-              {
-                "title": "MaxDeceleration",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/MaxDeceleration",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              }
-            ]
           }
         ],
         "containers": [
@@ -1452,7 +1397,7 @@
           },
           {
             "title": "RobotVelocity",
-            "x": 640.0,
+            "x": 512.0,
             "y": 0.0,
             "width": 640.0,
             "height": 384.0,
@@ -1468,7 +1413,7 @@
           },
           {
             "title": "TargetVelocity",
-            "x": 640.0,
+            "x": 512.0,
             "y": 384.0,
             "width": 640.0,
             "height": 384.0,
@@ -1484,7 +1429,7 @@
           },
           {
             "title": "RobotPosition",
-            "x": 1280.0,
+            "x": 1152.0,
             "y": 0.0,
             "width": 640.0,
             "height": 384.0,
@@ -1500,7 +1445,7 @@
           },
           {
             "title": "TargetPosition",
-            "x": 1280.0,
+            "x": 1152.0,
             "y": 384.0,
             "width": 640.0,
             "height": 384.0,
@@ -1512,6 +1457,48 @@
               "time_displayed": 5.0,
               "color": 4278238420,
               "line_width": 2.0
+            }
+          },
+          {
+            "title": "MaxVelocity",
+            "x": 128.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxVelocity",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "MaxAcceleration",
+            "x": 256.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxAcceleration",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "MaxDeceleration",
+            "x": 384.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/MaxDeceleration",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
             }
           }
         ]
