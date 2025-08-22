@@ -226,6 +226,9 @@ public class RobotParams
         /*ID21*/    new TrcPose2D(-158.66, 209.45, 0.0), //z=12.125
         /*ID22*/    new TrcPose2D(-130.32, 192.91, 60.0) //z=12.125
         };
+
+        public static final TrcPose2D BLUE_PICKUP_RING_POSE =
+            new TrcPose2D(-60.0, 100.0, 0.0);
     }   //class Game
 
     /**

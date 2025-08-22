@@ -27,6 +27,7 @@ import frclib.drivebase.FrcSwerveDrive;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcUserChoices;
+import teamcode.autocommands.CmdAutoStartPos1;
 import teamcode.commandbased.ExampleAuto;
 import trclib.command.CmdPidDrive;
 import trclib.command.CmdPurePursuitDrive;
@@ -50,6 +51,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     public enum AutoStrategy
     {
+        STARTPOS1_AUTO,
         HYBRID_MODE_AUTO,
         PP_DRIVE,
         PID_DRIVE,
@@ -95,6 +97,9 @@ public class FrcAuto implements TrcRobot.RobotMode
         private static final String DBKEY_AUTO_DRIVE_TIME = "Auto/DriveTime";               //Number
         private static final String DBKEY_AUTO_DRIVE_POWER = "Auto/DrivePower";             //Number
 
+        private static final String DBKEY_AUTO_USE_VISION = "Auto/UseVision";               //Boolean
+        private static final String DBKEY_AUTO_SCORE_PRELOAD = "Auto/ScorePreload";         //Boolean
+
         private final FrcUserChoices userChoices = new FrcUserChoices();
         // Choice menus
         private final FrcChoiceMenu<DriverStation.Alliance> allianceMenu;
@@ -121,6 +126,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             }
             else
             {
+                autoStrategyMenu.addChoice("StartPos1 Auto", AutoStrategy.STARTPOS1_AUTO);
                 autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
                 autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
                 autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
@@ -143,6 +149,9 @@ public class FrcAuto implements TrcRobot.RobotMode
             userChoices.addNumber(DBKEY_AUTO_TURN_ANGLE, 0.0);          // in degrees
             userChoices.addNumber(DBKEY_AUTO_DRIVE_TIME, 0.0);          // in seconds
             userChoices.addNumber(DBKEY_AUTO_DRIVE_POWER, 0.0);
+
+            userChoices.addBoolean(DBKEY_AUTO_USE_VISION, true);
+            userChoices.addBoolean(DBKEY_AUTO_SCORE_PRELOAD, true);
         }   //AutoChoices
 
         //
@@ -201,6 +210,16 @@ public class FrcAuto implements TrcRobot.RobotMode
             return userChoices.getUserNumber(DBKEY_AUTO_DRIVE_TIME);
         }   //getDrivePower
 
+        public boolean getUseVision()
+        {
+            return userChoices.getUserBoolean(DBKEY_AUTO_USE_VISION);
+        }   //getUseVision
+
+        public boolean getScorePreload()
+        {
+            return userChoices.getUserBoolean(DBKEY_AUTO_SCORE_PRELOAD);
+        }   //getScorePreload
+
         @Override
         public String toString()
         {
@@ -213,7 +232,9 @@ public class FrcAuto implements TrcRobot.RobotMode
                    "yDistance=" + getYDriveDistance() + " ft " +
                    "turnDegrees=" + getTurnAngle() + " deg " +
                    "driveTime=" + getDriveTime() + " sec " +
-                   "drivePower=" + getDrivePower() + "\" ";
+                   "drivePower=" + getDrivePower() + "\" " +
+                   "useVision=" + getUseVision() + "\" " +
+                   "scorePreload=" + getScorePreload() + "\"";
         }   //toString
 
     }   //class AutoChoices
@@ -287,6 +308,13 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         switch (autoChoices.getStrategy())
         {
+            case STARTPOS1_AUTO:
+                if (robot.robotDrive != null)
+                {
+                    autoCommand = new CmdAutoStartPos1(robot, autoChoices);
+                }
+                break;
+
             case HYBRID_MODE_AUTO:
                 if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
                 {
