@@ -107,10 +107,10 @@ public class Shooter extends TrcSubsystem
         public static final double TILT_MAX_POS                 = 90.0;
 
         public static final TrcShootParamTable shootParamTable = new TrcShootParamTable()
-            .add("test3ft", 36.0, 60.0, 60.0)
-            .add("test4ft", 48.0, 70.0, 60.0)
-            .add("test5ft", 60.0, 80.0, 60.0)
-            .add("test6ft", 72.0, 90.0, 60.0);
+            .add("test3ft", 36.0, 60.0, 0.0, 60.0)
+            .add("test4ft", 48.0, 70.0, 0.0, 60.0)
+            .add("test5ft", 60.0, 80.0, 0.0, 60.0)
+            .add("test6ft", 72.0, 90.0, 0.0, 60.0);
     }   //class Params
 
     private static final String DBKEY_SHOOTER_POWER             = Params.SUBSYSTEM_NAME + "/ShooterPower";

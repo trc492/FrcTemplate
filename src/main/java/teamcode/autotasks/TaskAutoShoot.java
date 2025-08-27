@@ -249,11 +249,13 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // Determine shooter speed, pan and tilt angle according to detected AprilTag pose.
                     // Use vision distance to look up shooter parameters.
                     double aprilTagDistance = TrcUtil.magnitude(aprilTagPose.x, aprilTagPose.y);
-                    TrcShootParamTable.Params shootParams = Shooter.Params.shootParamTable.get(aprilTagDistance, false);
+                    TrcShootParamTable.Params shootParams =
+                        Shooter.Params.shootParamTable.get(aprilTagDistance, false);
 
                     robot.shooter.aimShooter(
-                        owner, shootParams.shooterVelocity, 0.0, shootParams.tiltAngle, aprilTagPose.angle, event,
-                        0.0, robot.shooterSubsystem::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                        owner, shootParams.shooter1Velocity, shootParams.shooter2Velocity, shootParams.tiltAngle,
+                        aprilTagPose.angle, event, 0.0, robot.shooterSubsystem::shoot,
+                        Shooter.Params.SHOOTER_OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ShootParams: distance=" + aprilTagDistance + ", params=" + shootParams);
                     }
