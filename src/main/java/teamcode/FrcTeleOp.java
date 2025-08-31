@@ -29,6 +29,7 @@ import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.subsystems.Arm;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
+import teamcode.subsystems.Shooter;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.drivebase.TrcSwerveDriveBase;
@@ -425,8 +426,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.shooter.aimShooter(
-                                    null, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0, null, null,
-                                    null, 0.0, robot.shooterSubsystem::shoot, 2.0);
+                                    moduleName, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0,
+                                    null, null, null, 0.0, robot.shooterSubsystem::shoot,
+                                    Shooter.Params.SHOOTER_OFF_DELAY);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
                             }
                         }
