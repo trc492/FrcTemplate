@@ -70,7 +70,7 @@ import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot.RunMode;
 import trclib.sensor.TrcRobotBattery;
-import trclib.subsystem.TrcIntake;
+import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
@@ -116,7 +116,7 @@ public class Robot extends FrcRobotBase
     public TrcMotor arm;
     public TrcMotor elevator;
     public TrcServo latch;
-    public TrcIntake intake;
+    public TrcRollerIntake intake;
     public Shooter shooterSubsystem;
     public TrcShooter shooter;
     public TrcServoClaw claw;

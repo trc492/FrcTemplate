@@ -396,7 +396,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case B:
-                if (robot.shooter != null && robot.autoShootTask != null)
+                if (robot.shooter != null)
                 {
                     if (pressed)
                     {
@@ -432,7 +432,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         }
                     }
                 }
-                else if (robot.intake != null && robot.autoPickupTask != null)
+                else if (robot.intake != null)
                 {
                     if (pressed)
                     {
@@ -455,7 +455,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             {
                                 if (robot.intake.getPower() == 0.0)
                                 {
-                                    robot.intake.setPower(Intake.Params.INTAKE_FORWARD_POWER);
+                                    robot.intake.setPower(Intake.Params.INTAKE_POWER);
                                     robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake");
                                 }
                                 else
@@ -473,9 +473,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 }
                                 else
                                 {
-                                    robot.intake.autoIntakeForward(
-                                        Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
-                                        Intake.Params.INTAKE_FINISH_DELAY);
+                                    robot.intake.autoIntake(moduleName);
                                     robot.globalTracer.traceInfo(moduleName, ">>>>> Sensor Intake");
                                 }
                             }

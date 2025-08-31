@@ -55,8 +55,9 @@ public class Claw extends TrcSubsystem
         public static final double CLOSE_TIME                   = 0.3;
 
         public static final boolean USE_REV_2M_SENSOR           = true;
-        public static final double SENSOR_TRIGGER_THRESHOLD     = 2.0;
-        public static final boolean ANALOG_TRIGGER_INVERTED     = true;
+        public static final double LOWER_TRIGGER_THRESHOLD      = 2.0;
+        public static final double UPPER_TRIGGER_THRESHOLD      = 3.0;
+        public static final double TRIGGER_SETTLING_TIME        = 0.1;
 
         public static final boolean USE_DIGITAL_SENSOR          = false;
         public static final int SENSOR_DIGITAL_CHANNEL          = 0;
@@ -99,17 +100,16 @@ public class Claw extends TrcSubsystem
             rev2mSensor = null;
         }
 
-        FrcServoClaw.Params clawParams = new FrcServoClaw.Params()
-            .setPrimaryServo(
-                Params.PRIMARY_SERVO_NAME, Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
-            .setFollowerServo(
-                Params.FOLLOWER_SERVO_NAME, Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
+        FrcServoClaw.Params clawParams = new FrcServoClaw.Params(Params.SUBSYSTEM_NAME)
+            .setPrimaryServo(Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
+            .setFollowerServo(Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
             .setOpenCloseParams(Params.OPEN_POS, Params.OPEN_TIME, Params.CLOSE_POS, Params.CLOSE_TIME);
 
         if (rev2mSensor != null)
         {
             clawParams.setAnalogSensorTrigger(
-                this::getSensorData, Params.ANALOG_TRIGGER_INVERTED, Params.SENSOR_TRIGGER_THRESHOLD);
+                this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD, Params.UPPER_TRIGGER_THRESHOLD,
+                Params.TRIGGER_SETTLING_TIME);
         }
         else if (Params.USE_DIGITAL_SENSOR)
         {
@@ -184,14 +184,8 @@ public class Claw extends TrcSubsystem
         dashboard.putBoolean(DBKEY_IS_CLOSED, claw.isClosed());
         dashboard.putBoolean(DBKEY_HAS_OBJECT, claw.hasObject());
         dashboard.putBoolean(DBKEY_AUTO_ACTIVE, claw.isAutoActive());
-        if (Claw.Params.USE_REV_2M_SENSOR)
-        {
-            dashboard.putNumber(DBKEY_SENSOR_VALUE, claw.getSensorValue());
-        }
-        else
-        {
-            dashboard.putBoolean(DBKEY_SENSOR_STATE, claw.getSensorState());
-        }
+        dashboard.putNumber(DBKEY_SENSOR_VALUE, claw.getSensorValue());
+        dashboard.putBoolean(DBKEY_SENSOR_STATE, claw.getTriggerState());
         return lineNum;
     }   //updateStatus
 

@@ -164,7 +164,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         robot.shooter.cancel(owner);
         if (robot.intake != null)
         {
-            robot.intake.cancel(owner);
+            robot.intake.cancel();
         }
     }   //stopSubsystems
 

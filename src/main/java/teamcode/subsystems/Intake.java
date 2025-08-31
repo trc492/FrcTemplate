@@ -24,10 +24,11 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
-import frclib.subsystem.FrcIntake;
+import frclib.subsystem.FrcRollerIntake;
 import trclib.robotcore.TrcEvent;
-import trclib.subsystem.TrcIntake;
+import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcSubsystem;
+import trclib.subsystem.TrcRollerIntake.TriggerAction;
 
 /**
  * This class implements an Intake Subsystem.
@@ -40,8 +41,8 @@ public class Intake extends TrcSubsystem
         public static final boolean NEED_ZERO_CAL               = false;
 
         public static final boolean HAS_TWO_MOTORS              = false;
-        public static final boolean HAS_ENTRY_SENSOR            = true;
-        public static final boolean HAS_EXIT_SENSOR             = false;
+        public static final boolean HAS_FRONT_SENSOR            = false;
+        public static final boolean HAS_BACK_SENSOR             = true;
 
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 12;
@@ -57,27 +58,27 @@ public class Intake extends TrcSubsystem
         public static final boolean FOLLOWER_MOTOR_ENC_ABS      = false;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
 
-        public static final int ENTRY_SENSOR_DIGITAL_CHANNEL    = 0;
-        public static final boolean ENTRY_SENSOR_INVERTED       = false;
+        public static final int FRONT_SENSOR_DIGITAL_CHANNEL    = 1;
+        public static final boolean FRONT_SENSOR_INVERTED       = false;
 
-        public static final int EXIT_SENSOR_DIGITAL_CHANNEL     = 1;
-        public static final boolean EXIT_SENSOR_INVERTED        = false;
+        public static final int BACK_SENSOR_DIGITAL_CHANNEL     = 0;
+        public static final boolean BACK_SENSOR_INVERTED        = false;
 
-        public static final double INTAKE_FORWARD_POWER         = 1.0;
+        public static final double INTAKE_POWER                 = 1.0;  // Intake forward
+        public static final double EJECT_POWER                  = 1.0;  // Eject forward
         public static final double RETAIN_POWER                 = 0.0;
         public static final double INTAKE_FINISH_DELAY          = 0.0;
-        public static final double EJECT_FORWARD_POWER          = 1.0;
         public static final double EJECT_FINISH_DELAY           = 0.5;
     }   //class Params
 
     private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
     private static final String DBKEY_CURRENT                   = Params.SUBSYSTEM_NAME + "/Current";
     private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
-    private static final String DBKEY_ENTRY_SENSOR_STATE        = Params.SUBSYSTEM_NAME + "/EntrySensorState";
-    private static final String DBKEY_EXIT_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/ExitSensorState";
+    private static final String DBKEY_FRONT_SENSOR_STATE        = Params.SUBSYSTEM_NAME + "/FrontSensorState";
+    private static final String DBKEY_BACK_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/BackSensorState";
 
     private final FrcDashboard dashboard;
-    private final TrcIntake intake;
+    private final TrcRollerIntake intake;
     
     /**
      * Constructor: Creates an instance of the object.
@@ -90,13 +91,16 @@ public class Intake extends TrcSubsystem
         dashboard.refreshKey(DBKEY_POWER, 0.0);
         dashboard.refreshKey(DBKEY_CURRENT, 0.0);
         dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
-        dashboard.refreshKey(DBKEY_ENTRY_SENSOR_STATE, false);
-        dashboard.refreshKey(DBKEY_EXIT_SENSOR_STATE, false);
+        dashboard.refreshKey(DBKEY_FRONT_SENSOR_STATE, false);
+        dashboard.refreshKey(DBKEY_BACK_SENSOR_STATE, false);
 
-        FrcIntake.Params intakeParams = new FrcIntake.Params()
+        FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params(Params.SUBSYSTEM_NAME)
             .setPrimaryMotor(
                 Params.PRIMARY_MOTOR_NAME, Params.PRIMARY_MOTOR_ID, Params.PRIMARY_MOTOR_TYPE,
-                Params.PRIMARY_MOTOR_BRUSHLESS, Params.PRIMARY_MOTOR_ENC_ABS, Params.PRIMARY_MOTOR_INVERTED);
+                Params.PRIMARY_MOTOR_BRUSHLESS, Params.PRIMARY_MOTOR_ENC_ABS, Params.PRIMARY_MOTOR_INVERTED)
+            .setPowerLevels(Params.INTAKE_POWER, Params.EJECT_POWER, Params.RETAIN_POWER)
+            .setFinishDelays(Params.INTAKE_FINISH_DELAY, Params.EJECT_FINISH_DELAY);
+
         if (Params.HAS_TWO_MOTORS)
         {
             intakeParams.setFollowerMotor(
@@ -104,21 +108,23 @@ public class Intake extends TrcSubsystem
                 Params.FOLLOWER_MOTOR_BRUSHLESS, Params.FOLLOWER_MOTOR_ENC_ABS, Params.FOLLOWER_MOTOR_INVERTED);
         }
 
-        if (Params.HAS_ENTRY_SENSOR)
+        if (Params.HAS_FRONT_SENSOR)
         {
-            intakeParams.setEntryDigitalInput(
-                Params.ENTRY_SENSOR_DIGITAL_CHANNEL, Params.ENTRY_SENSOR_INVERTED, null);
+            intakeParams.setFrontDigitalInputTrigger(
+                Params.FRONT_SENSOR_DIGITAL_CHANNEL, Params.FRONT_SENSOR_INVERTED, TriggerAction.NoAction,
+                null, null, null);
         }
 
-        if (Params.HAS_EXIT_SENSOR)
+        if (Params.HAS_BACK_SENSOR)
         {
-            intakeParams.setExitDigitalInput(
-                Params.EXIT_SENSOR_DIGITAL_CHANNEL, Params.EXIT_SENSOR_INVERTED, null);
+            intakeParams.setBackDigitalInputTrigger(
+                Params.BACK_SENSOR_DIGITAL_CHANNEL, Params.BACK_SENSOR_INVERTED, TriggerAction.FinishOnTrigger,
+                null, null, null);
         }
-        intake = new FrcIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
+        intake = new FrcRollerIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
     }   //Intake
 
-    public TrcIntake getIntake()
+    public TrcRollerIntake getIntake()
     {
         return intake;
     }   //getIntake
@@ -169,8 +175,8 @@ public class Intake extends TrcSubsystem
         dashboard.putNumber(DBKEY_POWER, intake.getPower());
         dashboard.putNumber(DBKEY_CURRENT, intake.getCurrent());
         dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
-        dashboard.putBoolean(DBKEY_ENTRY_SENSOR_STATE, intake.getSensorState(intake.entryTrigger));
-        dashboard.putBoolean(DBKEY_EXIT_SENSOR_STATE, intake.getSensorState(intake.exitTrigger));
+        dashboard.putBoolean(DBKEY_FRONT_SENSOR_STATE, intake.getFrontTriggerState());
+        dashboard.putBoolean(DBKEY_BACK_SENSOR_STATE, intake.getBackTriggerState());
         return lineNum;
     }   //updateStatus
 

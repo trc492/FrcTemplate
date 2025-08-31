@@ -30,7 +30,7 @@ import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
-import trclib.subsystem.TrcIntake;
+import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcShootParamTable;
 import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
@@ -129,14 +129,14 @@ public class Shooter extends TrcSubsystem
     private static final String DBKEY_TILT_TARGET_POS           = Params.SUBSYSTEM_NAME + "/TiltTargetPos";
 
     private final FrcDashboard dashboard;
-    private final TrcIntake intake;
+    private final TrcRollerIntake intake;
     private final TrcShooter shooter;
     public final TrcDiscreteValue shooterVelocity;
 
     /**
      * Constructor: Creates an instance of the object.
      */
-    public Shooter(TrcIntake intake)
+    public Shooter(TrcRollerIntake intake)
     {
         super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
 
@@ -225,9 +225,7 @@ public class Shooter extends TrcSubsystem
     {
         if (intake != null)
         {
-            intake.autoEjectForward(
-                owner, 0.0, Intake.Params.EJECT_FORWARD_POWER, Intake.Params.EJECT_FINISH_DELAY, completionEvent,
-                0.0);
+            intake.autoEject(owner, completionEvent, 0.0);
             TrcDbgTrace.globalTraceInfo(instanceName, "Shooter ready, initiate shoot.");
         }
         else if (completionEvent != null)

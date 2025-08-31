@@ -24,7 +24,6 @@ package teamcode.autotasks;
 
 import frclib.vision.FrcPhotonVision;
 import teamcode.Robot;
-import teamcode.subsystems.Intake;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcAutoTask;
@@ -168,7 +167,7 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
     protected void stopSubsystems(String owner)
     {
         tracer.traceInfo(moduleName, "Stopping subsystems.");
-        robot.intake.cancel(owner);
+        robot.intake.cancel();
         if (useVision && robot.robotDrive != null)
         {
             robot.robotDrive.cancel();
@@ -248,9 +247,7 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
                 break;
 
             case PICKUP_OBJ:
-                robot.intake.autoIntakeForward(
-                    owner, 0.0, Intake.Params.INTAKE_FORWARD_POWER, Intake.Params.RETAIN_POWER,
-                    Intake.Params.INTAKE_FINISH_DELAY, pickupEvent, 0.0);
+                robot.intake.autoIntake(owner, pickupEvent, 0.0);
                 sm.addEvent(pickupEvent);
                 tracer.traceInfo(moduleName, "***** AutoIntakeForward");
                 if (objPose != null && robot.robotDrive != null)
