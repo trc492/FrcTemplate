@@ -745,19 +745,23 @@ public class Robot extends FrcRobotBase
      * This method is called when Comm Status changes state. This is an indication of losing or regaining comm.
      *
      * @param context specifies true for comm connected, false for comm disconnected.
+     * @param canceled specifies true if callback is canceled.
      */
-    private void commStatusCallback(Object context)
+    private void commStatusCallback(Object context, boolean canceled)
     {
-        Boolean commStatus = (Boolean) context;
-
-        if (!commStatus)
+        if (!canceled)
         {
-            // We lost comm, do emergency shutdown to prevent damage.
-            if (robotDrive != null && robotDrive instanceof FrcSwerveDrive)
+            Boolean commStatus = (Boolean) context;
+
+            if (!commStatus)
             {
-                ((FrcSwerveDrive) robotDrive).setXModeEnabled(null, true);
-                globalTracer.traceInfo(moduleName, "***** Putting robot in X-Mode. *****");
-                cancelAll();
+                // We lost comm, do emergency shutdown to prevent damage.
+                if (robotDrive != null && robotDrive instanceof FrcSwerveDrive)
+                {
+                    ((FrcSwerveDrive) robotDrive).setXModeEnabled(null, true);
+                    globalTracer.traceInfo(moduleName, "***** Putting robot in X-Mode. *****");
+                    cancelAll();
+                }
             }
         }
     }   //commStatusCallback
