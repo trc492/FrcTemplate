@@ -97,6 +97,10 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
     @Override
     protected boolean acquireSubsystemsOwnership(String owner)
     {
+        // Call each subsystem.acquireExclusiveAccess(owner) and return true only if all acquires returned true.
+        // For example:
+        // return owner == null ||
+        //        subsystem1.acquireExclusiveAccess(owner) && subsystem2.acquireExclusiveAccess(owner);
         return owner == null || robot.robotDrive.driveBase.acquireExclusiveAccess(owner);
     }   //acquireSubsystemsOwnership
 

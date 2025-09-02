@@ -112,6 +112,8 @@ public class CmdAuto implements TrcRobot.RobotCommand
             switch (state)
             {
                 case START:
+                    // Set robot location according to auto choices.
+                    robot.setRobotStartPosition();
                     // Do delay if necessary.
                     double startDelay = autoChoices.getStartDelay();
                     if (startDelay > 0.0)
