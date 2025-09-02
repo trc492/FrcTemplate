@@ -58,9 +58,11 @@ public class Intake extends TrcSubsystem
         public static final boolean FOLLOWER_MOTOR_ENC_ABS      = false;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
 
+        public static final String FRONT_SENSOR_NAME             = SUBSYSTEM_NAME + ".frontSensor";
         public static final int FRONT_SENSOR_DIGITAL_CHANNEL    = 1;
         public static final boolean FRONT_SENSOR_INVERTED       = false;
 
+        public static final String BACK_SENSOR_NAME             = SUBSYSTEM_NAME + ".backSensor";
         public static final int BACK_SENSOR_DIGITAL_CHANNEL     = 0;
         public static final boolean BACK_SENSOR_INVERTED        = false;
 
@@ -111,14 +113,14 @@ public class Intake extends TrcSubsystem
         if (Params.HAS_FRONT_SENSOR)
         {
             intakeParams.setFrontDigitalInputTrigger(
-                Params.SUBSYSTEM_NAME + ".frontSensor", Params.FRONT_SENSOR_DIGITAL_CHANNEL,
+                Params.FRONT_SENSOR_NAME, Params.FRONT_SENSOR_DIGITAL_CHANNEL,
                 Params.FRONT_SENSOR_INVERTED, TriggerAction.NoAction, null, null, null);
         }
 
         if (Params.HAS_BACK_SENSOR)
         {
             intakeParams.setBackDigitalInputTrigger(
-                Params.SUBSYSTEM_NAME + ".backSensor", Params.BACK_SENSOR_DIGITAL_CHANNEL,
+                Params.BACK_SENSOR_NAME, Params.BACK_SENSOR_DIGITAL_CHANNEL,
                 Params.BACK_SENSOR_INVERTED, TriggerAction.FinishOnTrigger, null, null, null);
         }
         intake = new FrcRollerIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
