@@ -77,9 +77,6 @@ public class RobotBase
     /**
      * This class contains the parameters of the front camera.
      */
-    /**
-     * This class contains the parameters of the back camera.
-     */
     public static class FrontCamParams extends FrcRobotDrive.VisionInfo
     {
         public FrontCamParams()
@@ -104,6 +101,9 @@ public class RobotBase
         }   //FrontCamParams
     }   //class FrontCamParams
 
+    /**
+     * This class contains the parameters of the back camera.
+     */
     public static class BackCamParams extends FrcRobotDrive.VisionInfo
     {
         public BackCamParams()

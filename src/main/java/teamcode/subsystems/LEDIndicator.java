@@ -30,6 +30,9 @@ import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.driverio.TrcAddressableLED;
 import trclib.pathdrive.TrcPose2D;
 
+/**
+ * This class encapsulates the LED controller to provide a priority indicator showing the status of the robot.
+ */
 public class LEDIndicator
 {
     private static final TrcAddressableLED.Pattern aprilTagLockedPattern =  // Magenta
@@ -48,17 +51,17 @@ public class LEDIndicator
         new TrcAddressableLED.Pattern("Nominal", new FrcColor(0, 0, 0), RobotParams.HwConfig.NUM_LEDS);
 
     private static final TrcAddressableLED.Pattern[] priorities =
-        {
-            // Highest priority
-            aprilTagLockedPattern,                     
-            aprilTagPattern,
-            seeNothingPattern,
-            fieldOrientedPattern,
-            robotOrientedPattern,
-            inverseOrientedPattern,
-            nominalPattern
-            // Lowest priority
-        };
+    {
+        // Highest priority
+        aprilTagLockedPattern,
+        aprilTagPattern,
+        seeNothingPattern,
+        fieldOrientedPattern,
+        robotOrientedPattern,
+        inverseOrientedPattern,
+        nominalPattern
+        // Lowest priority
+    };
 
     private FrcAddressableLED led;
 
