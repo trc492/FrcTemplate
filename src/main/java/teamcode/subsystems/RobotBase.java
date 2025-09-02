@@ -25,10 +25,7 @@ package teamcode.subsystems;
 import com.ctre.phoenix6.StatusCode;
 import com.studica.frc.AHRS.NavXComType;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -43,10 +40,10 @@ import frclib.sensor.FrcEncoder.EncoderType;
 import teamcode.Dashboard;
 import teamcode.RobotParams;
 import teamcode.RobotParams.HwConfig;
+import teamcode.vision.PhotonVision;
 import trclib.controller.TrcPidController;
 import trclib.controller.TrcPidController.PidCoefficients;
 import trclib.drivebase.TrcDriveBase.OdometryType;
-import trclib.pathdrive.TrcPose3D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.sensor.TrcEncoder;
 
@@ -73,60 +70,6 @@ public class RobotBase
         // Generic Swerve Drive Base Robot
         SwerveRobot
     }   //enum RobotType
-
-    /**
-     * This class contains the parameters of the front camera.
-     */
-    public static class FrontCamParams extends FrcRobotDrive.VisionInfo
-    {
-        public FrontCamParams()
-        {
-            camName = "HD-3000";
-            camImageWidth = 1280;
-            camImageHeight = 720;
-            camXOffset = 0.0;                   // Inches to the right from robot center
-            camYOffset = 0.0;                   // Inches forward from robot center
-            camZOffset = 0.0;                   // Inches up from the floor
-            camPitch = 0.0;                     // degrees up from horizontal
-            camYaw = 0.0;                       // degrees clockwise from robot front
-            camRoll = 0.0;
-            robotToCam = new Transform3d(
-                new Translation3d(Units.inchesToMeters(camYOffset),
-                                  -Units.inchesToMeters(camXOffset),
-                                  Units.inchesToMeters(camZOffset)),
-                new Rotation3d(Units.degreesToRadians(camRoll),
-                               Units.degreesToRadians(-camPitch),
-                               Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
-        }   //FrontCamParams
-    }   //class FrontCamParams
-
-    /**
-     * This class contains the parameters of the back camera.
-     */
-    public static class BackCamParams extends FrcRobotDrive.VisionInfo
-    {
-        public BackCamParams()
-        {
-            camName = "OV9281";
-            camImageWidth = 1280;
-            camImageHeight = 800;
-            camXOffset = -3.5;                  // Inches to the right from robot center
-            camYOffset = -2.375;                // Inches forward from robot center
-            camZOffset = 23.125;                // Inches up from the floor
-            camPitch = 33.0;                    // degrees up from horizontal
-            camYaw = 0.0;                       // degrees clockwise from robot front
-            camRoll = 0.0;
-            robotToCam = new Transform3d(
-                new Translation3d(Units.inchesToMeters(camYOffset),
-                                  -Units.inchesToMeters(camXOffset),
-                                  Units.inchesToMeters(camZOffset)),
-                new Rotation3d(Units.degreesToRadians(camRoll),
-                               Units.degreesToRadians(-camPitch),
-                               Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
-        }   //BackCamParams
-    }   //class BackCamParams
 
     /**
      * This class contains the Swerve Robot Parameters.
@@ -195,10 +138,8 @@ public class RobotBase
             ppdFollowingDistance = 10.0;
             velPidCoeffs = new PidCoefficients(0.0, 0.0, 0.0, 1.0 / robotMaxVelocity, 0.0);
             fastModeEnabled = true;
-            // Front Camera
-            cam1 = new FrontCamParams();
-            // Back Camera
-            cam2 = null;//new BackCamParams();
+            cam1 = new PhotonVision.HD3000CamParams();
+            cam2 = null;
             // Miscellaneous
             ledName = "LED";
             ledChannel = HwConfig.PWM_CHANNEL_LED;
@@ -393,10 +334,8 @@ public class RobotBase
         public VisionOnlyParams()
         {
             robotName = "VisionOnly";
-            // Front Camera
-            cam1 = new FrontCamParams();
-            // Back Camera
-            cam2 = new BackCamParams();
+            cam1 = new PhotonVision.HD3000CamParams();
+            cam2 = null;
         }   //VisionOnlyParams
     }   //class VisionOnlyParams
 
