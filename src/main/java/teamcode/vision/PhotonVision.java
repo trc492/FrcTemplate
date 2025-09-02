@@ -27,12 +27,17 @@ import java.util.Comparator;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
+import frclib.drivebase.FrcRobotDrive;
 import frclib.driverio.FrcDashboard;
 import frclib.vision.FrcPhotonVision;
 import teamcode.RobotParams;
 import teamcode.subsystems.LEDIndicator;
 import trclib.pathdrive.TrcPose2D;
+import trclib.pathdrive.TrcPose3D;
 import trclib.robotcore.TrcEvent;
 
 /**
@@ -40,6 +45,84 @@ import trclib.robotcore.TrcEvent;
  */
 public class PhotonVision extends FrcPhotonVision
 {
+    /**
+     * This class contains the parameters of the front camera.
+     */
+    public static class HD3000CamParams extends FrcRobotDrive.VisionInfo
+    {
+        public HD3000CamParams()
+        {
+            camName = "HD-3000";
+            camImageWidth = 1280;
+            camImageHeight = 720;
+            camXOffset = 0.0;                   // Inches to the right from robot center
+            camYOffset = 0.0;                   // Inches forward from robot center
+            camZOffset = 0.0;                   // Inches up from the floor
+            camPitch = 0.0;                     // degrees up from horizontal
+            camYaw = 0.0;                       // degrees clockwise from robot front
+            camRoll = 0.0;
+            robotToCam = new Transform3d(
+                new Translation3d(Units.inchesToMeters(camYOffset),
+                                  -Units.inchesToMeters(camXOffset),
+                                  Units.inchesToMeters(camZOffset)),
+                new Rotation3d(Units.degreesToRadians(camRoll),
+                               Units.degreesToRadians(-camPitch),
+                               Units.degreesToRadians(-camYaw)));
+            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
+        }   //HD3000CamParams
+    }   //class HD3000CamParams
+
+    public static class OV9782CamParams extends FrcRobotDrive.VisionInfo
+    {
+        public OV9782CamParams()
+        {
+            camName = "FrontOV9782";
+            camImageWidth = 1280;
+            camImageHeight = 800;
+            camXOffset = 0.0;                   // Inches to the right from robot center
+            camYOffset = 0.0;                   // Inches forward from robot center
+            camZOffset = 0.0;                   // Inches up from the floor
+            camYaw = 0.0;                       // degrees clockwise from robot front
+            camPitch = 0.0;                     // degrees up from horizontal
+            camRoll = 0.0;
+            robotToCam = new Transform3d(
+                new Translation3d(Units.inchesToMeters(camYOffset),
+                                  -Units.inchesToMeters(camXOffset),
+                                  Units.inchesToMeters(camZOffset)),
+                new Rotation3d(Units.degreesToRadians(camRoll),
+                               Units.degreesToRadians(-camPitch),
+                               Units.degreesToRadians(-camYaw)));
+            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
+        }   //OV9782CamParams
+    }   //class OV9782CamParams
+
+    /**
+     * This class contains the parameters of the back camera.
+     */
+    public static class OV9281CamParams extends FrcRobotDrive.VisionInfo
+    {
+        public OV9281CamParams()
+        {
+            camName = "OV9281";
+            camImageWidth = 1280;
+            camImageHeight = 800;
+            camXOffset = -3.5;                  // Inches to the right from robot center
+            camYOffset = -2.375;                // Inches forward from robot center
+            camZOffset = 23.125;                // Inches up from the floor
+            camPitch = 33.0;                    // degrees up from horizontal
+            camYaw = 0.0;                       // degrees clockwise from robot front
+            camRoll = 0.0;
+            robotToCam = new Transform3d(
+                new Translation3d(Units.inchesToMeters(camYOffset),
+                                  -Units.inchesToMeters(camXOffset),
+                                  Units.inchesToMeters(camZOffset)),
+                new Rotation3d(Units.degreesToRadians(camRoll),
+                               Units.degreesToRadians(-camPitch),
+                               Units.degreesToRadians(-camYaw)));
+            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
+        }   //OV9281CamParams
+    }   //class OV9281CamParams
+
     private static final String DBKEY_PREFIX                = "Vision/";
     public static final double ONTARGET_THRESHOLD           = 0.5;
     public static final double GUIDANCE_ERROR_THRESHOLD     = 12.0;
