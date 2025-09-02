@@ -100,20 +100,23 @@ public class Claw extends TrcSubsystem
             rev2mSensor = null;
         }
 
-        FrcServoClaw.Params clawParams = new FrcServoClaw.Params(Params.SUBSYSTEM_NAME)
-            .setPrimaryServo(Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
-            .setFollowerServo(Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
+        FrcServoClaw.Params clawParams = new FrcServoClaw.Params()
+            .setPrimaryServo(
+                Params.SUBSYSTEM_NAME + ".primary", Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
+            .setFollowerServo(
+                Params.SUBSYSTEM_NAME + ".follower", Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
             .setOpenCloseParams(Params.OPEN_POS, Params.OPEN_TIME, Params.CLOSE_POS, Params.CLOSE_TIME);
 
         if (rev2mSensor != null)
         {
-            clawParams.setAnalogSensorTrigger(
-                this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD, Params.UPPER_TRIGGER_THRESHOLD,
-                Params.TRIGGER_SETTLING_TIME);
+            clawParams.setAnalogSourceTrigger(
+                Params.SUBSYSTEM_NAME + ".sensor", this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD,
+                Params.UPPER_TRIGGER_THRESHOLD, Params.TRIGGER_SETTLING_TIME);
         }
         else if (Params.USE_DIGITAL_SENSOR)
         {
-            clawParams.setDigitalInputTrigger(Params.SENSOR_DIGITAL_CHANNEL, Params.DIGITAL_TRIGGER_INVERTED);
+            clawParams.setDigitalInputTrigger(
+                Params.SUBSYSTEM_NAME + ".sensor", Params.SENSOR_DIGITAL_CHANNEL, Params.DIGITAL_TRIGGER_INVERTED);
         }
 
         claw = new FrcServoClaw(Params.SUBSYSTEM_NAME, clawParams).getClaw();

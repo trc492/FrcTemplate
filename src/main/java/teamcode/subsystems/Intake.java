@@ -94,7 +94,7 @@ public class Intake extends TrcSubsystem
         dashboard.refreshKey(DBKEY_FRONT_SENSOR_STATE, false);
         dashboard.refreshKey(DBKEY_BACK_SENSOR_STATE, false);
 
-        FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params(Params.SUBSYSTEM_NAME)
+        FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params()
             .setPrimaryMotor(
                 Params.PRIMARY_MOTOR_NAME, Params.PRIMARY_MOTOR_ID, Params.PRIMARY_MOTOR_TYPE,
                 Params.PRIMARY_MOTOR_BRUSHLESS, Params.PRIMARY_MOTOR_ENC_ABS, Params.PRIMARY_MOTOR_INVERTED)
@@ -111,15 +111,15 @@ public class Intake extends TrcSubsystem
         if (Params.HAS_FRONT_SENSOR)
         {
             intakeParams.setFrontDigitalInputTrigger(
-                Params.FRONT_SENSOR_DIGITAL_CHANNEL, Params.FRONT_SENSOR_INVERTED, TriggerAction.NoAction,
-                null, null, null);
+                Params.SUBSYSTEM_NAME + ".frontSensor", Params.FRONT_SENSOR_DIGITAL_CHANNEL,
+                Params.FRONT_SENSOR_INVERTED, TriggerAction.NoAction, null, null, null);
         }
 
         if (Params.HAS_BACK_SENSOR)
         {
             intakeParams.setBackDigitalInputTrigger(
-                Params.BACK_SENSOR_DIGITAL_CHANNEL, Params.BACK_SENSOR_INVERTED, TriggerAction.FinishOnTrigger,
-                null, null, null);
+                Params.SUBSYSTEM_NAME + ".backSensor", Params.BACK_SENSOR_DIGITAL_CHANNEL,
+                Params.BACK_SENSOR_INVERTED, TriggerAction.FinishOnTrigger, null, null, null);
         }
         intake = new FrcRollerIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
     }   //Intake
