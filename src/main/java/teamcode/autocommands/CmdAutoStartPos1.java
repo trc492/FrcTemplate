@@ -188,8 +188,8 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
             
-                default:
                 case DONE:
+                default:
                     // We are done.
                     cancel();
                     break;

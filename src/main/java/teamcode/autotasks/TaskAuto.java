@@ -160,8 +160,8 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
             case START:
                 break;
 
-            default:
             case DONE:
+            default:
                 // Stop task.
                 stopAutoTask(true);
                 break;

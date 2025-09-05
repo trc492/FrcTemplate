@@ -31,7 +31,8 @@ import trclib.subsystem.TrcSubsystem;
 import trclib.subsystem.TrcRollerIntake.TriggerAction;
 
 /**
- * This class implements an Intake Subsystem.
+ * This class implements an Intake Subsystem. This implementation consists of one or two motors and optionally a
+ * front and/or back digital sensor(s) that can detect object entering/exiting the intake.
  */
 public class Intake extends TrcSubsystem
 {
@@ -78,6 +79,7 @@ public class Intake extends TrcSubsystem
     private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
     private static final String DBKEY_FRONT_SENSOR_STATE        = Params.SUBSYSTEM_NAME + "/FrontSensorState";
     private static final String DBKEY_BACK_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/BackSensorState";
+    private static final String DBKEY_AUTO_ACTIVE               = Params.SUBSYSTEM_NAME + "/AutoActive";
 
     private final FrcDashboard dashboard;
     private final TrcRollerIntake intake;
@@ -95,6 +97,7 @@ public class Intake extends TrcSubsystem
         dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
         dashboard.refreshKey(DBKEY_FRONT_SENSOR_STATE, false);
         dashboard.refreshKey(DBKEY_BACK_SENSOR_STATE, false);
+        dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
 
         FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params()
             .setPrimaryMotor(
@@ -126,6 +129,11 @@ public class Intake extends TrcSubsystem
         intake = new FrcRollerIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
     }   //Intake
 
+    /**
+     * This method returns the created TrcRollerIntake.
+     *
+     * @return created Roller Intake.
+     */
     public TrcRollerIntake getIntake()
     {
         return intake;
@@ -179,6 +187,7 @@ public class Intake extends TrcSubsystem
         dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
         dashboard.putBoolean(DBKEY_FRONT_SENSOR_STATE, intake.getFrontTriggerState());
         dashboard.putBoolean(DBKEY_BACK_SENSOR_STATE, intake.getBackTriggerState());
+        dashboard.putBoolean(DBKEY_AUTO_ACTIVE, intake.isAutoActive());
         return lineNum;
     }   //updateStatus
 

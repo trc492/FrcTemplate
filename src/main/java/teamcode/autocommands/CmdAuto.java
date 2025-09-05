@@ -128,8 +128,8 @@ public class CmdAuto implements TrcRobot.RobotCommand
                     }
                     break;
 
-                default:
                 case DONE:
+                default:
                     // We are done.
                     cancel();
                     break;

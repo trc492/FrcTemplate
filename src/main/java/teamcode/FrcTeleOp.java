@@ -26,10 +26,12 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcXboxController;
 import frclib.vision.FrcPhotonVision.DetectedObject;
-import teamcode.subsystems.Arm;
+import teamcode.subsystems.MotorArm;
+import teamcode.subsystems.CrServoArm;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
 import teamcode.subsystems.Shooter;
+import teamcode.subsystems.Turret;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.drivebase.TrcSwerveDriveBase;
@@ -73,9 +75,16 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private TrcPose2D robotFieldPose = null;
     private boolean rumbling = false;
 
-    private double prevArmPower = 0.0;
+    private double prevMotorArmPower = 0.0;
+    private double prevServoArmPower = 0.0;
     private double prevElevatorPower = 0.0;
+    private double prevTurretPower = 0.0;
+    private double prevDiffyWristTiltPower = 0.0;
+    private double prevDiffyWristRotatePower = 0.0;
+    private double prevServoWristPower = 0.0;
+    private double prevServoExtenderPower = 0.0;
     private double prevLatchPower = 0.0;
+    private boolean extenderExtended = false;
 
     /**
      * Constructor: Create an instance of the object.
@@ -198,7 +207,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             if (controlsEnabled)
             {
                 //
-                // DriveBase operation.
+                // DriveBase subsystem.
                 //
                 if (robot.robotDrive != null)
                 {
@@ -261,30 +270,50 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                 }
                 //
-                // Analog control of subsystem is done here if necessary.
+                // Other subsystems.
                 //
                 if (RobotParams.Preferences.useSubsystems)
                 {
-                    if (robot.arm != null)
+                    // Analog control of subsystems.
+                    // Note that this sample code assumes only one subsystem is enabled at a time for demo purpose.
+                    // Therefore, the same control may be assigned to multiple subsystems.
+                    if (robot.motorArm != null)
                     {
                         double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevArmPower)
+                        if (armPower != prevMotorArmPower)
                         {
                             if (driverAltFunc)
                             {
                                 // Manual override.
-                                robot.arm.setPower(armPower);
+                                robot.motorArm.setPower(armPower);
                             }
                             else
                             {
-                                robot.arm.setPidPower(
-                                    armPower, Arm.Params.MIN_POS, Arm.Params.MAX_POS, true);
+                                robot.motorArm.setPidPower(
+                                    armPower, MotorArm.Params.MIN_POS, MotorArm.Params.MAX_POS, true);
                             }
-                            prevArmPower = armPower;
+                            prevMotorArmPower = armPower;
                         }
                     }
-
-                    if (robot.elevator != null)
+                    else if (robot.crServoArm != null)
+                    {
+                        double armPower = robot.driverController.getLeftStickY(true);
+                        if (armPower != prevServoArmPower)
+                        {
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.crServoArm.setPower(armPower);
+                            }
+                            else
+                            {
+                                robot.crServoArm.setPidPower(
+                                    armPower, CrServoArm.Params.MIN_POS, CrServoArm.Params.MAX_POS, true);
+                            }
+                            prevServoArmPower = armPower;
+                        }
+                    }
+                    else if (robot.elevator != null)
                     {
                         double elevatorPower = robot.driverController.getLeftStickY(true);
                         if (elevatorPower != prevElevatorPower)
@@ -302,8 +331,54 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             prevElevatorPower = elevatorPower;
                         }
                     }
-
-                    if (robot.latch != null)
+                    else if (robot.turret != null)
+                    {
+                        double turretPower = robot.driverController.getLeftStickY(true);
+                        if (turretPower != prevTurretPower)
+                        {
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.turret.setPower(turretPower);
+                            }
+                            else
+                            {
+                                robot.turret.setPidPower(
+                                    turretPower, Turret.Params.MIN_POS, Turret.Params.MAX_POS, true);
+                            }
+                            prevTurretPower = turretPower;
+                        }
+                    }
+                    else if (robot.diffyWrist != null)
+                    {
+                        double rotatePower = robot.driverController.getLeftStickX(true);
+                        double tiltPower = robot.driverController.getLeftStickY(true);
+                        if (rotatePower != prevDiffyWristRotatePower || tiltPower != prevDiffyWristTiltPower)
+                        {
+                            robot.diffyWrist.diffyWrist.setPower(tiltPower, rotatePower);
+                            prevDiffyWristRotatePower = rotatePower;
+                            prevDiffyWristTiltPower = tiltPower;
+                        }
+                    }
+                    else if (robot.servoWrist != null)
+                    {
+                        double wristPower = robot.driverController.getLeftStickY(true);
+                        if (wristPower != prevServoWristPower)
+                        {
+                            robot.servoWrist.setPower(wristPower);
+                            prevServoWristPower = wristPower;
+                        }
+                    }
+                    else if (robot.servoExtender != null)
+                    {
+                        double extenderPower = robot.driverController.getLeftStickY(true);
+                        if (extenderPower != prevServoExtenderPower)
+                        {
+                            robot.servoExtender.servo.setPower(extenderPower);
+                            prevServoExtenderPower = extenderPower;
+                        }
+                    }
+                    else if (robot.latch != null)
                     {
                         double latchPower = robot.driverController.getLeftStickY(true);
                         if (latchPower != prevLatchPower)
@@ -397,44 +472,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case B:
-                if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        if (robot.autoShootTask != null)
-                        {
-                            // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
-                            if (robot.autoShootTask.isActive())
-                            {
-                                robot.autoShootTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
-                            }
-                            else
-                            {
-                                robot.autoShootTask.autoShoot(moduleName, null, !driverAltFunc, null);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
-                            }
-                        }
-                        else
-                        {
-                            // Auto Shoot Task is disabled, shoot manually.
-                            if (robot.shooter.isActive())
-                            {
-                                robot.shooter.cancel(moduleName);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
-                            }
-                            else
-                            {
-                                robot.shooter.aimShooter(
-                                    moduleName, robot.shooterSubsystem.shooterVelocity.getValue() / 60.0, 0.0,
-                                    null, null, null, 0.0, robot.shooterSubsystem::shoot,
-                                    Shooter.Params.SHOOTER_OFF_DELAY);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
-                            }
-                        }
-                    }
-                }
-                else if (robot.intake != null)
+                if (robot.intake != null)
                 {
                     if (pressed)
                     {
@@ -448,7 +486,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.autoPickupTask.autoPickup(moduleName, null, !driverAltFunc);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
+                                robot.globalTracer.traceInfo(
+                                    moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
                             }
                         }
                         else
@@ -479,6 +518,58 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                     robot.globalTracer.traceInfo(moduleName, ">>>>> Sensor Intake");
                                 }
                             }
+                        }
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        if (robot.autoShootTask != null)
+                        {
+                            // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
+                            if (robot.autoShootTask.isActive())
+                            {
+                                robot.autoShootTask.cancel();
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
+                            }
+                            else
+                            {
+                                robot.autoShootTask.autoShoot(moduleName, null, !driverAltFunc, null);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
+                            }
+                        }
+                        else
+                        {
+                            // Auto Shoot Task is disabled, shoot manually.
+                            if (robot.shooter.isActive())
+                            {
+                                robot.shooter.cancel(moduleName);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
+                            }
+                            else
+                            {
+                                robot.shooter.aimShooter(
+                                    moduleName, robot.shooterSubsystem.shooter1Velocity.getValue() / 60.0, 0.0,
+                                    null, null, null, 0.0, robot.shooterSubsystem::shoot,
+                                    Shooter.Params.SHOOTER_OFF_DELAY);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
+                            }
+                        }
+                    }
+                }
+                else if (robot.servoExtender != null)
+                {
+                    if (pressed)
+                    {
+                        extenderExtended = !extenderExtended;
+                        if (extenderExtended)
+                        {
+                            robot.servoExtender.extend();
+                        }
+                        else
+                        {
+                            robot.servoExtender.retract();
                         }
                     }
                 }
@@ -554,12 +645,20 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case DpadUp:
-                if (robot.arm != null)
+                if (robot.motorArm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionUp(null, Arm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Arm position up");
+                        robot.motorArm.presetPositionUp(null, MotorArm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> MotorArm position up");
+                    }
+                }
+                else if (robot.crServoArm != null)
+                {
+                    if (pressed)
+                    {
+                        robot.crServoArm.presetPositionUp(null, CrServoArm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position up");
                     }
                 }
                 else if (robot.elevator != null)
@@ -568,6 +667,38 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position up");
+                    }
+                }
+                else if (robot.turret != null)
+                {
+                    if (pressed)
+                    {
+                        robot.turret.presetPositionUp(null, Turret.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Turret position up");
+                    }
+                }
+                else if (robot.diffyWrist != null)
+                {
+                    if (pressed)
+                    {
+                        robot.diffyWrist.tiltPresetPositionUp(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristTilt position up");
+                    }
+                }
+                else if (robot.servoWrist != null)
+                {
+                    if (pressed)
+                    {
+                        robot.servoWrist.presetPositionUp(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoWrist position up");
+                    }
+                }
+                else if (robot.servoExtender != null)
+                {
+                    if (pressed)
+                    {
+                        robot.servoExtender.servo.presetPositionUp(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position up");
                     }
                 }
                 else if (robot.latch != null)
@@ -582,21 +713,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterSubsystem.shooterVelocity.upValue();
+                        robot.shooterSubsystem.shooter1Velocity.upValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
+                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
                     }
                 }
                 break;
 
             case DpadDown:
-                if (robot.arm != null)
+                if (robot.motorArm != null)
                 {
                     if (pressed)
                     {
-                        robot.arm.presetPositionDown(null, Arm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Arm position down");
+                        robot.motorArm.presetPositionDown(null, MotorArm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> MotorArm position down");
+                    }
+                }
+                else if (robot.crServoArm != null)
+                {
+                    if (pressed)
+                    {
+                        robot.crServoArm.presetPositionDown(null, CrServoArm.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position down");
                     }
                 }
                 else if (robot.elevator != null)
@@ -605,6 +744,38 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position down");
+                    }
+                }
+                else if (robot.turret != null)
+                {
+                    if (pressed)
+                    {
+                        robot.turret.presetPositionDown(null, Turret.Params.POWER_LIMIT);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Turret position down");
+                    }
+                }
+                else if (robot.diffyWrist != null)
+                {
+                    if (pressed)
+                    {
+                        robot.diffyWrist.tiltPresetPositionDown(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristTilt position down");
+                    }
+                }
+                else if (robot.servoWrist != null)
+                {
+                    if (pressed)
+                    {
+                        robot.servoWrist.presetPositionDown(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoWrist position down");
+                    }
+                }
+                else if (robot.servoExtender != null)
+                {
+                    if (pressed)
+                    {
+                        robot.servoExtender.servo.presetPositionDown(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position down");
                     }
                 }
                 else if (robot.latch != null)
@@ -619,31 +790,47 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.shooterSubsystem.shooterVelocity.downValue();
+                        robot.shooterSubsystem.shooter1Velocity.downValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooterVelocity.getValue());
+                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
                     }
                 }
                 break;
 
             case DpadLeft:
-                if (robot.shooter != null)
+                if (robot.diffyWrist != null)
                 {
                     if (pressed)
                     {
-                        robot.shooterSubsystem.shooterVelocity.downIncrement();
+                        robot.diffyWrist.rotatePresetPositionDown(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristRotate position down");
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterSubsystem.shooter1Velocity.downIncrement();
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment down");
                     }
                 }
                 break;
 
             case DpadRight:
-                if (robot.shooter != null)
+                if (robot.diffyWrist != null)
                 {
                     if (pressed)
                     {
-                        robot.shooterSubsystem.shooterVelocity.upIncrement();
+                        robot.diffyWrist.rotatePresetPositionUp(null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristRotate position up");
+                    }
+                }
+                else if (robot.shooter != null)
+                {
+                    if (pressed)
+                    {
+                        robot.shooterSubsystem.shooter1Velocity.upIncrement();
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment up");
                     }
                 }

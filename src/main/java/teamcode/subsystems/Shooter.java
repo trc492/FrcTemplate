@@ -36,7 +36,13 @@ import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
 
 /**
- * This class implements an Shooter Subsystem.
+ * This class implements a Shooter Subsystem. This implementation consists of one or two shooter motors. For
+ * two-motor shooter, the two motors can be arranged to spin in the same direction (2-stage shooting) or in opposite
+ * directions. For opposite spinning motor arrangement, one can spin the motors at different speed to create back spin
+ * when shooting the object. In the two-motor configuration, because the two motors may not be identical (even if they
+ * are the same model), the subsystem allows you to tune different PID coefficients for each motor. The shooter
+ * subsystem also supports optionally mounting on a pan and tilt platform. This allows for aiming the shooter at
+ * the shooting target.
  */
 public class Shooter extends TrcSubsystem
 {
@@ -44,22 +50,36 @@ public class Shooter extends TrcSubsystem
     {
         public static final String SUBSYSTEM_NAME               = "Shooter";
         public static final boolean NEED_ZERO_CAL               = false;
+
+        public static final boolean HAS_TWO_SHOOTER_MOTORS      = false;
         public static final boolean HAS_PAN_MOTOR               = false;
         public static final boolean HAS_TILT_MOTOR              = false;
 
-        // Shooter Motor
-        public static final String SHOOTER_MOTOR_NAME           = SUBSYSTEM_NAME + ".shooterMotor";
-        public static final int SHOOTER_MOTOR_ID                = 10;
-        public static final MotorType SHOOTER_MOTOR_TYPE        = MotorType.CanTalonSrx;
-        public static final boolean SHOOTER_MOTOR_BRUSHLESS     = false;
-        public static final boolean SHOOTER_MOTOR_ENC_ABS       = false;
-        public static final boolean SHOOTER_MOTOR_INVERTED      = true;
+        // Shooter Motor1
+        public static final String SHOOTER_MOTOR1_NAME          = SUBSYSTEM_NAME + ".shooterMotor1";
+        public static final int SHOOTER_MOTOR1_ID               = 10;
+        public static final MotorType SHOOTER_MOTOR1_TYPE       = MotorType.CanTalonSrx;
+        public static final boolean SHOOTER_MOTOR1_BRUSHLESS    = false;
+        public static final boolean SHOOTER_MOTOR1_ENC_ABS      = false;
+        public static final boolean SHOOTER_MOTOR1_INVERTED     = true;
 
+        // Shooter Motor2
+        public static final String SHOOTER_MOTOR2_NAME          = SUBSYSTEM_NAME + ".shooterMotor2";
+        public static final int SHOOTER_MOTOR2_ID               = 12;
+        public static final MotorType SHOOTER_MOTOR2_TYPE       = MotorType.CanTalonSrx;
+        public static final boolean SHOOTER_MOTOR2_BRUSHLESS    = false;
+        public static final boolean SHOOTER_MOTOR2_ENC_ABS      = false;
+        public static final boolean SHOOTER_MOTOR2_INVERTED     = true;
+
+        // Assume shooter motor1 and motor2 are the same type and have same gear ratio but they could have different
+        // PID coefficients during to different motor strengths and frictions.
         public static final double GOBILDA6000_CPR              = 28.0;
         public static final double SHOOTER_GEAR_RATIO           = 24.0/36.0;
         public static final double SHOOTER_REV_PER_COUNT        = 1.0/(GOBILDA6000_CPR * SHOOTER_GEAR_RATIO);
         public static final boolean SHOOTER_SOFTWARE_PID_ENABLED= true;
-        public static final TrcPidController.PidCoefficients shooterPidCoeffs =
+        public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
+            new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.008, 0.0);
+        public static final TrcPidController.PidCoefficients shooter2PidCoeffs =
             new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.008, 0.0);
         public static final double SHOOTER_PID_TOLERANCE        = 10.0/60.0;// in RPS (10 RPM)
 
@@ -73,7 +93,7 @@ public class Shooter extends TrcSubsystem
 
         // Pan Motor
         public static final String PAN_MOTOR_NAME               = SUBSYSTEM_NAME + ".panMotor";
-        public static final int PAN_MOTOR_ID                    = 12;
+        public static final int PAN_MOTOR_ID                    = 14;
         public static final MotorType PAN_MOTOR_TYPE            = MotorType.CanTalonSrx;
         public static final boolean PAN_MOTOR_BRUSHLESS         = false;
         public static final boolean PAN_MOTOR_ENC_ABS           = false;
@@ -89,8 +109,9 @@ public class Shooter extends TrcSubsystem
         public static final double PAN_MIN_POS                  = -90.0;
         public static final double PAN_MAX_POS                  = 90.0;
 
+        // Tilt Motor
         public static final String TILT_MOTOR_NAME              = SUBSYSTEM_NAME + ".tiltMotor";
-        public static final int TILT_MOTOR_ID                   = 14;
+        public static final int TILT_MOTOR_ID                   = 16;
         public static final MotorType TILT_MOTOR_TYPE           = MotorType.CanTalonSrx;
         public static final boolean TILT_MOTOR_BRUSHLESS        = false;
         public static final boolean TILT_MOTOR_ENC_ABS          = false;
@@ -113,10 +134,15 @@ public class Shooter extends TrcSubsystem
             .add("test6ft", 72.0, 90.0, 0.0, 60.0);
     }   //class Params
 
-    private static final String DBKEY_SHOOTER_POWER             = Params.SUBSYSTEM_NAME + "/ShooterPower";
-    private static final String DBKEY_SHOOTER_CURRENT           = Params.SUBSYSTEM_NAME + "/ShooterCurrent";
-    private static final String DBKEY_SHOOTER_VELOCITY          = Params.SUBSYSTEM_NAME + "/ShooterVelocity";
-    private static final String DBKEY_SHOOTER_TARGET_VEL        = Params.SUBSYSTEM_NAME + "/ShooterTargetVel";
+    private static final String DBKEY_SHOOTER1_POWER            = Params.SUBSYSTEM_NAME + "/Shooter1Power";
+    private static final String DBKEY_SHOOTER1_CURRENT          = Params.SUBSYSTEM_NAME + "/Shooter1Current";
+    private static final String DBKEY_SHOOTER1_VELOCITY         = Params.SUBSYSTEM_NAME + "/Shooter1Velocity";
+    private static final String DBKEY_SHOOTER1_TARGET_VEL       = Params.SUBSYSTEM_NAME + "/Shooter1TargetVel";
+
+    private static final String DBKEY_SHOOTER2_POWER            = Params.SUBSYSTEM_NAME + "/Shooter2Power";
+    private static final String DBKEY_SHOOTER2_CURRENT          = Params.SUBSYSTEM_NAME + "/Shooter2Current";
+    private static final String DBKEY_SHOOTER2_VELOCITY         = Params.SUBSYSTEM_NAME + "/Shooter2Velocity";
+    private static final String DBKEY_SHOOTER2_TARGET_VEL       = Params.SUBSYSTEM_NAME + "/Shooter2TargetVel";
 
     private static final String DBKEY_PAN_POWER                 = Params.SUBSYSTEM_NAME + "/PanPower";
     private static final String DBKEY_PAN_CURRENT               = Params.SUBSYSTEM_NAME + "/PanCurrent";
@@ -131,7 +157,8 @@ public class Shooter extends TrcSubsystem
     private final FrcDashboard dashboard;
     private final TrcRollerIntake intake;
     private final TrcShooter shooter;
-    public final TrcDiscreteValue shooterVelocity;
+    public final TrcDiscreteValue shooter1Velocity;
+    public final TrcDiscreteValue shooter2Velocity;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -143,10 +170,15 @@ public class Shooter extends TrcSubsystem
         dashboard = FrcDashboard.getInstance();
         this.intake = intake;
 
-        dashboard.refreshKey(DBKEY_SHOOTER_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_SHOOTER_CURRENT, 0.0);
-        dashboard.refreshKey(DBKEY_SHOOTER_VELOCITY, 0.0);
-        dashboard.refreshKey(DBKEY_SHOOTER_TARGET_VEL, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_VELOCITY, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER1_TARGET_VEL, 0.0);
+
+        dashboard.refreshKey(DBKEY_SHOOTER2_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER2_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER2_VELOCITY, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER2_TARGET_VEL, 0.0);
 
         dashboard.refreshKey(DBKEY_PAN_POWER, 0.0);
         dashboard.refreshKey(DBKEY_PAN_CURRENT, 0.0);
@@ -160,8 +192,15 @@ public class Shooter extends TrcSubsystem
 
         FrcShooter.Params shooterParams = new FrcShooter.Params()
             .setShooterMotor1(
-                Params.SHOOTER_MOTOR_NAME, Params.SHOOTER_MOTOR_ID, Params.SHOOTER_MOTOR_TYPE,
-                Params.SHOOTER_MOTOR_BRUSHLESS, Params.SHOOTER_MOTOR_ENC_ABS, Params.SHOOTER_MOTOR_INVERTED);
+                Params.SHOOTER_MOTOR1_NAME, Params.SHOOTER_MOTOR1_ID, Params.SHOOTER_MOTOR1_TYPE,
+                Params.SHOOTER_MOTOR1_BRUSHLESS, Params.SHOOTER_MOTOR1_ENC_ABS, Params.SHOOTER_MOTOR1_INVERTED);
+
+        if (Params.HAS_TWO_SHOOTER_MOTORS)
+        {
+            shooterParams.setShooterMotor2(
+                Params.SHOOTER_MOTOR2_NAME, Params.SHOOTER_MOTOR2_ID, Params.SHOOTER_MOTOR2_TYPE,
+                Params.SHOOTER_MOTOR2_BRUSHLESS, Params.SHOOTER_MOTOR2_ENC_ABS, Params.SHOOTER_MOTOR2_INVERTED);
+        }
 
         if (Params.HAS_PAN_MOTOR)
         {
@@ -181,34 +220,57 @@ public class Shooter extends TrcSubsystem
 
         shooter = new FrcShooter(Params.SUBSYSTEM_NAME, shooterParams).getShooter();
 
-        TrcMotor shooterMotor = shooter.getShooterMotor1();
-        shooterMotor.setPositionSensorScaleAndOffset(Params.SHOOTER_REV_PER_COUNT, 0.0);
-        shooterMotor.setVelocityPidParameters(
-            Params.shooterPidCoeffs, Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED);
-
-        shooterVelocity = new TrcDiscreteValue(
-            Params.SUBSYSTEM_NAME + ".motorTargetVel",
+        TrcMotor motor = shooter.getShooterMotor1();
+        motor.setPositionSensorScaleAndOffset(Params.SHOOTER_REV_PER_COUNT, 0.0);
+        motor.setVelocityPidParameters(
+            Params.shooter1PidCoeffs, Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED);
+        shooter1Velocity = new TrcDiscreteValue(
+            Params.SUBSYSTEM_NAME + ".motor1TargetVel",
             Params.SHOOTER_MIN_VEL, Params.SHOOTER_MAX_VEL,
             Params.SHOOTER_MIN_VEL_INC, Params.SHOOTER_MAX_VEL_INC,
             Params.SHOOTER_DEF_VEL, Params.SHOOTER_DEF_VEL_INC);
-
-        if (Params.HAS_PAN_MOTOR)
+    
+        motor = shooter.getShooterMotor2();
+        if (motor != null)
         {
-            TrcMotor panMotor = shooter.getPanMotor();
-            panMotor.setPositionSensorScaleAndOffset(Params.PAN_DEG_PER_COUNT, 0.0);
-            panMotor.setPositionPidParameters(
+            // Assuming motor2 is the same type of motor as motor1 and has the same gear ratio.
+            // If it needs to, this allows different PID coefficients for motor2 in case they are not quite identical.
+            motor.setPositionSensorScaleAndOffset(Params.SHOOTER_REV_PER_COUNT, 0.0);
+            motor.setVelocityPidParameters(
+                Params.shooter2PidCoeffs, Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED);
+            shooter2Velocity = new TrcDiscreteValue(
+                Params.SUBSYSTEM_NAME + ".motor2TargetVel",
+                Params.SHOOTER_MIN_VEL, Params.SHOOTER_MAX_VEL,
+                Params.SHOOTER_MIN_VEL_INC, Params.SHOOTER_MAX_VEL_INC,
+                Params.SHOOTER_DEF_VEL, Params.SHOOTER_DEF_VEL_INC);
+        }
+        else
+        {
+            shooter2Velocity = null;
+        }
+
+        motor = shooter.getPanMotor();
+        if (motor != null)
+        {
+            motor.setPositionSensorScaleAndOffset(Params.PAN_DEG_PER_COUNT, 0.0);
+            motor.setPositionPidParameters(
                 Params.panPidCoeffs, Params.PAN_PID_TOLERANCE, Params.PAN_SOFTWARE_PID_ENABLED);
         }
 
-        if (Params.HAS_TILT_MOTOR)
+        motor = shooter.getTiltMotor();
+        if (motor != null)
         {
-            TrcMotor tiltMotor = shooter.getTiltMotor();
-            tiltMotor.setPositionSensorScaleAndOffset(Params.TILT_DEG_PER_COUNT, 0.0);
-            tiltMotor.setPositionPidParameters(
+            motor.setPositionSensorScaleAndOffset(Params.TILT_DEG_PER_COUNT, 0.0);
+            motor.setPositionPidParameters(
                 Params.tiltPidCoeffs, Params.TILT_PID_TOLERANCE, Params.TILT_SOFTWARE_PID_ENABLED);
         }
     }   //Shooter
 
+    /**
+     * This method returns the created shooter.
+     *
+     * @return created shooter.
+     */
     public TrcShooter getShooter()
     {
         return shooter;
@@ -231,7 +293,7 @@ public class Shooter extends TrcSubsystem
         else if (completionEvent != null)
         {
             completionEvent.signal();
-            TrcDbgTrace.globalTraceWarn(instanceName, "There is no intake, signal completion anyway.");
+            TrcDbgTrace.globalTraceInfo(instanceName, "There is no intake, signal completion anyway.");
         }
     }   //shoot
 
@@ -283,10 +345,19 @@ public class Shooter extends TrcSubsystem
     {
         TrcMotor motor;
 
-        dashboard.putNumber(DBKEY_SHOOTER_POWER, shooter.getShooterMotor1Power());
-        dashboard.putNumber(DBKEY_SHOOTER_CURRENT, shooter.getShooterMotor1Current());
-        dashboard.putNumber(DBKEY_SHOOTER_VELOCITY, shooter.getShooterMotor1RPM());
-        dashboard.putNumber(DBKEY_SHOOTER_TARGET_VEL, shooter.getShooterMotor1TargetRPM());
+        dashboard.putNumber(DBKEY_SHOOTER1_POWER, shooter.getShooterMotor1Power());
+        dashboard.putNumber(DBKEY_SHOOTER1_CURRENT, shooter.getShooterMotor1Current());
+        dashboard.putNumber(DBKEY_SHOOTER1_VELOCITY, shooter.getShooterMotor1RPM());
+        dashboard.putNumber(DBKEY_SHOOTER1_TARGET_VEL, shooter.getShooterMotor1TargetRPM());
+
+        motor = shooter.getShooterMotor2();
+        if (motor != null)
+        {
+            dashboard.putNumber(DBKEY_SHOOTER2_POWER, shooter.getShooterMotor2Power());
+            dashboard.putNumber(DBKEY_SHOOTER2_CURRENT, shooter.getShooterMotor2Current());
+            dashboard.putNumber(DBKEY_SHOOTER2_VELOCITY, shooter.getShooterMotor2RPM());
+            dashboard.putNumber(DBKEY_SHOOTER2_TARGET_VEL, shooter.getShooterMotor2TargetRPM());
+        }
 
         motor = shooter.getPanMotor();
         if (motor != null)
@@ -328,7 +399,13 @@ public class Shooter extends TrcSubsystem
         shooter.getShooterMotor1().setVelocityPidParameters(
             tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
             Params.SHOOTER_SOFTWARE_PID_ENABLED);
-        shooterVelocity.setValue(tuneParams[6]);
+        shooter1Velocity.setValue(tuneParams[6]);
+
+        // To tune Shooter Motor PID, uncomment the code below.
+        // shooter.getShooterMotor2().setVelocityPidParameters(
+        //     tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
+        //     Params.SHOOTER_SOFTWARE_PID_ENABLED);
+        // shooter2Velocity.setValue(tuneParams[6]);
 
         // To tune Pan Motor PID, uncomment the code below.
         // shooter.getPanMotor().setPositionPidParameters(

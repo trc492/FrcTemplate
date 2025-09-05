@@ -31,13 +31,15 @@ import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
 /**
- * This class implements an Arm Subsystem.
+ * This class implements an Arm Subsystem. This implementation consists of a motor with built-in encoder. It does
+ * not have any limit switches, so it is using motor stall detection to zero calibrate the built-in relative encoder.
+ * It supports gravity compensation by computing the power required to hold the arm at its current angle.
  */
-public class Arm extends TrcSubsystem
+public class MotorArm extends TrcSubsystem
 {
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "Arm";
+        public static final String SUBSYSTEM_NAME               = "MotorArm";
         public static final boolean NEED_ZERO_CAL               = true;
 
         public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
@@ -57,7 +59,8 @@ public class Arm extends TrcSubsystem
         public static final double MAX_POS                      = 270.0;
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
-        public static final double[] posPresets                 = {MIN_POS, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, MAX_POS};
+        public static final double[] posPresets                 = 
+            {MIN_POS, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, MAX_POS};
         public static final double POS_PRESET_TOLERANCE         = 10.0;
 
         public static final boolean SOFTWARE_PID_ENABLED        = true;
@@ -65,7 +68,7 @@ public class Arm extends TrcSubsystem
             new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
         public static final double POS_PID_TOLERANCE            = 1.0;
         public static final double GRAVITY_COMP_MAX_POWER       = 0.161;
-
+        // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
         public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
         public static final double STALL_TOLERANCE              = 0.1;
         public static final double STALL_TIMEOUT                = 0.1;
@@ -77,13 +80,13 @@ public class Arm extends TrcSubsystem
     private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
 
     private final FrcDashboard dashboard;
-    private final TrcMotor armMotor;
+    private final TrcMotor motor;
     private Double tuneGravityCompPower = null;
 
     /**
      * Constructor: Creates an instance of the object.
      */
-    public Arm()
+    public MotorArm()
     {
         super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
 
@@ -98,23 +101,34 @@ public class Arm extends TrcSubsystem
                 Params.MOTOR_INVERTED)
             .setPositionScaleAndOffset(Params.DEG_PER_COUNT, Params.POS_OFFSET)
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
-        armMotor = new FrcMotorActuator(motorParams).getMotor();
-
-        armMotor.setPositionPidParameters(Params.posPidCoeffs, Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
-        armMotor.setPositionPidPowerComp(this::getGravityComp);
-        armMotor.setStallProtection(
+        motor = new FrcMotorActuator(motorParams).getMotor();
+        motor.setPositionPidParameters(Params.posPidCoeffs, Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
+        motor.setPositionPidPowerComp(this::getGravityComp);
+        motor.setStallProtection(
             Params.STALL_MIN_POWER, Params.STALL_TOLERANCE, Params.STALL_TIMEOUT, Params.STALL_RESET_TIMEOUT);
-    }   //Arm
+        motor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
+    }   //MotorArm
 
-    public TrcMotor getArmMotor()
+    /**
+     * This method returns the created arm motor.
+     *
+     * @return created arm motor.
+     */
+    public TrcMotor getMotor()
     {
-        return armMotor;
-    }   //getArmMotor
+        return motor;
+    }   //getMotor
 
+    /**
+     * This method calculates the power required to make the arm gravity neutral.
+     *
+     * @param currPower specifies the current applied PID power (not used).
+     * @return calculated compensation power.
+     */
     private double getGravityComp(double currPower)
     {
         double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_MAX_POWER;
-        return gravityCompPower * Math.sin(Math.toRadians(armMotor.getPosition()));
+        return gravityCompPower * Math.sin(Math.toRadians(motor.getPosition()));
     }   //getGravityComp
 
     //
@@ -127,7 +141,7 @@ public class Arm extends TrcSubsystem
     @Override
     public void cancel()
     {
-        armMotor.cancel();
+        motor.cancel();
     }   //cancel
 
     /**
@@ -139,7 +153,7 @@ public class Arm extends TrcSubsystem
     @Override
     public void zeroCalibrate(String owner, TrcEvent event)
     {
-        armMotor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, event);
+        motor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, event);
     }   //zeroCalibrate
 
     /**
@@ -148,7 +162,7 @@ public class Arm extends TrcSubsystem
     @Override
     public void resetState()
     {
-        armMotor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
+        motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
 
     /**
@@ -160,10 +174,10 @@ public class Arm extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum)
     {
-        dashboard.putNumber(DBKEY_POWER, armMotor.getPower());
-        dashboard.putNumber(DBKEY_CURRENT, armMotor.getCurrent());
+        dashboard.putNumber(DBKEY_POWER, motor.getPower());
+        dashboard.putNumber(DBKEY_CURRENT, motor.getCurrent());
         dashboard.putString(
-            DBKEY_POSITION, String.format("%.1f/%.1f", armMotor.getPosition(), armMotor.getPidTarget()));
+            DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
         return lineNum;
     }   //updateStatus
 
@@ -182,10 +196,10 @@ public class Arm extends TrcSubsystem
     @Override
     public void prepSubsystemForTuning(double... tuneParams)
     {
-        armMotor.setPositionPidParameters(
+        motor.setPositionPidParameters(
             tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
             Params.SOFTWARE_PID_ENABLED);
         tuneGravityCompPower = tuneParams[6];
     }   //prepSubsystemForTuning
 
-}   //class Arm
+}   //class MotorArm

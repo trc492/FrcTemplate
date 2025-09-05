@@ -259,8 +259,8 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
                 sm.waitForEvents(State.DONE, false);
                 break;
 
-            default:
             case DONE:
+            default:
                 // Stop task.
                 stopAutoTask(true);
                 break;

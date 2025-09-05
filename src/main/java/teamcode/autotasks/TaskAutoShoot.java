@@ -74,7 +74,6 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
     private final TrcEvent event;
 
     private Double visionExpiredTime = null;
-    private int aprilTagId = -1;
     private TrcPose2D aprilTagPose = null;
 
     /**
@@ -97,9 +96,9 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
      * @param useVision specifies true to use Vision, false otherwise.
      * @param aprilTagIds specifies multiple AprilTag IDs for vision to look for, can be null to look for any AprilTag.
      */
-    public void autoShoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTags)
+    public void autoShoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTagIds)
     {
-        TaskParams taskParams = new TaskParams(useVision, aprilTags);
+        TaskParams taskParams = new TaskParams(useVision, aprilTagIds);
         tracer.traceInfo(
             moduleName,
             "autoShoot(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + "))");
@@ -189,7 +188,6 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         switch (state)
         {
             case START:
-                aprilTagId = -1;
                 aprilTagPose = null;
                 if (!taskParams.useVision)
                 {
@@ -218,7 +216,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     robot.photonVisionFront.getBestDetectedAprilTag(taskParams.aprilTagIds);
                 if (object != null)
                 {
-                    aprilTagId = object.target.getFiducialId();
+                    int aprilTagId = object.target.getFiducialId();
                     tracer.traceInfo(
                         moduleName,
                         "***** Vision found AprilTag " + aprilTagId + ": aprilTagPose=" + object.targetPose);
@@ -262,7 +260,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                 else
                 {
                     // We did not use vision, just shoot assuming operator manually aimed.
-                    double shooterVel = robot.shooterSubsystem.shooterVelocity.getValue();
+                    double shooterVel = robot.shooterSubsystem.shooter1Velocity.getValue();
                     // ShooterVel is in RPM, aimShooter wants RPS.
                     robot.shooter.aimShooter(
                         owner, shooterVel / 60.0, 0.0, null, null, event, 0.0,
@@ -273,8 +271,8 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                 sm.waitForSingleEvent(event, State.DONE);
                 break;
 
-            default:
             case DONE:
+            default:
                 // Stop task.
                 stopAutoTask(true);
                 break;

@@ -72,12 +72,17 @@ public class RobotParams
         public static final boolean useAntiTipping              = false;
         // Subsystems
         public static final boolean useSubsystems               = true;
-        public static final boolean useArm                      = false;
+        public static final boolean useMotorArm                 = false;
+        public static final boolean useCrServoArm               = false;
         public static final boolean useElevator                 = false;
-        public static final boolean useLatch                    = false;
+        public static final boolean useTurret                   = false;
         public static final boolean useIntake                   = false;
         public static final boolean useShooter                  = false;
+        public static final boolean useDiffyWrist               = false;
+        public static final boolean useServoWrist               = false;
+        public static final boolean useServoExtender            = false;
         public static final boolean useClaw                     = false;
+        public static final boolean useLatch                    = false;
         // Auto Tasks
         public static final boolean useAutoShoot                = false;
         public static final boolean useAutoPickup               = false;

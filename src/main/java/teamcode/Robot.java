@@ -50,14 +50,19 @@ import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.autotasks.TaskAutoPickup;
 import teamcode.autotasks.TaskAutoShoot;
-import teamcode.subsystems.Arm;
-import teamcode.subsystems.Claw;
+import teamcode.subsystems.MotorArm;
+import teamcode.subsystems.ServoClaw;
+import teamcode.subsystems.ServoExtender;
+import teamcode.subsystems.ServoWrist;
+import teamcode.subsystems.CrServoArm;
+import teamcode.subsystems.DiffyServoWrist;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
 import teamcode.subsystems.LEDIndicator;
 import teamcode.subsystems.Latch;
 import teamcode.subsystems.RobotBase;
 import teamcode.subsystems.Shooter;
+import teamcode.subsystems.Turret;
 import teamcode.vision.OpenCvVision;
 import teamcode.vision.PhotonVision;
 import trclib.dataprocessor.TrcUtil;
@@ -110,20 +115,20 @@ public class Robot extends FrcRobotBase
     public TrcVisionRelocalize visionRelocalize;
     // Hybrid mode objects.
     public Command m_autonomousCommand;
-    //
     // Other subsystems.
-    //
-    public TrcMotor arm;
+    public TrcMotor motorArm;
+    public TrcMotor crServoArm;
     public TrcMotor elevator;
-    public TrcServo latch;
+    public TrcMotor turret;
     public TrcRollerIntake intake;
     public Shooter shooterSubsystem;
     public TrcShooter shooter;
+    public DiffyServoWrist diffyWrist;
+    public TrcServo servoWrist;
+    public ServoExtender servoExtender;
     public TrcServoClaw claw;
-
-    //
+    public TrcServo latch;
     // Auto Tasks.
-    //
     public TaskAutoShoot autoShootTask;
     public TaskAutoPickup autoPickupTask;
 
@@ -235,19 +240,24 @@ public class Robot extends FrcRobotBase
             if (RobotParams.Preferences.useSubsystems)
             {
                 // Create subsystems.
-                if (RobotParams.Preferences.useArm)
+                if (RobotParams.Preferences.useMotorArm)
                 {
-                    arm = new Arm().getArmMotor();
+                    motorArm = new MotorArm().getMotor();
+                }
+
+                if (RobotParams.Preferences.useCrServoArm)
+                {
+                    crServoArm = new CrServoArm().getMotor();
                 }
 
                 if (RobotParams.Preferences.useElevator)
                 {
-                    elevator = new Elevator().getElevatorMotor();
+                    elevator = new Elevator().getMotor();
                 }
 
-                if (RobotParams.Preferences.useLatch)
+                if (RobotParams.Preferences.useTurret)
                 {
-                    latch = new Latch().getLatchServo();
+                    turret = new Turret().getMotor();
                 }
 
                 if (RobotParams.Preferences.useIntake)
@@ -257,13 +267,34 @@ public class Robot extends FrcRobotBase
 
                 if (RobotParams.Preferences.useShooter)
                 {
+                    // Note: Since shooter depends on Intake, Intake subsystem must instantiate before shooter.
                     shooterSubsystem = new Shooter(intake);
                     shooter = shooterSubsystem.getShooter();
                 }
 
+                if (RobotParams.Preferences.useDiffyWrist)
+                {
+                    diffyWrist = new DiffyServoWrist();
+                }
+
+                if (RobotParams.Preferences.useServoWrist)
+                {
+                    servoWrist = new ServoWrist().getServo();
+                }
+
+                if (RobotParams.Preferences.useServoExtender)
+                {
+                    servoExtender = new ServoExtender();
+                }
+
                 if (RobotParams.Preferences.useClaw)
                 {
-                    claw = new Claw().getClaw();
+                    claw = new ServoClaw().getClaw();
+                }
+
+                if (RobotParams.Preferences.useLatch)
+                {
+                    latch = new Latch().getServo();
                 }
 
                 // Create autotasks.
