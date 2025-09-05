@@ -190,7 +190,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             if (controlsEnabled)
             {
                 //
-                // DriveBase operation.
+                // DriveBase subsystem.
                 //
                 if (robot.robotDrive != null)
                 {
@@ -253,10 +253,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                 }
                 //
-                // Analog control of subsystem is done here if necessary.
+                // Other subsystems.
                 //
                 if (RobotParams.Preferences.useSubsystems)
                 {
+                    // Analog control of subsystems.
                 }
 
                 if (RobotParams.Preferences.useRumble)

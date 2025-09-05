@@ -97,13 +97,9 @@ public class Robot extends FrcRobotBase
     public TrcVisionRelocalize visionRelocalize;
     // Hybrid mode objects.
     public Command m_autonomousCommand;
-    //
     // Other subsystems.
-    //
 
-    //
     // Auto Tasks.
-    //
 
     /**
      * Constructor: Create an instance of the object.

@@ -72,6 +72,7 @@ public class RobotParams
         public static final boolean useAntiTipping              = false;
         // Subsystems
         public static final boolean useSubsystems               = true;
+        // Auto Tasks
     }   //class Preferences
 
     /**
