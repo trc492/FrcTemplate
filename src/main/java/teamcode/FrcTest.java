@@ -401,8 +401,6 @@ public class FrcTest extends FrcTeleOp
             case DRIVE_MOTORS_TEST:
                 if (robot.robotDrive != null)
                 {
-                    // Initialize motor array with the wheel motors. For 2-motor drive base, it is leftWheel and
-                    // rightWheel. For 4-motor drive base, it is lfWheel, rfWheel, lbWheel, rbWheel.
                     testCommand = new CmdDriveMotorsTest(
                         robot.robotDrive.driveBase, robot.robotDrive.driveMotors, 5.0, 0.5);
                 }
@@ -492,11 +490,6 @@ public class FrcTest extends FrcTeleOp
         if (testCommand != null)
         {
             testCommand.cancel();
-        }
-
-        if (robot.robotDrive != null)
-        {
-            robot.robotDrive.cancel();
         }
 
         super.stopMode(prevMode, nextMode);
@@ -788,7 +781,7 @@ public class FrcTest extends FrcTeleOp
                     {
                         String subsystemName = testChoices.getSubsystemName();
                         robot.globalTracer.traceInfo(moduleName, "Tune subsystem: " + subsystemName);
-                        if (subsystemName.length() > 0)
+                        if (subsystemName.isEmpty())
                         {
                             TrcSubsystem subsystem = TrcSubsystem.getSubsystem(subsystemName);
 
