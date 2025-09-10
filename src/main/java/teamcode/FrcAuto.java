@@ -359,8 +359,8 @@ public class FrcAuto implements TrcRobot.RobotMode
                 }
                 break;
 
-            default:
             case DO_NOTHING:
+            default:
                 autoCommand = null;
                 break;
         }
