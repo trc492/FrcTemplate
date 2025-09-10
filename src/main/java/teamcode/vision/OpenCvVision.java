@@ -31,6 +31,7 @@ import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.math.util.Units;
 import frclib.drivebase.FrcRobotDrive;
+import frclib.driverio.FrcDashboard;
 import frclib.vision.FrcOpenCvAprilTagPipeline;
 import frclib.vision.FrcOpenCvDetector;
 import trclib.robotcore.TrcDbgTrace;
@@ -41,6 +42,7 @@ import trclib.vision.TrcVisionTargetInfo;
 
 public class OpenCvVision extends FrcOpenCvDetector
 {
+    private static final String DBKEY_PREFIX                = "Vision/";
     // YCrCb Color Space.
     private static final int colorConversion = Imgproc.COLOR_BGR2YCrCb;
     private static final double[] redBlobColorThresholds = {10.0, 180.0, 170.0, 240.0, 80.0, 120.0};
@@ -89,6 +91,7 @@ public class OpenCvVision extends FrcOpenCvDetector
     }   //enum ObjectType
 
     public final TrcDbgTrace tracer;
+    private final FrcDashboard dashboard;
     private final FrcRobotDrive.VisionInfo cameraInfo;
     private final TrcOpenCvPipeline<DetectedObject<?>> aprilTagPipeline;
     private final TrcOpenCvPipeline<DetectedObject<?>> redBlobPipeline;
@@ -110,6 +113,7 @@ public class OpenCvVision extends FrcOpenCvDetector
     {
         super(instanceName, numImageBuffers, cameraInfo.cameraRect, cameraInfo.worldRect, cvSink, cvSource);
         this.tracer = new TrcDbgTrace();
+        this.dashboard = FrcDashboard.getInstance();
         this.cameraInfo = cameraInfo;
 
         aprilTagPipeline = new FrcOpenCvAprilTagPipeline(
@@ -223,5 +227,31 @@ public class OpenCvVision extends FrcOpenCvDetector
 
         return targets != null? targets[0]: null;
     }   //getDetectedTargetInfo
+
+    /**
+     * This method update the dashboard with vision status.
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
+     * @return updated line number for the next subsystem to print.
+     */
+    public int updateStatus(int lineNum, boolean slowLoop)
+    {
+        if (slowLoop)
+        {
+            TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>> object = getDetectedTargetInfo(null, null);
+
+            if (object != null)
+            {
+                dashboard.putString(
+                    DBKEY_PREFIX + instanceName,
+                    String.format(
+                        "%s:label=%s,targetPose=%s",
+                        getDetectObjectType(), object.detectedObj.label, object.objPose));
+            }
+        }
+
+        return lineNum;
+    }   //updateStatus
 
 }   //class OpenCvVision
