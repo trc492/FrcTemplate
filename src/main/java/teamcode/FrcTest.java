@@ -780,14 +780,21 @@ public class FrcTest extends FrcTeleOp
                     if (pressed)
                     {
                         String subsystemName = testChoices.getSubsystemName();
-                        robot.globalTracer.traceInfo(moduleName, "Tune subsystem: " + subsystemName);
-                        if (subsystemName.isEmpty())
+                        if (!subsystemName.isEmpty())
                         {
-                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(subsystemName);
+                            String[] tokens = subsystemName.split("\\.");
+                            String subComponent = tokens.length > 1 && !tokens[1].isEmpty()? tokens[1]: null;
+                            TrcSubsystem subsystem = TrcSubsystem.getSubsystem(tokens[0]);
+                            double[] tuneParams = testChoices.getSubsystemTuneParams();
 
+                            robot.globalTracer.traceInfo(
+                                moduleName,
+                                "Tuning Subsystem " + tokens[0] + ":" +
+                                "\n\tsubComponent=" + subComponent +
+                                "\n\ttuneParams=" + Arrays.toString(tuneParams));
                             if (subsystem != null)
                             {
-                                subsystem.prepSubsystemForTuning(testChoices.getSubsystemTuneParams());
+                                subsystem.prepSubsystemForTuning(subComponent, tuneParams);
                             }
                         }
                     }
