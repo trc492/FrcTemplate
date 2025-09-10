@@ -50,10 +50,6 @@ public class Shooter extends TrcSubsystem
     {
         public static final String SUBSYSTEM_NAME               = "Shooter";
         public static final boolean NEED_ZERO_CAL               = false;
-        public static final boolean TUNE_SHOOTER_MOTOR1_PID     = false;
-        public static final boolean TUNE_SHOOTER_MOTOR2_PID     = false;
-        public static final boolean TUNE_PAN_MOTOR_PID          = false;
-        public static final boolean TUNE_TILT_MOTOR_PID         = false;
 
         public static final boolean HAS_TWO_SHOOTER_MOTORS      = false;
         public static final boolean HAS_PAN_MOTOR               = false;
@@ -347,43 +343,47 @@ public class Shooter extends TrcSubsystem
      * This method update the dashboard with the subsystem status.
      *
      * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
      * @return updated line number for the next subsystem to print.
      */
     @Override
-    public int updateStatus(int lineNum)
+    public int updateStatus(int lineNum, boolean slowLoop)
     {
-        TrcMotor motor;
-
-        dashboard.putNumber(DBKEY_SHOOTER1_POWER, shooter.getShooterMotor1Power());
-        dashboard.putNumber(DBKEY_SHOOTER1_CURRENT, shooter.getShooterMotor1Current());
-        dashboard.putNumber(DBKEY_SHOOTER1_VELOCITY, shooter.getShooterMotor1RPM());
-        dashboard.putNumber(DBKEY_SHOOTER1_TARGET_VEL, shooter.getShooterMotor1TargetRPM());
-
-        motor = shooter.getShooterMotor2();
-        if (motor != null)
+        if (slowLoop)
         {
-            dashboard.putNumber(DBKEY_SHOOTER2_POWER, shooter.getShooterMotor2Power());
-            dashboard.putNumber(DBKEY_SHOOTER2_CURRENT, shooter.getShooterMotor2Current());
-            dashboard.putNumber(DBKEY_SHOOTER2_VELOCITY, shooter.getShooterMotor2RPM());
-            dashboard.putNumber(DBKEY_SHOOTER2_TARGET_VEL, shooter.getShooterMotor2TargetRPM());
-        }
+            TrcMotor motor;
 
-        motor = shooter.getPanMotor();
-        if (motor != null)
-        {
-            dashboard.putNumber(DBKEY_PAN_POWER, motor.getPower());
-            dashboard.putNumber(DBKEY_PAN_CURRENT, motor.getCurrent());
-            dashboard.putNumber(DBKEY_PAN_POS, motor.getPosition());
-            dashboard.putNumber(DBKEY_PAN_TARGET_POS, motor.getPidTarget());
-        }
+            dashboard.putNumber(DBKEY_SHOOTER1_POWER, shooter.getShooterMotor1Power());
+            dashboard.putNumber(DBKEY_SHOOTER1_CURRENT, shooter.getShooterMotor1Current());
+            dashboard.putNumber(DBKEY_SHOOTER1_VELOCITY, shooter.getShooterMotor1RPM());
+            dashboard.putNumber(DBKEY_SHOOTER1_TARGET_VEL, shooter.getShooterMotor1TargetRPM());
 
-        motor = shooter.getTiltMotor();
-        if (motor != null)
-        {
-            dashboard.putNumber(DBKEY_TILT_POWER, motor.getPower());
-            dashboard.putNumber(DBKEY_TILT_CURRENT, motor.getCurrent());
-            dashboard.putNumber(DBKEY_TILT_POS, motor.getPosition());
-            dashboard.putNumber(DBKEY_TILT_TARGET_POS, motor.getPidTarget());
+            motor = shooter.getShooterMotor2();
+            if (motor != null)
+            {
+                dashboard.putNumber(DBKEY_SHOOTER2_POWER, shooter.getShooterMotor2Power());
+                dashboard.putNumber(DBKEY_SHOOTER2_CURRENT, shooter.getShooterMotor2Current());
+                dashboard.putNumber(DBKEY_SHOOTER2_VELOCITY, shooter.getShooterMotor2RPM());
+                dashboard.putNumber(DBKEY_SHOOTER2_TARGET_VEL, shooter.getShooterMotor2TargetRPM());
+            }
+
+            motor = shooter.getPanMotor();
+            if (motor != null)
+            {
+                dashboard.putNumber(DBKEY_PAN_POWER, motor.getPower());
+                dashboard.putNumber(DBKEY_PAN_CURRENT, motor.getCurrent());
+                dashboard.putNumber(DBKEY_PAN_POS, motor.getPosition());
+                dashboard.putNumber(DBKEY_PAN_TARGET_POS, motor.getPidTarget());
+            }
+
+            motor = shooter.getTiltMotor();
+            if (motor != null)
+            {
+                dashboard.putNumber(DBKEY_TILT_POWER, motor.getPower());
+                dashboard.putNumber(DBKEY_TILT_CURRENT, motor.getCurrent());
+                dashboard.putNumber(DBKEY_TILT_POS, motor.getPosition());
+                dashboard.putNumber(DBKEY_TILT_TARGET_POS, motor.getPidTarget());
+            }
         }
 
         return lineNum;
@@ -392,43 +392,47 @@ public class Shooter extends TrcSubsystem
     /**
      * This method is called to prep the subsystem for tuning.
      *
+     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
      * @param tuneParams specifies tuning parameters.
      *        tuneParam0 - Kp
      *        tuneParam1 - Ki
      *        tuneParam2 - Kd
      *        tuneParam3 - Kf
      *        tuneParam4 - iZone
-     *        tuneParam5 - PidTolerance
-     *        tuneParam6 - Shooter motor target velocity
+     *        tuneParam5 - PidTolerance (in RPM for velocity, in degrees for pan/tilt)
+     *        tuneParam6 - Shooter motor target velocity in RPM
      */
     @Override
-    public void prepSubsystemForTuning(double... tuneParams)
+    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
     {
-        if (Params.TUNE_SHOOTER_MOTOR1_PID)
+        if (subComponent != null)
         {
-            shooter.getShooterMotor1().setVelocityPidParameters(
-                tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-                Params.SHOOTER_SOFTWARE_PID_ENABLED);
-            shooter1Velocity.setValue(tuneParams[6]);
-        }
-        else if (Params.TUNE_SHOOTER_MOTOR2_PID)
-        {
-             shooter.getShooterMotor2().setVelocityPidParameters(
-                 tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-                 Params.SHOOTER_SOFTWARE_PID_ENABLED);
-             shooter2Velocity.setValue(tuneParams[6]);
-        }
-        else if (Params.TUNE_PAN_MOTOR_PID)
-        {
-             shooter.getPanMotor().setPositionPidParameters(
-                 tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-                 Params.PAN_SOFTWARE_PID_ENABLED);
-        }
-        else if (Params.TUNE_TILT_MOTOR_PID)
-        {
-             shooter.getTiltMotor().setPositionPidParameters(
-                 tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-                 Params.TILT_SOFTWARE_PID_ENABLED);
+            if (subComponent.equalsIgnoreCase("ShooterMotor1"))
+            {
+                shooter.getShooterMotor1().setVelocityPidParameters(
+                    tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5]/60.0,
+                    Params.SHOOTER_SOFTWARE_PID_ENABLED);
+                shooter1Velocity.setValue(tuneParams[6]);
+            }
+            else if (subComponent.equalsIgnoreCase("ShooterMotor2"))
+            {
+                 shooter.getShooterMotor2().setVelocityPidParameters(
+                     tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5]/60.0,
+                     Params.SHOOTER_SOFTWARE_PID_ENABLED);
+                 shooter2Velocity.setValue(tuneParams[6]);
+            }
+            else if (subComponent.equalsIgnoreCase("PanMotor"))
+            {
+                 shooter.getPanMotor().setPositionPidParameters(
+                     tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
+                     Params.PAN_SOFTWARE_PID_ENABLED);
+            }
+            else if (subComponent.equalsIgnoreCase("TiltMotor"))
+            {
+                 shooter.getTiltMotor().setPositionPidParameters(
+                     tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
+                     Params.TILT_SOFTWARE_PID_ENABLED);
+            }
         }
     }   //prepSubsystemForTuning
 

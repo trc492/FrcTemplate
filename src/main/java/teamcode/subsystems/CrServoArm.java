@@ -92,7 +92,7 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * Constructor: Creates an instance of the object.
-    */
+     */
     public CrServoArm()
     {
         super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
@@ -120,9 +120,9 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method returns the created CrServoArm motor.
-    *
-    * @return created arm motor.
-    */
+     *
+     * @return created arm motor.
+     */
     public TrcMotor getMotor()
     {
         return motor;
@@ -130,10 +130,10 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method calculates the power required to make the arm gravity neutral.
-    *
-    * @param currPower specifies the current applied PID power (not used).
-    * @return calculated compensation power.
-    */
+     *
+     * @param currPower specifies the current applied PID power (not used).
+     * @return calculated compensation power.
+     */
     private double getGravityComp(double currPower)
     {
         double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_MAX_POWER;
@@ -146,7 +146,7 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method cancels any pending operations.
-    */
+     */
     @Override
     public void cancel()
     {
@@ -155,10 +155,10 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method starts zero calibrate of the subsystem.
-    *
-    * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-    * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
-    */
+     *
+     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
+     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     */
     @Override
     public void zeroCalibrate(String owner, TrcEvent event)
     {
@@ -167,7 +167,7 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method resets the subsystem state. Typically, this is used to retract the subsystem for turtle mode.
-    */
+     */
     @Override
     public void resetState()
     {
@@ -176,33 +176,39 @@ public class CrServoArm extends TrcSubsystem
 
     /**
      * This method update the dashboard with the subsystem status.
-    *
-    * @param lineNum specifies the starting line number to print the subsystem status.
-    * @return updated line number for the next subsystem to print.
-    */
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
+     * @return updated line number for the next subsystem to print.
+     */
     @Override
-    public int updateStatus(int lineNum)
+    public int updateStatus(int lineNum, boolean slowLoop)
     {
-        dashboard.putNumber(DBKEY_POWER, motor.getPower());
-        dashboard.putString(
-            DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
+        if (slowLoop)
+        {
+            dashboard.putNumber(DBKEY_POWER, motor.getPower());
+            dashboard.putString(
+                DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
+        }
+
         return lineNum;
     }   //updateStatus
 
     /**
      * This method is called to prep the subsystem for tuning.
-    *
-    * @param tuneParams specifies tuning parameters.
-    *        tuneParam0 - Kp
-    *        tuneParam1 - Ki
-    *        tuneParam2 - Kd
-    *        tuneParam3 - Kf
-    *        tuneParam4 - iZone
-    *        tuneParam5 - PidTolerance
-    *        tuneParam6 - GravityCompPower
-    */
+     *
+     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
+     * @param tuneParams specifies tuning parameters.
+     *        tuneParam0 - Kp
+     *        tuneParam1 - Ki
+     *        tuneParam2 - Kd
+     *        tuneParam3 - Kf
+     *        tuneParam4 - iZone
+     *        tuneParam5 - PidTolerance
+     *        tuneParam6 - GravityCompPower
+     */
     @Override
-    public void prepSubsystemForTuning(double... tuneParams)
+    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
     {
         motor.setPositionPidParameters(
             tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],

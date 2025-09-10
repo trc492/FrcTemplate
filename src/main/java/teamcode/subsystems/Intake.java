@@ -177,27 +177,33 @@ public class Intake extends TrcSubsystem
      * This method update the dashboard with the subsystem status.
      *
      * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
      * @return updated line number for the next subsystem to print.
      */
     @Override
-    public int updateStatus(int lineNum)
+    public int updateStatus(int lineNum, boolean slowLoop)
     {
-        dashboard.putNumber(DBKEY_POWER, intake.getPower());
-        dashboard.putNumber(DBKEY_CURRENT, intake.getCurrent());
-        dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
-        dashboard.putBoolean(DBKEY_FRONT_SENSOR_STATE, intake.getFrontTriggerState());
-        dashboard.putBoolean(DBKEY_BACK_SENSOR_STATE, intake.getBackTriggerState());
-        dashboard.putBoolean(DBKEY_AUTO_ACTIVE, intake.isAutoActive());
+        if (slowLoop)
+        {
+            dashboard.putNumber(DBKEY_POWER, intake.getPower());
+            dashboard.putNumber(DBKEY_CURRENT, intake.getCurrent());
+            dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
+            dashboard.putBoolean(DBKEY_FRONT_SENSOR_STATE, intake.getFrontTriggerState());
+            dashboard.putBoolean(DBKEY_BACK_SENSOR_STATE, intake.getBackTriggerState());
+            dashboard.putBoolean(DBKEY_AUTO_ACTIVE, intake.isAutoActive());
+        }
+
         return lineNum;
     }   //updateStatus
 
     /**
      * This method is called to prep the subsystem for tuning.
      *
+     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
      * @param tuneParams specifies tuning parameters.
      */
     @Override
-    public void prepSubsystemForTuning(double... tuneParams)
+    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
     {
         // Intake subsystem doesn't need tuning.
     }   //prepSubsystemForTuning

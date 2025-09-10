@@ -30,12 +30,12 @@ import trclib.subsystem.TrcSubsystem;
 
 /**
  * This class creates the Differential Servo Wrist subsystem. This implementation is a 2-DOF system that consists of
-* two servos. When the two servos rotate in the same direction, the wrist will tilt up and down. When the two servos
-* rotate in opposite direction, the wrist will rotate. Regular servos have a limited range of movement. Because of
-* this, the tilt and rotation of the wrist will limit each other's range of motion. For example, if the wrist is
-* tilted to one extreme end, the wrist cannot rotate. If the wrist is in the middle tilt position, it will have
-* maximum rotation range and vice versa.
-*/
+ * two servos. When the two servos rotate in the same direction, the wrist will tilt up and down. When the two servos
+ * rotate in opposite direction, the wrist will rotate. Regular servos have a limited range of movement. Because of
+ * this, the tilt and rotation of the wrist will limit each other's range of motion. For example, if the wrist is
+ * tilted to one extreme end, the wrist cannot rotate. If the wrist is in the middle tilt position, it will have
+ * maximum rotation range and vice versa.
+ */
 public class DiffyServoWrist extends TrcSubsystem
 {
     public static class Params
@@ -78,7 +78,7 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * Constructor: Creates an instance of the object.
-    */
+     */
     public DiffyServoWrist()
     {
         super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
@@ -106,9 +106,9 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method returns the wrist tilt position in degrees.
-    *
-    * @return wrist tilt position.
-    */
+     *
+     * @return wrist tilt position.
+     */
     public double getTiltPosition()
     {
         return diffyWrist.getTiltPosition();
@@ -116,9 +116,9 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method returns the wrist rotate position in degrees.
-    *
-    * @return wrist rotate position.
-    */
+     *
+     * @return wrist rotate position.
+     */
     public double getRotatePosition()
     {
         return diffyWrist.getRotatePosition();
@@ -126,16 +126,16 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist position.
-    *
-    * @param owner specifies the owner ID to check if the caller has ownership of the subsystem.
-    * @param delay specifies the delay in seconds before setting the tilt position of the wrist, can be zero if no
-    *        delay.
-    * @param tiltPos specifies the physical tilt position of the wrist in degrees.
-    * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
-    *        change.
-    * @param completionEvent specifies an event object to signal when the timeout event has expired.
-    * @param timeout specifies a maximum time value the operation should be completed in seconds.
-    */
+     *
+     * @param owner specifies the owner ID to check if the caller has ownership of the subsystem.
+     * @param delay specifies the delay in seconds before setting the tilt position of the wrist, can be zero if no
+     *        delay.
+     * @param tiltPos specifies the physical tilt position of the wrist in degrees.
+     * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
+     *        change.
+     * @param completionEvent specifies an event object to signal when the timeout event has expired.
+     * @param timeout specifies a maximum time value the operation should be completed in seconds.
+     */
     public void setPosition(
         String owner, double delay, double tiltPos, Double rotatePos, TrcEvent completionEvent, double timeout)
     {
@@ -160,15 +160,15 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist position.
-    *
-    * @param delay specifies the delay in seconds before setting the tilt position of the wrist, can be zero if no
-    *        delay.
-    * @param tiltPos specifies the physical tilt position of the wrist in degrees.
-    * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
-    *        change.
-    * @param completionEvent specifies an event object to signal when the timeout event has expired.
-    * @param timeout specifies a maximum time value the operation should be completed in seconds.
-    */
+     *
+     * @param delay specifies the delay in seconds before setting the tilt position of the wrist, can be zero if no
+     *        delay.
+     * @param tiltPos specifies the physical tilt position of the wrist in degrees.
+     * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
+     *        change.
+     * @param completionEvent specifies an event object to signal when the timeout event has expired.
+     * @param timeout specifies a maximum time value the operation should be completed in seconds.
+     */
     public void setPosition(double delay, double tiltPos, Double rotatePos, TrcEvent completionEvent, double timeout)
     {
         setPosition(null, delay, tiltPos, rotatePos, completionEvent, timeout);
@@ -176,13 +176,13 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist position.
-    *
-    * @param tiltPos specifies the physical tilt position of the wrist in degrees.
-    * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
-    *        change.
-    * @param completionEvent specifies an event object to signal when the timeout event has expired.
-    * @param timeout specifies a maximum time value the operation should be completed in seconds.
-    */
+     *
+     * @param tiltPos specifies the physical tilt position of the wrist in degrees.
+     * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
+     *        change.
+     * @param completionEvent specifies an event object to signal when the timeout event has expired.
+     * @param timeout specifies a maximum time value the operation should be completed in seconds.
+     */
     public void setPosition(double tiltPos, Double rotatePos, TrcEvent completionEvent, double timeout)
     {
         setPosition(null, 0.0, tiltPos, rotatePos, completionEvent, timeout);
@@ -190,11 +190,11 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist position.
-    *
-    * @param tiltPos specifies the physical tilt position of the wrist in degrees.
-    * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
-    *        change.
-    */
+     *
+     * @param tiltPos specifies the physical tilt position of the wrist in degrees.
+     * @param rotatePos specifies the physical rotate position of the wrist in degrees, null if not provided for no
+     *        change.
+     */
     public void setPosition(double tiltPos, Double rotatePos)
     {
         setPosition(null, 0.0, tiltPos, rotatePos, null, 0.0);
@@ -202,11 +202,11 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist to the next tilt preset position up from the current position.
-    *
-    * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
-    *        automatically release ownership when the motor movement is completed, can be null if no ownership
-    *        is required.
-    */
+     *
+     * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
+     *        automatically release ownership when the motor movement is completed, can be null if no ownership
+     *        is required.
+     */
     public void tiltPresetPositionUp(String owner)
     {
         diffyWrist.tiltPresetPositionUp(owner);
@@ -214,11 +214,11 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist to the next tilt preset position down from the current position.
-    *
-    * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
-    *        automatically release ownership when the motor movement is completed, can be null if no ownership
-    *        is required.
-    */
+     *
+     * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
+     *        automatically release ownership when the motor movement is completed, can be null if no ownership
+     *        is required.
+     */
     public void tiltPresetPositionDown(String owner)
     {
         diffyWrist.tiltPresetPositionDown(owner);
@@ -226,11 +226,11 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist to the next rotate preset position up from the current position.
-    *
-    * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
-    *        automatically release ownership when the motor movement is completed, can be null if no ownership
-    *        is required.
-    */
+     *
+     * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
+     *        automatically release ownership when the motor movement is completed, can be null if no ownership
+     *        is required.
+     */
     public void rotatePresetPositionUp(String owner)
     {
         diffyWrist.rotatePresetPositionUp(owner);
@@ -238,11 +238,11 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method sets the wrist to the next rotate preset position down from the current position.
-    *
-    * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
-    *        automatically release ownership when the motor movement is completed, can be null if no ownership
-    *        is required.
-    */
+     *
+     * @param owner specifies the owner ID that will acquire ownership before setting the preset position and will
+     *        automatically release ownership when the motor movement is completed, can be null if no ownership
+     *        is required.
+     */
     public void rotatePresetPositionDown(String owner)
     {
         diffyWrist.rotatePresetPositionDown(owner);
@@ -254,7 +254,7 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method cancels any pending operations.
-    */
+     */
     @Override
     public void cancel()
     {
@@ -263,10 +263,10 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method starts zero calibrate of the subsystem.
-    *
-    * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-    * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
-    */
+     *
+     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
+     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     */
     @Override
     public void zeroCalibrate(String owner, TrcEvent event)
     {
@@ -275,7 +275,7 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method resets the subsystem state. Typically, this is used to retract the subsystem for turtle mode.
-    */
+     */
     @Override
     public void resetState()
     {
@@ -284,34 +284,40 @@ public class DiffyServoWrist extends TrcSubsystem
 
     /**
      * This method update the dashboard with the subsystem status.
-    *
-    * @param lineNum specifies the starting line number to print the subsystem status.
-    * @return updated line number for the next subsystem to print.
-    */
+     *
+     * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
+     * @return updated line number for the next subsystem to print.
+     */
     @Override
-    public int updateStatus(int lineNum)
+    public int updateStatus(int lineNum, boolean slowLoop)
     {
-        dashboard.putNumber(DBKEY_TILT_POWER, diffyWrist.getTiltPower());
-        dashboard.putNumber(DBKEY_TILT_POSITION, diffyWrist.getTiltPosition());
-        dashboard.putNumber(DBKEY_ROTATE_POWER, diffyWrist.getRotatePower());
-        dashboard.putNumber(DBKEY_ROTATE_POSITION, diffyWrist.getRotatePosition());
+        if (slowLoop)
+        {
+            dashboard.putNumber(DBKEY_TILT_POWER, diffyWrist.getTiltPower());
+            dashboard.putNumber(DBKEY_TILT_POSITION, diffyWrist.getTiltPosition());
+            dashboard.putNumber(DBKEY_ROTATE_POWER, diffyWrist.getRotatePower());
+            dashboard.putNumber(DBKEY_ROTATE_POSITION, diffyWrist.getRotatePosition());
+        }
+
         return lineNum;
     }   //updateStatus
 
     /**
      * This method is called to prep the subsystem for tuning.
-    *
-    * @param tuneParams specifies tuning parameters.
-    *        tuneParam0 - Kp
-    *        tuneParam1 - Ki
-    *        tuneParam2 - Kd
-    *        tuneParam3 - Kf
-    *        tuneParam4 - iZone
-    *        tuneParam5 - PidTolerance
-    *        tuneParam6 - GravityCompPower
-    */
+     *
+     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
+     * @param tuneParams specifies tuning parameters.
+     *        tuneParam0 - Kp
+     *        tuneParam1 - Ki
+     *        tuneParam2 - Kd
+     *        tuneParam3 - Kf
+     *        tuneParam4 - iZone
+     *        tuneParam5 - PidTolerance
+     *        tuneParam6 - GravityCompPower
+     */
     @Override
-    public void prepSubsystemForTuning(double... tuneParams)
+    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
     {
         // DiffyWirst doesn't support tuning.
     }   //prepSubsystemForTuning

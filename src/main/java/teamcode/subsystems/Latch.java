@@ -129,25 +129,31 @@ public class Latch extends TrcSubsystem
      * This method update the dashboard with the subsystem status.
      *
      * @param lineNum specifies the starting line number to print the subsystem status.
+     * @param slowLoop specifies true if this is a slow loop, false otherwise.
      * @return updated line number for the next subsystem to print.
      */
     @Override
-    public int updateStatus(int lineNum)
+    public int updateStatus(int lineNum, boolean slowLoop)
     {
-        dashboard.putNumber(DBKEY_PHYSICAL_POS, latch.getPosition());
-        dashboard.putNumber(DBKEY_LOGICAL_POS, latch.getLogicalPosition());
+        if (slowLoop)
+        {
+            dashboard.putNumber(DBKEY_PHYSICAL_POS, latch.getPosition());
+            dashboard.putNumber(DBKEY_LOGICAL_POS, latch.getLogicalPosition());
+        }
+
         return lineNum;
     }   //updateStatus
 
     /**
      * This method is called to prep the subsystem for tuning.
      *
+     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
      * @param tuneParams specifies tuning parameters.
      *        tuneParam0 - Logical position min
      *        tuneParam1 - Logical position max
      */
     @Override
-    public void prepSubsystemForTuning(double... tuneParams)
+    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
     {
         latch.setLogicalPosRange(tuneParams[0], tuneParams[1]);
     }   //prepSubsystemForTuning
