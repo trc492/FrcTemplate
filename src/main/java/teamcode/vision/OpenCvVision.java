@@ -24,30 +24,41 @@ package teamcode.vision;
 
 import java.util.Comparator;
 
-import org.opencv.imgproc.Imgproc;
-
 import edu.wpi.first.apriltag.AprilTagPoseEstimator;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.math.util.Units;
-import frclib.drivebase.FrcRobotDrive;
 import frclib.driverio.FrcDashboard;
 import frclib.vision.FrcOpenCvAprilTagPipeline;
 import frclib.vision.FrcOpenCvDetector;
+import teamcode.RobotParams;
+import teamcode.indicators.LEDIndicator;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.vision.TrcOpenCvColorBlobPipeline;
 import trclib.vision.TrcOpenCvDetector;
 import trclib.vision.TrcOpenCvPipeline;
+import trclib.vision.TrcVision;
 import trclib.vision.TrcVisionTargetInfo;
 
 public class OpenCvVision extends FrcOpenCvDetector
 {
+    // Test camera info
+    public static final TrcVision.CameraInfo hd3000CamInfo = new TrcVision.CameraInfo()
+        .setCameraInfo("HD-3000", 1280, 720)
+        .setCameraPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    private static final double APRILTAG_SIZE               = 6.5;
+    private static final double COLOR_BLOB_WIDTH            = 3.5;
+    private static final double COLOR_BLOB_HEIGHT           = 1.5;
+    private static final double COLOR_BLOB_GROUND_OFFSET    = 0.0;
     private static final String DBKEY_PREFIX                = "Vision/";
     // YCrCb Color Space.
-    private static final int colorConversion = Imgproc.COLOR_BGR2YCrCb;
-    private static final double[] redBlobColorThresholds = {10.0, 180.0, 170.0, 240.0, 80.0, 120.0};
-    private static final double[] blueBlobColorThresholds = {0.0, 180.0, 80.0, 150.0, 150.0, 200.0};
-    private static final TrcOpenCvColorBlobPipeline.FilterContourParams colorBlobFilterContourParams =
+    private static final TrcOpenCvColorBlobPipeline.ColorConversion colorConversion =
+        TrcOpenCvColorBlobPipeline.ColorConversion.RGBToYCrCb;
+    private static final double[] redBlobThresholdsLow = {10.0, 170.0, 80.0};
+    private static final double[] redBlobThresholdsHigh = {180.0, 240.0, 120.0};
+    private static final double[] blueBlobThresholdsLow = {0.0, 80.0, 150.0};
+    private static final double[] blueBlobThresholdsHigh = {180.0, 150.0, 200.0};
+    private static final TrcOpenCvColorBlobPipeline.FilterContourParams colorBlobFilterParams =
         new TrcOpenCvColorBlobPipeline.FilterContourParams()
             .setMinArea(10000.0)
             .setMinPerimeter(200.0)
@@ -56,10 +67,18 @@ public class OpenCvVision extends FrcOpenCvDetector
             .setSolidityRange(0.0, 100.0)
             .setVerticesRange(0.0, 1000.0)
             .setAspectRatioRange(0.0, 1000.0);
+    public static final TrcOpenCvColorBlobPipeline.PipelineParams colorBlobPipelineParams =
+        new TrcOpenCvColorBlobPipeline.PipelineParams()
+            .setAnnotation(false, false)
+            .setColorConversion(colorConversion)
+            .addColorThresholds(LEDIndicator.RED_BLOB, true, redBlobThresholdsLow, redBlobThresholdsHigh)
+            .addColorThresholds(LEDIndicator.BLUE_BLOB, true, blueBlobThresholdsLow, blueBlobThresholdsHigh)
+            .buildColorThresholdSets()
+            .setFilterContourParams(true, colorBlobFilterParams);
 
     public enum ObjectType
     {
-        APRILTAG, REDBLOB, BLUEBLOB, NONE;
+        APRILTAG, RED_BLOB, BLUE_BLOB, NONE;
 
         static ObjectType nextObjectType(ObjectType objType)
         {
@@ -68,14 +87,14 @@ public class OpenCvVision extends FrcOpenCvDetector
             switch (objType)
             {
                 case APRILTAG:
-                    nextObjType = REDBLOB;
+                    nextObjType = RED_BLOB;
                     break;
 
-                case REDBLOB:
-                    nextObjType = BLUEBLOB;
+                case RED_BLOB:
+                    nextObjType = BLUE_BLOB;
                     break;
 
-                case BLUEBLOB:
+                case BLUE_BLOB:
                     nextObjType = NONE;
                     break;
 
@@ -92,10 +111,9 @@ public class OpenCvVision extends FrcOpenCvDetector
 
     public final TrcDbgTrace tracer;
     private final FrcDashboard dashboard;
-    private final FrcRobotDrive.VisionInfo cameraInfo;
+    private final TrcVision.CameraInfo cameraInfo;
     private final TrcOpenCvPipeline<DetectedObject<?>> aprilTagPipeline;
-    private final TrcOpenCvPipeline<DetectedObject<?>> redBlobPipeline;
-    private final TrcOpenCvPipeline<DetectedObject<?>> blueBlobPipeline;
+    private final TrcOpenCvPipeline<DetectedObject<?>> colorBlobPipeline;
     private ObjectType objectType = ObjectType.NONE;
 
     /**
@@ -108,7 +126,7 @@ public class OpenCvVision extends FrcOpenCvDetector
      * @param cvSource specifies the object to stream video output.
      */
     public OpenCvVision(
-        String instanceName, int numImageBuffers, FrcRobotDrive.VisionInfo cameraInfo,
+        String instanceName, int numImageBuffers, TrcVision.CameraInfo cameraInfo,
         CvSink cvSink, CvSource cvSource)
     {
         super(instanceName, numImageBuffers, cameraInfo.cameraRect, cameraInfo.worldRect, cvSink, cvSource);
@@ -116,14 +134,45 @@ public class OpenCvVision extends FrcOpenCvDetector
         this.dashboard = FrcDashboard.getInstance();
         this.cameraInfo = cameraInfo;
 
-        aprilTagPipeline = new FrcOpenCvAprilTagPipeline(
-            "tag16h5", null, new AprilTagPoseEstimator.Config(
-                Units.inchesToMeters(cameraInfo.aprilTagSize), cameraInfo.camFx, cameraInfo.camFy, cameraInfo.camCx,
-                cameraInfo.camCy));
-        redBlobPipeline = new TrcOpenCvColorBlobPipeline(
-            "redBlobPipeline", colorConversion, redBlobColorThresholds, colorBlobFilterContourParams, true);
-        blueBlobPipeline = new TrcOpenCvColorBlobPipeline(
-            "blueBlobPipeline", colorConversion, blueBlobColorThresholds, colorBlobFilterContourParams, true);
+        if (RobotParams.Preferences.useWebcamAprilTagVision)
+        {
+            tracer.traceInfo(instanceName, "Starting Webcam AprilTagVision...");
+            aprilTagPipeline = new FrcOpenCvAprilTagPipeline(
+                "tag16h5", null,
+                new AprilTagPoseEstimator.Config(
+                    Units.inchesToMeters(APRILTAG_SIZE), cameraInfo.lensInfo.fx, cameraInfo.lensInfo.fy,
+                    cameraInfo.lensInfo.cx, cameraInfo.lensInfo.cy));
+        }
+        else
+        {
+            aprilTagPipeline = null;
+        }
+
+        if (RobotParams.Preferences.useWebcamColorBlobVision)
+        {
+            tracer.traceInfo(instanceName, "Starting Webcam ColorBlobVision...");
+            TrcOpenCvColorBlobPipeline.SolvePnpParams solvePnpParams = null;
+            if (RobotParams.Preferences.useSolvePnp)
+            {
+                solvePnpParams =
+                    new TrcOpenCvColorBlobPipeline.SolvePnpParams().setObjectSize(COLOR_BLOB_WIDTH, COLOR_BLOB_HEIGHT);
+                if (cameraInfo.lensInfo != null)
+                {
+                    solvePnpParams.setSolvePnpParams(cameraInfo.lensInfo, cameraInfo.camPose);
+                }
+            }
+            colorBlobPipeline = new TrcOpenCvColorBlobPipeline(
+                "ColorBlobPipeline", colorBlobPipelineParams, solvePnpParams);
+        }
+        else
+        {
+            colorBlobPipeline = null;
+        }
+
+        if (aprilTagPipeline != null || colorBlobPipeline != null)
+        {
+            FrcDashboard.getInstance().addStatusUpdate(instanceName, this::updateStatus);
+        }
     }   //OpenCvVision
 
     /**
@@ -138,12 +187,9 @@ public class OpenCvVision extends FrcOpenCvDetector
                 setPipeline(aprilTagPipeline);
                 break;
 
-            case REDBLOB:
-                setPipeline(redBlobPipeline);
-                break;
-
-            case BLUEBLOB:
-                setPipeline(blueBlobPipeline);
+            case RED_BLOB:
+            case BLUE_BLOB:
+                setPipeline(colorBlobPipeline);
                 break;
 
             case NONE:
@@ -182,14 +228,33 @@ public class OpenCvVision extends FrcOpenCvDetector
     }   //getDetectObjectType
 
     /**
-     * This method enables/disables image annotation of the detected object.
+     * This method enables image annotation of the detected object.
      *
-     * @param enabled specifies true to enable annotation, false to disable.
+     * @param drawRotatedRect specifies true to draw rotated rectangle, false to draw bounding rectangle.
+     * @param drawCrosshair specifies true to draw crosshair at the center of the screen, false otherwise.
      */
-    public void setAnnotateEnabled(boolean enabled)
+    public void enableAnnotation(boolean drawRotatedRect, boolean drawCrosshair)
     {
-        getPipeline().setAnnotateEnabled(enabled);
-    }   //setAnnotateEnabled
+        TrcOpenCvPipeline<DetectedObject<?>> pipeline = getPipeline();
+
+        if (pipeline != null)
+        {
+            pipeline.enableAnnotation(drawRotatedRect, drawCrosshair);
+        }
+    }   //enableAnnotation
+
+    /**
+     * This method disables image annotation.
+     */
+    public void disableAnnotation()
+    {
+        TrcOpenCvPipeline<DetectedObject<?>> pipeline = getPipeline();
+
+        if (pipeline != null)
+        {
+            pipeline.disableAnnotation();
+        }
+    }   //disableAnnotation
 
     /**
      * This method checks if image annotation is enabled.
@@ -198,7 +263,8 @@ public class OpenCvVision extends FrcOpenCvDetector
      */
     public boolean isAnnotateEnabled()
     {
-        return getPipeline().isAnnotateEnabled();
+        TrcOpenCvPipeline<DetectedObject<?>> pipeline = getPipeline();
+        return pipeline != null && getPipeline().isAnnotateEnabled();
     }   //isAnnotateEnabled
 
     /**
@@ -209,7 +275,12 @@ public class OpenCvVision extends FrcOpenCvDetector
      */
     public void setVideoOutput(int intermediateStep)
     {
-        getPipeline().setVideoOutput(intermediateStep);
+        TrcOpenCvPipeline<DetectedObject<?>> pipeline = getPipeline();
+
+        if (pipeline != null)
+        {
+            pipeline.setVideoOutput(intermediateStep);
+        }
     }   //setVideoOutput
 
     /**
@@ -223,7 +294,7 @@ public class OpenCvVision extends FrcOpenCvDetector
         FilterTarget filter, Comparator<? super TrcVisionTargetInfo<DetectedObject<?>>> comparator)
     {
         TrcVisionTargetInfo<TrcOpenCvDetector.DetectedObject<?>>[] targets =
-            getDetectedTargetsInfo(filter, comparator, cameraInfo.targetZOffset, cameraInfo.camZOffset);
+            getDetectedTargetsInfo(filter, comparator, COLOR_BLOB_GROUND_OFFSET, cameraInfo.camPose.z);
 
         return targets != null? targets[0]: null;
     }   //getDetectedTargetInfo

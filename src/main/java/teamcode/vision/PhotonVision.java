@@ -27,110 +27,37 @@ import java.util.Comparator;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
-import frclib.drivebase.FrcRobotDrive;
 import frclib.driverio.FrcDashboard;
 import frclib.vision.FrcPhotonVision;
 import teamcode.RobotParams;
-import teamcode.subsystems.LEDIndicator;
+import teamcode.indicators.LEDIndicator;
 import trclib.pathdrive.TrcPose2D;
-import trclib.pathdrive.TrcPose3D;
 import trclib.robotcore.TrcEvent;
+import trclib.vision.TrcVision;
 
 /**
  * This class is a thin wrapper extending FrcPhotonVision that provides additional game specific functionalities.
  */
 public class PhotonVision extends FrcPhotonVision
 {
-    /**
-     * This class contains the parameters of the front camera.
-     */
-    public static class HD3000CamParams extends FrcRobotDrive.VisionInfo
-    {
-        public HD3000CamParams()
-        {
-            camName = "HD-3000";
-            camImageWidth = 1280;
-            camImageHeight = 720;
-            camXOffset = 0.0;                   // Inches to the right from robot center
-            camYOffset = 0.0;                   // Inches forward from robot center
-            camZOffset = 0.0;                   // Inches up from the floor
-            camPitch = 0.0;                     // degrees up from horizontal
-            camYaw = 0.0;                       // degrees clockwise from robot front
-            camRoll = 0.0;
-            robotToCam = new Transform3d(
-                new Translation3d(Units.inchesToMeters(camYOffset),
-                                  -Units.inchesToMeters(camXOffset),
-                                  Units.inchesToMeters(camZOffset)),
-                new Rotation3d(Units.degreesToRadians(camRoll),
-                               Units.degreesToRadians(-camPitch),
-                               Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
-        }   //HD3000CamParams
-    }   //class HD3000CamParams
-
-    public static class OV9782CamParams extends FrcRobotDrive.VisionInfo
-    {
-        public OV9782CamParams()
-        {
-            camName = "FrontOV9782";
-            camImageWidth = 1280;
-            camImageHeight = 800;
-            camXOffset = 0.0;                   // Inches to the right from robot center
-            camYOffset = 0.0;                   // Inches forward from robot center
-            camZOffset = 0.0;                   // Inches up from the floor
-            camYaw = 0.0;                       // degrees clockwise from robot front
-            camPitch = 0.0;                     // degrees up from horizontal
-            camRoll = 0.0;
-            robotToCam = new Transform3d(
-                new Translation3d(Units.inchesToMeters(camYOffset),
-                                  -Units.inchesToMeters(camXOffset),
-                                  Units.inchesToMeters(camZOffset)),
-                new Rotation3d(Units.degreesToRadians(camRoll),
-                               Units.degreesToRadians(-camPitch),
-                               Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
-        }   //OV9782CamParams
-    }   //class OV9782CamParams
-
-    /**
-     * This class contains the parameters of the back camera.
-     */
-    public static class OV9281CamParams extends FrcRobotDrive.VisionInfo
-    {
-        public OV9281CamParams()
-        {
-            camName = "OV9281";
-            camImageWidth = 1280;
-            camImageHeight = 800;
-            camXOffset = -3.5;                  // Inches to the right from robot center
-            camYOffset = -2.375;                // Inches forward from robot center
-            camZOffset = 23.125;                // Inches up from the floor
-            camPitch = 33.0;                    // degrees up from horizontal
-            camYaw = 0.0;                       // degrees clockwise from robot front
-            camRoll = 0.0;
-            robotToCam = new Transform3d(
-                new Translation3d(Units.inchesToMeters(camYOffset),
-                                  -Units.inchesToMeters(camXOffset),
-                                  Units.inchesToMeters(camZOffset)),
-                new Rotation3d(Units.degreesToRadians(camRoll),
-                               Units.degreesToRadians(-camPitch),
-                               Units.degreesToRadians(-camYaw)));
-            camPose = new TrcPose3D(camXOffset, camYOffset, camZOffset, camYaw, camPitch, camRoll);
-        }   //OV9281CamParams
-    }   //class OV9281CamParams
+    // Front camera info
+    public static final TrcVision.CameraInfo frontCamInfo = new TrcVision.CameraInfo()
+        .setCameraInfo("FrontOV9782", 1280, 800)
+        .setCameraPose(-0.25, 5.75, 7.0, 0.0, 21.8346, 0.0);
+    // Back camera info
+    public static final TrcVision.CameraInfo backCamInfo = new TrcVision.CameraInfo()
+        .setCameraInfo("BackOV9782", 1280, 800)
+        .setCameraPose(0.0, -1.563, 41.374, 180.0, 9.1241, 0.0);
 
     private static final String DBKEY_PREFIX                = "Vision/";
-    public static final double ONTARGET_THRESHOLD           = 0.5;
-    public static final double GUIDANCE_ERROR_THRESHOLD     = 12.0;
+    public static final double ONTARGET_THRESHOLD           = 0.5;      // in degrees
 
     public enum PipelineType
     {
         APRILTAG(0),
-        COLOR_BLOB(1);
+        RED_BLOB(1),
+        BLUE_BLOB(2);
 
         public int pipelineIndex;
 
@@ -142,27 +69,23 @@ public class PhotonVision extends FrcPhotonVision
     }   //enum PipelineType
 
     private final FrcDashboard dashboard;
-    private final String instanceName;
-    private final Transform3d robotToCam;
     private final LEDIndicator ledIndicator;
     private PipelineType currPipeline = PipelineType.APRILTAG;
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param cameraName specifies the network table name that PhotonVision is broadcasting information over.
-     * @param robotToCam specifies the 3D transform location of the camera from robot center.
+     * @param camInfo specifies the camera info.
      * @param ledIndicator specifies the LEDIndicator object, can be null if none provided.
      */
-    public PhotonVision(String cameraName, Transform3d robotToCam, LEDIndicator ledIndicator)
+    public PhotonVision(TrcVision.CameraInfo camInfo, LEDIndicator ledIndicator)
     {
-        super(cameraName, robotToCam);
+        super(camInfo);
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_PREFIX + cameraName, "");
-        this.instanceName = cameraName;
-        this.robotToCam = robotToCam;
+        dashboard.refreshKey(DBKEY_PREFIX + camInfo.camName, "");
         this.ledIndicator = ledIndicator;
         setPipeline(currPipeline);
+        FrcDashboard.getInstance().addStatusUpdate(instanceName, this::updateStatus);
     }   //PhotonVision
 
     /**
@@ -188,11 +111,11 @@ public class PhotonVision extends FrcPhotonVision
      */
     public TrcPose2D getRobotFieldPose(DetectedObject aprilTagObj, boolean usePoseEstimator)
     {
-        return usePoseEstimator? getRobotEstimatedPose(robotToCam):
+        return usePoseEstimator? getRobotEstimatedPose(super.robotToCamera):
                                  getRobotPoseFromAprilTagFieldPose(
                                     FrcPhotonVision.getAprilTagFieldPose3d(aprilTagObj.target.getFiducialId(), null),
                                     aprilTagObj.target.getBestCameraToTarget(),
-                                    robotToCam);
+                                    super.robotToCamera);
     }   //getRobotFieldPose
 
     /**
@@ -216,7 +139,7 @@ public class PhotonVision extends FrcPhotonVision
 
             if (ledIndicator != null)
             {
-                ledIndicator.setPhotonDetectedObject(getPipeline(), bestDetectedObj.targetPose);
+                ledIndicator.setPhotonDetectedObject(getPipeline(), bestDetectedObj);
             }
         }
 
@@ -273,7 +196,7 @@ public class PhotonVision extends FrcPhotonVision
 
             if  (ledIndicator != null)
             {
-                ledIndicator.setPhotonDetectedObject(currPipeline, bestObj.targetPose);
+                ledIndicator.setPhotonDetectedObject(currPipeline, bestObj);
             }
         }
 
@@ -293,9 +216,9 @@ public class PhotonVision extends FrcPhotonVision
     }   //getBestDetectedAprilTag
 
     /**
-     * This method sets the active pipeline type used in the LimeLight.
+     * This method sets PhotonVision to the specified pipeline type.
      *
-     * @param pipelineType specifies the pipeline to activate in the LimeLight.
+     * @param pipelineType specifies the pipeline to activate in PhotonVision.
      */
     public void setPipeline(PipelineType pipelineType)
     {
@@ -307,16 +230,22 @@ public class PhotonVision extends FrcPhotonVision
     }   //setPipeline
 
     /**
-     * This method returns the active pipeline of the LimeLight.
+     * This method returns the active PhotonVision pipeline.
      *
      * @return active pipeline.
      */
     public PipelineType getPipeline()
     {
-        currPipeline = PipelineType.values()[getPipelineIndex()];
+        currPipeline = PipelineType.values()[super.getPipelineIndex()];
         return currPipeline;
     }   //getPipeline
 
+    /**
+     * This method determines the closest AprilTag from the given robot pose.
+     *
+     * @param robotPose specifies the robot pose.
+     * @return closest AprilTag pose.
+     */
     public static TrcPose2D getClosestAprilTagPose(TrcPose2D robotPose)
     {
         TrcPose2D closestAprilTagPose = null;

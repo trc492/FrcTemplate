@@ -33,6 +33,7 @@ public class FrcDisabled implements TrcRobot.RobotMode
     //
     // Global objects.
     //
+    @SuppressWarnings("unused")
     private final Robot robot;
 
     /**
@@ -89,13 +90,6 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
-        if (slowPeriodicLoop)
-        {
-            //
-            // Update robot status.
-            //
-            Dashboard.updateDashboard(robot, 1);
-        }
     }   //periodic
 
 }   //class FrcDisabled

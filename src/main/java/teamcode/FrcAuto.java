@@ -23,11 +23,10 @@
 package teamcode;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import frclib.drivebase.FrcSwerveDrive;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcUserChoices;
-import teamcode.commandbased.ExampleAuto;
+import teamcode.autocommands.CmdAuto;
 import trclib.command.CmdPidDrive;
 import trclib.command.CmdPurePursuitDrive;
 import trclib.command.CmdTimedDrive;
@@ -50,10 +49,11 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     public enum AutoStrategy
     {
-        HYBRID_MODE_AUTO,
+        TEMPLATE_AUTO,
         PP_DRIVE,
         PID_DRIVE,
         TIMED_DRIVE,
+        HYBRID_MODE_AUTO,
         DO_NOTHING
     }   //enum AutoStrategy
 
@@ -121,6 +121,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             }
             else
             {
+                autoStrategyMenu.addChoice("Template Auto", AutoStrategy.TEMPLATE_AUTO);
                 autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
                 autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
                 autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
@@ -287,33 +288,29 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         switch (autoChoices.getStrategy())
         {
-            case HYBRID_MODE_AUTO:
-                if (robot.robotDrive != null && robot.robotDrive instanceof FrcSwerveDrive)
+            case TEMPLATE_AUTO:
+                if (robot.robotBase != null)
                 {
-                    robot.m_autonomousCommand = new ExampleAuto((FrcSwerveDrive) robot.robotDrive);
-                    // schedule the autonomous command (example)
-                    if (robot.m_autonomousCommand != null)
-                    {
-                        robot.m_autonomousCommand.schedule();
-                    }
+                    autoCommand = new CmdAuto(robot, autoChoices);
                 }
                 break;
 
             case PP_DRIVE:
-                if (robot.robotDrive != null)
+                if (robot.robotBase != null)
                 {
                     autoCommand = new CmdPurePursuitDrive(
-                        robot.robotDrive.driveBase, robot.robotInfo.xDrivePidCoeffs, robot.robotInfo.yDrivePidCoeffs,
-                        robot.robotInfo.turnPidCoeffs, robot.robotInfo.velPidCoeffs);
+                        robot.robotBase.driveBase, robot.robotInfo.baseParams.xDrivePidCoeffs,
+                        robot.robotInfo.baseParams.yDrivePidCoeffs, robot.robotInfo.baseParams.turnPidCoeffs,
+                        robot.robotInfo.baseParams.velPidCoeffs);
                     ((CmdPurePursuitDrive) autoCommand).start(
                         0.0, false, RobotParams.Robot.TEAM_FOLDER_PATH + "/" + autoChoices.getPathFile(), false);
                 }
                 break;
 
             case PID_DRIVE:
-                if (robot.robotDrive != null)
+                if (robot.robotBase != null)
                 {
-                    autoCommand = new CmdPidDrive(robot.robotDrive.driveBase, robot.robotDrive.pidDrive);
+                    autoCommand = new CmdPidDrive(robot.robotBase.driveBase, robot.robotBase.pidDrive);
                     ((CmdPidDrive) autoCommand).start(
                         autoChoices.getStartDelay(), autoChoices.getDrivePower(), null,
                         new TrcPose2D(autoChoices.getXDriveDistance()*12.0,
@@ -323,14 +320,15 @@ public class FrcAuto implements TrcRobot.RobotMode
                 break;
 
             case TIMED_DRIVE:
-                if (robot.robotDrive != null)
+                if (robot.robotBase != null)
                 {
                     autoCommand = new CmdTimedDrive(
-                        robot.robotDrive.driveBase, autoChoices.getStartDelay(), autoChoices.getDriveTime(), 0.0,
+                        robot.robotBase.driveBase, autoChoices.getStartDelay(), autoChoices.getDriveTime(), 0.0,
                         autoChoices.getDrivePower(), 0.0);
                 }
                 break;
 
+            case HYBRID_MODE_AUTO:
             case DO_NOTHING:
             default:
                 autoCommand = null;
@@ -375,14 +373,6 @@ public class FrcAuto implements TrcRobot.RobotMode
             // Run the autonomous command.
             //
             autoCommand.cmdPeriodic(elapsedTime);
-        }
-
-        if (slowPeriodicLoop)
-        {
-            //
-            // Update robot status.
-            //
-            Dashboard.updateDashboard(robot, 1);
         }
     }   //periodic
 

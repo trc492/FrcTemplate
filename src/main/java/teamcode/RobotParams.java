@@ -23,7 +23,7 @@
 package teamcode;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import teamcode.subsystems.RobotBase.RobotType;
+import teamcode.subsystems.DriveBase.RobotType;
 import trclib.pathdrive.TrcPose2D;
 
 /**
@@ -45,33 +45,37 @@ public class RobotParams
         public static final boolean hybridMode                  = false;
         public static final boolean useTraceLog                 = true;
         public static final boolean useCommStatusMonitor        = false;
-        // Dashboard Update
-        public static final boolean updateDashboard             = !inCompetition;
-        public static final boolean driveBaseStatus             = false;
-        public static final boolean debugDriveBase              = false;
-        public static final boolean debugPidDrive               = false;
-        public static final boolean showDrivePower              = false;
-        public static final boolean showVision                  = false;
-        public static final boolean showSubsystems              = true;
         // Sensors and Indicators
-        public static final boolean useNavX                     = true;
         public static final boolean usePdp                      = false;
         public static final boolean usePressureSensor           = false;
+        // Driver feedback
+        // Status Update: Dashboard Update may affect robot loop time, don't do it when in competition.
+        public static final boolean updateDashboard             = !inCompetition;   // Start up default value.
         public static final boolean useLED                      = false;
         public static final boolean useRumble                   = false;
         public static final boolean useOneGameController        = false;
         // Vision
         public static final boolean useVision                   = false;
+        public static final boolean showVisionStatus            = false;
         public static final boolean usePhotonVision             = true;
         public static final boolean useOpenCvVision             = false;
+        public static final boolean useWebcamAprilTagVision     = false;
+        public static final boolean useWebcamColorBlobVision    = false;
+        public static final boolean useSolvePnp                 = false;
         public static final boolean useStreamCamera             = false;
         public static final boolean doVisionRelocalize          = false;
-        // Drive Base
+        // Master switches for Subsystems
+        public static final boolean useSubsystems               = true;
+        public static final boolean showSubsystems              = true;
+        // Drive Base Subsystem
         public static final boolean useDriveBase                = false;
+        public static final boolean showDriveBaseStatus         = false;
+        public static final boolean debugDriveBase              = false;
+        public static final boolean debugPidDrive               = false;
+        public static final boolean showDrivePower              = false;
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
-        // Subsystems
-        public static final boolean useSubsystems               = true;
+        // Other Subsystems
         // Auto Tasks
     }   //class Preferences
 
@@ -85,19 +89,19 @@ public class RobotParams
         public static final int XBOX_OPERATOR_CONTROLLER        = 1;
         // CAN IDs.
         // Drive Motor CAN IDs.
-        public static final int CANID_LFDRIVE_MOTOR             = 3;    //Orange
-        public static final int CANID_RFDRIVE_MOTOR             = 4;    //Yellow
-        public static final int CANID_LBDRIVE_MOTOR             = 5;    //Green
-        public static final int CANID_RBDRIVE_MOTOR             = 6;    //Blue
+        public static final int CANID_FLDRIVE_MOTOR             = 3;    //Orange
+        public static final int CANID_FRDRIVE_MOTOR             = 4;    //Yellow
+        public static final int CANID_BLDRIVE_MOTOR             = 5;    //Green
+        public static final int CANID_BRDRIVE_MOTOR             = 6;    //Blue
         // Swerve CAN IDs.
-        public static final int CANID_LFSTEER_MOTOR             = 13;   //Orange
-        public static final int CANID_RFSTEER_MOTOR             = 14;   //Yellow
-        public static final int CANID_LBSTEER_MOTOR             = 15;   //Green
-        public static final int CANID_RBSTEER_MOTOR             = 16;   //Blue
-        public static final int CANID_LFSTEER_ENCODER           = 23;   //Orange
-        public static final int CANID_RFSTEER_ENCODER           = 24;   //Yellow
-        public static final int CANID_LBSTEER_ENCODER           = 25;   //Green
-        public static final int CANID_RBSTEER_ENCODER           = 26;   //Blue
+        public static final int CANID_FLSTEER_MOTOR             = 13;   //Orange
+        public static final int CANID_FRSTEER_MOTOR             = 14;   //Yellow
+        public static final int CANID_BLSTEER_MOTOR             = 15;   //Green
+        public static final int CANID_BRSTEER_MOTOR             = 16;   //Blue
+        public static final int CANID_FLSTEER_ENCODER           = 23;   //Orange
+        public static final int CANID_FRSTEER_ENCODER           = 24;   //Yellow
+        public static final int CANID_BLSTEER_ENCODER           = 25;   //Green
+        public static final int CANID_BRSTEER_ENCODER           = 26;   //Blue
         // Miscellaneous CAN IDs.
         public static final int CANID_PDP                       = 30;
         public static final int CANID_PCM                       = 31;
@@ -153,11 +157,9 @@ public class RobotParams
         public static final String LOG_FOLDER_PATH              = TEAM_FOLDER_PATH + "/tracelogs";
         public static final String STEER_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/SteerZeroCalibration.txt";
         public static final String FIELD_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/FieldZeroCalibration.txt";
-        public static final double DASHBOARD_UPDATE_INTERVAL    = 0.1;      // in msec
         public static final String ROBOT_CODEBASE               = "Robot2025";
         public static final double ROBOT_LENGTH                 = 35.5;
         public static final double ROBOT_WIDTH                  = 35.5;
-        public static final double DRIVE_RAMP_RATE              = 0.25;
     }   //class Robot
 
     /**
@@ -171,24 +173,6 @@ public class RobotParams
         public static final double AUTONOMOUS_PERIOD            = 15.0;     // in seconds
         public static final double TELEOP_PERIOD                = 135.0;    // in seconds
         public static final double ENDGAME_THRESHOLD            = 20.0;     // in seconds
-        //
-        // Robot starting positions.
-        //
-        public static final double STARTPOS_BLUE_Y              = Robot.ROBOT_LENGTH / 2.0;
-        public static final double STARTPOS_RED_Y               = Field.LENGTH - STARTPOS_BLUE_Y;
-        public static final double STARTPOS_1_X                 = -42.19;
-        public static final double STARTPOS_2_X                 = -108.19;
-        public static final double STARTPOS_3_X                 = -174.19;
-        public static final TrcPose2D STARTPOS_BLUE_1           = new TrcPose2D(STARTPOS_1_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_BLUE_2           = new TrcPose2D(STARTPOS_2_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_BLUE_3           = new TrcPose2D(STARTPOS_3_X, STARTPOS_BLUE_Y, 180.0);
-        public static final TrcPose2D STARTPOS_RED_1            = new TrcPose2D(STARTPOS_1_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D STARTPOS_RED_2            = new TrcPose2D(STARTPOS_2_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D STARTPOS_RED_3            = new TrcPose2D(STARTPOS_3_X, STARTPOS_RED_Y, 0.0);
-        public static final TrcPose2D[] startPoses              =
-        {
-            STARTPOS_BLUE_1, STARTPOS_BLUE_2, STARTPOS_BLUE_3
-        };
         //
         // Game element locations and dimensions.
         //
@@ -218,6 +202,24 @@ public class RobotParams
         /*ID21*/    new TrcPose2D(-158.66, 209.45, 0.0), //z=12.125
         /*ID22*/    new TrcPose2D(-130.32, 192.91, 60.0) //z=12.125
         };
+        //
+        // Robot starting positions.
+        //
+        public static final double STARTPOS_BLUE_Y              = Robot.ROBOT_LENGTH / 2.0;
+        public static final double STARTPOS_RED_Y               = Field.LENGTH - STARTPOS_BLUE_Y;
+        public static final double STARTPOS_1_X                 = -42.19;
+        public static final double STARTPOS_2_X                 = -108.19;
+        public static final double STARTPOS_3_X                 = -174.19;
+        public static final TrcPose2D STARTPOS_BLUE_1           = new TrcPose2D(STARTPOS_1_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_BLUE_2           = new TrcPose2D(STARTPOS_2_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_BLUE_3           = new TrcPose2D(STARTPOS_3_X, STARTPOS_BLUE_Y, 180.0);
+        public static final TrcPose2D STARTPOS_RED_1            = new TrcPose2D(STARTPOS_1_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D STARTPOS_RED_2            = new TrcPose2D(STARTPOS_2_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D STARTPOS_RED_3            = new TrcPose2D(STARTPOS_3_X, STARTPOS_RED_Y, 0.0);
+        public static final TrcPose2D[] startPoses              =
+        {
+            STARTPOS_BLUE_1, STARTPOS_BLUE_2, STARTPOS_BLUE_3
+        };
     }   //class Game
 
     /**
@@ -226,10 +228,10 @@ public class RobotParams
      */
     public static class Field
     {
-        public static final boolean mirroredField               = false;
         // Field dimensions in inches.
         public static final double LENGTH                       = 54.0*12.0;
         public static final double WIDTH                        = 27.0*12.0;
+        public static final boolean mirroredField               = false;
     }   //class Field
 
 }   //class RobotParams

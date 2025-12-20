@@ -28,7 +28,7 @@ import frclib.driverio.FrcXboxController;
 import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.vision.PhotonVision.PipelineType;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
-import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveDrive;
 import trclib.driverio.TrcGameController.DriveMode;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcRobot;
@@ -123,7 +123,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Initialize subsystems for TeleOp mode if necessary.
         //
-        if (robot.robotDrive != null)
+        if (robot.robotBase != null)
         {
             // Set robot to FIELD by default but don't change the heading.
             robot.setDriveOrientation(driveOrientationMenu.getCurrentChoiceObject(), false);
@@ -192,7 +192,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 // DriveBase subsystem.
                 //
-                if (robot.robotDrive != null)
+                if (robot.robotBase != null)
                 {
                     if (relocalizing)
                     {
@@ -224,10 +224,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
                         driveInputs = robot.driverController.getDriveInputs(
                             driveModeMenu.getCurrentChoiceObject(), true, driveSpeedScale, turnSpeedScale);
-                        if (robot.robotDrive.driveBase.supportsHolonomicDrive())
+                        if (robot.robotBase.driveBase.supportsHolonomicDrive())
                         {
-                            double gyroAngle = robot.robotDrive.driveBase.getDriveGyroAngle();
-                            robot.robotDrive.driveBase.holonomicDrive(
+                            double gyroAngle = robot.robotBase.driveBase.getDriveGyroAngle();
+                            robot.robotBase.driveBase.holonomicDrive(
                                 null, driveInputs[0], driveInputs[1], driveInputs[2], gyroAngle);
                             if (showDriveBaseStatus)
                             {
@@ -240,7 +240,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         }
                         else
                         {
-                            robot.robotDrive.driveBase.arcadeDrive(driveInputs[1], driveInputs[2]);
+                            robot.robotBase.driveBase.arcadeDrive(driveInputs[1], driveInputs[2]);
                             if (showDriveBaseStatus)
                             {
                                 robot.dashboard.putString(
@@ -269,10 +269,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                 }
             }
-            //
-            // Update robot status.
-            //
-            Dashboard.updateDashboard(robot, 1);
         }
     }   //periodic
 
@@ -316,11 +312,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         {
             case A:
                 // Toggle between field or robot oriented driving.
-                if (robot.robotDrive != null && pressed)
+                if (robot.robotBase != null && pressed)
                 {
                     if (driverAltFunc)
                     {
-                        if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
+                        if (robot.robotBase.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
                         {
                             robot.setDriveOrientation(DriveOrientation.FIELD, true);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Field");
@@ -333,10 +329,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                     else
                     {
-                        robot.robotDrive.driveBase.resetFieldForwardHeading();
+                        robot.robotBase.driveBase.resetFieldForwardHeading();
                         robot.globalTracer.traceInfo(
                             moduleName,
-                            ">>>>> Reset field forward heading (heading=" + robot.robotDrive.driveBase.getHeading() +
+                            ">>>>> Reset field forward heading (heading=" + robot.robotBase.driveBase.getHeading() +
                             ")");
                     }
                 }
@@ -346,9 +342,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case X:
-                if (robot.robotDrive != null && pressed)
+                if (robot.robotBase != null && pressed)
                 {
-                    ((TrcSwerveDriveBase) (robot.robotDrive.driveBase)).setXMode(null);
+                    ((TrcSwerveDrive) (robot.robotBase.driveBase)).setXMode(null);
                     robot.globalTracer.traceInfo(moduleName, ">>>>> X Mode");
                 }
                 break;
@@ -412,7 +408,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         {
                             robot.globalTracer.traceInfo(
                                 moduleName, ">>>>> Finish re-localizing: pose=" + robotFieldPose);
-                            robot.robotDrive.driveBase.setFieldPosition(robotFieldPose, false);
+                            robot.robotBase.driveBase.setFieldPosition(robotFieldPose, false);
                             robotFieldPose = null;
                         }
                         else

@@ -23,8 +23,6 @@
 package teamcode;
 
 import frclib.driverio.FrcDashboard;
-import trclib.subsystem.TrcSubsystem;
-import trclib.timer.TrcTimer;
 
 /**
  * This class contains Dashboard constants and parameters.
@@ -41,7 +39,6 @@ public class Dashboard
     public static final String DBKEY_PREFERENCE_SUBSYSTEM_STATUS    = "Preferences/SubsystemStatus";
 
     private static FrcDashboard dashboard;
-    private static double nextDashboardUpdateTime;
 
     /**
      * Constructor: Creates an instance of the object and publishes the keys in the Network Table.
@@ -49,14 +46,13 @@ public class Dashboard
     public Dashboard()
     {
         dashboard = FrcDashboard.getInstance();
-        nextDashboardUpdateTime = TrcTimer.getCurrentTime();
         // Preferences.
         dashboard.refreshKey(DBKEY_PREFERENCE_COMMSTATUS_MONITOR, RobotParams.Preferences.useCommStatusMonitor);
         dashboard.refreshKey(DBKEY_PREFERENCE_UPDATE_DASHBOARD, RobotParams.Preferences.updateDashboard);
-        dashboard.refreshKey(DBKEY_PREFERENCE_DRIVEBASE_STATUS, RobotParams.Preferences.driveBaseStatus);
+        dashboard.refreshKey(DBKEY_PREFERENCE_DRIVEBASE_STATUS, RobotParams.Preferences.showDriveBaseStatus);
         dashboard.refreshKey(DBKEY_PREFERENCE_DEBUG_DRIVEBASE, RobotParams.Preferences.debugDriveBase);
         dashboard.refreshKey(DBKEY_PREFERENCE_DEBUG_PIDDRIVE, RobotParams.Preferences.debugPidDrive);
-        dashboard.refreshKey(DBKEY_PREFERENCE_VISION_STATUS, RobotParams.Preferences.showVision);
+        dashboard.refreshKey(DBKEY_PREFERENCE_VISION_STATUS, RobotParams.Preferences.showVisionStatus);
         dashboard.refreshKey(DBKEY_PREFERENCE_SUBSYSTEM_STATUS, RobotParams.Preferences.showSubsystems);
     }   //Dashboard
 
@@ -71,56 +67,22 @@ public class Dashboard
     }   //getDashboard
 
     /**
-     * This method is called periodically to update various hardware/subsystem status of the robot to the dashboard
-     * and trace log. In order to lower the potential impact these updates, this method will only update the dashboard
-     * at DASHBOARD_UPDATE_INTERVAL.
-     *
-     * @param robot specifies the robot object.
-     * @param lineNum specifies the first Dashboard line for printing status.
-     * @return next available dashboard line.
+     * This method is called periodically to check the Dashboard switch for enabling/disabling Dashboard update.
      */
-    public static int updateDashboard(Robot robot, int lineNum)
+    public static void checkDashboardUpdateEnabled()
     {
-        double currTime = TrcTimer.getCurrentTime();
-        boolean slowLoop = currTime >= nextDashboardUpdateTime;
+        boolean updateDashboard = dashboard.getBoolean(
+            Dashboard.DBKEY_PREFERENCE_UPDATE_DASHBOARD, RobotParams.Preferences.updateDashboard);
+        boolean updateEnabled = dashboard.isDashboardUpdateEnabled();
 
-        if (slowLoop)
+        if (!updateEnabled && updateDashboard)
         {
-            nextDashboardUpdateTime = currTime + RobotParams.Robot.DASHBOARD_UPDATE_INTERVAL;
+            dashboard.enableDashboardUpdate(1, true);
         }
-
-        if (dashboard.getBoolean(DBKEY_PREFERENCE_UPDATE_DASHBOARD, RobotParams.Preferences.updateDashboard))
+        else if (updateEnabled && !updateDashboard)
         {
-            if (dashboard.getBoolean(DBKEY_PREFERENCE_DRIVEBASE_STATUS, RobotParams.Preferences.driveBaseStatus))
-            {
-                lineNum = robot.robotBase.updateStatus(lineNum, slowLoop);
-            }
-
-            if (dashboard.getBoolean(DBKEY_PREFERENCE_VISION_STATUS, RobotParams.Preferences.showVision))
-            {
-                if (robot.photonVisionFront != null)
-                {
-                    lineNum = robot.photonVisionFront.updateStatus(lineNum, slowLoop);
-                }
-
-                if (robot.photonVisionBack != null)
-                {
-                    lineNum = robot.photonVisionBack.updateStatus(lineNum, slowLoop);
-                }
-
-                if (robot.openCvVision != null)
-                {
-                    lineNum = robot.openCvVision.updateStatus(lineNum, slowLoop);
-                }
-            }
-
-            if (dashboard.getBoolean(DBKEY_PREFERENCE_SUBSYSTEM_STATUS, RobotParams.Preferences.showSubsystems))
-            {
-                lineNum = TrcSubsystem.updateStatusAll(lineNum, slowLoop);
-            }
+            dashboard.disableDashboardUpdate();
         }
-
-        return lineNum;
-    }   //updateDashboard
+    }   //checkDashboardUpdateEnabled
 
 }   //class Dashboard

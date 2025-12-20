@@ -22,8 +22,8 @@
 
 package teamcode.autocommands;
 
+import teamcode.FrcAuto;
 import teamcode.Robot;
-import teamcode.FrcAuto.AutoChoices;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcStateMachine;
@@ -43,7 +43,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
     }   //enum State
 
     private final Robot robot;
-    private final AutoChoices autoChoices;
+    private final FrcAuto.AutoChoices autoChoices;
     private final TrcTimer timer;
     private final TrcEvent event;
     private final TrcStateMachine<State> sm;
@@ -54,7 +54,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
      * @param robot specifies the robot object for providing access to various global objects.
      * @param autoChoices specifies the autoChoices object.
      */
-    public CmdAuto(Robot robot, AutoChoices autoChoices)
+    public CmdAuto(Robot robot, FrcAuto.AutoChoices autoChoices)
     {
         this.robot = robot;
         this.autoChoices = autoChoices;
@@ -113,7 +113,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
             {
                 case START:
                     // Set robot location according to auto choices.
-                    robot.setRobotStartPosition();
+                    robot.setRobotStartPosition(autoChoices);
                     // Do delay if necessary.
                     double startDelay = autoChoices.getStartDelay();
                     if (startDelay > 0.0)
@@ -135,8 +135,8 @@ public class CmdAuto implements TrcRobot.RobotCommand
                     break;
             }
             robot.globalTracer.tracePostStateInfo(
-                sm.toString(), state, robot.robotDrive.driveBase, robot.robotDrive.pidDrive,
-                robot.robotDrive.purePursuitDrive, null);
+                sm.toString(), state, robot.robotBase.driveBase, robot.robotBase.pidDrive,
+                robot.robotBase.purePursuitDrive, null);
         }
 
         return !sm.isEnabled();
