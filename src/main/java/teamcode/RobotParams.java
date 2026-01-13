@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2026 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,7 +157,7 @@ public class RobotParams
         public static final String LOG_FOLDER_PATH              = TEAM_FOLDER_PATH + "/tracelogs";
         public static final String STEER_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/SteerZeroCalibration.txt";
         public static final String FIELD_ZERO_CAL_FILE          = TEAM_FOLDER_PATH + "/FieldZeroCalibration.txt";
-        public static final String ROBOT_CODEBASE               = "Robot2025";
+        public static final String ROBOT_CODEBASE               = "Robot2026";
         public static final double ROBOT_LENGTH                 = 35.5;
         public static final double ROBOT_WIDTH                  = 35.5;
     }   //class Robot
