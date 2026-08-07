@@ -42,7 +42,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
         DONE
     }   //enum State
 
-    private static class TaskParams
+    private class TaskParams
     {
         TaskParams()
         {
@@ -55,6 +55,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
     }   //class TaskParams
 
     private final Robot robot;
+    private TaskParams taskParams = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -75,11 +76,11 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      */
     public void autoAssist(String owner, TrcEvent completionEvent)
     {
-        TaskParams taskParams = new TaskParams();
+        taskParams = new TaskParams();
         tracer.traceInfo(
             moduleName,
             "autoAssist(owner=" + owner + ", event=" + completionEvent + ", taskParams=" + taskParams + ")");
-        startAutoTask(owner, State.START, taskParams, completionEvent);
+        startAutoTask(owner, State.START, completionEvent);
     }   //autoAssist
 
     //
@@ -141,7 +142,6 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      * This methods is called periodically to run the auto-assist task.
      *
      * @param owner specifies the owner that acquired the subsystem ownerships.
-     * @param params specifies the task parameters.
      * @param state specifies the current state of the task.
      * @param taskType specifies the type of task being run.
      * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
@@ -150,11 +150,8 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
      */
     @Override
     protected void runTaskState(
-        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode,
-        boolean slowPeriodicLoop)
+        String owner, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
     {
-        TaskParams taskParams = (TaskParams) params;
-
         switch (state)
         {
             case START:
