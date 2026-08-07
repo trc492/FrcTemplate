@@ -62,12 +62,31 @@ public class CmdAuto implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        sm.start(State.START);
     }   //CmdAuto
 
     //
     // Implements the TrcRobot.RobotCommand interface.
     //
+
+    /**
+     * This method starts the RobotCommand. It is called to set the state to start from the beginning. Typically,
+     * you will reset the state machine to the initial state and reset any timers used by the command.
+     */
+    @Override
+    public void start()
+    {
+        sm.start(State.START);
+    }   //start
+
+    /**
+     * This method cancels the command if it is active.
+     */
+    @Override
+    public void cancel()
+    {
+        timer.cancel();
+        sm.stop();
+    }   //cancel
 
     /**
      * This method checks if the current RobotCommand  is running.
@@ -79,16 +98,6 @@ public class CmdAuto implements TrcRobot.RobotCommand
     {
         return sm.isEnabled();
     }   //isActive
-
-    /**
-     * This method cancels the command if it is active.
-     */
-    @Override
-    public void cancel()
-    {
-        timer.cancel();
-        sm.stop();
-    }   //cancel
 
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.
@@ -115,7 +124,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
                     // Set robot location according to auto choices.
                     robot.setRobotStartPosition(autoChoices);
                     // Do delay if necessary.
-                    double startDelay = autoChoices.getStartDelay();
+                    double startDelay = autoChoices.startDelay;
                     if (startDelay > 0.0)
                     {
                         robot.globalTracer.traceInfo(moduleName, "***** Do delay " + startDelay + "s.");
