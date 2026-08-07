@@ -112,11 +112,11 @@ public class CmdAuto implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(8, "State: disabled or waiting (nextState=" + sm.getNextState() + ")...");
+            robot.dashboard.displayPrintf(15, "State: disabled or waiting (nextState=" + sm.getNextState() + ")...");
         }
         else
         {
-            robot.dashboard.displayPrintf(8, "State: " + state);
+            robot.dashboard.displayPrintf(15, "State: " + state);
             robot.globalTracer.tracePreStateInfo(sm.toString(), state);
             switch (state)
             {
