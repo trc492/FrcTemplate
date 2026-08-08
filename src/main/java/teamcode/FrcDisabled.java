@@ -64,7 +64,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
-        robot.ledIndicator.setDisabledMode(true);
+        if (robot.ledIndicator != null)
+        {
+            robot.ledIndicator.setDisabledMode(true);
+        }
     }   //startMode
 
     /**
@@ -77,7 +80,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        robot.ledIndicator.setDisabledMode(false);
+        if (robot.ledIndicator != null)
+        {
+            robot.ledIndicator.setDisabledMode(false);
+        }
     }   //stopMode
 
     /**
