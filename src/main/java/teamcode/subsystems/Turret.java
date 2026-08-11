@@ -25,8 +25,12 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
+import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -39,16 +43,14 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class Turret extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "Turret";
+    public static final boolean NEED_ZERO_CAL                   = true;
+
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "Turret";
-        public static final boolean NEED_ZERO_CAL               = true;
-
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
         public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
         public static final int MOTOR_ID                        = 10;
-        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
-        public static final boolean MOTOR_BRUSHLESS             = false;
-        public static final boolean MOTOR_ENC_ABS               = false;
         public static final boolean MOTOR_INVERTED              = true;
 
         public static final String LOWER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
@@ -61,6 +63,7 @@ public class Turret extends TrcSubsystem
         public static final double POS_OFFSET                   = 0.0;
         public static final double POWER_LIMIT                  = 1.0;
         public static final double ZERO_CAL_POWER               = -0.3;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
 
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 325.0;
@@ -81,11 +84,6 @@ public class Turret extends TrcSubsystem
         public static final double POS_PID_TOLERANCE            = 1.0;
     }   //class Params
 
-    private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
-    private static final String DBKEY_CURRENT                   = Params.SUBSYSTEM_NAME + "/Current";
-    private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
-    private static final String DBKEY_LOWER_LIMIT               = Params.SUBSYSTEM_NAME + "/LowerLimit";
-
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
 
@@ -94,25 +92,21 @@ public class Turret extends TrcSubsystem
      */
     public Turret()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_CURRENT, 0.0);
-        dashboard.refreshKey(DBKEY_POSITION, "");
-        dashboard.refreshKey(DBKEY_LOWER_LIMIT, false);
-
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.MOTOR_NAME, Params.MOTOR_ID, Params.MOTOR_TYPE, Params.MOTOR_BRUSHLESS, Params.MOTOR_ENC_ABS,
-                Params.MOTOR_INVERTED)
+                Params.MOTOR_NAME, Params.MOTOR_TYPE, Params.MOTOR_INVERTED, true, true, Params.MOTOR_ID, null, null)
             .setLowerLimitSwitch(
                 Params.LOWER_LIMIT_SWITCH_NAME, Params.LOWER_LIMIT_SWITCH_CHANNEL, Params.LOWER_LIMIT_SWITCH_INVERTED)
             .setPositionScaleAndOffset(Params.DEG_PER_COUNT, Params.POS_OFFSET)
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
         motor = new FrcMotorActuator(motorParams).getMotor();
         motor.setPositionPidParameters(
-            Params.posPidCoeffs, Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
+            new PidParams()
+                .setPidCoefficients(Params.posPidCoeffs)
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
         // Since we don't have upper limit switch, setting soft limits will protect turret from overrunning the upper
         // limit in manual mode.
         motor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
@@ -141,16 +135,17 @@ public class Turret extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
-        motor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, event);
+        motor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, completionEvent, Params.ZERO_CAL_TIMEOUT);
     }   //zeroCalibrate
 
     /**
@@ -172,37 +167,71 @@ public class Turret extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_TURRET_SHOW_STATUS, RobotParams.Preferences.showTurretStatus))
         {
-            dashboard.putNumber(DBKEY_POWER, motor.getPower());
-            dashboard.putNumber(DBKEY_CURRENT, motor.getCurrent());
-            dashboard.putString(
-                DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
-            dashboard.putBoolean(DBKEY_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TURRET_POWER, motor.getPower());
+                dashboard.putNumber(Dashboard.DBKEY_TURRET_CURRENT, motor.getCurrent());
+                dashboard.putString(Dashboard.DBKEY_TURRET_POSITION,
+                                    motor.getPosition() + "/" + motor.getPidTarget());
+                dashboard.putBoolean(Dashboard.DBKEY_TURRET_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - Kp
-     *        tuneParam1 - Ki
-     *        tuneParam2 - Kd
-     *        tuneParam3 - Kf
-     *        tuneParam4 - iZone
-     *        tuneParam5 - PidTolerance
-     *        tuneParam6 - GravityCompPower
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        motor.setPositionPidParameters(
-            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-            Params.SOFTWARE_PID_ENABLED);
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, Params.posPidCoeffs.kP);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, Params.posPidCoeffs.kI);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, Params.posPidCoeffs.kD);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, Params.posPidCoeffs.kF);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, Params.posPidCoeffs.iZone);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, Params.POS_PID_TOLERANCE);
+                dashboard.putBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, Params.SOFTWARE_PID_ENABLED);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, 0.0);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
+            {
+                motor.setPositionPidParameters(pidParams, null);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                motor.tracer.traceInfo(instanceName, "Tune %s: PidParams=%s", subsystemName, pidParams);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class Turret

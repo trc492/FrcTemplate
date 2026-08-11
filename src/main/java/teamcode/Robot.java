@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2026 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,31 @@
 
 package teamcode;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frclib.drivebase.FrcRobotDrive;
+import frclib.drivebase.FrcRobotBase;
+import frclib.drivebase.FrcSwerveBase;
 import frclib.drivebase.FrcSwerveDrive;
-import frclib.drivebase.FrcRobotDrive.ImuType;
+import frclib.drivebase.FrcRobotBase.ImuType;
 import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcMatchInfo;
 import frclib.driverio.FrcXboxController;
-import frclib.robotcore.FrcRobotBase;
+import frclib.robotcore.FrcRobot;
 import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
@@ -50,26 +54,25 @@ import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.autotasks.TaskAutoPickup;
 import teamcode.autotasks.TaskAutoShoot;
+import teamcode.indicators.LEDIndicator;
 import teamcode.subsystems.MotorArm;
 import teamcode.subsystems.ServoClaw;
 import teamcode.subsystems.ServoExtender;
 import teamcode.subsystems.ServoWrist;
 import teamcode.subsystems.CrServoArm;
 import teamcode.subsystems.DiffyServoWrist;
+import teamcode.subsystems.DriveBase;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
-import teamcode.subsystems.LEDIndicator;
 import teamcode.subsystems.Latch;
-import teamcode.subsystems.RobotBase;
 import teamcode.subsystems.Shooter;
 import teamcode.subsystems.Turret;
-import teamcode.vision.OpenCvVision;
-import teamcode.vision.PhotonVision;
-import trclib.dataprocessor.TrcUtil;
+import teamcode.vision.Vision;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcServo;
 import trclib.pathdrive.TrcPose2D;
+import trclib.robotcore.TrcAutoTask;
 import trclib.robotcore.TrcBuildInfo;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
@@ -79,6 +82,7 @@ import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
+import trclib.timer.TrcTimer;
 import trclib.vision.TrcVisionRelocalize;
 
 /**
@@ -87,13 +91,21 @@ import trclib.vision.TrcVisionRelocalize;
  * documentation. If you change the name of this class or the package after creating
  * this project, you must also update the Main class to reflect the name change.
  */
-public class Robot extends FrcRobotBase
+public class Robot extends FrcRobot
 {
+    public enum RelocalizationMode
+    {
+        Disabled,
+        OneShot,
+        Continuous
+    }   //enum RelocalizationMode
+
     // Global objects.
     public static final String moduleName = Robot.class.getSimpleName();
     public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
     public FrcDashboard dashboard;
-    private boolean traceLogOpened;
+    private TrcBuildInfo buildInfo;
+    private FrcMatchInfo matchInfo;
     // Inputs.
     public FrcXboxController driverController;
     public FrcXboxController operatorController;
@@ -102,31 +114,44 @@ public class Robot extends FrcRobotBase
     public TrcRobotBattery battery;
     public AnalogInput pressureSensor;
     // Robot Drive.
-    public RobotBase robotBase;
-    public FrcRobotDrive.RobotInfo robotInfo;
-    public FrcRobotDrive robotDrive;
+    public DriveBase robotDriveBase;
+    public FrcRobotBase.RobotInfo robotInfo;
+    public FrcRobotBase robotBase;
     private TrcPose2D endOfAutoRobotPose = null;
     // Miscellaneous hardware.
     public LEDIndicator ledIndicator;
     // Vision.
-    public PhotonVision photonVisionFront;
-    public PhotonVision photonVisionBack;
-    public OpenCvVision openCvVision;
-    public TrcVisionRelocalize visionRelocalize;
+    public Vision vision;
+    public boolean hasVisionPoseEstimator = false;
+    public TrcVisionRelocalize trcVisionRelocalize = null;
+    // Miscellaneous
+    private boolean zeroCalibrated = false;
+    private RelocalizationMode relocalizationMode = RelocalizationMode.Continuous;
     // Hybrid mode objects.
     public Command m_autonomousCommand;
+    //
     // Other subsystems.
+    //
+    public MotorArm motorArmSubsystem;
     public TrcMotor motorArm;
+    public CrServoArm crServoArmSubsystem;
     public TrcMotor crServoArm;
+    public Elevator elevatorSubsystem;
     public TrcMotor elevator;
+    public Turret turretSubsystem;
     public TrcMotor turret;
+    public Intake intakeSubsystem;
     public TrcRollerIntake intake;
     public Shooter shooterSubsystem;
     public TrcShooter shooter;
     public DiffyServoWrist diffyWrist;
+    public ServoWrist servoWristSubsystem;
     public TrcServo servoWrist;
-    public ServoExtender servoExtender;
-    public TrcServoClaw claw;
+    public ServoExtender servoExtenderSubsystem;
+    public TrcServo servoExtender;
+    public ServoClaw servoClawSubsystem;
+    public TrcServoClaw servoClaw;
+    public Latch latchSubsystem;
     public TrcServo latch;
     // Auto Tasks.
     public TaskAutoShoot autoShootTask;
@@ -151,19 +176,25 @@ public class Robot extends FrcRobotBase
      * 4. Instantiate and initialize the new subsystem object in robotInit under the "Create other subsystems" section.
      * 5. Put code in FrcTeleOp to operate the subsystem if necessary (i.e. slowPeriodic/xxxButtonEvent).
      */
+    @SuppressWarnings("unused")
     @Override
     public void robotInit()
     {
         // Initialize global objects.
         dashboard = new Dashboard().getDashboard();
-        traceLogOpened = false;
+        createTeamFolderPath();
+        DataLogManager.start();
+        buildInfo = TrcBuildInfo.getBuildInfo();
         // Create and initialize inputs.
-        driverController = new FrcXboxController(
-            "DriverController", RobotParams.HwConfig.XBOX_DRIVER_CONTROLLER);
-        driverController.setLeftStickInverted(false, true);
-        driverController.setRightStickInverted(false, true);
+        if (RobotParams.Preferences.hasDriverGameController)
+        {
+            driverController = new FrcXboxController(
+                "DriverController", RobotParams.HwConfig.XBOX_DRIVER_CONTROLLER);
+            driverController.setLeftStickInverted(false, true);
+            driverController.setRightStickInverted(false, true);
+        }
 
-        if (!RobotParams.Preferences.useOneGameController)
+        if (RobotParams.Preferences.hasOperatorGameController)
         {
             operatorController = new FrcXboxController(
                 "OperatorController", RobotParams.HwConfig.XBOX_OPERATOR_CONTROLLER);
@@ -185,40 +216,31 @@ public class Robot extends FrcRobotBase
         }
 
         // Create and initialize RobotInfo. This must be done early because subsequent components may require it.
-        robotBase = new RobotBase();
-        robotInfo = robotBase.getRobotInfo();
-        robotDrive = robotBase.getRobotDrive();
+        robotDriveBase = new DriveBase();
+        robotInfo = robotDriveBase.getRobotInfo();
+        robotBase = robotDriveBase.getRobotBase();
 
-        if (RobotParams.Preferences.useLED)
-        {
-            ledIndicator = new LEDIndicator(robotInfo.ledName, robotInfo.ledChannel, robotInfo.numLEDs);
-        }
+        // Create and initialize sensors and indicators.
+        ledIndicator =
+            RobotParams.Preferences.useLED && robotInfo.ledInfos != null? new LEDIndicator(robotInfo.ledInfos): null;
 
         // Create and initialize Vision subsystem.
-        if (RobotParams.Preferences.useVision)
+        if (RobotParams.Preferences.useVision && robotInfo.camInfos != null)
         {
-            if (RobotParams.Preferences.usePhotonVision)
-            {
-                photonVisionFront = robotInfo.cam1 != null?
-                    new PhotonVision(robotInfo.cam1.camName, robotInfo.cam1.robotToCam, ledIndicator): null;
-                photonVisionBack = robotInfo.cam2 != null?
-                    new PhotonVision(robotInfo.cam2.camName, robotInfo.cam2.robotToCam, ledIndicator): null;
-            }
-            else if (RobotParams.Preferences.useOpenCvVision && robotInfo.cam2 != null)
-            {
-                UsbCamera camera = CameraServer.startAutomaticCapture(1);
-                camera.setResolution(robotInfo.cam2.camImageWidth, robotInfo.cam2.camImageHeight);
-                camera.setFPS(10);
-                openCvVision = new OpenCvVision(
-                    "OpenCvVision", 1, robotInfo.cam2,
-                    CameraServer.getVideo(),
-                    CameraServer.putVideo(
-                        "UsbWebcam", robotInfo.cam2.camImageWidth, robotInfo.cam2.camImageHeight));
-            }
+            vision = new Vision(this);
 
-            if (RobotParams.Preferences.doVisionRelocalize)
+            if (RobotParams.Preferences.visionRelocalizeEnabled && robotBase != null)
             {
-                visionRelocalize = new TrcVisionRelocalize(100);
+                if (RobotParams.Preferences.useWpiLibPoseEstimator &&
+                    robotBase.driveBase instanceof FrcSwerveDrive)
+                {
+                    ((FrcSwerveDrive) robotBase.driveBase).createPoseEstimator(vision.frontVision);
+                    hasVisionPoseEstimator = true;
+                }
+                else
+                {
+                    trcVisionRelocalize = new TrcVisionRelocalize(100);
+                }
             }
 
             if (RobotParams.Preferences.useStreamCamera)
@@ -235,34 +257,39 @@ public class Robot extends FrcRobotBase
 
         // If robotType is VisionOnly, the robot controller is disconnected from the robot for testing vision.
         // In this case, we should not instantiate any robot hardware.
-        if (RobotParams.Preferences.robotType != RobotBase.RobotType.VisionOnly)
+        if (RobotParams.Preferences.robotType != DriveBase.RobotType.VisionOnly)
         {
             if (RobotParams.Preferences.useSubsystems)
             {
                 // Create subsystems.
                 if (RobotParams.Preferences.useMotorArm)
                 {
-                    motorArm = new MotorArm().getMotor();
+                    motorArmSubsystem = new MotorArm();
+                    motorArm = motorArmSubsystem.getMotor();
                 }
 
                 if (RobotParams.Preferences.useCrServoArm)
                 {
-                    crServoArm = new CrServoArm().getMotor();
+                    crServoArmSubsystem = new CrServoArm();
+                    crServoArm = crServoArmSubsystem.getMotor();
                 }
 
                 if (RobotParams.Preferences.useElevator)
                 {
-                    elevator = new Elevator().getMotor();
+                    elevatorSubsystem = new Elevator();
+                    elevator = elevatorSubsystem.getMotor();
                 }
 
                 if (RobotParams.Preferences.useTurret)
                 {
-                    turret = new Turret().getMotor();
+                    turretSubsystem = new Turret();
+                    turret = turretSubsystem.getMotor();
                 }
 
                 if (RobotParams.Preferences.useIntake)
                 {
-                    intake = new Intake().getIntake();
+                    intakeSubsystem = new Intake();
+                    intake = intakeSubsystem.getIntake();
                 }
 
                 if (RobotParams.Preferences.useShooter)
@@ -279,23 +306,29 @@ public class Robot extends FrcRobotBase
 
                 if (RobotParams.Preferences.useServoWrist)
                 {
-                    servoWrist = new ServoWrist().getServo();
+                    servoWristSubsystem = new ServoWrist();
+                    servoWrist = servoWristSubsystem.getServo();
                 }
 
                 if (RobotParams.Preferences.useServoExtender)
                 {
-                    servoExtender = new ServoExtender();
+                    servoExtenderSubsystem = new ServoExtender();
+                    servoExtender = servoExtenderSubsystem.getServo();
                 }
 
-                if (RobotParams.Preferences.useClaw)
+                if (RobotParams.Preferences.useServoClaw)
                 {
-                    claw = new ServoClaw().getClaw();
+                    servoClawSubsystem = new ServoClaw();
+                    servoClaw = servoClawSubsystem.getClaw();
                 }
 
                 if (RobotParams.Preferences.useLatch)
                 {
-                    latch = new Latch().getServo();
+                    latchSubsystem = new Latch();
+                    latch = latchSubsystem.getServo();
                 }
+
+                TrcSubsystem.updateSubsystemParamsToDashboard();
 
                 // Create autotasks.
                 if (RobotParams.Preferences.useAutoShoot)
@@ -313,9 +346,6 @@ public class Robot extends FrcRobotBase
                         autoPickupTask = new TaskAutoPickup(this);
                     }
                 }
-
-                // Zero calibrate all subsystems only once in robot initialization.
-                zeroCalibrate(null, null);
             }
         }
 
@@ -323,6 +353,15 @@ public class Robot extends FrcRobotBase
         if (pdp != null)
         {
             pdp.registerEnergyUsedForAllUnregisteredChannels();
+        }
+        //
+        // Miscellaneous initializations.
+        //
+        // Enable LostComm detection.
+        if (dashboard.getBoolean(
+                Dashboard.DBKEY_PREFERENCE_COMMSTATUS_MONITOR, RobotParams.Preferences.useCommStatusMonitor))
+        {
+            super.setCommStatusMonitorEnabled(this::commStatusCallback);
         }
         //
         // Create Robot Modes.
@@ -339,46 +378,57 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
-        // Enable LostComm detection.
-        if (dashboard.getBoolean(Dashboard.DBKEY_PREFERENCE_COMMSTATUS_MONITOR, RobotParams.Preferences.useCommStatusMonitor))
+        // Read FMS Match info and Build info.
+        matchInfo = FrcMatchInfo.getMatchInfo();
+        if (runMode == RunMode.DISABLED_MODE)
         {
-            super.setCommStatusMonitorEnabled(this::commStatusCallback);
-        }
-
-        // Read FMS Match info.
-        FrcMatchInfo matchInfo = FrcMatchInfo.getMatchInfo();
-        TrcBuildInfo buildInfo = TrcBuildInfo.getBuildInfo();
-        if (runMode != RunMode.DISABLED_MODE)
-        {
-            // Start trace logging.
             if (RobotParams.Preferences.useTraceLog)
             {
-                openTraceLog(matchInfo);
-                setTraceLogEnabled(true);
+                // Entering Disabled mode, close previous trace log and re-open a new trace log for the next RunMode.
+                // But don't enable trace logging because we don't want to log Disabled mode.
+                closeTraceLog(matchInfo, prevMode);
+                openTraceLog();
             }
+        }
+        else
+        {
+            // Start trace logging.
+            setTraceLogEnabled(true);
             // Start RobotDrive.
-            if (robotDrive != null)
+            if (robotBase != null)
             {
-                robotDrive.driveBase.setOdometryEnabled(true, true);
-                // Disable ramp rate control in autonomous.
-                double rampTime = runMode == RunMode.AUTO_MODE? 0.0: RobotParams.Robot.DRIVE_RAMP_RATE;
-                for (int i = 0; i < robotDrive.driveMotors.length; i++)
+                robotBase.driveBase.setOdometryEnabled(true, true);
+                // Set ramp rate control in TeleOp.
+                if (runMode == RunMode.TELEOP_MODE && robotInfo.driveOpenLoopRampRate != null)
                 {
-                    robotDrive.driveMotors[i].setOpenLoopRampRate(rampTime);
+                    for (int i = 0; i < robotBase.driveMotors.length; i++)
+                    {
+                        robotBase.driveMotors[i].setOpenLoopRampRate(robotInfo.driveOpenLoopRampRate);
+                    }
                 }
 
                 if (runMode != RunMode.AUTO_MODE)
                 {
                     if (runMode == RunMode.TELEOP_MODE && endOfAutoRobotPose != null)
                     {
-                        robotDrive.driveBase.setFieldPosition(endOfAutoRobotPose);
+                        robotBase.driveBase.setFieldPosition(endOfAutoRobotPose);
                         endOfAutoRobotPose = null;
                     }
 
                     if (RobotParams.Preferences.useGyroAssist)
                     {
-                        robotDrive.driveBase.setGyroAssistEnabled(robotDrive.pidDrive.getTurnPidCtrl());
+                        robotBase.driveBase.setGyroAssistEnabled(robotBase.pidDrive.getTurnPidCtrl());
                     }
+                }
+            }
+            // Zero calibrate it only once. Don't do it again just because we are enabling/disabling robot.
+            if (!zeroCalibrated &&
+                dashboard.getBoolean(
+                    Dashboard.DBKEY_PREFERENCE_SUBSYSTEM_ZEROCAL, RobotParams.Preferences.zeroCalSubsystems))
+            {
+                if (runMode != RunMode.AUTO_MODE)
+                {
+                    zeroCalibrate(null, null);
                 }
             }
             // Start subsystems.
@@ -387,7 +437,7 @@ public class Robot extends FrcRobotBase
                 ledIndicator.reset();
             }
         }
-        globalTracer.traceInfo(moduleName, "%s: ***** %s *****", matchInfo.eventDate, runMode);
+        globalTracer.traceInfo(moduleName, matchInfo.eventDate + ": ***** " + runMode + " *****");
         globalTracer.traceInfo(moduleName, "<BuildInfo " + buildInfo + " />");
     }   //robotStartMode
 
@@ -400,17 +450,15 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotStopMode(RunMode runMode, RunMode nextMode)
     {
-        // Stop RobotDrive.
-        if (runMode != RunMode.DISABLED_MODE && robotDrive != null)
+        // Stop everything.
+        cancelAll();
+        if (runMode != RunMode.DISABLED_MODE && robotBase != null)
         {
-            robotDrive.cancel();
-
             if (runMode == RunMode.AUTO_MODE)
             {
-                endOfAutoRobotPose = robotDrive.driveBase.getFieldPosition();
+                endOfAutoRobotPose = robotBase.driveBase.getFieldPosition();
             }
-            robotDrive.driveBase.setOdometryEnabled(false);
-            //robotDrive.pidDrive.pidDriveTaskProfiler.printPerformanceMetrics(robotDrive.pidDrive.tracer);
+            robotBase.driveBase.setOdometryEnabled(false);
         }
         // Stop subsystems.
         if (ledIndicator != null)
@@ -428,12 +476,10 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
-            cancelAll();
             printPerformanceMetrics(globalTracer);
         }
         // Stop trace logging.
         setTraceLogEnabled(false);
-        closeTraceLog();
     }   //robotStopMode
 
     /**
@@ -447,36 +493,25 @@ public class Robot extends FrcRobotBase
     @Override
     public void robotPeriodic(RunMode runMode, boolean slowPeriodicLoop)
     {
-        if (visionRelocalize != null)
+        if (relocalizationMode != RelocalizationMode.Disabled)
         {
-            double fpgaTime = Timer.getFPGATimestamp();
-            TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
-            visionRelocalize.addTimedPose(fpgaTime, robotPose);
-            DetectedObject aprilTagObj = null;
-            if (photonVisionBack != null)
+            if (relocalizeRobot() && relocalizationMode == RelocalizationMode.OneShot)
             {
-                aprilTagObj = photonVisionBack.getBestDetectedAprilTag(null);
+                relocalizationMode = RelocalizationMode.Disabled;
             }
+        }
 
-            if (aprilTagObj == null && photonVisionFront != null)
-            {
-                aprilTagObj = photonVisionFront.getBestDetectedAprilTag(null);
-            }
+        Runtime runtime = Runtime.getRuntime();
+        long usedMemoryMB = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
+        dashboard.putNumber("Memory/UsedMB", usedMemoryMB);
 
-            if (aprilTagObj != null)
+        if (slowPeriodicLoop)
+        {
+            Dashboard.checkDashboardUpdateEnabled();
+            if (dashboard.getBoolean(Dashboard.DBKEY_AUTO_CHOICES_SUBMIT, false))
             {
-                TrcPose2D relocalizedPose =
-                    visionRelocalize.getRelocalizedPose(aprilTagObj.timestamp, aprilTagObj.robotPose, robotPose);
-                TrcPose2D diffPose = relocalizedPose.relativeTo(robotPose);
-                if (TrcUtil.magnitude(diffPose.x, diffPose.y) > 12.0)
-                {
-                    robotDrive.driveBase.setFieldPosition(relocalizedPose);
-                    globalTracer.traceInfo(
-                        moduleName,
-                        "VisionRelocalize: Time=%.6f, Before=%s, After=%s, VisionPose[%d](time=%.6f, pose=%s)",
-                        fpgaTime, robotPose, relocalizedPose, aprilTagObj.target.getFiducialId(),
-                        aprilTagObj.timestamp, aprilTagObj.robotPose);
-                }
+                FrcAuto.autoChoices.fetchChoices();
+                dashboard.putBoolean(Dashboard.DBKEY_AUTO_CHOICES_SUBMIT, false);
             }
         }
 
@@ -496,22 +531,25 @@ public class Robot extends FrcRobotBase
     public void cancelAll()
     {
         globalTracer.traceInfo(moduleName, "Cancel all operations.");
-        // Cancel subsystems.
-        if (robotDrive != null) robotDrive.cancel();
-        TrcSubsystem.cancelAll();
         // Cancel auto tasks.
+        TrcAutoTask.cancelAllTasks();
+        // Cancel subsystems.
+        if (robotBase != null) robotBase.cancel();
+        TrcSubsystem.cancelAll();
     }   //cancelAll
 
     /**
      * This method zero calibrates all subsystems.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
-     * @param event specifies the event to signal when the zero calibration is done.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         globalTracer.traceInfo(moduleName, "Zero calibrate all subsystems.");
-        TrcSubsystem.zeroCalibrateAll(owner, event);
+        TrcSubsystem.zeroCalibrateAll(owner, completionEvent);
+        zeroCalibrated = true;
     }   //zeroCalibrate
 
     /**
@@ -527,30 +565,34 @@ public class Robot extends FrcRobotBase
      * This method creates and opens the trace log with the file name derived from the given match info.
      * Note that the trace log is disabled after it is opened. The caller must explicitly call setTraceLogEnabled
      * to enable/disable it.
-     *
-     * @param matchInfo specifies the match info from which the trace log file name is derived.
      */
-    public void openTraceLog(FrcMatchInfo matchInfo)
+    public void openTraceLog()
     {
-        if (RobotParams.Preferences.useTraceLog && !traceLogOpened)
+        if (!TrcDbgTrace.isTraceLogOpened())
         {
-            String fileName = matchInfo.eventName != null?
-                String.format(Locale.US, "%s_%s%03d", matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber):
-                getCurrentRunMode().name();
-
-            traceLogOpened = TrcDbgTrace.openTraceLog(RobotParams.Robot.LOG_FOLDER_PATH, fileName);
+            TrcDbgTrace.openTraceLog(RobotParams.Robot.teamFolderPath + RobotParams.Robot.LOG_FOLDER_NAME, null);
         }
     }   //openTraceLog
 
     /**
      * This method closes the trace log if it was opened.
+     *
+     * @param matchInfo specifies the match info from which the trace log file name is derived.
+     * @param prevRunMode specifies the previous run mode as the file name suffix.
      */
-    public void closeTraceLog()
+    public void closeTraceLog(FrcMatchInfo matchInfo, RunMode prevRunMode)
     {
-        if (traceLogOpened)
+        if (TrcDbgTrace.isTraceLogOpened())
         {
-            TrcDbgTrace.closeTraceLog();
-            traceLogOpened = false;
+            String fileName = matchInfo.eventName != null?
+                String.format(
+                    Locale.US, "%s_%s%03d_%s",
+                    matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber, prevRunMode.name()):
+                prevRunMode.name();
+
+            TrcDbgTrace.closeTraceLog(
+                prevRunMode != RunMode.INVALID_MODE?
+                    TrcTimer.getCurrentTimeString() + "!" + fileName: null);
         }
     }   //closeTraceLog
 
@@ -561,11 +603,95 @@ public class Robot extends FrcRobotBase
      */
     public void setTraceLogEnabled(boolean enabled)
     {
-        if (traceLogOpened)
+        if (TrcDbgTrace.isTraceLogOpened())
         {
             TrcDbgTrace.setTraceLogEnabled(enabled);
         }
     }   //setTraceLogEnabled
+
+    /**
+     * This method checks if the team folder exists. If not, it will try creating the team folder in the VOL_PATH.
+     * If VOL_PATH doesn't exist, it will create the team folder in the DEF_VOL_PATH.
+     */
+    public void createTeamFolderPath()
+    {
+        if (!new File(RobotParams.Robot.teamFolderPath).exists())
+        {
+            String volPath = new File(RobotParams.Robot.VOL_PATH).exists()?
+                RobotParams.Robot.VOL_PATH: RobotParams.Robot.DEF_VOL_PATH;
+            String teamFolderPath = volPath + RobotParams.Robot.TEAM_FOLDER_NAME;
+            File teamFolder = new File(teamFolderPath);
+
+            if (!teamFolder.exists())
+            {
+                teamFolder.mkdir();
+            }
+            RobotParams.Robot.teamFolderPath = teamFolderPath;
+        }
+    }   //createTeamFolderPath
+
+    /**
+     * This method relocalizes the robot using vision.
+     *
+     * @return true if vision sees AprilTag and relocalize successfully, false otherwise.
+     */
+    public boolean relocalizeRobot()
+    {
+        boolean seenAprilTag = false;
+
+        if (vision != null&&
+            dashboard.getBoolean(Dashboard.DBKEY_VISION_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled))
+        {
+            if (hasVisionPoseEstimator)
+            {
+                FrcSwerveDrive swerveDrive = (FrcSwerveDrive) robotBase.driveBase;
+                seenAprilTag = swerveDrive.visionUpdate();
+            }
+            else if (trcVisionRelocalize != null)
+            {
+                DetectedObject aprilTagObj = vision.getBestDetectedAprilTag(null, null);
+                double fpgaTime = Timer.getFPGATimestamp();
+                TrcPose2D robotPose = robotBase.driveBase.getFieldPosition();
+
+                trcVisionRelocalize.addTimedPose(fpgaTime, robotPose);
+                if (aprilTagObj != null)
+                {
+                    seenAprilTag = true;
+                    TrcPose2D robotVel = robotBase.driveBase.getRobotVelocity();
+                    TrcPose2D relocalizedPose =
+                        Math.hypot(robotVel.x, robotVel.y) > 0.01 || Math.abs(robotVel.angle) > 1.0?
+                            trcVisionRelocalize.getRelocalizedPose(
+                                aprilTagObj.timestamp, aprilTagObj.robotPose, robotPose):
+                            aprilTagObj.robotPose;
+
+                    robotBase.driveBase.setFieldPosition(relocalizedPose);
+                    globalTracer.traceDebug(
+                        moduleName,
+                        "VisionRelocalize: Time=%.6f, Relocalize %s->%s, VisionPose[%d](time=%.6f, pose=%s)",
+                        fpgaTime, robotPose, relocalizedPose, aprilTagObj.target.getFiducialId(),
+                        aprilTagObj.timestamp, aprilTagObj.robotPose);
+                }
+            }
+
+            if (ledIndicator != null)
+            {
+                ledIndicator.setStatusPatternState(LEDIndicator.APRILTAG_FOUND, seenAprilTag);
+            }
+        }
+
+        return seenAprilTag;
+    }   //relocalizeRobot
+
+    /**
+     * This method enables/disables background relocalization.
+     *
+     * @param enabled specifies true to enable background relocalization, false to disable.
+     */
+    public void setRelocalizationMode(RelocalizationMode relocalizationMode)
+    {
+        globalTracer.traceInfo(moduleName, "setRelocalizationMode to " + relocalizationMode);
+        this.relocalizationMode = relocalizationMode;
+    }   //setRelocalizationMode
 
     /**
      * This method retrieves the field zero compass heading from the calibration data file.
@@ -574,7 +700,8 @@ public class Robot extends FrcRobotBase
      */
     private Double getFieldZeroCompassHeading()
     {
-        try (Scanner in = new Scanner(new FileReader(RobotParams.Robot.FIELD_ZERO_CAL_FILE)))
+        try (Scanner in = new Scanner(
+            new FileReader(RobotParams.Robot.teamFolderPath + RobotParams.Robot.FIELD_ZERO_CAL_FILE_NAME)))
         {
             return in.nextDouble();
         }
@@ -590,11 +717,12 @@ public class Robot extends FrcRobotBase
      */
     public void saveFieldZeroCompassHeading()
     {
-        if (robotDrive != null && robotDrive.imu != null && robotInfo.imuType == ImuType.NavX)
+        if (robotBase != null && robotBase.imu != null && robotInfo.imuType == ImuType.NavX)
         {
-            try (PrintStream out = new PrintStream(new FileOutputStream(RobotParams.Robot.FIELD_ZERO_CAL_FILE)))
+            try (PrintStream out = new PrintStream(
+                new FileOutputStream(RobotParams.Robot.teamFolderPath + RobotParams.Robot.FIELD_ZERO_CAL_FILE_NAME)))
             {
-                double fieldZeroHeading = ((FrcAHRSGyro) robotDrive.imu).ahrs.getCompassHeading();
+                double fieldZeroHeading = ((FrcAHRSGyro) robotBase.imu).ahrs.getCompassHeading();
 
                 out.println(fieldZeroHeading);
                 out.close();
@@ -620,30 +748,19 @@ public class Robot extends FrcRobotBase
      */
     public void setFieldPosition(TrcPose2D pose, boolean useCompassHeading)
     {
-        TrcPose2D robotPose;
+        TrcPose2D robotPose = pose.clone();
 
-        if (pose == null)
-        {
-            int startPosIndex = FrcAuto.autoChoices.getStartPos().value;
-            Alliance alliance = FrcAuto.autoChoices.getAlliance();
-            robotPose = adjustPoseByAlliance(RobotParams.Game.startPoses[startPosIndex], alliance);
-        }
-        else
-        {
-            robotPose = pose.clone();
-        }
-
-        if (useCompassHeading && robotDrive.imu != null && robotInfo.imuType == ImuType.NavX)
+        if (useCompassHeading && robotBase.imu != null && robotInfo.imuType == ImuType.NavX)
         {
             Double fieldZero = getFieldZeroCompassHeading();
 
             if (fieldZero != null)
             {
-                robotPose.angle = ((FrcAHRSGyro) robotDrive.imu).ahrs.getCompassHeading() - fieldZero;
+                robotPose.angle = ((FrcAHRSGyro) robotBase.imu).ahrs.getCompassHeading() - fieldZero;
             }
         }
 
-        robotDrive.driveBase.setFieldPosition(robotPose);
+        robotBase.driveBase.setFieldPosition(robotPose);
     }   //setFieldPosition
 
     /**
@@ -663,10 +780,15 @@ public class Robot extends FrcRobotBase
 
     /**
      * This method sets the robot's starting position according to the autonomous choices.
+     *
+     * @params specifies the autoChoices object to select the robot starting position.
      */
-    public void setRobotStartPosition()
+    public void setRobotStartPosition(FrcAuto.AutoChoices autoChoices)
     {
-        setFieldPosition(null, false);
+        int startPosIndex = FrcAuto.autoChoices.startPos.value;
+        TrcPose2D robotPose = adjustPoseByAlliance(
+            FrcAuto.autoChoices.alliance, RobotParams.Game.startPoses[startPosIndex]);
+        setFieldPosition(robotPose, false);
     }   //setRobotStartPosition
 
     /**
@@ -677,9 +799,9 @@ public class Robot extends FrcRobotBase
      */
     public void setDriveOrientation(DriveOrientation orientation, boolean resetHeading)
     {
-        if (robotDrive != null)
+        if (robotBase != null)
         {
-            robotDrive.driveBase.setDriveOrientation(orientation, resetHeading);
+            robotBase.driveBase.setDriveOrientation(orientation, resetHeading);
             if (ledIndicator != null)
             {
                 ledIndicator.setDriveOrientation(orientation);
@@ -701,12 +823,12 @@ public class Robot extends FrcRobotBase
         if (aprilTagObj.robotPose != null)
         {
             TrcPose2D relocalizedPose;
-            if (visionRelocalize != null && inMotion)
+            if (trcVisionRelocalize != null && inMotion)
             {
                 double fpgaTime = Timer.getFPGATimestamp();
-                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
+                TrcPose2D robotPose = robotBase.driveBase.getFieldPosition();
                 relocalizedPose =
-                    visionRelocalize.getRelocalizedPose(aprilTagObj.timestamp, aprilTagObj.robotPose, robotPose);
+                    trcVisionRelocalize.getRelocalizedPose(aprilTagObj.timestamp, aprilTagObj.robotPose, robotPose);
                 globalTracer.traceInfo(
                     moduleName,
                     ">>>>> VisionRelocalize: Time=%.6f, Before=%s, After=%s, VisionPose[%d](time=%.6f, pose=%s)",
@@ -719,9 +841,9 @@ public class Robot extends FrcRobotBase
                 globalTracer.traceInfo(
                     moduleName,
                     ">>>>> VisionRelocalize: Before=%s, After=%s",
-                    robotDrive.driveBase.getFieldPosition(), aprilTagObj.robotPose);
+                    robotBase.driveBase.getFieldPosition(), aprilTagObj.robotPose);
             }
-            robotDrive.driveBase.setFieldPosition(relocalizedPose);
+            robotBase.driveBase.setFieldPosition(relocalizedPose);
             success = true;
         }
         else
@@ -731,46 +853,6 @@ public class Robot extends FrcRobotBase
 
         return success;
     }   //relocalizeRobotByAprilTag
-
-    // /**
-    //  * This method re-localizes the robot with AprilTag vision reported info.
-    //  *
-    //  * @param aprilTagObj specifies the detected AprilTag object.
-    //  */
-    // public void relocalize(FrcPhotonVision.DetectedObject aprilTagObj)
-    // {
-    //     // Use vision to relocalize robot's position.
-    //     int aprilTagId = aprilTagObj.target.getFiducialId();
-    //     TrcPose2D robotEstimatedPose = aprilTagObj.robotPose;
-
-    //     if (robotEstimatedPose == null)
-    //     {
-    //         // PhotonVision pose estimator failed to return estimatedPose?! Calculate the pose ourselves.
-    //         robotEstimatedPose = photonVisionFront.getRobotFieldPose(aprilTagObj, false);
-    //         globalTracer.traceInfo(
-    //             moduleName, "Relocalize Robot: aprilTagId=" + aprilTagId +
-    //             ", robotEstimatedPoseFromAprilTag=" + robotEstimatedPose);
-    //     }
-
-    //     TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
-    //     double xDelta = robotPose.x - robotEstimatedPose.x;
-    //     double yDelta = robotPose.y - robotEstimatedPose.y;
-    //     double error = TrcUtil.magnitude(xDelta, yDelta);
-    //     // TODO: Check if we need GUIDANCE_ERROR_THRESHOLD.
-    //     if (error > PhotonVision.GUIDANCE_ERROR_THRESHOLD && error < 96.00)
-    //     {
-    //         robotDrive.driveBase.setFieldPosition(robotEstimatedPose, false);
-    //         globalTracer.traceInfo(
-    //             moduleName, "Relocalize Robot: AprilTagId=" + aprilTagId + ", error=" + error +
-    //             ", robotPose=" + robotPose + ", relocalizePose=" + robotEstimatedPose);
-    //     }
-    //     else
-    //     {
-    //         globalTracer.traceInfo(
-    //             moduleName, "Relocalize Robot: aprilTagId=" + aprilTagId + ", error=" + error +
-    //             " (error too large or small to relocalize).");
-    //     }
-    // }   //relocalize
 
     /**
      * This method is called when Comm Status changes state. This is an indication of losing or regaining comm.
@@ -787,9 +869,9 @@ public class Robot extends FrcRobotBase
             if (!commStatus)
             {
                 // We lost comm, do emergency shutdown to prevent damage.
-                if (robotDrive != null && robotDrive instanceof FrcSwerveDrive)
+                if (robotBase != null && robotBase instanceof FrcSwerveBase)
                 {
-                    ((FrcSwerveDrive) robotDrive).setXModeEnabled(null, true);
+                    ((FrcSwerveBase) robotBase).setXModeEnabled(null, true);
                     globalTracer.traceInfo(moduleName, "***** Putting robot in X-Mode. *****");
                     cancelAll();
                 }
@@ -800,31 +882,31 @@ public class Robot extends FrcRobotBase
     /**
      * This method adjusts the given pose in the blue alliance to be the specified alliance.
      *
-     * @param x specifies x position in the blue alliance in the specified unit.
-     * @param y specifies y position in the blue alliance in the specified unit.
-     * @param heading specifies heading in the blue alliance in degrees.
      * @param alliance specifies the alliance to be converted to.
-     * @return pose adjusted to be in the specified alliance in inches.
+     * @param x specifies x position in the blue alliance.
+     * @param y specifies y position in the blue alliance.
+     * @param heading specifies heading in the blue alliance.
+     * @return pose adjusted to be in the specified alliance.
      */
-    public TrcPose2D adjustPoseByAlliance(double x, double y, double heading, Alliance alliance)
+    public TrcPose2D adjustPoseByAlliance(Alliance alliance, double x, double y, double heading)
     {
         TrcPose2D newPose = new TrcPose2D(x, y, heading);
 
         if (alliance == Alliance.Red)
         {
             // Translate blue alliance pose to red alliance pose.
-            if (RobotParams.Field.mirroredField)
+            if (RobotParams.Game.mirroredField)
             {
                 // Mirrored field.
                 double angleDelta = (newPose.angle - 90.0)*2.0;
                 newPose.angle -= angleDelta;
-                newPose.y = RobotParams.Field.LENGTH - newPose.y;
+                newPose.y = RobotParams.Game.fieldLength - newPose.y;
             }
             else
             {
                 // Symmetrical field.
-                newPose.x = -RobotParams.Field.WIDTH - newPose.x;
-                newPose.y = RobotParams.Field.LENGTH - newPose.y;
+                newPose.x = -RobotParams.Game.fieldWidth - newPose.x;
+                newPose.y = RobotParams.Game.fieldLength - newPose.y;
                 newPose.angle = (newPose.angle + 180.0) % 360.0;
             }
         }
@@ -835,14 +917,28 @@ public class Robot extends FrcRobotBase
     /**
      * This method adjusts the given pose in the blue alliance to be the specified alliance.
      *
-     * @param pose specifies pose in the blue alliance in the specified unit.
      * @param alliance specifies the alliance to be converted to.
-     * @return pose adjusted to be in the specified alliance in inches.
+     * @param pose specifies pose in the blue alliance.
+     * @return pose adjusted to be in the specified alliance.
      */
-    public TrcPose2D adjustPoseByAlliance(TrcPose2D pose, Alliance alliance)
+    public TrcPose2D adjustPoseByAlliance(Alliance alliance, TrcPose2D pose)
     {
-        return adjustPoseByAlliance(pose.x, pose.y, pose.angle, alliance);
+        return adjustPoseByAlliance(alliance, pose.x, pose.y, pose.angle);
     }   //adjustPoseByAlliance
+
+    /**
+     * This method adjusts the array of poses in the blue alliance to be the specified alliance.
+     *
+     * @param alliance specifies the alliance to be converted to.
+     * @param poses specifies an array of poses in the blue alliance.
+     * @return pose adjusted to be in the specified alliance.
+     */
+    public TrcPose2D[] adjustPathByAlliance(Alliance alliance, TrcPose2D... poses)
+    {
+        return Stream.of(poses)
+                     .map(pose -> adjustPoseByAlliance(alliance, pose))
+                     .toArray(TrcPose2D[]::new);
+    }   //adjustPathByAlliance
 
     /**
      * This method adjusts the given pose by the given x and y offsets.

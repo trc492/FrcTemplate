@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2026 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ public class FrcDisabled implements TrcRobot.RobotMode
     //
     // Global objects.
     //
+    @SuppressWarnings("unused")
     private final Robot robot;
 
     /**
@@ -63,6 +64,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
+        if (robot.ledIndicator != null)
+        {
+            robot.ledIndicator.setDisabledMode(true);
+        }
     }   //startMode
 
     /**
@@ -75,6 +80,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
+        if (robot.ledIndicator != null)
+        {
+            robot.ledIndicator.setDisabledMode(false);
+        }
     }   //stopMode
 
     /**
@@ -89,13 +98,6 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void periodic(double elapsedTime, boolean slowPeriodicLoop)
     {
-        if (slowPeriodicLoop)
-        {
-            //
-            // Update robot status.
-            //
-            Dashboard.updateDashboard(robot, 1);
-        }
     }   //periodic
 
 }   //class FrcDisabled

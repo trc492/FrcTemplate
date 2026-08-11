@@ -24,6 +24,8 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcDifferentialServoWrist;
+import teamcode.Dashboard;
+import teamcode.RobotParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcDifferentialServoWrist;
 import trclib.subsystem.TrcSubsystem;
@@ -38,16 +40,16 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class DiffyServoWrist extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "DiffyServoWrist";
+    public static final boolean NEED_ZERO_CAL                   = false;
+
     public static class Params
     {
-        public static final String SUBSYSTEM_NAME               = "DiffyServoWrist";
-        public static final boolean NEED_ZERO_CAL               = false;
-
-        public static final String SERVO1_NAME                  = Params.SUBSYSTEM_NAME + ".servo1";
+        public static final String SERVO1_NAME                  = SUBSYSTEM_NAME + ".servo1";
         public static final int SERVO1_CHANNEL                  = 0;
         public static final boolean SERVO1_INVERTED             = false;
 
-        public static final String SERVO2_NAME                  = Params.SUBSYSTEM_NAME + ".servo2";
+        public static final String SERVO2_NAME                  = SUBSYSTEM_NAME + ".servo2";
         public static final int SERVO2_CHANNEL                  = 1;
         public static final boolean SERVO2_INVERTED             = !SERVO1_INVERTED;
 
@@ -68,27 +70,17 @@ public class DiffyServoWrist extends TrcSubsystem
         public static final double[] rotatePosPresets           = {-90.0, -45.0, 0.0, 45.0, 90.0};
     }   //class Params
 
-    private static final String DBKEY_TILT_POWER                = Params.SUBSYSTEM_NAME + "/TiltPower";
-    private static final String DBKEY_TILT_POSITION             = Params.SUBSYSTEM_NAME + "/TiltPosition";
-    private static final String DBKEY_ROTATE_POWER              = Params.SUBSYSTEM_NAME + "/RotatePower";
-    private static final String DBKEY_ROTATE_POSITION           = Params.SUBSYSTEM_NAME + "/RotatePosition";
-
     private final FrcDashboard dashboard;
-    public final TrcDifferentialServoWrist diffyWrist;
+    public final TrcDifferentialServoWrist wrist;
 
     /**
      * Constructor: Creates an instance of the object.
      */
     public DiffyServoWrist()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_TILT_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_TILT_POSITION, 0.0);
-        dashboard.refreshKey(DBKEY_ROTATE_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_ROTATE_POSITION, 0.0);
-
         FrcDifferentialServoWrist.Params wristParams = new FrcDifferentialServoWrist.Params()
             .setServos(
                 Params.SERVO1_NAME, Params.SERVO1_CHANNEL, Params.SERVO1_INVERTED,
@@ -100,8 +92,8 @@ public class DiffyServoWrist extends TrcSubsystem
             .setPositionLimits(Params.TILT_MIN_POS, Params.TILT_MAX_POS, Params.ROTATE_MIN_POS, Params.ROTATE_MAX_POS)
             .setPosPresets(Params.POS_PRESET_TOLERANCE, Params.tiltPosPresets, Params.rotatePosPresets);
 
-        diffyWrist = new FrcDifferentialServoWrist(Params.SUBSYSTEM_NAME, wristParams).getWrist();
-        diffyWrist.setPosition(90.0, 0.0);
+        wrist = new FrcDifferentialServoWrist(SUBSYSTEM_NAME, wristParams).getWrist();
+        wrist.setPosition(90.0, 0.0);
     }   //DiffyServoWrist
 
     /**
@@ -111,7 +103,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public double getTiltPosition()
     {
-        return diffyWrist.getTiltPosition();
+        return wrist.getTiltPosition();
     }   //getTiltPosition
 
     /**
@@ -121,7 +113,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public double getRotatePosition()
     {
-        return diffyWrist.getRotatePosition();
+        return wrist.getRotatePosition();
     }   //getRotatePosition
 
     /**
@@ -155,7 +147,7 @@ public class DiffyServoWrist extends TrcSubsystem
         {
             rotatePos = getRotatePosition();
         }
-        diffyWrist.setPosition(owner, delay, tiltPos, rotatePos, completionEvent, timeout);
+        wrist.setPosition(owner, delay, tiltPos, rotatePos, completionEvent, timeout);
     }   //setPosition
 
     /**
@@ -209,7 +201,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public void tiltPresetPositionUp(String owner)
     {
-        diffyWrist.tiltPresetPositionUp(owner);
+        wrist.tiltPresetPositionUp(owner);
     }   //tiltPresetPositionUp
 
     /**
@@ -221,7 +213,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public void tiltPresetPositionDown(String owner)
     {
-        diffyWrist.tiltPresetPositionDown(owner);
+        wrist.tiltPresetPositionDown(owner);
     }   //tiltPresetPositionDown
 
     /**
@@ -233,7 +225,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public void rotatePresetPositionUp(String owner)
     {
-        diffyWrist.rotatePresetPositionUp(owner);
+        wrist.rotatePresetPositionUp(owner);
     }   //rotatePresetPositionUp
 
     /**
@@ -245,7 +237,7 @@ public class DiffyServoWrist extends TrcSubsystem
      */
     public void rotatePresetPositionDown(String owner)
     {
-        diffyWrist.rotatePresetPositionDown(owner);
+        wrist.rotatePresetPositionDown(owner);
     }   //rotatePresetPositionDown
 
     //
@@ -258,17 +250,18 @@ public class DiffyServoWrist extends TrcSubsystem
     @Override
     public void cancel()
     {
-        diffyWrist.cancel();
+        wrist.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         // No zero calibration needed.
     }   //zeroCalibrate
@@ -292,34 +285,38 @@ public class DiffyServoWrist extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_DIFFYWRIST_SHOW_STATUS, RobotParams.Preferences.showDiffyWristStatus))
         {
-            dashboard.putNumber(DBKEY_TILT_POWER, diffyWrist.getTiltPower());
-            dashboard.putNumber(DBKEY_TILT_POSITION, diffyWrist.getTiltPosition());
-            dashboard.putNumber(DBKEY_ROTATE_POWER, diffyWrist.getRotatePower());
-            dashboard.putNumber(DBKEY_ROTATE_POSITION, diffyWrist.getRotatePosition());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_TILT_POWER, wrist.getTiltPower());
+                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_TILT_POSITION, wrist.getTiltPosition());
+                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_ROTATE_POWER, wrist.getRotatePower());
+                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_ROTATE_POSITION, wrist.getRotatePosition());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - Kp
-     *        tuneParam1 - Ki
-     *        tuneParam2 - Kd
-     *        tuneParam3 - Kf
-     *        tuneParam4 - iZone
-     *        tuneParam5 - PidTolerance
-     *        tuneParam6 - GravityCompPower
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
         // DiffyWirst doesn't support tuning.
-    }   //prepSubsystemForTuning
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        // DiffyWirst doesn't support tuning.
+    }   //updateParamsFromDashboard
 
 }   //class DiffyServoWrist

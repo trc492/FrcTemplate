@@ -27,15 +27,16 @@ import java.util.Arrays;
 import frclib.vision.FrcPhotonVision;
 import teamcode.Robot;
 import teamcode.subsystems.Shooter;
-import teamcode.vision.PhotonVision.PipelineType;
+import teamcode.vision.Vision.PipelineType;
+import trclib.dataprocessor.TrcLookupTable;
 import trclib.dataprocessor.TrcUtil;
+import trclib.dataprocessor.TrcLookupTable.Interpolation;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcAutoTask;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcOwnershipMgr;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcTaskMgr;
-import trclib.subsystem.TrcShootParamTable;
 import trclib.timer.TrcTimer;
 
 /**
@@ -53,7 +54,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         DONE
     }   //enum State
 
-    private static class TaskParams
+    private class TaskParams
     {
         boolean useVision;
         int[] aprilTagIds;
@@ -73,6 +74,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
     private final Robot robot;
     private final TrcEvent event;
 
+    private TaskParams taskParams = null;
     private Double visionExpiredTime = null;
     private TrcPose2D aprilTagPose = null;
 
@@ -98,11 +100,11 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
      */
     public void autoShoot(String owner, TrcEvent completionEvent, boolean useVision, int... aprilTagIds)
     {
-        TaskParams taskParams = new TaskParams(useVision, aprilTagIds);
+        taskParams = new TaskParams(useVision, aprilTagIds);
         tracer.traceInfo(
             moduleName,
             "autoShoot(owner=" + owner + ", event=" + completionEvent + ", taskParams=(" + taskParams + "))");
-        startAutoTask(owner, State.START, taskParams, completionEvent);
+        startAutoTask(owner, State.START, completionEvent);
     }   //autoShoot
 
     //
@@ -171,7 +173,6 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
      * This methods is called periodically to run the auto-assist task.
      *
      * @param owner specifies the owner that acquired the subsystem ownerships.
-     * @param params specifies the task parameters.
      * @param state specifies the current state of the task.
      * @param taskType specifies the type of task being run.
      * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
@@ -180,11 +181,8 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
      */
     @Override
     protected void runTaskState(
-        String owner, Object params, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode,
-        boolean slowPeriodicLoop)
+        String owner, State state, TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
     {
-        TaskParams taskParams = (TaskParams) params;
-
         switch (state)
         {
             case START:
@@ -196,10 +194,10 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     tracer.traceInfo(moduleName, "***** Not using AprilTag Vision.");
                     sm.setState(State.AIM_AND_SHOOT);
                 }
-                else if (robot.photonVisionFront != null)
+                else if (robot.vision != null && robot.vision.frontVision != null)
                 {
                     tracer.traceInfo(moduleName, "***** Using AprilTag Vision.");
-                    robot.photonVisionFront.setPipeline(PipelineType.APRILTAG);
+                    robot.vision.setFrontCamPipeline(PipelineType.APRILTAG);
                     visionExpiredTime = null;
                     sm.setState(State.FIND_APRILTAG);
                 }
@@ -213,7 +211,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
             case FIND_APRILTAG:
                 // Use vision to determine the appropriate AprilTag location.
                 FrcPhotonVision.DetectedObject object =
-                    robot.photonVisionFront.getBestDetectedAprilTag(taskParams.aprilTagIds);
+                    robot.vision.frontVision.getDetectedAprilTag(null, taskParams.aprilTagIds);
                 if (object != null)
                 {
                     int aprilTagId = object.target.getFiducialId();
@@ -247,13 +245,12 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // Determine shooter speed, pan and tilt angle according to detected AprilTag pose.
                     // Use vision distance to look up shooter parameters.
                     double aprilTagDistance = TrcUtil.magnitude(aprilTagPose.x, aprilTagPose.y);
-                    TrcShootParamTable.Params shootParams =
-                        Shooter.Params.shootParamTable.get(aprilTagDistance, false);
+                    TrcLookupTable.Entry shootParams =
+                        Shooter.Params.shootParamTable.get(aprilTagDistance, Interpolation.LinearInterpolation);
 
                     robot.shooter.aimShooter(
-                        owner, shootParams.shooter1Velocity, shootParams.shooter2Velocity, shootParams.tiltAngle,
-                        aprilTagPose.angle, event, 0.0, robot.shooterSubsystem::shoot,
-                        Shooter.Params.SHOOTER_OFF_DELAY);
+                        owner, shootParams.outputs[0], 0.0, aprilTagPose.angle, shootParams.region.value, event, 0.0,
+                        robot.shooterSubsystem::shoot, null, Shooter.Params.SHOOTER_OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ShootParams: distance=" + aprilTagDistance + ", params=" + shootParams);
                 }
@@ -263,8 +260,8 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     double shooterVel = robot.shooterSubsystem.shooter1Velocity.getValue();
                     // ShooterVel is in RPM, aimShooter wants RPS.
                     robot.shooter.aimShooter(
-                        owner, shooterVel / 60.0, 0.0, null, null, event, 0.0,
-                        robot.shooterSubsystem::shoot, Shooter.Params.SHOOTER_OFF_DELAY);
+                        owner, shooterVel / 60.0, 0.0, null, null, event, 0.0, robot.shooterSubsystem::shoot, null,
+                        Shooter.Params.SHOOTER_OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ManualShoot: shooterVel=" + shooterVel + " RPM");
                 }

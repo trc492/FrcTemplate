@@ -25,8 +25,12 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
+import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -37,23 +41,38 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class MotorArm extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "MotorArm";
+    public static final boolean NEED_ZERO_CAL                   = true;
+
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "MotorArm";
-        public static final boolean NEED_ZERO_CAL               = true;
+        public static final boolean HAS_TWO_MOTORS              = false;
+        public static final boolean HAS_LOWER_LIMIT_SWITCH      = false;
+        public static final boolean HAS_UPPER_LIMIT_SWITCH      = false;
 
-        public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
-        public static final int MOTOR_ID                        = 10;
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
-        public static final boolean MOTOR_BRUSHLESS             = false;
-        public static final boolean MOTOR_ENC_ABS               = false;
-        public static final boolean MOTOR_INVERTED              = true;
+        public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
+        public static final int PRIMARY_MOTOR_ID                = 10;
+        public static final boolean PRIMARY_MOTOR_INVERTED      = true;
+
+        public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
+        public static final int FOLLOWER_MOTOR_ID               = 12;
+        public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
+
+        public static final String LOWER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
+        public static final int LOWER_LIMIT_SWITCH_CHANNEL      = 0;
+        public static final boolean LOWER_LIMIT_SWITCH_INVERTED = false;
+
+        public static final String UPPER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".upperLimit";
+        public static final int UPPER_LIMIT_SWITCH_CHANNEL      = 1;
+        public static final boolean UPPER_LIMIT_SWITCH_INVERTED = false;
 
         public static final double GOBILDA312_CPR               = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
         public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
         public static final double POS_OFFSET                   = 39.0;
         public static final double POWER_LIMIT                  = 0.25;
         public static final double ZERO_CAL_POWER               = -0.2;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
 
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 270.0;
@@ -67,17 +86,13 @@ public class MotorArm extends TrcSubsystem
         public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
         public static final double POS_PID_TOLERANCE            = 1.0;
-        public static final double GRAVITY_COMP_MAX_POWER       = 0.161;
+        public static final double GRAVITY_COMP_POWER           = 0.161;
         // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
         public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
         public static final double STALL_TOLERANCE              = 0.1;
         public static final double STALL_TIMEOUT                = 0.1;
         public static final double STALL_RESET_TIMEOUT          = 0.0;
     }   //class Params
-
-    private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
-    private static final String DBKEY_CURRENT                   = Params.SUBSYSTEM_NAME + "/Current";
-    private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
@@ -88,21 +103,41 @@ public class MotorArm extends TrcSubsystem
      */
     public MotorArm()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_CURRENT, 0.0);
-        dashboard.refreshKey(DBKEY_POSITION, "");
 
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.MOTOR_NAME, Params.MOTOR_ID, Params.MOTOR_TYPE, Params.MOTOR_BRUSHLESS, Params.MOTOR_ENC_ABS,
-                Params.MOTOR_INVERTED)
+                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED, true, true,
+                Params.PRIMARY_MOTOR_ID, null, null)
             .setPositionScaleAndOffset(Params.DEG_PER_COUNT, Params.POS_OFFSET)
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
+
+        if (Params.HAS_TWO_MOTORS)
+        {
+            motorParams.addFollowerMotor(
+                Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_ID, null, null);
+        }
+
+        if (Params.HAS_LOWER_LIMIT_SWITCH)
+        {
+            motorParams.setLowerLimitSwitch(
+                Params.LOWER_LIMIT_SWITCH_NAME, Params.LOWER_LIMIT_SWITCH_CHANNEL, Params.LOWER_LIMIT_SWITCH_INVERTED);
+        }
+
+        if (Params.HAS_UPPER_LIMIT_SWITCH)
+        {
+            motorParams.setUpperLimitSwitch(
+                Params.UPPER_LIMIT_SWITCH_NAME, Params.UPPER_LIMIT_SWITCH_CHANNEL, Params.UPPER_LIMIT_SWITCH_INVERTED);
+        }
+
         motor = new FrcMotorActuator(motorParams).getMotor();
-        motor.setPositionPidParameters(Params.posPidCoeffs, Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
+        motor.setPositionPidParameters(
+            new PidParams()
+                .setPidCoefficients(Params.posPidCoeffs)
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
         motor.setStallProtection(
             Params.STALL_MIN_POWER, Params.STALL_TOLERANCE, Params.STALL_TIMEOUT, Params.STALL_RESET_TIMEOUT);
@@ -125,9 +160,9 @@ public class MotorArm extends TrcSubsystem
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
-    private double getGravityComp(double currPower)
+    private double getGravityComp(TrcMotor motor, double currPower)
     {
-        double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_MAX_POWER;
+        double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_POWER;
         return gravityCompPower * Math.sin(Math.toRadians(motor.getPosition()));
     }   //getGravityComp
 
@@ -144,16 +179,17 @@ public class MotorArm extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
-        motor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, event);
+        motor.zeroCalibrate(owner, Params.ZERO_CAL_POWER, completionEvent, Params.ZERO_CAL_TIMEOUT);
     }   //zeroCalibrate
 
     /**
@@ -175,37 +211,87 @@ public class MotorArm extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_MOTORARM_SHOW_STATUS, RobotParams.Preferences.showMotorArmStatus))
         {
-            dashboard.putNumber(DBKEY_POWER, motor.getPower());
-            dashboard.putNumber(DBKEY_CURRENT, motor.getCurrent());
-            dashboard.putString(
-                DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_MOTORARM_POWER, motor.getPower());
+                dashboard.putNumber(Dashboard.DBKEY_MOTORARM_CURRENT, motor.getCurrent());
+                dashboard.putString(Dashboard.DBKEY_MOTORARM_POSITION,
+                                    motor.getPosition() + "/" + motor.getPidTarget());
+
+                if (Params.HAS_LOWER_LIMIT_SWITCH)
+                {
+                    dashboard.putBoolean(Dashboard.DBKEY_MOTORARM_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
+                }
+
+                if (Params.HAS_UPPER_LIMIT_SWITCH)
+                {
+                    dashboard.putBoolean(Dashboard.DBKEY_MOTORARM_UPPER_LIMIT, motor.isUpperLimitSwitchActive());
+                }
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - Kp
-     *        tuneParam1 - Ki
-     *        tuneParam2 - Kd
-     *        tuneParam3 - Kf
-     *        tuneParam4 - iZone
-     *        tuneParam5 - PidTolerance
-     *        tuneParam6 - GravityCompPower
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        motor.setPositionPidParameters(
-            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-            Params.SOFTWARE_PID_ENABLED);
-        tuneGravityCompPower = tuneParams[6];
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, Params.posPidCoeffs.kP);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, Params.posPidCoeffs.kI);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, Params.posPidCoeffs.kD);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, Params.posPidCoeffs.kF);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, Params.posPidCoeffs.iZone);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, Params.POS_PID_TOLERANCE);
+                dashboard.putBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, Params.SOFTWARE_PID_ENABLED);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, 0.0);
+                dashboard.putNumber(
+                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER,
+                    tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_POWER);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+            {
+                motor.setPositionPidParameters(pidParams, null);
+                tuneGravityCompPower = dashboard.getNumber(
+                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                motor.tracer.traceInfo(
+                    instanceName, "Tune %s: PidParams=%s, GravityPower=%.3f",
+                    subsystemName, pidParams, tuneGravityCompPower);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class MotorArm

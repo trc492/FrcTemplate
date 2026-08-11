@@ -24,6 +24,9 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -35,12 +38,12 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoWrist extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "ServoWrist";
+    public static final boolean NEED_ZERO_CAL                   = false;
+
     public static class Params
     {
-        public static final String SUBSYSTEM_NAME               = "ServoWrist";
-        public static final boolean NEED_ZERO_CAL               = false;
-
-        public static final String SERVO_NAME                   = Params.SUBSYSTEM_NAME + ".servo";
+        public static final String SERVO_NAME                   = SUBSYSTEM_NAME + ".servo";
         public static final int SERVO_CHANNEL                   = 0;
         public static final boolean SERVO_INVERTED              = false;
 
@@ -53,23 +56,18 @@ public class ServoWrist extends TrcSubsystem
         public static final double[] tiltPosPresets             = {-110, -90.0, -45.0, 0.0, 45.0, 90.0, 110};
     }   //class Params
 
-    private static final String DBKEY_PHYSICAL_POS              = Params.SUBSYSTEM_NAME + "/PhysicalPos";
-    private static final String DBKEY_LOGICAL_POS               = Params.SUBSYSTEM_NAME + "/LogicalPos";
-
     private final FrcDashboard dashboard;
-    public final TrcServo servo;
+    private final TrcServo servo;
+    private double tuneLogicalPos = Params.LOGICAL_MIN_POS;
 
     /**
      * Constructor: Creates an instance of the object.
      */
     public ServoWrist()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_PHYSICAL_POS, 0.0);
-        dashboard.refreshKey(DBKEY_LOGICAL_POS, 0.0);
-
         FrcServoActuator.Params wristParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
             .setLogicalPosRange(Params.LOGICAL_MIN_POS, Params.LOGICAL_MAX_POS)
@@ -102,14 +100,15 @@ public class ServoWrist extends TrcSubsystem
         servo.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         // No zero calibration needed.
     }   //zeroCalibrate
@@ -133,27 +132,63 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(
+                Dashboard.DBKEY_SERVOWRIST_SHOW_STATUS, RobotParams.Preferences.showServoWristStatus))
         {
-            dashboard.putNumber(DBKEY_PHYSICAL_POS, servo.getPosition());
-            dashboard.putNumber(DBKEY_LOGICAL_POS, servo.getLogicalPosition());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_SERVOWRIST_PHYSICAL_POS, servo.getPosition());
+                dashboard.putNumber(Dashboard.DBKEY_SERVOWRIST_LOGICAL_POS, servo.getLogicalPosition());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - Logical position min
-     *        tuneParam1 - Logical position max
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        servo.setLogicalPosRange(tuneParams[0], tuneParams[1]);
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_INPUT, servo.getLogicalPosition());
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+            {
+                tuneLogicalPos = dashboard.getNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, Params.LOGICAL_MIN_POS);
+                servo.setPosition(tuneLogicalPos);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                servo.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class ServoWrist

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2026 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,18 @@ package teamcode;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcXboxController;
-import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.subsystems.MotorArm;
 import teamcode.subsystems.CrServoArm;
 import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
 import teamcode.subsystems.Shooter;
 import teamcode.subsystems.Turret;
-import teamcode.vision.PhotonVision.PipelineType;
+import trclib.controller.TrcPidController;
+import trclib.dataprocessor.TrcUtil;
+import trclib.dataprocessor.TrcWarpSpace;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
-import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveDrive;
 import trclib.driverio.TrcGameController.DriveMode;
-import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
 
@@ -48,18 +48,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private static final String moduleName = FrcTeleOp.class.getSimpleName();
     protected static final boolean traceButtonEvents = true;
 
-    private static final String DBKEY_DRIVE_MODE = "TeleOp/DriveMode";                  //Choices
-    private static final String DBKEY_DRIVE_ORIENTATION = "TeleOp/DriveOrientation";    //Choices
-    private static final String DBKEY_DRIVE_NORMAL_SCALE = "TeleOp/DriveNormalScale";   //Number
-    private static final String DBKEY_DRIVE_SLOW_SCALE = "TeleOp/DriveSlowScale";       //Number
-    private static final String DBKEY_TURN_NORMAL_SCALE = "TeleOp/TurnNormalScale";     //Number
-    private static final String DBKEY_TURN_SLOW_SCALE = "TeleOp/TurnSlowScale";         //Number
-    private static final String DBKEY_SHOW_DRIVE_POWER = "TeleOp/ShowDrivePower";       //Boolean
-    private static final String DBKEY_DRIVE_POWER = "TeleOp/DrivePower";                //String
-    private static final double DEF_DRIVE_NORMAL_SCALE = 1.0;
-    private static final double DEF_DRIVE_SLOW_SCALE = 0.2;
-    private static final double DEF_TURN_NORMAL_SCALE = 0.6;
-    private static final double DEF_TURN_SLOW_SCALE = 0.2;
+    public static final double DEF_DRIVE_NORMAL_SCALE = 1.0;
+    public static final double DEF_DRIVE_SLOW_SCALE = 0.2;
+    public static final double DEF_TURN_NORMAL_SCALE = 0.75;
+    public static final double DEF_TURN_SLOW_SCALE = 0.2;
     //
     // Global objects.
     //
@@ -71,8 +63,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private boolean controlsEnabled = false;
     protected boolean driverAltFunc = false;
     protected boolean operatorAltFunc = false;
-    private boolean relocalizing = false;
-    private TrcPose2D robotFieldPose = null;
+    // Locked heading
+    private final TrcPidController turnPidCtrl;
+    private Double lockedHeading;
     private boolean rumbling = false;
 
     private double prevMotorArmPower = 0.0;
@@ -98,25 +91,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         this.robot = robot;
 
-        driveModeMenu = new FrcChoiceMenu<>(DBKEY_DRIVE_MODE);
+        driveModeMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_TELEOP_DRIVE_MODE);
         driveModeMenu.addChoice("Tank", DriveMode.TankMode);
         driveModeMenu.addChoice("Holonomic", DriveMode.HolonomicMode);
         driveModeMenu.addChoice("Arcade", DriveMode.ArcadeMode, true, true);
 
-        driveOrientationMenu = new FrcChoiceMenu<>(DBKEY_DRIVE_ORIENTATION);
+        driveOrientationMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_TELEOP_DRIVE_ORIENTATION);
         driveOrientationMenu.addChoice("Inverted", DriveOrientation.INVERTED);
         driveOrientationMenu.addChoice("Robot", DriveOrientation.ROBOT);
         driveOrientationMenu.addChoice("Field", DriveOrientation.FIELD, true, true);
 
-        robot.dashboard.refreshKey(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-        robot.dashboard.refreshKey(DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
-        robot.dashboard.refreshKey(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
-        robot.dashboard.refreshKey(DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
-        robot.dashboard.refreshKey(DBKEY_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
-        robot.dashboard.refreshKey(DBKEY_DRIVE_POWER, "");
+        driveSpeedScale = robot.dashboard.getNumber(
+            Dashboard.DBKEY_TELEOP_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+        turnSpeedScale = robot.dashboard.getNumber(
+            Dashboard.DBKEY_TELEOP_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
 
-        driveSpeedScale = robot.dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-        turnSpeedScale = robot.dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+        turnPidCtrl = robot.robotBase != null && robot.robotBase.purePursuitDrive != null?
+            robot.robotBase.purePursuitDrive.getTurnPidCtrl(): null;
+        lockedHeading = null;
     }   //FrcTeleOp
 
     //
@@ -140,22 +132,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Initialize subsystems for TeleOp mode if necessary.
         //
-        if (robot.robotDrive != null)
+        if (robot.robotBase != null)
         {
             // Set robot to FIELD by default but don't change the heading.
             robot.setDriveOrientation(driveOrientationMenu.getCurrentChoiceObject(), false);
-            // Enable AprilTag vision for re-localization.
-            if (robot.photonVisionFront != null)
-            {
-                robot.globalTracer.traceInfo(moduleName, "Enabling FrontCam for AprilTagVision.");
-                robot.photonVisionBack.setPipeline(PipelineType.APRILTAG);
-            }
-
-            if (robot.photonVisionBack != null)
-            {
-                robot.globalTracer.traceInfo(moduleName, "Enabling BackCam for AprilTagVision.");
-                robot.photonVisionBack.setPipeline(PipelineType.APRILTAG);
-            }
         }
 
         if (RobotParams.Preferences.hybridMode)
@@ -209,62 +189,77 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 //
                 // DriveBase subsystem.
                 //
-                if (robot.robotDrive != null)
+                if (robot.robotBase != null)
                 {
-                    if (relocalizing)
-                    {
-                        if (robotFieldPose == null)
-                        {
-                            DetectedObject aprilTagObj = null;
-
-                            if (robot.photonVisionFront != null)
-                            {
-                                aprilTagObj = robot.photonVisionFront.getBestDetectedAprilTag(null);
-                            }
-
-                            if (aprilTagObj == null && robot.photonVisionBack != null)
-                            {
-                                aprilTagObj = robot.photonVisionBack.getBestDetectedAprilTag(null);
-                            }
-
-                            if (aprilTagObj != null)
-                            {
-                                robotFieldPose = robot.photonVisionBack.getRobotFieldPose(aprilTagObj, false);
-                            }
-                        }
-                    }
-                    else
+                    if (robot.driverController != null)
                     {
                         boolean showDriveBaseStatus = robot.dashboard.getBoolean(
-                            DBKEY_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
-                        double[] driveInputs;
+                            Dashboard.DBKEY_TELEOP_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
+                        double[] driveInputs = robot.driverController.getDriveInputs(
+                            driveModeMenu.getCurrentChoiceObject(), true, driveSpeedScale, turnSpeedScale,
+                            lockedHeading != null);
+                        // driveInputs have changed or rotating to lockedHeading.
+                        if (driveInputs != null)
+                        {
+                            double turnPower = driveInputs[2];
 
-                        driveInputs = robot.driverController.getDriveInputs(
-                            driveModeMenu.getCurrentChoiceObject(), true, driveSpeedScale, turnSpeedScale);
-                        if (robot.robotDrive.driveBase.supportsHolonomicDrive())
-                        {
-                            double gyroAngle = robot.robotDrive.driveBase.getDriveGyroAngle();
-                            robot.robotDrive.driveBase.holonomicDrive(
-                                null, driveInputs[0], driveInputs[1], driveInputs[2], gyroAngle);
-                            if (showDriveBaseStatus)
+                            if (turnPidCtrl != null && lockedHeading != null)
                             {
-                                robot.dashboard.putString(
-                                    DBKEY_DRIVE_POWER,
-                                    String.format(
-                                        "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
-                                        driveInputs[0], driveInputs[1], driveInputs[2], gyroAngle));
+                                if (turnPower == 0.0)
+                                {
+                                    double currHeading = robot.robotBase.driveBase.getHeading();
+                                    double targetHeading = TrcWarpSpace.getOptimizedTarget(lockedHeading, currHeading, 360.0);
+
+                                    if (Math.abs(targetHeading - currHeading) >
+                                        robot.robotInfo.baseParams.turnPidTolerance)
+                                    {
+                                        turnPower = TrcUtil.clipRange(
+                                            turnPidCtrl.calculate(currHeading, lockedHeading),
+                                            robot.robotInfo.baseParams.turnPowerLimit);
+                                        robot.globalTracer.traceDebug(
+                                            moduleName,
+                                            "currHeading=%f, lockedHeading=%f, targetHeading=%f, turnPower=%f",
+                                            currHeading, lockedHeading, targetHeading, turnPower);
+                                    }
+                                    else
+                                    {
+                                        // lockedHeading target reached, cancel.
+                                        lockedHeading = null;
+                                    }
+                                }
+                                else
+                                {
+                                    // Driver is rotating the robot, cancel lockedHeading.
+                                    lockedHeading = null;
+                                }
                             }
-                        }
-                        else
-                        {
-                            robot.robotDrive.driveBase.arcadeDrive(driveInputs[1], driveInputs[2]);
-                            if (showDriveBaseStatus)
+
+                            if (robot.robotBase.driveBase.supportsHolonomicDrive())
                             {
-                                robot.dashboard.putString(
-                                    DBKEY_DRIVE_POWER,
-                                    String.format(
-                                        "Arcade: x=%.2f, y=%.2f, rot=%.2f",
-                                        driveInputs[0], driveInputs[1], driveInputs[2]));
+                                Double gyroAngle = robot.robotBase.driveBase.getDriveGyroAngle();
+
+                                robot.robotBase.driveBase.holonomicDrive(
+                                    null, driveInputs[0], driveInputs[1], turnPower, gyroAngle);
+                                if (showDriveBaseStatus)
+                                {
+                                    robot.dashboard.putString(
+                                        Dashboard.DBKEY_TELEOP_DRIVE_POWER,
+                                        String.format(
+                                            "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
+                                            driveInputs[0], driveInputs[1], turnPower, gyroAngle));
+                                }
+                            }
+                            else
+                            {
+                                robot.robotBase.driveBase.arcadeDrive(driveInputs[1], turnPower);
+                                if (showDriveBaseStatus)
+                                {
+                                    robot.dashboard.putString(
+                                        Dashboard.DBKEY_TELEOP_DRIVE_POWER,
+                                        String.format(
+                                            "Arcade: x=%.2f, y=%.2f, rot=%.2f",
+                                            driveInputs[0], driveInputs[1], turnPower));
+                                }
                             }
                         }
                     }
@@ -290,7 +285,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.motorArm.setPidPower(
-                                    armPower, MotorArm.Params.MIN_POS, MotorArm.Params.MAX_POS, true);
+                                    armPower, MotorArm.Params.POWER_LIMIT, MotorArm.Params.MIN_POS,
+                                    MotorArm.Params.MAX_POS, true);
                             }
                             prevMotorArmPower = armPower;
                         }
@@ -308,7 +304,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.crServoArm.setPidPower(
-                                    armPower, CrServoArm.Params.MIN_POS, CrServoArm.Params.MAX_POS, true);
+                                    armPower, CrServoArm.Params.POWER_LIMIT, CrServoArm.Params.MIN_POS,
+                                    CrServoArm.Params.MAX_POS, true);
                             }
                             prevServoArmPower = armPower;
                         }
@@ -326,7 +323,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.elevator.setPidPower(
-                                    elevatorPower, Elevator.Params.MIN_POS, Elevator.Params.MAX_POS, true);
+                                    elevatorPower, Elevator.Params.POWER_LIMIT, Elevator.Params.MIN_POS,
+                                    Elevator.Params.MAX_POS, true);
                             }
                             prevElevatorPower = elevatorPower;
                         }
@@ -344,7 +342,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.turret.setPidPower(
-                                    turretPower, Turret.Params.MIN_POS, Turret.Params.MAX_POS, true);
+                                    turretPower, Turret.Params.POWER_LIMIT, Turret.Params.MIN_POS,
+                                    Turret.Params.MAX_POS, true);
                             }
                             prevTurretPower = turretPower;
                         }
@@ -355,7 +354,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         double tiltPower = robot.driverController.getLeftStickY(true);
                         if (rotatePower != prevDiffyWristRotatePower || tiltPower != prevDiffyWristTiltPower)
                         {
-                            robot.diffyWrist.diffyWrist.setPower(tiltPower, rotatePower);
+                            robot.diffyWrist.wrist.setPower(tiltPower, rotatePower);
                             prevDiffyWristRotatePower = rotatePower;
                             prevDiffyWristTiltPower = tiltPower;
                         }
@@ -374,7 +373,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         double extenderPower = robot.driverController.getLeftStickY(true);
                         if (extenderPower != prevServoExtenderPower)
                         {
-                            robot.servoExtender.servo.setPower(extenderPower);
+                            robot.servoExtender.setPower(extenderPower);
                             prevServoExtenderPower = extenderPower;
                         }
                     }
@@ -398,10 +397,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                 }
             }
-            //
-            // Update robot status.
-            //
-            Dashboard.updateDashboard(robot, 1);
         }
     }   //periodic
 
@@ -414,7 +409,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         controlsEnabled = enabled;
 
-        robot.driverController.setButtonEventHandler(enabled? this::driverControllerButtonEvent: null);
+        if (robot.driverController != null)
+        {
+            robot.driverController.setButtonEventHandler(enabled? this::driverControllerButtonEvent: null);
+        }
+
         if (robot.operatorController != null)
         {
             robot.operatorController.setButtonEventHandler(enabled? this::operatorControllerButtonEvent: null);
@@ -444,34 +443,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case A:
-                // Toggle between field or robot oriented driving.
-                if (robot.robotDrive != null && pressed)
-                {
-                    if (driverAltFunc)
-                    {
-                        if (robot.robotDrive.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
-                        {
-                            robot.setDriveOrientation(DriveOrientation.FIELD, true);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Field");
-                        }
-                        else
-                        {
-                            robot.setDriveOrientation(DriveOrientation.ROBOT, false);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Robot");
-                        }
-                    }
-                    else
-                    {
-                        robot.robotDrive.driveBase.resetFieldForwardHeading();
-                        robot.globalTracer.traceInfo(
-                            moduleName,
-                            ">>>>> Reset field forward heading (heading=" + robot.robotDrive.driveBase.getHeading() +
-                            ")");
-                    }
-                }
-                break;
-
-            case B:
                 if (robot.shooter != null)
                 {
                     if (pressed)
@@ -502,7 +473,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             {
                                 robot.shooter.aimShooter(
                                     moduleName, robot.shooterSubsystem.shooter1Velocity.getValue() / 60.0, 0.0,
-                                    null, null, null, 0.0, robot.shooterSubsystem::shoot,
+                                    null, null, null, 0.0, robot.shooterSubsystem::shoot, null,
                                     Shooter.Params.SHOOTER_OFF_DELAY);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
                             }
@@ -522,7 +493,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             }
                             else
                             {
-                                robot.autoPickupTask.autoPickup(moduleName, null, !driverAltFunc);
+                                robot.autoPickupTask.autoPickup(
+                                    moduleName, null, FrcAuto.autoChoices.alliance, !driverAltFunc);
                                 robot.globalTracer.traceInfo(
                                     moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
                             }
@@ -565,42 +537,42 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         extenderExtended = !extenderExtended;
                         if (extenderExtended)
                         {
-                            robot.servoExtender.extend();
+                            robot.servoExtenderSubsystem.extend();
                         }
                         else
                         {
-                            robot.servoExtender.retract();
+                            robot.servoExtenderSubsystem.retract();
                         }
                     }
                 }
-                else if (robot.claw != null)
+                else if (robot.servoClaw != null)
                 {
                     if (pressed)
                     {
                         if (driverAltFunc)
                         {
-                            if (robot.claw.isClosed())
+                            if (robot.servoClaw.isClosed())
                             {
-                                robot.claw.open();
+                                robot.servoClaw.open();
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Opening claws");
                             }
                             else
                             {
-                                robot.claw.close();
+                                robot.servoClaw.close();
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Closing claws");
                             }
                         }
                         else
                         {
-                            if (robot.claw.isAutoActive() || robot.claw.hasObject())
+                            if (robot.servoClaw.isAutoActive() || robot.servoClaw.hasObject())
                             {
-                                robot.claw.cancel();
-                                robot.claw.open();
+                                robot.servoClaw.cancel();
+                                robot.servoClaw.open();
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Canceling AutoGrab.");
                             }
                             else
                             {
-                                robot.claw.autoGrab(null, 0.0, null, 0.0);
+                                robot.servoClaw.autoGrab(null, 0.0, null, 0.0);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Enabling AutoGrab.");
                             }
                         }
@@ -608,20 +580,55 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case X:
-                if (robot.robotDrive != null && pressed)
+            case B:
+                // Toggle between field or robot oriented driving.
+                if (robot.robotBase != null && pressed)
                 {
-                    ((TrcSwerveDriveBase) (robot.robotDrive.driveBase)).setXMode(null);
-                    robot.globalTracer.traceInfo(moduleName, ">>>>> X Mode");
+                    if (driverAltFunc)
+                    {
+                        if (robot.robotBase.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
+                        {
+                            robot.setDriveOrientation(DriveOrientation.FIELD, true);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Field");
+                        }
+                        else
+                        {
+                            robot.setDriveOrientation(DriveOrientation.ROBOT, false);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Robot");
+                        }
+                    }
+                    else
+                    {
+                        robot.robotBase.driveBase.resetFieldForwardHeading();
+                        robot.globalTracer.traceInfo(
+                            moduleName,
+                            ">>>>> Reset field forward heading (heading=" + robot.robotBase.driveBase.getHeading() +
+                            ")");
+                    }
+                }
+                break;
+
+            case X:
+                // Turtle mode (alt-func: X-Mode).
+                if (pressed)
+                {
+                    if (driverAltFunc)
+                    {
+                        if (robot.robotBase != null)
+                        {
+                            ((TrcSwerveDrive) (robot.robotBase.driveBase)).setXMode(null);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> X Mode");
+                        }
+                    }
+                    else
+                    {
+                        robot.turtle();
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Turtle Mode.");
+                    }
                 }
                 break;
 
             case Y:
-                // Turtle mode.
-                if (pressed)
-                {
-                    robot.turtle();
-                }
                 break;
 
             case LeftBumper:
@@ -632,14 +639,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case RightBumper:
                 if (pressed)
                 {
-                    driveSpeedScale = robot.dashboard.getNumber(DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
-                    turnSpeedScale = robot.dashboard.getNumber(DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
+                    driveSpeedScale = robot.dashboard.getNumber(
+                        Dashboard.DBKEY_TELEOP_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
+                    turnSpeedScale = robot.dashboard.getNumber(
+                        Dashboard.DBKEY_TELEOP_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
                     robot.globalTracer.traceInfo(moduleName, ">>>>> Slow Drive");
                 }
                 else
                 {
-                    driveSpeedScale = robot.dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-                    turnSpeedScale = robot.dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+                    driveSpeedScale = robot.dashboard.getNumber(
+                        Dashboard.DBKEY_TELEOP_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+                    turnSpeedScale = robot.dashboard.getNumber(
+                        Dashboard.DBKEY_TELEOP_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
                     robot.globalTracer.traceInfo(moduleName, ">>>>> Normal Drive");
                 }
                 break;
@@ -697,7 +708,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.servoExtender.servo.presetPositionUp(null);
+                        robot.servoExtender.presetPositionUp(null);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position up");
                     }
                 }
@@ -715,7 +726,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.upValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooter1Velocity.getValue());
+                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
+                            robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
                     }
                 }
@@ -774,7 +786,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (pressed)
                     {
-                        robot.servoExtender.servo.presetPositionDown(null);
+                        robot.servoExtender.presetPositionDown(null);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position down");
                     }
                 }
@@ -792,7 +804,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.downValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_TEST_SUBSYSTEM_PARAM6, robot.shooterSubsystem.shooter1Velocity.getValue());
+                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
+                            robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
                     }
                 }
@@ -846,35 +859,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case Start:
-                if (robot.photonVisionFront != null &&
-                    robot.photonVisionFront.getPipeline() == PipelineType.APRILTAG ||
-                    robot.photonVisionBack != null &&
-                    robot.photonVisionBack.getPipeline() == PipelineType.APRILTAG)
-                {
-                    // On press of the button, we will start looking for AprilTag for re-localization.
-                    // On release of the button, we will set the robot's field location if we found the
-                    // AprilTag.
-                    relocalizing = pressed;
-                    if (!pressed)
-                    {
-                        if (robotFieldPose != null)
-                        {
-                            robot.globalTracer.traceInfo(
-                                moduleName, ">>>>> Finish re-localizing: pose=" + robotFieldPose);
-                            robot.robotDrive.driveBase.setFieldPosition(robotFieldPose, false);
-                            robotFieldPose = null;
-                        }
-                        else
-                        {
-                            robot.globalTracer.traceInfo(
-                                moduleName, ">>>>> Finish re-localizing: AprilTag not found");
-                        }
-                    }
-                    else
-                    {
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Start re-localizing ...");
-                    }
-                }
                 break;
 
             default:

@@ -22,11 +22,14 @@
 
 package teamcode.subsystems;
 
-import com.revrobotics.Rev2mDistanceSensor;
-import com.revrobotics.Rev2mDistanceSensor.Port;
+// import com.revrobotics.Rev2mDistanceSensor;
+// import com.revrobotics.Rev2mDistanceSensor.Port;
 
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcServoClaw;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcSubsystem;
@@ -38,11 +41,11 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoClaw extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "ServoClaw";
+    public static final boolean NEED_ZERO_CAL                   = false;
+
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "ServoClaw";
-        public static final boolean NEED_ZERO_CAL               = false;
-
         public static final boolean USE_ANALOG_SENSOR           = true;
         public static final boolean USE_DIGITAL_SENSOR          = false;
 
@@ -69,41 +72,29 @@ public class ServoClaw extends TrcSubsystem
         public static final boolean DIGITAL_TRIGGER_INVERTED    = false;
     }   //class Params
 
-    private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
-    private static final String DBKEY_IS_CLOSED                 = Params.SUBSYSTEM_NAME + "/IsClosed";
-    private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
-    private static final String DBKEY_AUTO_ACTIVE               = Params.SUBSYSTEM_NAME + "/AutoActive";
-    private static final String DBKEY_SENSOR_VALUE              = Params.SUBSYSTEM_NAME + "/SensorValue";
-    private static final String DBKEY_SENSOR_STATE              = Params.SUBSYSTEM_NAME + "/SensorState";
-
     private final FrcDashboard dashboard;
-    private final Rev2mDistanceSensor analogSensor;
+    // private final Rev2mDistanceSensor analogSensor;
     private final TrcServoClaw claw;
+    private double tuneLogicalPos = Params.CLOSE_POS;
 
     /**
      * Constructor: Creates an instance of the object.
      */
     public ServoClaw()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POSITION, 0.0);
-        dashboard.refreshKey(DBKEY_IS_CLOSED, false);
-        dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
-        dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
-        dashboard.refreshKey(DBKEY_SENSOR_VALUE, 0.0);
-        dashboard.refreshKey(DBKEY_SENSOR_STATE, false);
 
-        if (Params.USE_ANALOG_SENSOR)
-        {
-            analogSensor = new Rev2mDistanceSensor(Port.kOnboard);
-            analogSensor.setAutomaticMode(true);
-        }
-        else
-        {
-            analogSensor = null;
-        }
+        // if (Params.USE_ANALOG_SENSOR)
+        // {
+        //     analogSensor = new Rev2mDistanceSensor(Port.kOnboard);
+        //     analogSensor.setAutomaticMode(true);
+        // }
+        // else
+        // {
+        //    analogSensor = null;
+        // }
 
         FrcServoClaw.Params clawParams = new FrcServoClaw.Params()
             .setPrimaryServo(
@@ -112,19 +103,20 @@ public class ServoClaw extends TrcSubsystem
                 Params.FOLLOWER_SERVO_NAME, Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED)
             .setOpenCloseParams(Params.OPEN_POS, Params.OPEN_TIME, Params.CLOSE_POS, Params.CLOSE_TIME);
 
-        if (analogSensor != null)
-        {
-            clawParams.setAnalogSourceTrigger(
-                Params.ANALOG_SENSOR_NAME, this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD,
-                Params.UPPER_TRIGGER_THRESHOLD, Params.TRIGGER_SETTLING_TIME);
-        }
-        else if (Params.USE_DIGITAL_SENSOR)
+        // if (analogSensor != null)
+        // {
+        //     clawParams.setAnalogSourceTrigger(
+        //         Params.ANALOG_SENSOR_NAME, this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD,
+        //         Params.UPPER_TRIGGER_THRESHOLD, Params.TRIGGER_SETTLING_TIME);
+        // }
+        // else if (Params.USE_DIGITAL_SENSOR)
+        if (Params.USE_DIGITAL_SENSOR)
         {
             clawParams.setDigitalInputTrigger(
                 Params.DIGITAL_SENSOR_NAME, Params.SENSOR_DIGITAL_CHANNEL, Params.DIGITAL_TRIGGER_INVERTED);
         }
 
-        claw = new FrcServoClaw(Params.SUBSYSTEM_NAME, clawParams).getClaw();
+        claw = new FrcServoClaw(SUBSYSTEM_NAME, clawParams).getClaw();
         claw.open();
     }   //ServoClaw
 
@@ -138,22 +130,22 @@ public class ServoClaw extends TrcSubsystem
         return claw;
     }   //getClaw
 
-    /**
-     * This method returns the current sensor value if it has one.
-     *
-     * @return sensor value if there is a sensor, 0.0 if there is none.
-     */
-    private double getSensorData()
-    {
-        if (analogSensor != null)
-        {
-            return analogSensor.isRangeValid()? analogSensor.getRange(): Double.MAX_VALUE;
-        }
-        else
-        {
-            return 0.0;
-        }
-    }   //getSensorData
+    // /**
+    //  * This method returns the current sensor value if it has one.
+    //  *
+    //  * @return sensor value if there is a sensor, 0.0 if there is none.
+    //  */
+    // private double getSensorData()
+    // {
+    //     if (analogSensor != null)
+    //     {
+    //         return analogSensor.isRangeValid()? analogSensor.getRange(): Double.MAX_VALUE;
+    //     }
+    //     else
+    //     {
+    //         return 0.0;
+    //     }
+    // }   //getSensorData
 
     //
     // Implements TrcSubsystem abstract methods.
@@ -168,14 +160,15 @@ public class ServoClaw extends TrcSubsystem
         claw.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         // No zero calibration needed.
     }   //zeroCalibrate
@@ -199,29 +192,66 @@ public class ServoClaw extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_SERVOCLAW_SHOW_STATUS, RobotParams.Preferences.showServoClawStatus))
         {
-            dashboard.putNumber(DBKEY_POSITION, claw.getPosition());
-            dashboard.putBoolean(DBKEY_IS_CLOSED, claw.isClosed());
-            dashboard.putBoolean(DBKEY_HAS_OBJECT, claw.hasObject());
-            dashboard.putBoolean(DBKEY_AUTO_ACTIVE, claw.isAutoActive());
-            dashboard.putNumber(DBKEY_SENSOR_VALUE, claw.getSensorValue());
-            dashboard.putBoolean(DBKEY_SENSOR_STATE, claw.getTriggerState());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_SERVOCLAW_POSITION, claw.getPosition());
+                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_IS_CLOSED, claw.isClosed());
+                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_HAS_OBJECT, claw.hasObject());
+                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_AUTO_ACTIVE, claw.isAutoActive());
+                dashboard.putNumber(Dashboard.DBKEY_SERVOCLAW_SENSOR_VALUE, claw.getSensorValue());
+                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_SENSOR_STATE, claw.getTriggerState());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        claw.setOpenClosePositions(tuneParams[0], tuneParams[1]);
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_INPUT, claw.getPosition());
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+            {
+                tuneLogicalPos = dashboard.getNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, Params.CLOSE_POS);
+                claw.setPosition(null, 0.0, tuneLogicalPos, null, 0.0);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                claw.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class ServoClaw

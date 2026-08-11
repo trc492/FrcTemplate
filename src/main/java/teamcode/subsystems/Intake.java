@@ -25,6 +25,8 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcRollerIntake;
+import teamcode.Dashboard;
+import teamcode.RobotParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcSubsystem;
@@ -36,27 +38,22 @@ import trclib.subsystem.TrcRollerIntake.TriggerAction;
  */
 public class Intake extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "Intake";
+    public static final boolean NEED_ZERO_CAL                   = false;
+
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "Intake";
-        public static final boolean NEED_ZERO_CAL               = false;
-
         public static final boolean HAS_TWO_MOTORS              = false;
         public static final boolean HAS_FRONT_SENSOR            = false;
         public static final boolean HAS_BACK_SENSOR             = true;
 
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 12;
-        public static final MotorType PRIMARY_MOTOR_TYPE        = MotorType.CanTalonSrx;
-        public static final boolean PRIMARY_MOTOR_BRUSHLESS     = false;
-        public static final boolean PRIMARY_MOTOR_ENC_ABS       = false;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 14;
-        public static final MotorType FOLLOWER_MOTOR_TYPE       = MotorType.CanTalonSrx;
-        public static final boolean FOLLOWER_MOTOR_BRUSHLESS    = false;
-        public static final boolean FOLLOWER_MOTOR_ENC_ABS      = false;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
 
         public static final String FRONT_SENSOR_NAME             = SUBSYSTEM_NAME + ".frontSensor";
@@ -74,13 +71,6 @@ public class Intake extends TrcSubsystem
         public static final double EJECT_FINISH_DELAY           = 0.5;
     }   //class Params
 
-    private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
-    private static final String DBKEY_CURRENT                   = Params.SUBSYSTEM_NAME + "/Current";
-    private static final String DBKEY_HAS_OBJECT                = Params.SUBSYSTEM_NAME + "/HasObject";
-    private static final String DBKEY_FRONT_SENSOR_STATE        = Params.SUBSYSTEM_NAME + "/FrontSensorState";
-    private static final String DBKEY_BACK_SENSOR_STATE         = Params.SUBSYSTEM_NAME + "/BackSensorState";
-    private static final String DBKEY_AUTO_ACTIVE               = Params.SUBSYSTEM_NAME + "/AutoActive";
-
     private final FrcDashboard dashboard;
     private final TrcRollerIntake intake;
     
@@ -89,28 +79,21 @@ public class Intake extends TrcSubsystem
      */
     public Intake()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_CURRENT, 0.0);
-        dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
-        dashboard.refreshKey(DBKEY_FRONT_SENSOR_STATE, false);
-        dashboard.refreshKey(DBKEY_BACK_SENSOR_STATE, false);
-        dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
-
         FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params()
             .setPrimaryMotor(
-                Params.PRIMARY_MOTOR_NAME, Params.PRIMARY_MOTOR_ID, Params.PRIMARY_MOTOR_TYPE,
-                Params.PRIMARY_MOTOR_BRUSHLESS, Params.PRIMARY_MOTOR_ENC_ABS, Params.PRIMARY_MOTOR_INVERTED)
+                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED, true, true,
+                Params.PRIMARY_MOTOR_ID, null, null)
             .setPowerLevels(Params.INTAKE_POWER, Params.EJECT_POWER, Params.RETAIN_POWER)
             .setFinishDelays(Params.INTAKE_FINISH_DELAY, Params.EJECT_FINISH_DELAY);
 
         if (Params.HAS_TWO_MOTORS)
         {
             intakeParams.setFollowerMotor(
-                Params.FOLLOWER_MOTOR_NAME, Params.FOLLOWER_MOTOR_ID, Params.FOLLOWER_MOTOR_TYPE,
-                Params.FOLLOWER_MOTOR_BRUSHLESS, Params.FOLLOWER_MOTOR_ENC_ABS, Params.FOLLOWER_MOTOR_INVERTED);
+                Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_ID, null, null);
         }
 
         if (Params.HAS_FRONT_SENSOR)
@@ -126,7 +109,8 @@ public class Intake extends TrcSubsystem
                 Params.BACK_SENSOR_NAME, Params.BACK_SENSOR_DIGITAL_CHANNEL,
                 Params.BACK_SENSOR_INVERTED, TriggerAction.FinishOnTrigger, null, null, null);
         }
-        intake = new FrcRollerIntake(Params.SUBSYSTEM_NAME, intakeParams).getIntake();
+
+        intake = new FrcRollerIntake(SUBSYSTEM_NAME, intakeParams).getIntake();
     }   //Intake
 
     /**
@@ -152,14 +136,15 @@ public class Intake extends TrcSubsystem
         intake.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         // Intake does not need zero calibration.
     }   //zeroCalibrate
@@ -183,29 +168,40 @@ public class Intake extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_INTAKE_SHOW_STATUS, RobotParams.Preferences.showIntakeStatus))
         {
-            dashboard.putNumber(DBKEY_POWER, intake.getPower());
-            dashboard.putNumber(DBKEY_CURRENT, intake.getCurrent());
-            dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
-            dashboard.putBoolean(DBKEY_FRONT_SENSOR_STATE, intake.getFrontTriggerState());
-            dashboard.putBoolean(DBKEY_BACK_SENSOR_STATE, intake.getBackTriggerState());
-            dashboard.putBoolean(DBKEY_AUTO_ACTIVE, intake.isAutoActive());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_INTAKE_POWER, intake.getPower());
+                dashboard.putNumber(Dashboard.DBKEY_INTAKE_CURRENT, intake.getCurrent());
+                dashboard.putBoolean(Dashboard.DBKEY_INTAKE_HAS_OBJECT, intake.hasObject());
+                dashboard.putBoolean(Dashboard.DBKEY_INTAKE_FRONT_SENSOR, intake.getFrontSensorState());
+                dashboard.putBoolean(Dashboard.DBKEY_INTAKE_BACK_SENSOR, intake.getBackSensorState());
+                dashboard.putBoolean(Dashboard.DBKEY_INTAKE_AUTO_ACTIVE, intake.isAutoActive());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
         // Intake subsystem doesn't need tuning.
-    }   //prepSubsystemForTuning
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        // Intake subsystem doesn't need tuning.
+    }   //updateParamsFromDashboard
 
 }   //class Intake

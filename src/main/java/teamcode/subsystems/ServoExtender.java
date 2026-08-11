@@ -24,6 +24,9 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -34,16 +37,16 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoExtender extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME                   = "ServoExtender";
+    public static final boolean NEED_ZERO_CAL                   = false;
+
     public static class Params
     {
-        public static final String SUBSYSTEM_NAME               = "ServoExtender";
-        public static final boolean NEED_ZERO_CAL               = false;
-
-        public static final String PRIMARY_SERVO_NAME           = Params.SUBSYSTEM_NAME + ".primary";
+        public static final String PRIMARY_SERVO_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_SERVO_CHANNEL           = 0;
         public static final boolean PRIMARY_SERVO_INVERTED      = false;
 
-        public static final String FOLLOWER_SERVO_NAME          = Params.SUBSYSTEM_NAME + ".follower";
+        public static final String FOLLOWER_SERVO_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_SERVO_CHANNEL          = 1;
         public static final boolean FOLLOWER_SERVO_INVERTED     = false;
 
@@ -51,29 +54,34 @@ public class ServoExtender extends TrcSubsystem
         public static double POS_EXTEND                         = 0.8;
     }   //class Params
 
-    private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
-    private static final String DBKEY_IS_EXTENDED               = Params.SUBSYSTEM_NAME + "/IsExtended";
-
     private final FrcDashboard dashboard;
-    public final TrcServo servo;
+    private final TrcServo servo;
+    private double tuneLogicalPos = Params.POS_RETRACT;
 
     /**
      * Constructor: Creates an instance of the object.
      */
     public ServoExtender()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POSITION, 0.0);
-        dashboard.refreshKey(DBKEY_IS_EXTENDED, false);
-
         FrcServoActuator.Params extenderParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.PRIMARY_SERVO_NAME, Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
             .setFollowerServo(Params.FOLLOWER_SERVO_NAME, Params.FOLLOWER_SERVO_CHANNEL, Params.FOLLOWER_SERVO_INVERTED);
 
         servo = new FrcServoActuator(extenderParams).getServo();
     }   //ServoExtender
+
+    /**
+     * This method returns the created servo.
+     *
+     * @return created servo.
+     */
+    public TrcServo getServo()
+    {
+        return servo;
+    }   //getServo
 
     /**
      * This method checks if the extender is extended.
@@ -186,14 +194,15 @@ public class ServoExtender extends TrcSubsystem
         servo.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         // No zero calibration needed.
     }   //zeroCalibrate
@@ -217,28 +226,62 @@ public class ServoExtender extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_SERVOEXTENDER_SHOW_STATUS, RobotParams.Preferences.showServoExtenderStatus))
         {
-            dashboard.putNumber(DBKEY_POSITION, servo.getPosition());
-            dashboard.putBoolean(DBKEY_IS_EXTENDED, isExtended());
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_SERVOEXTENDER_POSITION, servo.getPosition());
+                dashboard.putBoolean(Dashboard.DBKEY_SERVOEXTENDER_IS_EXTENDED, isExtended());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - retract position
-     *        tuneParam1 - extend position
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        Params.POS_RETRACT = tuneParams[0];
-        Params.POS_EXTEND = tuneParams[1];
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_INPUT, servo.getLogicalPosition());
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+            {
+                tuneLogicalPos = dashboard.getNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, Params.POS_RETRACT);
+                servo.setPosition(tuneLogicalPos);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                servo.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class ServoExtender

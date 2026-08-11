@@ -26,8 +26,12 @@ import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcEncoder.EncoderType;
+import teamcode.Dashboard;
+import teamcode.FrcTest;
+import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
+import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -40,32 +44,32 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class CrServoArm extends TrcSubsystem
 {
+    public static final String SUBSYSTEM_NAME = "CrServoArm";
+    private static final boolean NEED_ZERO_CAL = false;
+
     public static final class Params
     {
-        public static final String SUBSYSTEM_NAME               = "CrServoArm";
-        public static final boolean NEED_ZERO_CAL               = false;
-
-        public static final boolean MOTOR_BRUSHLESS             = false;
-        public static final boolean MOTOR_ENC_ABS               = false;
-
+        public static final MotorType MOTOR_TYPE                = MotorType.CRServo;
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
-        public static final MotorType PRIMARY_MOTOR_TYPE        = MotorType.CRServo;
-        public static final int PRIMARY_MOTOR_CHANNEL           = 0;
         public static final boolean PRIMARY_MOTOR_INVERTED      = false;
+        public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = false;
+        public static final boolean PRIMARY_MOTOR_BRAKE_ENABLED = false;
+        public static final int PRIMARY_MOTOR_CHANNEL           = 0;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
-        public static final MotorType FOLLOWER_MOTOR_TYPE       = MotorType.CRServo;
-        public static final int FOLLOWER_MOTOR_CHANNEL          = 1;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
+        public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = false;
+        public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED = false;
+        public static final int FOLLOWER_MOTOR_CHANNEL          = 1;
 
-        public static final String ABSENC_NAME                  = SUBSYSTEM_NAME + ".enc";
-        public static final int ABSENC_CHANNEL                  = 0;
+        public static final String ABSENC_NAME                  = SUBSYSTEM_NAME + ".absEnc";
         public static final EncoderType ABSENC_TYPE             = EncoderType.AnalogEncoder;
         public static final boolean ABSENC_INVERTED             = true;
-        public static final double ABSENC_ZERO_OFFSET           = 0.949697;
+        public static final int ABSENC_CHANNEL                  = 0;
 
         public static final double POS_DEG_SCALE                = 360.0;
         public static final double POS_OFFSET                   = 27.0;
+        public static final double ABSENC_ZERO_OFFSET           = 0.949697;
         public static final double POWER_LIMIT                  = 0.25;
 
         public static final double MIN_POS                      = 27.3;
@@ -80,11 +84,8 @@ public class CrServoArm extends TrcSubsystem
         public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.0162, 0.0, 0.0, 0.0, 2.0);
         public static final double POS_PID_TOLERANCE            = 1.0;
-        public static final double GRAVITY_COMP_MAX_POWER       = 0.1675;
+        public static final double GRAVITY_COMP_POWER           = 0.1675;
     }   //class Params
-
-    private static final String DBKEY_POWER                     = Params.SUBSYSTEM_NAME + "/Power";
-    private static final String DBKEY_POSITION                  = Params.SUBSYSTEM_NAME + "/Position";
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
@@ -95,25 +96,26 @@ public class CrServoArm extends TrcSubsystem
      */
     public CrServoArm()
     {
-        super(Params.SUBSYSTEM_NAME, Params.NEED_ZERO_CAL);
+        super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-        dashboard.refreshKey(DBKEY_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_POSITION, "");
-
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.PRIMARY_MOTOR_NAME, Params.PRIMARY_MOTOR_CHANNEL, Params.PRIMARY_MOTOR_TYPE,
-                Params.MOTOR_BRUSHLESS, Params.MOTOR_ENC_ABS, Params.PRIMARY_MOTOR_INVERTED)
-            .setFollowerMotor(
-                Params.FOLLOWER_MOTOR_NAME, Params.FOLLOWER_MOTOR_CHANNEL, Params.FOLLOWER_MOTOR_TYPE,
-                Params.MOTOR_BRUSHLESS, Params.MOTOR_ENC_ABS, Params.FOLLOWER_MOTOR_INVERTED)
-            .setExternalEncoder(Params.ABSENC_NAME, Params.ABSENC_CHANNEL, Params.ABSENC_TYPE, Params.ABSENC_INVERTED)
+                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED,
+                Params.PRIMARY_MOTOR_VOLTCOMP_ENABLED, Params.PRIMARY_MOTOR_BRAKE_ENABLED,
+                Params.PRIMARY_MOTOR_CHANNEL, null, null)
+            .addFollowerMotor(
+                Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_CHANNEL, null, null)
+            .setExternalEncoder(
+                Params.ABSENC_NAME, Params.ABSENC_TYPE, Params.ABSENC_INVERTED, Params.ABSENC_CHANNEL)
             .setPositionScaleAndOffset(Params.POS_DEG_SCALE, Params.POS_OFFSET, Params.ABSENC_ZERO_OFFSET)
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
         motor = new FrcMotorActuator(motorParams).getMotor();
         motor.setPositionPidParameters(
-            Params.posPidCoeffs, Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED);
+            new PidParams()
+                .setPidCoefficients(Params.posPidCoeffs)
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
         motor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
     }   //CrServoArm
@@ -134,9 +136,9 @@ public class CrServoArm extends TrcSubsystem
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
-    private double getGravityComp(double currPower)
+    private double getGravityComp(TrcMotor motor, double currPower)
     {
-        double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_MAX_POWER;
+        double gravityCompPower = tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_POWER;
         return gravityCompPower * Math.sin(Math.toRadians(motor.getPosition()));
     }   //getGravityComp
 
@@ -153,16 +155,17 @@ public class CrServoArm extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-    /**
+   /**
      * This method starts zero calibrate of the subsystem.
      *
-     * @param owner specifies the owner ID to to claim subsystem ownership, can be null if ownership not required.
-     * @param event specifies an event to signal when zero calibration is done, can be null if not provided.
+     * @param owner specifies the owner ID to check if the caller has ownership of the motor.
+     * @param completionEvent specifies the event to signal when the zero calibration is done,
+     *        can be null if not provided.
      */
     @Override
-    public void zeroCalibrate(String owner, TrcEvent event)
+    public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
-        // No zero calibration needed.
+        // No zero calibration needed for absolute encoder.
     }   //zeroCalibrate
 
     /**
@@ -184,36 +187,76 @@ public class CrServoArm extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (dashboard.getBoolean(Dashboard.DBKEY_CRSERVOARM_SHOW_STATUS, RobotParams.Preferences.showCrServoArmStatus))
         {
-            dashboard.putNumber(DBKEY_POWER, motor.getPower());
-            dashboard.putString(
-                DBKEY_POSITION, String.format("%.1f/%.1f", motor.getPosition(), motor.getPidTarget()));
+            if (slowLoop)
+            {
+                dashboard.putNumber(Dashboard.DBKEY_CRSERVOARM_POWER, motor.getPower());
+                dashboard.putString(Dashboard.DBKEY_CRSERVOARM_POSITION,
+                                    motor.getPosition() + "/" + motor.getPidTarget());
+            }
         }
 
         return lineNum;
     }   //updateStatus
 
     /**
-     * This method is called to prep the subsystem for tuning.
-     *
-     * @param subComponent specifies the sub-component of the Subsystem to be tuned, can be null if no sub-component.
-     * @param tuneParams specifies tuning parameters.
-     *        tuneParam0 - Kp
-     *        tuneParam1 - Ki
-     *        tuneParam2 - Kd
-     *        tuneParam3 - Kf
-     *        tuneParam4 - iZone
-     *        tuneParam5 - PidTolerance
-     *        tuneParam6 - GravityCompPower
+     * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
      */
     @Override
-    public void prepSubsystemForTuning(String subComponent, double... tuneParams)
+    public void updateParamsToDashboard()
     {
-        motor.setPositionPidParameters(
-            tuneParams[0], tuneParams[1], tuneParams[2], tuneParams[3], tuneParams[4], tuneParams[5],
-            MotorArm.Params.SOFTWARE_PID_ENABLED);
-        tuneGravityCompPower = tuneParams[6];
-    }   //prepSubsystemForTuning
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+            {
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, Params.posPidCoeffs.kP);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, Params.posPidCoeffs.kI);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, Params.posPidCoeffs.kD);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, Params.posPidCoeffs.kF);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, Params.posPidCoeffs.iZone);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, Params.POS_PID_TOLERANCE);
+                dashboard.putBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, Params.SOFTWARE_PID_ENABLED);
+                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, 0.0);
+                dashboard.putNumber(
+                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER,
+                    tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_POWER);
+            }
+        }
+    }   //updateParamsToDashboard
+
+    /**
+     * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
+     * parameters using Dashboard.
+     */
+    @Override
+    public void updateParamsFromDashboard()
+    {
+        String subsystemName = FrcTest.testChoices.getSubsystemName();
+
+        if (!subsystemName.isEmpty())
+        {
+            TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
+            boolean foundMatch = false;
+
+            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+            {
+                motor.setPositionPidParameters(pidParams, null);
+                tuneGravityCompPower = dashboard.getNumber(
+                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+                foundMatch = true;
+            }
+
+            if (foundMatch)
+            {
+                motor.tracer.traceInfo(
+                    instanceName, "Tune %s: PidParams=%s, GravityPower=%.3f",
+                    subsystemName, pidParams, tuneGravityCompPower);
+            }
+        }
+    }   //updateParamsFromDashboard
 
 }   //class CrServoArm
