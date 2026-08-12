@@ -8,8 +8,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -156,6 +156,7 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS, 0.0);
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV, 0.0);
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA, 0.0);
+            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, 0.0);
         }   //TestChoices
 
         //
@@ -247,38 +248,50 @@ public class FrcTest extends FrcTeleOp
             return userChoices.getUserString(Dashboard.DBKEY_TEST_SUBSYSTEM_NAME);
         }   //getSubsystemName
 
-        public TrcPidController.PidCoefficients getSubsystemPidCoefficients()
-        {
-            return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE));
-        }   //getSubsystemPidCoefficients
-
-        public TrcPidController.FFCoefficients getSubsystemFFCoefficients()
-        {
-            return new TrcPidController.FFCoefficients(
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA));
-        }   //getSubsystemFFCoefficients
-
         public TrcMotor.PidParams getSubsystemPidParameters()
         {
             return new TrcMotor.PidParams()
-                        .setPidCoefficients(getSubsystemPidCoefficients())
-                        .setFFCoefficients(getSubsystemFFCoefficients())
-                        .setPidControlParams(
-                            userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE),
-                            userChoices.getUserBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID));
+                .setPidCoefficients(
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE))
+                .setFFCoefficients(
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA))
+                .setPidControlParams(
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE),
+                    userChoices.getUserBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID))
+                .setTuningParams(
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM),
+                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER));
         }   //getSubsystemPidParameters
 
-        public double getSubsystemTargetParam()
+        public void setSubsystemPidParameters(TrcMotor.PidParams pidParams)
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM);
-        }   //getSubsystemTargetParam
+            if (pidParams.pidCoeffs != null)
+            {
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, pidParams.pidCoeffs.kP);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, pidParams.pidCoeffs.kI);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, pidParams.pidCoeffs.kD);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, pidParams.pidCoeffs.kF);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, pidParams.pidCoeffs.iZone);
+            }
+
+            if (pidParams.ffCoeffs != null)
+            {
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS, pidParams.ffCoeffs.kS);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV, pidParams.ffCoeffs.kV);
+                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA, pidParams.ffCoeffs.kA);
+            }
+
+            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
+            userChoices.addBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
+            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
+            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, pidParams.gravityCompPower);
+        }   //setSubsystemPidParameters
 
         @Override
         public String toString()
