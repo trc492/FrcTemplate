@@ -324,7 +324,7 @@ public class FrcTest extends FrcTeleOp
     //
     // Global objects.
     //
-    private final TestChoices testChoices = new TestChoices();
+    public static final TestChoices testChoices = new TestChoices();
     private TrcRobot.RobotCommand testCommand;
     // Drive Speed Test.
     private double maxDriveVelocity = 0.0;
