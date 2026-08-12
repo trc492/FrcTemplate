@@ -130,7 +130,7 @@ public class Dashboard
     public static final String DBKEY_TEST_SUBSYSTEM_KS              = "Test/SubsystemKs";
     public static final String DBKEY_TEST_SUBSYSTEM_KV              = "Test/SubsystemKv";
     public static final String DBKEY_TEST_SUBSYSTEM_KA              = "Test/SubsystemKa";
-    public static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER   = "Test/GravityPower";
+    public static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER   = "Test/SubsystemGravityPower";
 
     public static final String DBKEY_TEST_SUBSYSTEM_INPUT           = "Test/SubsystemInput";
     public static final String DBKEY_TEST_SUBSYSTEM_TARGET          = "Test/SubsystemTarget";
@@ -264,6 +264,8 @@ public class Dashboard
         dashboard.refreshKey(DBKEY_TURNPID_INFO, "");
         // Vision.
         dashboard.refreshKey(DBKEY_VISION_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled);
+        dashboard.refreshKey(DBKEY_VISION_FRONTCAM_PIPELINE, "");
+        dashboard.refreshKey(DBKEY_VISION_BACKCAM_PIPELINE, "");
         // Autonomous.
         dashboard.refreshKey(DBKEY_AUTO_CHOICES_SUBMIT, false);
         // TeleOp.

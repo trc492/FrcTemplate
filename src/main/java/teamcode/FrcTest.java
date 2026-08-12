@@ -156,6 +156,7 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS, 0.0);
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV, 0.0);
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA, 0.0);
+            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, 0.0);
         }   //TestChoices
 
         //
