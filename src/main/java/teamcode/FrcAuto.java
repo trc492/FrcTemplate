@@ -302,8 +302,6 @@ public class FrcAuto implements TrcRobot.RobotMode
             case DO_NOTHING:
             default:
                 autoCommand = null;
-                robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
-                robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
                 break;
         }
 

@@ -116,6 +116,8 @@ public class Dashboard
     public static final String DBKEY_TEST_SUBSYSTEM_KS              = "Test/SubsystemKs";
     public static final String DBKEY_TEST_SUBSYSTEM_KV              = "Test/SubsystemKv";
     public static final String DBKEY_TEST_SUBSYSTEM_KA              = "Test/SubsystemKa";
+    public static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER   = "Test/GravityPower";
+
 
     public static final String DBKEY_TEST_SUBSYSTEM_INPUT           = "Test/SubsystemInput";
     public static final String DBKEY_TEST_SUBSYSTEM_TARGET          = "Test/SubsystemTarget";
