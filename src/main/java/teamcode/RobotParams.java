@@ -56,7 +56,7 @@ public class RobotParams
         public static final boolean useLED                      = false;
         public static final boolean useRumble                   = false;
         public static final boolean hasDriverGameController     = true;
-        public static final boolean hasOperatorGameController   = true;
+        public static final boolean hasOperatorGameController   = false;
         // Vision
         public static final boolean useVision                   = false;
         public static final boolean showVisionStatus            = !inCompetition;

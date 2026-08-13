@@ -69,17 +69,17 @@ public class Elevator extends TrcSubsystem
         public static final int UPPER_LIMIT_SWITCH_CHANNEL      = 1;
         public static final boolean UPPER_LIMIT_SWITCH_INVERTED = false;
 
-        public static final double INCHES_PER_COUNT             = (29.875 - 10.8125) / 5250.0;
-        public static final double POS_OFFSET                   = 10.8125;
+        public static final double POS_OFFSET                   = 13.5;
+        public static final double INCHES_PER_COUNT             = (32.125 - POS_OFFSET) / 5024.0;
         public static final double POWER_LIMIT                  = 1.0;
         public static final double ZERO_CAL_POWER               = -0.25;
         public static final double ZERO_CAL_TIMEOUT             = 0.0;
 
         public static final double MIN_POS                      = POS_OFFSET;
-        public static final double MAX_POS                      = 30.0;
+        public static final double MAX_POS                      = 32.0;
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
-        public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0};
+        public static final double[] posPresets                 = {MIN_POS, 15.0, 20.0, 25.0, 30.0, MAX_POS};
         public static final double POS_PRESET_TOLERANCE         = 1.0;
 
         public static final boolean SOFTWARE_PID_ENABLED        = true;
