@@ -56,6 +56,8 @@ import teamcode.indicators.LEDIndicator;
 import teamcode.subsystems.DriveBase;
 import teamcode.vision.Vision;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
+import trclib.motor.TrcMotor;
+import trclib.motor.TrcServo;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcAutoTask;
 import trclib.robotcore.TrcBuildInfo;
@@ -63,6 +65,9 @@ import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot.RunMode;
 import trclib.sensor.TrcRobotBattery;
+import trclib.subsystem.TrcRollerIntake;
+import trclib.subsystem.TrcServoClaw;
+import trclib.subsystem.TrcShooter;
 import trclib.subsystem.TrcSubsystem;
 import trclib.timer.TrcTimer;
 import trclib.vision.TrcVisionRelocalize;
@@ -224,6 +229,73 @@ public class Robot extends FrcRobot
             if (RobotParams.Preferences.useSubsystems)
             {
                 // Create subsystems.
+                if (RobotParams.Preferences.useMotorArm)
+                {
+                    motorArmSubsystem = new MotorArm();
+                    motorArm = motorArmSubsystem.getMotor();
+                }
+
+                if (RobotParams.Preferences.useCrServoArm)
+                {
+                    crServoArmSubsystem = new CrServoArm();
+                    crServoArm = crServoArmSubsystem.getMotor();
+                }
+
+                if (RobotParams.Preferences.useElevator)
+                {
+                    elevatorSubsystem = new Elevator();
+                    elevator = elevatorSubsystem.getMotor();
+                }
+
+                if (RobotParams.Preferences.useTurret)
+                {
+                    turretSubsystem = new Turret();
+                    turret = turretSubsystem.getMotor();
+                }
+
+                if (RobotParams.Preferences.useIntake)
+                {
+                    intakeSubsystem = new Intake();
+                    intake = intakeSubsystem.getIntake();
+                }
+
+                if (RobotParams.Preferences.useShooter)
+                {
+                    // Note: Since shooter depends on Intake, Intake subsystem must instantiate before shooter.
+                    shooterSubsystem = new Shooter();
+                    shooter = shooterSubsystem.getShooter();
+                }
+
+                if (RobotParams.Preferences.useDiffyWrist)
+                {
+                    diffyWrist = new DiffyServoWrist();
+                }
+
+                if (RobotParams.Preferences.useServoWrist)
+                {
+                    servoWristSubsystem = new ServoWrist();
+                    servoWrist = servoWristSubsystem.getServo();
+                }
+
+                if (RobotParams.Preferences.useServoExtender)
+                {
+                    servoExtenderSubsystem = new ServoExtender();
+                    servoExtender = servoExtenderSubsystem.getServo();
+                }
+
+                if (RobotParams.Preferences.useServoClaw)
+                {
+                    servoClawSubsystem = new ServoClaw();
+                    servoClaw = servoClawSubsystem.getClaw();
+                }
+
+                if (RobotParams.Preferences.useLatch)
+                {
+                    latchSubsystem = new Latch();
+                    latch = latchSubsystem.getServo();
+                }
+
+                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 
                 TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 

@@ -245,11 +245,6 @@ public class FrcAuto implements TrcRobot.RobotMode
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         //
-        // Retrieve Auto choices.
-        //
-        robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
-        robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
-        //
         // Create autonomous command.
         //
         switch (autoChoices.strategy)
@@ -302,6 +297,8 @@ public class FrcAuto implements TrcRobot.RobotMode
             case DO_NOTHING:
             default:
                 autoCommand = null;
+                robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
+                robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
                 break;
         }
 
