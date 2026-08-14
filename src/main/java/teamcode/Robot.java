@@ -52,21 +52,8 @@ import frclib.sensor.FrcPdp;
 import frclib.sensor.FrcRobotBattery;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
-import teamcode.autotasks.TaskAutoPickup;
-import teamcode.autotasks.TaskAutoShoot;
 import teamcode.indicators.LEDIndicator;
-import teamcode.subsystems.MotorArm;
-import teamcode.subsystems.ServoClaw;
-import teamcode.subsystems.ServoExtender;
-import teamcode.subsystems.ServoWrist;
-import teamcode.subsystems.CrServoArm;
-import teamcode.subsystems.DiffyServoWrist;
 import teamcode.subsystems.DriveBase;
-import teamcode.subsystems.Elevator;
-import teamcode.subsystems.Intake;
-import teamcode.subsystems.Latch;
-import teamcode.subsystems.Shooter;
-import teamcode.subsystems.Turret;
 import teamcode.vision.Vision;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.motor.TrcMotor;
@@ -132,30 +119,10 @@ public class Robot extends FrcRobot
     //
     // Other subsystems.
     //
-    public MotorArm motorArmSubsystem;
-    public TrcMotor motorArm;
-    public CrServoArm crServoArmSubsystem;
-    public TrcMotor crServoArm;
-    public Elevator elevatorSubsystem;
-    public TrcMotor elevator;
-    public Turret turretSubsystem;
-    public TrcMotor turret;
-    public Intake intakeSubsystem;
-    public TrcRollerIntake intake;
-    public Shooter shooterSubsystem;
-    public TrcShooter shooter;
-    public DiffyServoWrist diffyWrist;
-    public ServoWrist servoWristSubsystem;
-    public TrcServo servoWrist;
-    public ServoExtender servoExtenderSubsystem;
-    public TrcServo servoExtender;
-    public ServoClaw servoClawSubsystem;
-    public TrcServoClaw servoClaw;
-    public Latch latchSubsystem;
-    public TrcServo latch;
+
+    //
     // Auto Tasks.
-    public TaskAutoShoot autoShootTask;
-    public TaskAutoPickup autoPickupTask;
+    //
 
     /**
      * Constructor: Create an instance of the object.
@@ -330,22 +297,9 @@ public class Robot extends FrcRobot
 
                 TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 
-                // Create autotasks.
-                if (RobotParams.Preferences.useAutoShoot)
-                {
-                    if (shooter != null)
-                    {
-                        autoShootTask = new TaskAutoShoot(this);
-                    }
-                }
+                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 
-                if (RobotParams.Preferences.useAutoPickup)
-                {
-                    if (intake != null)
-                    {
-                        autoPickupTask = new TaskAutoPickup(this);
-                    }
-                }
+                // Create autotasks.
             }
         }
 

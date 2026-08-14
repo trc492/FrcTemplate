@@ -22,15 +22,10 @@
 
 package teamcode;
 
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcXboxController;
-import teamcode.subsystems.MotorArm;
-import teamcode.subsystems.CrServoArm;
-import teamcode.subsystems.Elevator;
-import teamcode.subsystems.Intake;
-import teamcode.subsystems.Shooter;
-import teamcode.subsystems.Turret;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.dataprocessor.TrcWarpSpace;
@@ -261,52 +256,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                             driveInputs[0], driveInputs[1], turnPower));
                                 }
                             }
-                        }
-                    }
-                }
-                //
-                // Other subsystems.
-                //
-                if (RobotParams.Preferences.useSubsystems)
-                {
-                    // Analog control of subsystems.
-                    // Note that this sample code assumes only one subsystem is enabled at a time for demo purpose.
-                    // Therefore, the same control may be assigned to multiple subsystems.
-                    if (robot.motorArm != null)
-                    {
-                        double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevMotorArmPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.motorArm.setPower(armPower);
-                            }
-                            else
-                            {
-                                robot.motorArm.setPidPower(
-                                    armPower, MotorArm.Params.POWER_LIMIT, MotorArm.Params.MIN_POS,
-                                    MotorArm.Params.MAX_POS, true);
-                            }
-                            prevMotorArmPower = armPower;
-                        }
-                    }
-                    else if (robot.crServoArm != null)
-                    {
-                        double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevServoArmPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.crServoArm.setPower(armPower);
-                            }
-                            else
-                            {
-                                robot.crServoArm.setPidPower(
-                                    armPower, CrServoArm.Params.POWER_LIMIT, CrServoArm.Params.MIN_POS,
-                                    CrServoArm.Params.MAX_POS, true);
-                            }
                             prevServoArmPower = armPower;
                         }
                     }
@@ -443,141 +392,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case A:
-                if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        if (robot.autoShootTask != null)
-                        {
-                            // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
-                            if (robot.autoShootTask.isActive())
-                            {
-                                robot.autoShootTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
-                            }
-                            else
-                            {
-                                robot.autoShootTask.autoShoot(moduleName, null, !driverAltFunc, null);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
-                            }
-                        }
-                        else
-                        {
-                            // Auto Shoot Task is disabled, shoot manually.
-                            if (robot.shooter.isActive())
-                            {
-                                robot.shooter.cancel(moduleName);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
-                            }
-                            else
-                            {
-                                robot.shooter.aimShooter(
-                                    moduleName, robot.shooterSubsystem.shooter1Velocity.getValue(), 0.0,
-                                    null, null, null, 0.0, robot.shooterSubsystem::shoot, null,
-                                    Shooter.Params.SHOOTER_OFF_DELAY);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
-                            }
-                        }
-                    }
-                }
-                else if (robot.intake != null)
-                {
-                    if (pressed)
-                    {
-                        if (robot.autoPickupTask != null)
-                        {
-                            if (robot.autoPickupTask.isActive())
-                            {
-                                robot.autoPickupTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Pickup");
-                            }
-                            else
-                            {
-                                robot.autoPickupTask.autoPickup(
-                                    moduleName, null, FrcAuto.autoChoices.alliance, !driverAltFunc);
-                                robot.globalTracer.traceInfo(
-                                    moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
-                            }
-                        }
-                        else
-                        {
-                            if (driverAltFunc)
-                            {
-                                if (robot.intake.getPower() == 0.0)
-                                {
-                                    robot.intake.setPower(Intake.Params.INTAKE_POWER);
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake");
-                                }
-                                else
-                                {
-                                    robot.intake.cancel();
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Intake");
-                                }
-                            }
-                            else
-                            {
-                                if (robot.intake.isAutoActive())
-                                {
-                                    robot.intake.cancel();
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Sensor Intake");
-                                }
-                                else
-                                {
-                                    robot.intake.autoIntake(moduleName);
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Sensor Intake");
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (robot.servoExtender != null)
-                {
-                    if (pressed)
-                    {
-                        extenderExtended = !extenderExtended;
-                        if (extenderExtended)
-                        {
-                            robot.servoExtenderSubsystem.extend();
-                        }
-                        else
-                        {
-                            robot.servoExtenderSubsystem.retract();
-                        }
-                    }
-                }
-                else if (robot.servoClaw != null)
-                {
-                    if (pressed)
-                    {
-                        if (driverAltFunc)
-                        {
-                            if (robot.servoClaw.isClosed())
-                            {
-                                robot.servoClaw.open();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Opening claws");
-                            }
-                            else
-                            {
-                                robot.servoClaw.close();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Closing claws");
-                            }
-                        }
-                        else
-                        {
-                            if (robot.servoClaw.isAutoActive() || robot.servoClaw.hasObject())
-                            {
-                                robot.servoClaw.cancel();
-                                robot.servoClaw.open();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Canceling AutoGrab.");
-                            }
-                            else
-                            {
-                                robot.servoClaw.autoGrab(null, 0.0, null, 0.0);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Enabling AutoGrab.");
-                            }
-                        }
-                    }
-                }
                 break;
 
             case B:
@@ -656,196 +470,34 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case DpadUp:
-                if (robot.motorArm != null)
+                if (robot.robotBase != null && pressed)
                 {
-                    if (pressed)
-                    {
-                        robot.motorArm.presetPositionUp(null, MotorArm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> MotorArm position up");
-                    }
-                }
-                else if (robot.crServoArm != null)
-                {
-                    if (pressed)
-                    {
-                        robot.crServoArm.presetPositionUp(null, CrServoArm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position up");
-                    }
-                }
-                else if (robot.elevator != null)
-                {
-                    if (pressed)
-                    {
-                        robot.elevator.presetPositionUp(null, Elevator.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position up");
-                    }
-                }
-                else if (robot.turret != null)
-                {
-                    if (pressed)
-                    {
-                        robot.turret.presetPositionUp(null, Turret.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Turret position up");
-                    }
-                }
-                else if (robot.diffyWrist != null)
-                {
-                    if (pressed)
-                    {
-                        robot.diffyWrist.tiltPresetPositionUp(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristTilt position up");
-                    }
-                }
-                else if (robot.servoWrist != null)
-                {
-                    if (pressed)
-                    {
-                        robot.servoWrist.presetPositionUp(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoWrist position up");
-                    }
-                }
-                else if (robot.servoExtender != null)
-                {
-                    if (pressed)
-                    {
-                        robot.servoExtender.presetPositionUp(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position up");
-                    }
-                }
-                else if (robot.latch != null)
-                {
-                    if (pressed)
-                    {
-                        robot.latch.presetPositionUp(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Latch position up");
-                    }
-                }
-                else if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        robot.shooterSubsystem.shooter1Velocity.upValue();
-                        robot.dashboard.putNumber(
-                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
-                            robot.shooterSubsystem.shooter1Velocity.getValue());
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
-                    }
+                    lockedHeading = FrcAuto.autoChoices.alliance == Alliance.Blue? 0.0: 180.0;
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Lock heading to " + lockedHeading);
                 }
                 break;
 
             case DpadDown:
-                if (robot.motorArm != null)
+                if (robot.robotBase != null && pressed)
                 {
-                    if (pressed)
-                    {
-                        robot.motorArm.presetPositionDown(null, MotorArm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> MotorArm position down");
-                    }
-                }
-                else if (robot.crServoArm != null)
-                {
-                    if (pressed)
-                    {
-                        robot.crServoArm.presetPositionDown(null, CrServoArm.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position down");
-                    }
-                }
-                else if (robot.elevator != null)
-                {
-                    if (pressed)
-                    {
-                        robot.elevator.presetPositionDown(null, Elevator.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Elevator position down");
-                    }
-                }
-                else if (robot.turret != null)
-                {
-                    if (pressed)
-                    {
-                        robot.turret.presetPositionDown(null, Turret.Params.POWER_LIMIT);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Turret position down");
-                    }
-                }
-                else if (robot.diffyWrist != null)
-                {
-                    if (pressed)
-                    {
-                        robot.diffyWrist.tiltPresetPositionDown(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristTilt position down");
-                    }
-                }
-                else if (robot.servoWrist != null)
-                {
-                    if (pressed)
-                    {
-                        robot.servoWrist.presetPositionDown(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoWrist position down");
-                    }
-                }
-                else if (robot.servoExtender != null)
-                {
-                    if (pressed)
-                    {
-                        robot.servoExtender.presetPositionDown(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> ServoExtender position down");
-                    }
-                }
-                else if (robot.latch != null)
-                {
-                    if (pressed)
-                    {
-                        robot.latch.presetPositionDown(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Latch position down");
-                    }
-                }
-                else if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        robot.shooterSubsystem.shooter1Velocity.downValue();
-                        robot.dashboard.putNumber(
-                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
-                            robot.shooterSubsystem.shooter1Velocity.getValue());
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
-                    }
+                    lockedHeading = FrcAuto.autoChoices.alliance == Alliance.Blue? 180.0: 0.0;
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Lock heading to " + lockedHeading);
                 }
                 break;
 
             case DpadLeft:
-                if (robot.diffyWrist != null)
+                if (robot.robotBase != null && pressed)
                 {
-                    if (pressed)
-                    {
-                        robot.diffyWrist.rotatePresetPositionDown(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristRotate position down");
-                    }
-                }
-                else if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        robot.shooterSubsystem.shooter1Velocity.downIncrement();
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment down");
-                    }
+                    lockedHeading = FrcAuto.autoChoices.alliance == Alliance.Blue? -90.0: 90.0;
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Lock heading to " + lockedHeading);
                 }
                 break;
 
             case DpadRight:
-                if (robot.diffyWrist != null)
+                if (robot.robotBase != null && pressed)
                 {
-                    if (pressed)
-                    {
-                        robot.diffyWrist.rotatePresetPositionUp(null);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> DiffyWristRotate position up");
-                    }
-                }
-                else if (robot.shooter != null)
-                {
-                    if (pressed)
-                    {
-                        robot.shooterSubsystem.shooter1Velocity.upIncrement();
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity increment up");
-                    }
+                    lockedHeading = FrcAuto.autoChoices.alliance == Alliance.Blue? 90.0: -90.0;
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Lock heading to " + lockedHeading);
                 }
                 break;
 
