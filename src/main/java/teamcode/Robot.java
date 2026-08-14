@@ -225,7 +225,7 @@ public class Robot extends FrcRobot
             {
                 // Create subsystems.
 
-                TrcSubsystem.updateSubsystemParamsToDashboard();
+                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 
                 // Create autotasks.
             }

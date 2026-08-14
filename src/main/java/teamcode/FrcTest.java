@@ -264,9 +264,7 @@ public class FrcTest extends FrcTeleOp
                 .setPidControlParams(
                     userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE),
                     userChoices.getUserBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID))
-                .setTuningParams(
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER));
+                .setTuningParams(userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM));
         }   //getSubsystemPidParameters
 
         public void setSubsystemPidParameters(TrcMotor.PidParams pidParams)
@@ -290,7 +288,6 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
             userChoices.addBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
             userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, pidParams.gravityCompPower);
         }   //setSubsystemPidParameters
 
         @Override
@@ -434,20 +431,20 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
+            case VISION_TEST:
+                if (robot.vision != null)
+                {
+                    robot.vision.setFrontCamPipeline();
+                    robot.vision.setBackCamPipeline();
+                }
+                break;
+
             case SWERVE_CALIBRATION:
                 if (robot.robotBase != null && robot.robotBase instanceof FrcSwerveBase)
                 {
                     robot.globalTracer.traceInfo(moduleName, "Start Swerve Calibration.");
                     setControlsEnabled(false);
                     ((FrcSwerveBase) robot.robotBase).startSteeringCalibration();
-                }
-                break;
-
-            case VISION_TEST:
-                if (robot.vision != null)
-                {
-                    robot.vision.setFrontCamPipeline();
-                    robot.vision.setBackCamPipeline();
                 }
                 break;
 
@@ -525,11 +522,6 @@ public class FrcTest extends FrcTeleOp
         //
         switch (test)
         {
-            case TUNE_SUBSYSTEM:
-                // Populate the dashboard with the PID parameters for subsystem tuning.
-                // String subsystemName = testChoices.getSubsystemName();
-                break;
-
             case DRIVE_SPEED_TEST:
                 if (robot.robotBase != null)
                 {
@@ -726,6 +718,7 @@ public class FrcTest extends FrcTeleOp
     {
         boolean passToTeleOp = true;
         Test test = testChoices.getTest();
+        String subsystemName = null;
 
         if (traceButtonEvents)
         {
@@ -742,15 +735,58 @@ public class FrcTest extends FrcTeleOp
             case Y:
             case LeftBumper:
             case RightBumper:
+                break;
+
             case DpadUp:
+                if (test == Test.SUBSYSTEMS_TEST)
+                {
+                    if (pressed)
+                    {
+                        subsystemName = testChoices.getSubsystemName();
+                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, true);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value up.");
+                    }
+                }
+                break;
+
             case DpadDown:
+                if (test == Test.SUBSYSTEMS_TEST)
+                {
+                    if (pressed)
+                    {
+                        subsystemName = testChoices.getSubsystemName();
+                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, false);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value down.");
+                    }
+                }
+                break;
+
             case DpadLeft:
             case DpadRight:
             case Back:
                 break;
 
             case Start:
-                if (test == Test.TUNE_DRIVE_PID)
+                if (test == Test.TUNE_SUBSYSTEM)
+                {
+                    if (pressed)
+                    {
+                        subsystemName = testChoices.getSubsystemName();
+                        if (operatorAltFunc)
+                        {
+                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, null);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to current value.");
+                        }
+                        else
+                        {
+                            TrcSubsystem.updateSubsystemParamsFromDashboard(subsystemName);
+                            robot.globalTracer.traceInfo(
+                                moduleName, ">>>>> Start subsystem tune with the tune params.");
+                        }
+                    }
+                    passToTeleOp = false;
+                }
+                else if (test == Test.TUNE_DRIVE_PID)
                 {
                     if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
                     {
@@ -764,7 +800,6 @@ public class FrcTest extends FrcTeleOp
                                     new TrcPose2D(
                                         testChoices.getXTarget()*12.0, testChoices.getYTarget()*12.0,
                                         testChoices.getTurnTarget()));
-                                tuneDriveAtEndPoint = false;
                             }
                             robot.robotBase.purePursuitDrive.setXPositionPidCoefficients(
                                 testChoices.getXPidCoefficients());
@@ -774,13 +809,15 @@ public class FrcTest extends FrcTeleOp
                                 testChoices.getTurnPidCoefficients());
                             robot.robotBase.purePursuitDrive.setMoveOutputLimit(testChoices.getDrivePower());
                             robot.robotBase.purePursuitDrive.setRotOutputLimit(testChoices.getTurnPower());
+                            TrcPose2D drivePoint = tuneDriveAtEndPoint? tuneDriveStartPoint: tuneDriveEndPoint;
                             robot.robotBase.purePursuitDrive.start(
                                 false,
                                 testChoices.getMaxVelocity(),
                                 testChoices.getMaxAcceleration(),
                                 testChoices.getMaxDeceleration(),
-                                null,
-                                tuneDriveAtEndPoint? tuneDriveStartPoint: tuneDriveEndPoint);
+                                null, drivePoint
+                                );
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Pid Drive to ", drivePoint);
                             tuneDriveAtEndPoint = !tuneDriveAtEndPoint;
                         }
                         passToTeleOp = false;
@@ -823,18 +860,6 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case A:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        // Toggle subsystem ON/OFF for tuning. This is useful for testing/tuning subsystems that have
-                        // a PID controller and a target position.
-                        // String subsystemName = testChoices.getSubsystemName();
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case B:
             case X:
             case Y:
@@ -877,28 +902,7 @@ public class FrcTest extends FrcTeleOp
             case DpadLeft:
             case DpadRight:
             case Back:
-                break;
-
             case Start:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        if (operatorAltFunc)
-                        {
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Populate tune parameters subsystem in test.");
-                            TrcSubsystem.updateSubsystemParamsToDashboard();
-                        }
-                        else
-                        {
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Commit tune parameters to subsystem in test.");
-                            TrcSubsystem.updateSubsystemParamsFromDashboard();
-                        }
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             default:
                 break;
         }
