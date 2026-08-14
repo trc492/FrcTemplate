@@ -30,6 +30,7 @@ import frclib.subsystem.FrcServoClaw;
 import teamcode.Dashboard;
 import teamcode.FrcTest;
 import teamcode.RobotParams;
+import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcSubsystem;
@@ -211,46 +212,38 @@ public class ServoClaw extends TrcSubsystem
     /**
      * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
+     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
+     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard()
+    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
     {
-        String subsystemName = FrcTest.testChoices.getSubsystemName();
-
-        if (!subsystemName.isEmpty())
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
-            {
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_INPUT, claw.getPosition());
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, tuneLogicalPos);
-            }
+            double currValue = claw.getPosition();
+
+            tuneLogicalPos = nextValueUp == null? currValue:
+                             nextValueUp? Params.OPEN_POS: Params.CLOSE_POS;
+            FrcTest.testChoices.setSubsystemPidParameters(
+                new TrcMotor.PidParams().setTuningParams(tuneLogicalPos));
         }
     }   //updateParamsToDashboard
 
     /**
      * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
      */
     @Override
-    public void updateParamsFromDashboard()
+    public void updateParamsFromDashboard(String subsystemName)
     {
-        String subsystemName = FrcTest.testChoices.getSubsystemName();
-
-        if (!subsystemName.isEmpty())
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            boolean foundMatch = false;
-
-            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
-            {
-                tuneLogicalPos = dashboard.getNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET, Params.CLOSE_POS);
-                claw.setPosition(null, 0.0, tuneLogicalPos, null, 0.0);
-                foundMatch = true;
-            }
-
-            if (foundMatch)
-            {
-                claw.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
-            }
+            claw.setPosition(null, 0.0, tuneLogicalPos, null, 0.0);
+            claw.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
         }
     }   //updateParamsFromDashboard
 

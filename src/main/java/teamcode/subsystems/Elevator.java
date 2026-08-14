@@ -242,59 +242,55 @@ public class Elevator extends TrcSubsystem
     /**
      * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
+     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
+     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard()
+    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
     {
-        String subsystemName = FrcTest.testChoices.getSubsystemName();
-
-        if (!subsystemName.isEmpty())
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
-            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+            double currValue = motor.getPosition();
+            double paramValue = nextValueUp == null? currValue:
+                motor.getNextPresetPosition(currValue, nextValueUp);
+
+            FrcTest.testChoices.setSubsystemPidParameters(
+                new TrcMotor.PidParams()
+                    .setPidCoefficients(Params.posPidCoeffs)
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED)
+                    .setTuningParams(paramValue));
+
+            if (tuneGravityCompPower == null)
             {
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, Params.posPidCoeffs.kP);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, Params.posPidCoeffs.kI);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, Params.posPidCoeffs.kD);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, Params.posPidCoeffs.kF);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, Params.posPidCoeffs.iZone);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, Params.POS_PID_TOLERANCE);
-                dashboard.putBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, Params.SOFTWARE_PID_ENABLED);
-                dashboard.putNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, 0.0);
-                dashboard.putNumber(
-                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER,
-                    tuneGravityCompPower != null? tuneGravityCompPower: Params.GRAVITY_COMP_POWER);
+                tuneGravityCompPower = dashboard.getNumber(
+                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             }
+            dashboard.putNumber(
+                Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
         }
     }   //updateParamsToDashboard
 
     /**
      * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
      */
     @Override
-    public void updateParamsFromDashboard()
+    public void updateParamsFromDashboard(String subsystemName)
     {
-        String subsystemName = FrcTest.testChoices.getSubsystemName();
-
-        if (!subsystemName.isEmpty())
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
-            boolean foundMatch = false;
 
-            if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
-            {
-                motor.setPositionPidParameters(pidParams, null);
-                tuneGravityCompPower = dashboard.getNumber(
-                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
-                foundMatch = true;
-            }
-
-            if (foundMatch)
-            {
-                motor.tracer.traceInfo(
-                    instanceName, "Tune %s: PidParams=%s, GravityPower=%.3f",
-                    subsystemName, pidParams, tuneGravityCompPower);
-            }
+            motor.setPositionPidParameters(pidParams, null);
+            tuneGravityCompPower = dashboard.getNumber(
+                Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+            motor.tracer.traceInfo(
+                instanceName, "Tune %s: PidParams=%s, GravityPower=%.3f",
+                subsystemName, pidParams, tuneGravityCompPower);
         }
     }   //updateParamsFromDashboard
 

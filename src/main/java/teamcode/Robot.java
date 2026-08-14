@@ -328,7 +328,7 @@ public class Robot extends FrcRobot
                     latch = latchSubsystem.getServo();
                 }
 
-                TrcSubsystem.updateSubsystemParamsToDashboard();
+                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
 
                 // Create autotasks.
                 if (RobotParams.Preferences.useAutoShoot)

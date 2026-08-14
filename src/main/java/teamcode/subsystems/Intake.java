@@ -187,9 +187,13 @@ public class Intake extends TrcSubsystem
     /**
      * This method is called to update subsystem parameter to the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
+     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
+     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard()
+    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
     {
         // Intake subsystem doesn't need tuning.
     }   //updateParamsToDashboard
@@ -197,9 +201,11 @@ public class Intake extends TrcSubsystem
     /**
      * This method is called to update subsystem parameters from the Dashboard. This can be used for tuning subsystem
      * parameters using Dashboard.
+     *
+     * @param subsystemName specifies the name of the subsystem to be updated.
      */
     @Override
-    public void updateParamsFromDashboard()
+    public void updateParamsFromDashboard(String subsystemName)
     {
         // Intake subsystem doesn't need tuning.
     }   //updateParamsFromDashboard

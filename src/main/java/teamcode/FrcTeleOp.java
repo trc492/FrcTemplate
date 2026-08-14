@@ -472,7 +472,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.shooter.aimShooter(
-                                    moduleName, robot.shooterSubsystem.shooter1Velocity.getValue() / 60.0, 0.0,
+                                    moduleName, robot.shooterSubsystem.shooter1Velocity.getValue(), 0.0,
                                     null, null, null, 0.0, robot.shooterSubsystem::shoot, null,
                                     Shooter.Params.SHOOTER_OFF_DELAY);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
