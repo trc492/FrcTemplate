@@ -746,6 +746,7 @@ public class FrcTest extends FrcTeleOp
                         TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, true);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value up.");
                     }
+                    passToTeleOp = false;
                 }
                 break;
 
@@ -758,6 +759,7 @@ public class FrcTest extends FrcTeleOp
                         TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, false);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value down.");
                     }
+                    passToTeleOp = false;
                 }
                 break;
 
@@ -775,7 +777,8 @@ public class FrcTest extends FrcTeleOp
                         if (operatorAltFunc)
                         {
                             TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, null);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to current value.");
+                            robot.globalTracer.traceInfo(
+                                moduleName, ">>>>> Start subsystem tune with current param value.");
                         }
                         else
                         {
