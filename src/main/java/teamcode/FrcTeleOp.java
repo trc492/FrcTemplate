@@ -63,17 +63,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private Double lockedHeading;
     private boolean rumbling = false;
 
-    private double prevMotorArmPower = 0.0;
-    private double prevServoArmPower = 0.0;
-    private double prevElevatorPower = 0.0;
-    private double prevTurretPower = 0.0;
-    private double prevDiffyWristTiltPower = 0.0;
-    private double prevDiffyWristRotatePower = 0.0;
-    private double prevServoWristPower = 0.0;
-    private double prevServoExtenderPower = 0.0;
-    private double prevLatchPower = 0.0;
-    private boolean extenderExtended = false;
-
     /**
      * Constructor: Create an instance of the object.
      *
@@ -256,85 +245,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                             driveInputs[0], driveInputs[1], turnPower));
                                 }
                             }
-                            prevServoArmPower = armPower;
                         }
                     }
-                    else if (robot.elevator != null)
-                    {
-                        double elevatorPower = robot.driverController.getLeftStickY(true);
-                        if (elevatorPower != prevElevatorPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.elevator.setPower(elevatorPower);
-                            }
-                            else
-                            {
-                                robot.elevator.setPidPower(
-                                    elevatorPower, Elevator.Params.POWER_LIMIT, Elevator.Params.MIN_POS,
-                                    Elevator.Params.MAX_POS, true);
-                            }
-                            prevElevatorPower = elevatorPower;
-                        }
-                    }
-                    else if (robot.turret != null)
-                    {
-                        double turretPower = robot.driverController.getLeftStickY(true);
-                        if (turretPower != prevTurretPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.turret.setPower(turretPower);
-                            }
-                            else
-                            {
-                                robot.turret.setPidPower(
-                                    turretPower, Turret.Params.POWER_LIMIT, Turret.Params.MIN_POS,
-                                    Turret.Params.MAX_POS, true);
-                            }
-                            prevTurretPower = turretPower;
-                        }
-                    }
-                    else if (robot.diffyWrist != null)
-                    {
-                        double rotatePower = robot.driverController.getLeftStickX(true);
-                        double tiltPower = robot.driverController.getLeftStickY(true);
-                        if (rotatePower != prevDiffyWristRotatePower || tiltPower != prevDiffyWristTiltPower)
-                        {
-                            robot.diffyWrist.wrist.setPower(tiltPower, rotatePower);
-                            prevDiffyWristRotatePower = rotatePower;
-                            prevDiffyWristTiltPower = tiltPower;
-                        }
-                    }
-                    else if (robot.servoWrist != null)
-                    {
-                        double wristPower = robot.driverController.getLeftStickY(true);
-                        if (wristPower != prevServoWristPower)
-                        {
-                            robot.servoWrist.setPower(wristPower);
-                            prevServoWristPower = wristPower;
-                        }
-                    }
-                    else if (robot.servoExtender != null)
-                    {
-                        double extenderPower = robot.driverController.getLeftStickY(true);
-                        if (extenderPower != prevServoExtenderPower)
-                        {
-                            robot.servoExtender.setPower(extenderPower);
-                            prevServoExtenderPower = extenderPower;
-                        }
-                    }
-                    else if (robot.latch != null)
-                    {
-                        double latchPower = robot.driverController.getLeftStickY(true);
-                        if (latchPower != prevLatchPower)
-                        {
-                            robot.latch.setPower(latchPower);
-                            prevLatchPower = latchPower;
-                        }
-                    }
+                }
+                //
+                // Other subsystems.
+                //
+                if (RobotParams.Preferences.useSubsystems)
+                {
+                    // Analog control of subsystems.
                 }
 
                 if (RobotParams.Preferences.useRumble)

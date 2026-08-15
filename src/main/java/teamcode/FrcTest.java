@@ -847,7 +847,6 @@ public class FrcTest extends FrcTeleOp
     protected void operatorControllerButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
     {
         boolean passToTeleOp = true;
-        Test test = testChoices.getTest();
 
         if (traceButtonEvents)
         {
@@ -865,40 +864,8 @@ public class FrcTest extends FrcTeleOp
             case Y:
             case LeftBumper:
             case RightBumper:
-                break;
-
             case DpadUp:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        // Move subsystem to preset position up. This is useful for testing/tuning subsystems that
-                        // have a PID controller and a target position.
-                        String subsystemName = testChoices.getSubsystemName();
-
-                        robot.globalTracer.traceInfo(
-                            moduleName, ">>>>> Tune %s: Position up!", subsystemName);
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadDown:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        // Move subsystem to preset position up. This is useful for testing/tuning subsystems that
-                        // have a PID controller and a target position.
-                        String subsystemName = testChoices.getSubsystemName();
-
-                        robot.globalTracer.traceInfo(
-                            moduleName, ">>>>> Tune %s: Position down!", subsystemName);
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadLeft:
             case DpadRight:
             case Back:
