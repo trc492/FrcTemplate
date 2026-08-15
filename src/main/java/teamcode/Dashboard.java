@@ -23,6 +23,17 @@
 package teamcode;
 
 import frclib.driverio.FrcDashboard;
+import teamcode.subsystems.CrServoArm;
+import teamcode.subsystems.DiffyServoWrist;
+import teamcode.subsystems.Elevator;
+import teamcode.subsystems.Intake;
+import teamcode.subsystems.Latch;
+import teamcode.subsystems.MotorArm;
+import teamcode.subsystems.ServoClaw;
+import teamcode.subsystems.ServoExtender;
+import teamcode.subsystems.ServoWrist;
+import teamcode.subsystems.Shooter;
+import teamcode.subsystems.Turret;
 
 /**
  * This class contains Dashboard constants and parameters.
@@ -60,6 +71,9 @@ public class Dashboard
     public static final String DBKEY_AUTO_STRATEGY                  = "Auto/Strategy";              //Choices
     public static final String DBKEY_AUTO_START_POS                 = "Auto/StartPos";              //Choices
     public static final String DBKEY_AUTO_START_DELAY               = "Auto/StartDelay";            //Number
+
+    public static final String DBKEY_AUTO_USE_VISION                = "Auto/UseVision";             //Boolean
+    public static final String DBKEY_AUTO_SCORE_PRELOAD             = "Auto/ScorePreload";          //Boolean
 
     public static final String DBKEY_AUTO_PATHFILE                  = "Auto/PathFile";              //String
     public static final String DBKEY_AUTO_X_DRIVE_DISTANCE          = "Auto/XDriveDistance";        //Number
@@ -116,8 +130,7 @@ public class Dashboard
     public static final String DBKEY_TEST_SUBSYSTEM_KS              = "Test/SubsystemKs";
     public static final String DBKEY_TEST_SUBSYSTEM_KV              = "Test/SubsystemKv";
     public static final String DBKEY_TEST_SUBSYSTEM_KA              = "Test/SubsystemKa";
-    public static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER   = "Test/GravityPower";
-
+    public static final String DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER   = "Test/SubsystemGravityPower";
 
     public static final String DBKEY_TEST_SUBSYSTEM_INPUT           = "Test/SubsystemInput";
     public static final String DBKEY_TEST_SUBSYSTEM_TARGET          = "Test/SubsystemTarget";
@@ -129,6 +142,98 @@ public class Dashboard
     public static final String DBKEY_TEST_TARGET_VEL                = "Test/TargetVelocity";
     public static final String DBKEY_TEST_ROBOT_POS                 = "Test/RobotPosition";
     public static final String DBKEY_TEST_TARGET_POS                = "Test/TargetPosition";
+
+    // Motor Arm.
+    public static final String DBKEY_MOTORARM_SHOW_STATUS           = MotorArm.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_MOTORARM_POWER                 = MotorArm.SUBSYSTEM_NAME + "/Power";
+    public static final String DBKEY_MOTORARM_CURRENT               = MotorArm.SUBSYSTEM_NAME + "/Current";
+    public static final String DBKEY_MOTORARM_POSITION              = MotorArm.SUBSYSTEM_NAME + "/Position";
+    public static final String DBKEY_MOTORARM_LOWER_LIMIT           = MotorArm.SUBSYSTEM_NAME + "/LowerLimit";
+    public static final String DBKEY_MOTORARM_UPPER_LIMIT           = MotorArm.SUBSYSTEM_NAME + "/UpperLimit";
+
+    // CRServo Arm.
+    public static final String DBKEY_CRSERVOARM_SHOW_STATUS         = CrServoArm.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_CRSERVOARM_POWER               = CrServoArm.SUBSYSTEM_NAME + "/Power";
+    public static final String DBKEY_CRSERVOARM_POSITION            = CrServoArm.SUBSYSTEM_NAME + "/Position";
+
+    // Elevator.
+    public static final String DBKEY_ELEVATOR_SHOW_STATUS           = Elevator.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_ELEVATOR_POWER                 = Elevator.SUBSYSTEM_NAME + "/Power";
+    public static final String DBKEY_ELEVATOR_CURRENT               = Elevator.SUBSYSTEM_NAME + "/Current";
+    public static final String DBKEY_ELEVATOR_POSITION              = Elevator.SUBSYSTEM_NAME + "/Position";
+    public static final String DBKEY_ELEVATOR_LOWER_LIMIT           = Elevator.SUBSYSTEM_NAME + "/LowerLimit";
+    public static final String DBKEY_ELEVATOR_UPPER_LIMIT           = Elevator.SUBSYSTEM_NAME + "/UpperLimit";
+
+    // Turret.
+    public static final String DBKEY_TURRET_SHOW_STATUS             = Turret.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_TURRET_POWER                   = Turret.SUBSYSTEM_NAME + "/Power";
+    public static final String DBKEY_TURRET_CURRENT                 = Turret.SUBSYSTEM_NAME + "/Current";
+    public static final String DBKEY_TURRET_POSITION                = Turret.SUBSYSTEM_NAME + "/Position";
+    public static final String DBKEY_TURRET_LOWER_LIMIT             = Turret.SUBSYSTEM_NAME + "/LowerLimit";
+
+    // Intake.
+    public static final String DBKEY_INTAKE_SHOW_STATUS             = Intake.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_INTAKE_POWER                   = Intake.SUBSYSTEM_NAME + "/Power";
+    public static final String DBKEY_INTAKE_CURRENT                 = Intake.SUBSYSTEM_NAME + "/Current";
+    public static final String DBKEY_INTAKE_HAS_OBJECT              = Intake.SUBSYSTEM_NAME + "/HasObject";
+    public static final String DBKEY_INTAKE_FRONT_SENSOR            = Intake.SUBSYSTEM_NAME + "/FrontSensor";
+    public static final String DBKEY_INTAKE_BACK_SENSOR             = Intake.SUBSYSTEM_NAME + "/BackSensor";
+    public static final String DBKEY_INTAKE_AUTO_ACTIVE             = Intake.SUBSYSTEM_NAME + "/AutoActive";
+
+    // Shooter.
+    public static final String DBKEY_SHOOTER_SHOW_STATUS            = Shooter.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_SHOOTER_POWER1                 = Shooter.SUBSYSTEM_NAME + "/Shooter1Power";
+    public static final String DBKEY_SHOOTER_CURRENT1               = Shooter.SUBSYSTEM_NAME + "/Shooter1Current";
+    public static final String DBKEY_SHOOTER_VELOCITY1              = Shooter.SUBSYSTEM_NAME + "/Shooter1Velocity";
+    public static final String DBKEY_SHOOTER_TARGET_VEL1            = Shooter.SUBSYSTEM_NAME + "/Shooter1TargetVel";
+
+    public static final String DBKEY_SHOOTER_POWER2                 = Shooter.SUBSYSTEM_NAME + "/Shooter2Power";
+    public static final String DBKEY_SHOOTER_CURRENT2               = Shooter.SUBSYSTEM_NAME + "/Shooter2Current";
+    public static final String DBKEY_SHOOTER_VELOCITY2              = Shooter.SUBSYSTEM_NAME + "/Shooter2Velocity";
+    public static final String DBKEY_SHOOTER_TARGET_VEL2            = Shooter.SUBSYSTEM_NAME + "/Shooter2TargetVel";
+
+    public static final String DBKEY_SHOOTER_PAN_POWER              = Shooter.SUBSYSTEM_NAME + "/PanPower";
+    public static final String DBKEY_SHOOTER_PAN_CURRENT            = Shooter.SUBSYSTEM_NAME + "/PanCurrent";
+    public static final String DBKEY_SHOOTER_PAN_POS                = Shooter.SUBSYSTEM_NAME + "/PanPos";
+    public static final String DBKEY_SHOOTER_PAN_TARGET_POS         = Shooter.SUBSYSTEM_NAME + "/PanTargetPos";
+
+    public static final String DBKEY_SHOOTER_TILT_POWER             = Shooter.SUBSYSTEM_NAME + "/TiltPower";
+    public static final String DBKEY_SHOOTER_TILT_CURRENT           = Shooter.SUBSYSTEM_NAME + "/TiltCurrent";
+    public static final String DBKEY_SHOOTER_TILT_POS               = Shooter.SUBSYSTEM_NAME + "/TiltPos";
+    public static final String DBKEY_SHOOTER_TILT_TARGET_POS        = Shooter.SUBSYSTEM_NAME + "/TiltTargetPos";
+
+    public static final String DBKEY_SHOOTER_LAUNCHER_POS           = Shooter.SUBSYSTEM_NAME + "/LauncherPos";
+
+    // Diffy Servo Wrist.
+    public static final String DBKEY_DIFFYWRIST_SHOW_STATUS         = DiffyServoWrist.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_DIFFYWRIST_TILT_POWER          = DiffyServoWrist.SUBSYSTEM_NAME + "/TiltPower";
+    public static final String DBKEY_DIFFYWRIST_TILT_POSITION       = DiffyServoWrist.SUBSYSTEM_NAME + "/TiltPosition";
+    public static final String DBKEY_DIFFYWRIST_ROTATE_POWER        = DiffyServoWrist.SUBSYSTEM_NAME + "/RotatePower";
+    public static final String DBKEY_DIFFYWRIST_ROTATE_POSITION     = DiffyServoWrist.SUBSYSTEM_NAME + "/RotatePosition";
+
+    // Servo Wrist.
+    public static final String DBKEY_SERVOWRIST_SHOW_STATUS         = ServoWrist.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_SERVOWRIST_PHYSICAL_POS        = ServoWrist.SUBSYSTEM_NAME + "/PhysicalPos";
+    public static final String DBKEY_SERVOWRIST_LOGICAL_POS         = ServoWrist.SUBSYSTEM_NAME + "/LogicalPos";
+
+    // Servo Extender.
+    public static final String DBKEY_SERVOEXTENDER_SHOW_STATUS      = ServoExtender.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_SERVOEXTENDER_POSITION         = ServoExtender.SUBSYSTEM_NAME + "/Position";
+    public static final String DBKEY_SERVOEXTENDER_IS_EXTENDED      = ServoExtender.SUBSYSTEM_NAME + "/IsExtended";
+
+    // Servo Claw.
+    public static final String DBKEY_SERVOCLAW_SHOW_STATUS          = ServoClaw.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_SERVOCLAW_POSITION             = ServoClaw.SUBSYSTEM_NAME + "/Position";
+    public static final String DBKEY_SERVOCLAW_IS_CLOSED            = ServoClaw.SUBSYSTEM_NAME + "/IsClosed";
+    public static final String DBKEY_SERVOCLAW_HAS_OBJECT           = ServoClaw.SUBSYSTEM_NAME + "/HasObject";
+    public static final String DBKEY_SERVOCLAW_AUTO_ACTIVE          = ServoClaw.SUBSYSTEM_NAME + "/AutoActive";
+    public static final String DBKEY_SERVOCLAW_SENSOR_VALUE         = ServoClaw.SUBSYSTEM_NAME + "/SensorValue";
+    public static final String DBKEY_SERVOCLAW_SENSOR_STATE         = ServoClaw.SUBSYSTEM_NAME + "/SensorState";
+
+    //Latch.
+    public static final String DBKEY_LATCH_SHOW_STATUS              = Latch.SUBSYSTEM_NAME + "/ShowStatus";
+    public static final String DBKEY_LATCH_PHYSICAL_POS             = Latch.SUBSYSTEM_NAME + "/PhyicalPos";
+    public static final String DBKEY_LATCH_LOGICAL_POS              = Latch.SUBSYSTEM_NAME + "/LogicalPos";
 
     private static FrcDashboard dashboard;
 
@@ -159,6 +264,8 @@ public class Dashboard
         dashboard.refreshKey(DBKEY_TURNPID_INFO, "");
         // Vision.
         dashboard.refreshKey(DBKEY_VISION_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled);
+        dashboard.refreshKey(DBKEY_VISION_FRONTCAM_PIPELINE, "");
+        dashboard.refreshKey(DBKEY_VISION_BACKCAM_PIPELINE, "");
         // Autonomous.
         dashboard.refreshKey(DBKEY_AUTO_CHOICES_SUBMIT, false);
         // TeleOp.
@@ -169,6 +276,101 @@ public class Dashboard
         dashboard.refreshKey(DBKEY_TELEOP_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
         dashboard.refreshKey(DBKEY_TELEOP_DRIVE_POWER, "");
         // Test.
+
+        //
+        // Subsystems.
+        //
+        // Motor Arm.
+        dashboard.refreshKey(DBKEY_MOTORARM_SHOW_STATUS, RobotParams.Preferences.showMotorArmStatus);
+        dashboard.refreshKey(DBKEY_MOTORARM_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_MOTORARM_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_MOTORARM_POSITION, "");
+        dashboard.refreshKey(DBKEY_MOTORARM_LOWER_LIMIT, false);
+        dashboard.refreshKey(DBKEY_MOTORARM_UPPER_LIMIT, false);
+
+        // CRServo Arm.
+        dashboard.refreshKey(DBKEY_CRSERVOARM_SHOW_STATUS, RobotParams.Preferences.showCrServoArmStatus);
+        dashboard.refreshKey(DBKEY_CRSERVOARM_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_CRSERVOARM_POSITION, "");
+
+        // Elevator.
+        dashboard.refreshKey(DBKEY_ELEVATOR_SHOW_STATUS, RobotParams.Preferences.showElevatorStatus);
+        dashboard.refreshKey(DBKEY_ELEVATOR_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_ELEVATOR_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_ELEVATOR_POSITION, "");
+        dashboard.refreshKey(DBKEY_ELEVATOR_LOWER_LIMIT, false);
+        dashboard.refreshKey(DBKEY_ELEVATOR_UPPER_LIMIT, false);
+
+        // Turret.
+        dashboard.refreshKey(DBKEY_TURRET_SHOW_STATUS, RobotParams.Preferences.showTurretStatus);
+        dashboard.refreshKey(DBKEY_TURRET_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_TURRET_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_TURRET_POSITION, "");
+        dashboard.refreshKey(DBKEY_TURRET_LOWER_LIMIT, false);
+
+        // Intake.
+        dashboard.refreshKey(DBKEY_INTAKE_SHOW_STATUS, RobotParams.Preferences.showIntakeStatus);
+        dashboard.refreshKey(DBKEY_INTAKE_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_INTAKE_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_INTAKE_HAS_OBJECT, false);
+        dashboard.refreshKey(DBKEY_INTAKE_FRONT_SENSOR, false);
+        dashboard.refreshKey(DBKEY_INTAKE_BACK_SENSOR, false);
+        dashboard.refreshKey(DBKEY_INTAKE_AUTO_ACTIVE, false);
+
+        // Shooter.
+        dashboard.refreshKey(DBKEY_SHOOTER_SHOW_STATUS, RobotParams.Preferences.showShooterStatus);
+        dashboard.refreshKey(DBKEY_SHOOTER_POWER1, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_CURRENT1, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_VELOCITY1, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_TARGET_VEL1, 0.0);
+
+        dashboard.refreshKey(DBKEY_SHOOTER_POWER2, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_CURRENT2, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_VELOCITY2, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_TARGET_VEL2, 0.0);
+
+        dashboard.refreshKey(DBKEY_SHOOTER_PAN_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_PAN_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_PAN_POS, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_PAN_TARGET_POS, 0.0);
+
+        dashboard.refreshKey(DBKEY_SHOOTER_TILT_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_TILT_CURRENT, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_TILT_POS, 0.0);
+        dashboard.refreshKey(DBKEY_SHOOTER_TILT_TARGET_POS, 0.0);
+
+        dashboard.refreshKey(DBKEY_SHOOTER_LAUNCHER_POS, 0.0);
+
+        // Diffy Servo Wrist.
+        dashboard.refreshKey(DBKEY_DIFFYWRIST_SHOW_STATUS, RobotParams.Preferences.showDiffyWristStatus);
+        dashboard.refreshKey(DBKEY_DIFFYWRIST_TILT_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_DIFFYWRIST_TILT_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_DIFFYWRIST_ROTATE_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_DIFFYWRIST_ROTATE_POSITION, 0.0);
+
+        // Servo Wrist.
+        dashboard.refreshKey(DBKEY_SERVOWRIST_SHOW_STATUS, RobotParams.Preferences.showServoWristStatus);
+        dashboard.refreshKey(DBKEY_SERVOWRIST_PHYSICAL_POS, 0.0);
+        dashboard.refreshKey(DBKEY_SERVOWRIST_LOGICAL_POS, 0.0);
+
+        // Servo Extender.
+        dashboard.refreshKey(DBKEY_SERVOEXTENDER_SHOW_STATUS, RobotParams.Preferences.showServoExtenderStatus);
+        dashboard.refreshKey(DBKEY_SERVOEXTENDER_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_SERVOEXTENDER_IS_EXTENDED, false);
+
+        // Servo Claw.
+        dashboard.refreshKey(DBKEY_SERVOCLAW_SHOW_STATUS, RobotParams.Preferences.showServoClawStatus);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_IS_CLOSED, false);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_HAS_OBJECT, false);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_AUTO_ACTIVE, false);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_SENSOR_VALUE, 0.0);
+        dashboard.refreshKey(DBKEY_SERVOCLAW_SENSOR_STATE, false);
+
+        // Latch.
+        dashboard.refreshKey(DBKEY_LATCH_SHOW_STATUS, RobotParams.Preferences.showLatchStatus);
+        dashboard.refreshKey(DBKEY_LATCH_PHYSICAL_POS, 0.0);
+        dashboard.refreshKey(DBKEY_LATCH_LOGICAL_POS, 0.0);
     }   //Dashboard
 
     /**

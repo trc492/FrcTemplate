@@ -50,7 +50,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     //
     public enum AutoStrategy
     {
-        TEMPLATE_AUTO,
+        STARTPOS1_AUTO,
         PP_DRIVE,
         PID_DRIVE,
         TIMED_DRIVE,
@@ -95,6 +95,9 @@ public class FrcAuto implements TrcRobot.RobotMode
         public AutoStartPos startPos;
         public double startDelay;
 
+        public boolean useVision;
+        public boolean scorePreload;
+
         public String pathFile;
         public double xDriveDistance;
         public double yDriveDistance;
@@ -122,7 +125,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             }
             else
             {
-                autoStrategyMenu.addChoice("Template Auto", AutoStrategy.TEMPLATE_AUTO);
+                autoStrategyMenu.addChoice("StartPos1 Auto", AutoStrategy.STARTPOS1_AUTO);
                 autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
                 autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
                 autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
@@ -139,6 +142,9 @@ public class FrcAuto implements TrcRobot.RobotMode
             userChoices.addChoiceMenu(Dashboard.DBKEY_AUTO_STRATEGY, autoStrategyMenu);
             userChoices.addChoiceMenu(Dashboard.DBKEY_AUTO_START_POS, autoStartPosMenu);
             userChoices.addNumber(Dashboard.DBKEY_AUTO_START_DELAY, 0.0);
+
+            userChoices.addBoolean(Dashboard.DBKEY_AUTO_USE_VISION, false);
+            userChoices.addBoolean(Dashboard.DBKEY_AUTO_SCORE_PRELOAD, false);
 
             userChoices.addString(Dashboard.DBKEY_AUTO_PATHFILE, "DrivePath.csv");
             userChoices.addNumber(Dashboard.DBKEY_AUTO_X_DRIVE_DISTANCE, 0.0);      // in feet
@@ -157,6 +163,9 @@ public class FrcAuto implements TrcRobot.RobotMode
             startPos = autoStartPosMenu.getCurrentChoiceObject();
             startDelay = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_START_DELAY);
 
+            useVision = userChoices.getUserBoolean(Dashboard.DBKEY_AUTO_USE_VISION);
+            scorePreload = userChoices.getUserBoolean(Dashboard.DBKEY_AUTO_SCORE_PRELOAD);
+
             pathFile = userChoices.getUserString(Dashboard.DBKEY_AUTO_PATHFILE);
             xDriveDistance = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_X_DRIVE_DISTANCE);
             yDriveDistance = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_Y_DRIVE_DISTANCE);
@@ -172,6 +181,9 @@ public class FrcAuto implements TrcRobot.RobotMode
                    "strategy=\"" + strategy + "\" " +
                    "startPos=\"" + startPos + "\" " +
                    "startDelay=" + startDelay + " sec " +
+
+                   "useVision=" + useVision + " " +
+                   "scorePreload=" + scorePreload + " " +
 
                    "pathFile=\"" + pathFile + "\" " +
                    "xDistance=" + xDriveDistance + " ft " +
@@ -189,7 +201,7 @@ public class FrcAuto implements TrcRobot.RobotMode
 
     public static final AutoChoices autoChoices = new AutoChoices();
     private final Robot robot;
-    private final TrcRobot.RobotCommand templateAuto;
+    private final TrcRobot.RobotCommand startPos1Auto;
     private TrcRobot.RobotCommand autoCommand;
 
     /**
@@ -203,7 +215,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         // Create and initialize global objects.
         //
         this.robot = robot;
-        templateAuto = new CmdAuto(robot, autoChoices);
+        startPos1Auto = new CmdAuto(robot, autoChoices);
     }   //FrcAuto
 
     /**
@@ -249,10 +261,10 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         switch (autoChoices.strategy)
         {
-            case TEMPLATE_AUTO:
+            case STARTPOS1_AUTO:
                 if (robot.robotBase != null)
                 {
-                    autoCommand = templateAuto;
+                    autoCommand = startPos1Auto;
                 }
                 break;
 

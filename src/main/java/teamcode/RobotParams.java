@@ -56,7 +56,7 @@ public class RobotParams
         public static final boolean useLED                      = false;
         public static final boolean useRumble                   = false;
         public static final boolean hasDriverGameController     = true;
-        public static final boolean hasOperatorGameController   = true;
+        public static final boolean hasOperatorGameController   = false;
         // Vision
         public static final boolean useVision                   = false;
         public static final boolean showVisionStatus            = !inCompetition;
@@ -82,6 +82,28 @@ public class RobotParams
         public static final boolean useGyroAssist               = false;
         public static final boolean useAntiTipping              = false;
         // Other Subsystems
+        public static final boolean useMotorArm                 = false;
+        public static final boolean showMotorArmStatus          = false;
+        public static final boolean useCrServoArm               = false;
+        public static final boolean showCrServoArmStatus        = false;
+        public static final boolean useElevator                 = false;
+        public static final boolean showElevatorStatus          = false;
+        public static final boolean useTurret                   = false;
+        public static final boolean showTurretStatus            = false;
+        public static final boolean useIntake                   = false;
+        public static final boolean showIntakeStatus            = false;
+        public static final boolean useShooter                  = false;
+        public static final boolean showShooterStatus           = false;
+        public static final boolean useDiffyWrist               = false;
+        public static final boolean showDiffyWristStatus        = false;
+        public static final boolean useServoWrist               = false;
+        public static final boolean showServoWristStatus        = false;
+        public static final boolean useServoExtender            = false;
+        public static final boolean showServoExtenderStatus     = false;
+        public static final boolean useServoClaw                = false;
+        public static final boolean showServoClawStatus         = false;
+        public static final boolean useLatch                    = false;
+        public static final boolean showLatchStatus             = false;
         // Auto Tasks
         public static final boolean useAutoShoot                = false;
         public static final boolean useAutoPickup               = false;
@@ -216,6 +238,8 @@ public class RobotParams
         //
         // Game element positions.
         //
+        public static final TrcPose2D BLUE_PICKUP_RING_POSE =
+            new TrcPose2D(-60.0, 100.0, 0.0);
     }   //class Game
 
 }   //class RobotParams
