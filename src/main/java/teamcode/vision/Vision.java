@@ -36,7 +36,6 @@ import frclib.driverio.FrcDashboard;
 import frclib.robotcore.FrcField;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.DetectedObject;
-import teamcode.Dashboard;
 import teamcode.Robot;
 import teamcode.RobotParams;
 import trclib.pathdrive.TrcPose2D;
@@ -49,28 +48,34 @@ import trclib.vision.TrcVision.CameraInfo;
  */
 public class Vision
 {
-    private final String moduleName = getClass().getSimpleName();
+    private static final String moduleName = Vision.class.getSimpleName();
 
-    // Microsoft HD-3000 camera parameters.
+    private static final String DBKEY_PREFIX            = moduleName + "/";
+    private static final String DBKEY_CAM1_PIPELINE     = DBKEY_PREFIX + "Cam1Pipeline";    //Choices
+    private static final String DBKEY_CAM2_PIPELINE     = DBKEY_PREFIX + "Cam2Pipeline";    //Choices
+    public static final String DBKEY_RELOCALIZE         = DBKEY_PREFIX + "Relocalize";      //Boolean
+    private static final String DBKEY_SHOW_STATUS       = DBKEY_PREFIX + "ShowStatus";      //Boolean
+    private static final String DBKEY_CAM1              = DBKEY_PREFIX + "Cam1";            //String
+    private static final String DBKEY_CAM2              = DBKEY_PREFIX + "Cam2";            //String
+
+    // Microsoft HD-3000 info.
     public static final TrcVision.CameraInfo hd3000CamInfo = new TrcVision.CameraInfo()
         .setCameraInfo("HD-3000", 1280, 720)
         .setCameraPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    // Front camera info
-    public static final TrcVision.CameraInfo frontCamInfo = new TrcVision.CameraInfo()
-        .setCameraInfo("FrontOV9782", 1280, 800)
+    // Camera 1 info.
+    public static final TrcVision.CameraInfo cam1Info = new TrcVision.CameraInfo()
+        .setCameraInfo("Cam1OV9782", 1280, 800)
         .setCameraPose(-0.25, 5.75, 7.0, 0.0, 21.8346, 0.0);
-    // Back camera info
-    public static final TrcVision.CameraInfo backCamInfo = new TrcVision.CameraInfo()
-        .setCameraInfo("BackOV9782", 1280, 800)
+    // Camera 2 info.
+    public static final TrcVision.CameraInfo cam2Info = new TrcVision.CameraInfo()
+        .setCameraInfo("Cam2OV9782", 1280, 800)
         .setCameraPose(0.0, -1.563, 41.374, 180.0, 9.1241, 0.0);
-
-    private static final String DBKEY_PREFIX                = "Vision/";
 
     public enum PipelineType
     {
-        APRILTAG(0),
-        RED_BLOB(1),
-        BLUE_BLOB(2);
+        AprilTag(0),
+        RedBlob(1),
+        BlueBlob(2);
 
         public int pipelineIndex;
 
@@ -84,15 +89,15 @@ public class Vision
     private final TrcDbgTrace tracer;
     private final FrcDashboard dashboard;
     private final Robot robot;
-    private final FrcChoiceMenu<PipelineType> frontCamPipelineMenu;
-    private final FrcChoiceMenu<PipelineType> backCamPipelineMenu;
+    private final FrcChoiceMenu<PipelineType> cam1PipelineMenu;
+    private final FrcChoiceMenu<PipelineType> cam2PipelineMenu;
 
-    public final FrcPhotonVision frontVision;
-    public final FrcPhotonVision backVision;
-    private final Transform3d frontCamFromRobot;
-    private final Transform3d backCamFromRobot;
-    private PipelineType frontCamPipeline;
-    private PipelineType backCamPipeline;
+    public final FrcPhotonVision cam1Vision;
+    public final FrcPhotonVision cam2Vision;
+    // private final Transform3d cam1FromRobot;
+    // private final Transform3d cam2FromRobot;
+    private PipelineType cam1Pipeline;
+    private PipelineType cam2Pipeline;
 
     /**
      * Constructor: Create an instance of the object.
@@ -105,134 +110,137 @@ public class Vision
         this.dashboard = FrcDashboard.getInstance();
         this.robot = robot;
 
-        frontCamPipelineMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_VISION_FRONTCAM_PIPELINE);
-        frontCamPipelineMenu.addChoice("AprilTag", PipelineType.APRILTAG, true, false);
-        frontCamPipelineMenu.addChoice("RedBlob", PipelineType.RED_BLOB);
-        frontCamPipelineMenu.addChoice("BlueBlob", PipelineType.BLUE_BLOB, false, true);
+        cam1PipelineMenu = new FrcChoiceMenu<>(DBKEY_CAM1_PIPELINE);
+        cam1PipelineMenu.addChoice(PipelineType.AprilTag.name(), PipelineType.AprilTag, true, false);
+        cam1PipelineMenu.addChoice(PipelineType.RedBlob.name(), PipelineType.RedBlob);
+        cam1PipelineMenu.addChoice(PipelineType.BlueBlob.name(), PipelineType.BlueBlob, false, true);
 
-        backCamPipelineMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_VISION_BACKCAM_PIPELINE);
-        backCamPipelineMenu.addChoice("AprilTag", PipelineType.APRILTAG);
-        backCamPipelineMenu.addChoice("RedBlob", PipelineType.RED_BLOB, true, false);
-        backCamPipelineMenu.addChoice("BlueBlob", PipelineType.BLUE_BLOB, false, true);
+        cam2PipelineMenu = new FrcChoiceMenu<>(DBKEY_CAM2_PIPELINE);
+        cam2PipelineMenu.addChoice(PipelineType.AprilTag.name(), PipelineType.AprilTag, true, false);
+        cam2PipelineMenu.addChoice(PipelineType.RedBlob.name(), PipelineType.RedBlob);
+        cam2PipelineMenu.addChoice(PipelineType.BlueBlob.name(), PipelineType.BlueBlob, false, true);
+
+        dashboard.refreshKey(DBKEY_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled);
+        dashboard.refreshKey(DBKEY_SHOW_STATUS, false);
+        dashboard.refreshKey(DBKEY_CAM1, "");
+        dashboard.refreshKey(DBKEY_CAM2, "");
 
         if (robot.robotInfo.camInfos.length > 0 && robot.robotInfo.camInfos[0] != null)
         {
             tracer.traceInfo(
-                moduleName, "Creating frontVision for camera %s.", robot.robotInfo.camInfos[0].camName);
-            frontVision = new FrcPhotonVision(
-                robot.robotInfo.camInfos[0], this::getAprilTagGroundOffset, this::getRobotToFrontCamera);
-            frontCamFromRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.y),
-                                  -Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.x),
-                                  Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.z)),
-                new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.roll),
-                               -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.pitch),
-                               -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.yaw)));
-            dashboard.refreshKey(DBKEY_PREFIX + robot.robotInfo.camInfos[0].camName, "");
-            setFrontCamPipeline();
-            robot.globalTracer.traceInfo(moduleName, "Setting FrontCam pipeline to " + frontCamPipeline);
+                moduleName, "Creating cam1Vision for camera %s.", robot.robotInfo.camInfos[0].camName);
+            cam1Vision = new FrcPhotonVision(
+                robot.robotInfo.camInfos[0], this::getAprilTagGroundOffset, this::getRobotToCamera1);
+            // cam1FromRobot = new Transform3d(
+            //     new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.y),
+            //                       -Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.x),
+            //                       Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.z)),
+            //     new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.roll),
+            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.pitch),
+            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.yaw)));
+            setCam1Pipeline();
+            robot.globalTracer.traceInfo(moduleName, "Setting Cam1 pipeline to " + cam1Pipeline);
         }
         else
         {
-            frontVision = null;
-            frontCamFromRobot = null;
+            cam1Vision = null;
+            // cam1FromRobot = null;
         }
 
         if (robot.robotInfo.camInfos.length > 1 && robot.robotInfo.camInfos[1] != null)
         {
             tracer.traceInfo(
-                moduleName, "Creating backVision for camera %s.", robot.robotInfo.camInfos[1].camName);
-            backVision = new FrcPhotonVision(
-                robot.robotInfo.camInfos[1], this::getAprilTagGroundOffset, this::getRobotToBackCamera);
-            backCamFromRobot = new Transform3d(
-                new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.y),
-                                  -Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.x),
-                                  Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.z)),
-                new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.roll),
-                               -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.pitch),
-                               -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.yaw)));
-            dashboard.refreshKey(DBKEY_PREFIX + robot.robotInfo.camInfos[1].camName, "");
-            setBackCamPipeline();
-            robot.globalTracer.traceInfo(moduleName, "Setting BackCam pipeline to " + backCamPipeline);
+                moduleName, "Creating cam2Vision for camera %s.", robot.robotInfo.camInfos[1].camName);
+            cam2Vision = new FrcPhotonVision(
+                robot.robotInfo.camInfos[1], this::getAprilTagGroundOffset, this::getRobotToCamera2);
+            // cam2FromRobot = new Transform3d(
+            //     new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.y),
+            //                       -Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.x),
+            //                       Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.z)),
+            //     new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.roll),
+            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.pitch),
+            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.yaw)));
+            setCam2Pipeline();
+            robot.globalTracer.traceInfo(moduleName, "Setting Cam2 pipeline to " + cam2Pipeline);
         }
         else
         {
-            backVision = null;
-            backCamFromRobot = null;
+            cam2Vision = null;
+            // cam2FromRobot = null;
         }
 
         FrcDashboard.getInstance().addStatusUpdate(moduleName, this::updateStatus);
     }   //Vision
 
     /**
-     * This method sets the front camera to the specified pipeline type.
+     * This method sets camera 1 to the specified pipeline type.
      *
      * @param pipelineType specifies the pipeline to activate in PhotonVision.
      */
-    public void setFrontCamPipeline(PipelineType pipelineType)
+    public void setCam1Pipeline(PipelineType pipelineType)
     {
-        if (frontVision != null && pipelineType != frontCamPipeline)
+        if (cam1Vision != null && pipelineType != cam1Pipeline)
         {
-            frontCamPipeline = pipelineType;
-            frontVision.setPipelineIndex(pipelineType.pipelineIndex);
+            cam1Pipeline = pipelineType;
+            cam1Vision.setPipelineIndex(pipelineType.pipelineIndex);
         }
-    }   //setFrontCamPipeline
+    }   //setCam1Pipeline
 
     /**
-     * This method sets the front camera to the specified pipeline type from the Dashboard.
+     * This method sets camera 1 to the specified pipeline type from the Dashboard.
      *
      * @param pipelineType specifies the pipeline to activate in PhotonVision.
      */
-    public void setFrontCamPipeline()
+    public void setCam1Pipeline()
     {
-        setFrontCamPipeline(frontCamPipelineMenu.getCurrentChoiceObject());
-    }   //setFrontCamPipeline
+        setCam1Pipeline(cam1PipelineMenu.getCurrentChoiceObject());
+    }   //setCam1Pipeline
 
     /**
-     * This method sets the back camera to the specified pipeline type.
+     * This method sets camera 2 to the specified pipeline type.
      *
      * @param pipelineType specifies the pipeline to activate in PhotonVision.
      */
-    public void setBackCamPipeline(PipelineType pipelineType)
+    public void setCam2Pipeline(PipelineType pipelineType)
     {
-        if (backVision != null && pipelineType != backCamPipeline)
+        if (cam2Vision != null && pipelineType != cam2Pipeline)
         {
-            backCamPipeline = pipelineType;
-            backVision.setPipelineIndex(pipelineType.pipelineIndex);
+            cam2Pipeline = pipelineType;
+            cam2Vision.setPipelineIndex(pipelineType.pipelineIndex);
         }
-    }   //setBackCamPipeline
+    }   //setCam2Pipeline
 
     /**
-     * This method sets the back camera to the specified pipeline type from the Dashboard.
+     * This method sets camera 2 to the specified pipeline type from the Dashboard.
      *
      * @param pipelineType specifies the pipeline to activate in PhotonVision.
      */
-    public void setBackCamPipeline()
+    public void setCam2Pipeline()
     {
-        setBackCamPipeline(backCamPipelineMenu.getCurrentChoiceObject());
-    }   //setBackCamPipeline
+        setCam2Pipeline(cam2PipelineMenu.getCurrentChoiceObject());
+    }   //setCam2Pipeline
 
     /**
-     * This method returns the active front camera pipeline.
+     * This method returns the active camera 1 pipeline.
      *
      * @return active pipeline.
      */
-    public PipelineType getFrontCamPipeline()
+    public PipelineType getCam1Pipeline()
     {
-        frontCamPipeline = frontVision != null? PipelineType.values()[frontVision.getPipelineIndex()]: null;
-        return frontCamPipeline;
-    }   //getFrontCamPipeline
+        cam1Pipeline = cam1Vision != null? PipelineType.values()[cam1Vision.getPipelineIndex()]: null;
+        return cam1Pipeline;
+    }   //getCam1Pipeline
 
     /**
-     * This method returns the active back camera pipeline.
+     * This method returns the active camera 2 pipeline.
      *
      * @return active pipeline.
      */
-    public PipelineType getBackCamPipeline()
+    public PipelineType getCam2Pipeline()
     {
-        backCamPipeline = backVision != null? PipelineType.values()[backVision.getPipelineIndex()]: null;
-        return backCamPipeline;
-    }   //getBackCamPipeline
+        cam2Pipeline = cam2Vision != null? PipelineType.values()[cam2Vision.getPipelineIndex()]: null;
+        return cam2Pipeline;
+    }   //getCam2Pipeline
 
     /**
      * This method returns the camera position relative to robot center.
@@ -256,24 +264,24 @@ public class Vision
     }   //getRobotToCamera
 
     /**
-     * This method returns the front camera position relative to robot center.
+     * This method returns camera 1 position relative to robot center.
      *
      * @return robot to camera transform.
      */
-    private Transform3d getRobotToFrontCamera()
+    private Transform3d getRobotToCamera1()
     {
-        return getRobotToCamera(frontCamInfo);
-    }   //getRobotToFrontCamera
+        return getRobotToCamera(cam1Info);
+    }   //getRobotToCamera1
 
     /**
-     * This method returns the back camera position relative to robot center.
+     * This method returns camera 2 position relative to robot center.
      *
      * @return robot to camera transform.
      */
-    private Transform3d getRobotToBackCamera()
+    private Transform3d getRobotToCamera2()
     {
-        return getRobotToCamera(backCamInfo);
-    }   //getRobotToBackCamera
+        return getRobotToCamera(cam2Info);
+    }   //getRobotToCamera2
 
     /**
      * This method returns the ground offset of the detected AprilTag.
@@ -305,8 +313,9 @@ public class Vision
     public DetectedObject getBestDetectedAprilTag(
         Comparator<? super PhotonTrackedTarget> comparator, int... aprilTagIds)
     {
-        DetectedObject detectedAprilTag = frontVision != null && frontCamPipeline == PipelineType.APRILTAG?
-            frontVision.getDetectedAprilTag(comparator, aprilTagIds): null;
+        // Camera 1 is used for detecting AprilTag.
+        DetectedObject detectedAprilTag = cam1Vision != null && cam1Pipeline == PipelineType.AprilTag?
+            cam1Vision.getDetectedAprilTag(comparator, aprilTagIds): null;
 
         if (detectedAprilTag != null)
         {
@@ -314,7 +323,7 @@ public class Vision
             if  (robot.ledIndicator != null)
             {
                 // Show result using LED.
-                robot.ledIndicator.setPhotonDetectedObject(PipelineType.APRILTAG, detectedAprilTag);
+                robot.ledIndicator.setPhotonDetectedObject(PipelineType.AprilTag, detectedAprilTag);
             }
         }
 
@@ -331,9 +340,9 @@ public class Vision
     public DetectedObject getBestDetectedColorBlob(
         PipelineType pipelineType, Comparator<? super PhotonTrackedTarget> comparator)
     {
-        // Back camera is used for detecting color blobs.
-        DetectedObject detectedObj = backVision != null && backCamPipeline == pipelineType?
-            backVision.getBestDetectedObject(comparator): null;
+        // Camera 2 is used for detecting color blobs.
+        DetectedObject detectedObj = cam2Vision != null && cam2Pipeline == pipelineType?
+            cam2Vision.getBestDetectedObject(comparator): null;
 
         if (detectedObj != null && robot.ledIndicator != null)
         {
@@ -356,29 +365,29 @@ public class Vision
         return (int)((t2.getArea() - t1.getArea())*100);
     }   //compareArea
 
-    /**
-     * This method determines the robot's absolute field pose by averaging the robotFieldPose determined by both the
-     * left and right shooters.
-     *
-     * @return averaged robot field pose.
-     */
-    public TrcPose2D getRobotFieldPose()
-    {
-        TrcPose2D robotFieldPoseFromFrontCam =
-            frontVision != null? frontVision.getRobotEstimatedPose(frontCamFromRobot): null;
-        TrcPose2D robotFieldPoseFromBackCam =
-            backVision != null? backVision.getRobotEstimatedPose(backCamFromRobot): null;
-        // Average the robotFieldPose from the front and back shooter cam.
-        TrcPose2D robotFieldPose = new TrcPose2D(
-            (robotFieldPoseFromFrontCam.x + robotFieldPoseFromBackCam.x)/2.0,
-            (robotFieldPoseFromFrontCam.y + robotFieldPoseFromBackCam.y)/2.0,
-            (robotFieldPoseFromFrontCam.angle + robotFieldPoseFromBackCam.angle)/2.0);
+    // /**
+    //  * This method determines the robot's absolute field pose by averaging the robotFieldPose determined by both
+    //  * camera 1 and 2.
+    //  *
+    //  * @return averaged robot field pose.
+    //  */
+    // public TrcPose2D getRobotFieldPose()
+    // {
+    //     TrcPose2D robotFieldPoseFromCam1 =
+    //         cam1Vision != null? cam1Vision.getRobotEstimatedPose(cam1FromRobot): null;
+    //     TrcPose2D robotFieldPoseFromCam2 =
+    //         cam2Vision != null? cam2Vision.getRobotEstimatedPose(cam2FromRobot): null;
+    //     // Average the robotFieldPose from both cameras.
+    //     TrcPose2D robotFieldPose = new TrcPose2D(
+    //         (robotFieldPoseFromCam1.x + robotFieldPoseFromCam2.x)/2.0,
+    //         (robotFieldPoseFromCam1.y + robotFieldPoseFromCam2.y)/2.0,
+    //         (robotFieldPoseFromCam1.angle + robotFieldPoseFromCam2.angle)/2.0);
 
-        TrcDbgTrace.globalTraceDebug(
-            moduleName, "RobotPoseFront=%s, RobotPoseBack=%s, RobotPose=%s",
-            robotFieldPoseFromFrontCam, robotFieldPoseFromBackCam, robotFieldPose);
-        return robotFieldPose;
-    }   //getRobotFieldPose
+    //     TrcDbgTrace.globalTraceDebug(
+    //         moduleName, "RobotPoseCam1=%s, RobotPoseCam2=%s, RobotPose=%s",
+    //         robotFieldPoseFromCam1, robotFieldPoseFromCam2, robotFieldPose);
+    //     return robotFieldPose;
+    // }   //getRobotFieldPose
 
     /**
      * This method determines the closest AprilTag from the given robot pose.
@@ -405,6 +414,18 @@ public class Vision
         return closestAprilTagPose.clone();
     }   //getClosestAprilTagPose
 
+    // private final FrcUserChoices visionChoices = new FrcUserChoices();
+
+    // /**
+    //  * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+    //  */
+    // private void publishToDashboard()
+    // {
+    //     visionChoices.addChoiceMenu(DBKEY_CAM1_PIPELINES, cam1PipelineMenu);
+    //     visionChoices.addChoiceMenu(DBKEY_CAM2_PIPELINES, cam1PipelineMenu);
+
+    // }   //publishToDashboard
+
     /**
      * This method update the dashboard with vision status.
      *
@@ -414,64 +435,79 @@ public class Vision
      */
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (slowLoop)
+        if (slowLoop && dashboard.getBoolean(DBKEY_SHOW_STATUS, false))
         {
-            if (dashboard.getBoolean(
-                    Dashboard.DBKEY_PREFERENCE_VISION_STATUS, RobotParams.Preferences.showVisionStatus))
-            {
-                DetectedObject detectedObj;
+            DetectedObject detectedObj;
 
-                if (frontVision != null && frontCamPipeline == PipelineType.APRILTAG)
+            if (cam1Vision != null)
+            {
+                if (cam1Pipeline == PipelineType.AprilTag)
                 {
-                    detectedObj = frontVision.getDetectedAprilTag(null, null);
+                    detectedObj = cam1Vision.getDetectedAprilTag(null, null);
                     if (detectedObj != null)
                     {
                         String msg = String.format(
-                            "FrontVision[%d]:targetPose=%s,robotPose=%s",
+                            "Cam1Vision[%d]:targetPose=%s,robotPose=%s",
                             detectedObj.target.getFiducialId(), detectedObj.targetPose, detectedObj.robotPose);
-                        dashboard.putString(DBKEY_PREFIX + "FrontCam", msg);
-                        dashboard.displayPrintf(lineNum++, msg);
+                        dashboard.putString(DBKEY_PREFIX + "Cam1", msg);
+                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    else
-                    {
-                        lineNum++;
-                    }
+                    // else
+                    // {
+                    //     lineNum++;
+                    // }
                 }
-
-                if (backVision != null)
+                else
                 {
-                    if (backCamPipeline == PipelineType.APRILTAG)
+                    detectedObj = cam1Vision.getBestDetectedObject(this::compareAreas);
+                    if (detectedObj != null)
                     {
-                        detectedObj = backVision.getDetectedAprilTag(null, null);
-                        if (detectedObj != null)
-                        {
-                            String msg = String.format(
-                                "BackVision[%d]:targetPose=%s,robotPose=%s",
-                                detectedObj.target.getFiducialId(), detectedObj.targetPose, detectedObj.robotPose);
-                            dashboard.putString(DBKEY_PREFIX + "BackCam", msg);
-                            dashboard.displayPrintf(lineNum++, msg);
-                        }
-                        else
-                        {
-                            lineNum++;
-                        }
+                        String msg = String.format(
+                            "Cam1Vision(%s): targetPose=%s, robotPose=%s",
+                            cam1Pipeline, detectedObj.targetPose, detectedObj.robotPose);
+                        dashboard.putString(DBKEY_PREFIX + "Cam1", msg);
+                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    else
+                    // else
+                    // {
+                    //     lineNum++;
+                    // }
+                }
+            }
+
+            if (cam2Vision != null)
+            {
+                if (cam2Pipeline == PipelineType.AprilTag)
+                {
+                    detectedObj = cam2Vision.getDetectedAprilTag(null, null);
+                    if (detectedObj != null)
                     {
-                        detectedObj = backVision.getBestDetectedObject(this::compareAreas);
-                        if (detectedObj != null)
-                        {
-                            String msg = String.format(
-                                "BackVision(%s): targetPose=%s, robotPose=%s",
-                                backCamPipeline, detectedObj.targetPose, detectedObj.robotPose);
-                            dashboard.putString(DBKEY_PREFIX + "BackCam", msg);
-                            dashboard.displayPrintf(lineNum++, msg);
-                        }
-                        else
-                        {
-                            lineNum++;
-                        }
+                        String msg = String.format(
+                            "Cam2Vision[%d]:targetPose=%s,robotPose=%s",
+                            detectedObj.target.getFiducialId(), detectedObj.targetPose, detectedObj.robotPose);
+                        dashboard.putString(DBKEY_PREFIX + "Cam2", msg);
+                        // dashboard.displayPrintf(lineNum++, msg);
                     }
+                    // else
+                    // {
+                    //     lineNum++;
+                    // }
+                }
+                else
+                {
+                    detectedObj = cam2Vision.getBestDetectedObject(this::compareAreas);
+                    if (detectedObj != null)
+                    {
+                        String msg = String.format(
+                            "Cam2Vision(%s): targetPose=%s, robotPose=%s",
+                            cam2Pipeline, detectedObj.targetPose, detectedObj.robotPose);
+                        dashboard.putString(DBKEY_PREFIX + "Cam2", msg);
+                        // dashboard.displayPrintf(lineNum++, msg);
+                    }
+                    // else
+                    // {
+                    //     lineNum++;
+                    // }
                 }
             }
         }

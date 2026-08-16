@@ -25,7 +25,6 @@ package teamcode;
 import java.util.Locale;
 
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frclib.drivebase.FrcSwerveBase;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcUserChoices;
@@ -49,27 +48,66 @@ import trclib.timer.TrcTimer;
 public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = FrcTest.class.getSimpleName();
-    //
-    // Global constants.
-    //
+
+    // Test choices.
+    private static final String DBKEY_PREFIX                = "Test/";
+    private static final String DBKEY_TESTS                 = DBKEY_PREFIX + "Tests";                   //Choices
+    // Drive Base tuning params.
+    private static final String DBKEY_TUNE_X_TARGET         = DBKEY_PREFIX + "XTarget";                 //Number
+    private static final String DBKEY_TUNE_Y_TARGET         = DBKEY_PREFIX + "YTarget";                 //Number
+    private static final String DBKEY_TUNE_TURN_TARGET      = DBKEY_PREFIX + "TurnTarget";              //Number
+    private static final String DBKEY_DRIVE_POWER           = DBKEY_PREFIX + "DrivePower";              //Number
+    private static final String DBKEY_TURN_POWER            = DBKEY_PREFIX + "TurnPower";               //Number
+    private static final String DBKEY_DRIVE_TIME            = DBKEY_PREFIX + "DriveTime";               //Number
+    private static final String DBKEY_TUNE_KP               = DBKEY_PREFIX + "TuneKp";                  //Number
+    private static final String DBKEY_TUNE_KI               = DBKEY_PREFIX + "TuneKi";                  //Number
+    private static final String DBKEY_TUNE_KD               = DBKEY_PREFIX + "TuneKd";                  //Number
+    private static final String DBKEY_TUNE_KF               = DBKEY_PREFIX + "TuneKf";                  //Number
+    private static final String DBKEY_TUNE_IZONE            = DBKEY_PREFIX + "TuneIZone";               //Number
+    private static final String DBKEY_MAX_VELOCITY          = DBKEY_PREFIX + "MaxVelocity";             //Number
+    private static final String DBKEY_MAX_ACCELERATION      = DBKEY_PREFIX + "MaxAcceleration";         //Number
+    private static final String DBKEY_MAX_DECELERATION      = DBKEY_PREFIX + "MaxDeceleration";         //Number
+    private static final String DBKEY_ROBOT_VEL             = DBKEY_PREFIX + "RobotVelocity";           //Number
+    private static final String DBKEY_TARGET_VEL            = DBKEY_PREFIX + "TargetVelocity";          //Number
+    private static final String DBKEY_ROBOT_POS             = DBKEY_PREFIX + "RobotPosition";           //Number
+    private static final String DBKEY_TARGET_POS            = DBKEY_PREFIX + "TargetPosition";          //Number
+    // Subsystem tuning params.
+    private static final String DBKEY_SUBSYSTEM_NAME        = DBKEY_PREFIX + "SubsystemName";           //String
+    private static final String DBKEY_SUBSYSTEM_KP          = DBKEY_PREFIX + "SubsystemKp";             //Number
+    private static final String DBKEY_SUBSYSTEM_KI          = DBKEY_PREFIX + "SubsystemKi";             //Number
+    private static final String DBKEY_SUBSYSTEM_KD          = DBKEY_PREFIX + "SubsystemKd";             //Number
+    private static final String DBKEY_SUBSYSTEM_KF          = DBKEY_PREFIX + "SubsystemKf";             //Number
+    private static final String DBKEY_SUBSYSTEM_IZONE       = DBKEY_PREFIX + "SubsystemIZone";          //Number
+    private static final String DBKEY_SUBSYSTEM_TOLERANCE   = DBKEY_PREFIX + "SubsystemTolerance";      //Number
+    private static final String DBKEY_SUBSYSTEM_SOFTWARE_PID= DBKEY_PREFIX + "SubsystemSoftwarePid";    //Boolean
+    private static final String DBKEY_SUBSYSTEM_KS          = DBKEY_PREFIX + "SubsystemKs";             //Number
+    private static final String DBKEY_SUBSYSTEM_KV          = DBKEY_PREFIX + "SubsystemKv";             //Number
+    private static final String DBKEY_SUBSYSTEM_KA          = DBKEY_PREFIX + "SubsystemKa";             //Number
+    public static final String DBKEY_SUBSYSTEM_TARGET_PARAM = DBKEY_PREFIX + "SubsystemTargetParam";    //Number
+    public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";  //Number
+
+    // private static final String DBKEY_SUBSYSTEM_INPUT       = DBKEY_PREFIX + "SubsystemInput";
+    // private static final String DBKEY_SUBSYSTEM_TARGET      = DBKEY_PREFIX + "SubsystemTarget";
 
     //
     // Tests.
     //
     private enum Test
     {
-        SUBSYSTEMS_TEST,
-        DRIVE_SPEED_TEST,
-        DRIVE_MOTORS_TEST,
-        X_TIMED_DRIVE,
-        Y_TIMED_DRIVE,
-        PP_DRIVE,
-        PID_DRIVE,
-        TUNE_DRIVE_PID,
-        TUNE_SUBSYSTEM,
-        VISION_TEST,
-        SWERVE_CALIBRATION,
-        LIVE_WINDOW
+        SubsystemsTest,
+        DriveSpeedTest,
+        DriveMotorsTest,
+        XTimedDrive,
+        YTimedDrive,
+        PurePursuitDrive,
+        PidDrive,
+        TuneDriveXPid,
+        TuneDriveYPid,
+        TuneTurnPid,
+        TuneSubsystem,
+        VisionTest,
+        SwerveCalibration,
+        LiveWindow
     }   //enum Test
 
     /**
@@ -93,70 +131,62 @@ public class FrcTest extends FrcTeleOp
             //
             // Create test mode specific choice menus.
             //
-            testMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_TEST_TESTS);
+            testMenu = new FrcChoiceMenu<>(DBKEY_TESTS);
             //
             // Populate test mode menus.
             //
-            testMenu.addChoice("Subsystems Test", Test.SUBSYSTEMS_TEST, true, false);
-            testMenu.addChoice("Drive Speed Test", Test.DRIVE_SPEED_TEST);
-            testMenu.addChoice("Drive Motors Test", Test.DRIVE_MOTORS_TEST);
-            testMenu.addChoice("X Timed Drive", Test.X_TIMED_DRIVE);
-            testMenu.addChoice("Y Timed Drive", Test.Y_TIMED_DRIVE);
-            testMenu.addChoice("PurePursuit Drive", Test.PP_DRIVE);
-            testMenu.addChoice("PID Drive", Test.PID_DRIVE);
-            testMenu.addChoice("Tune Drive PID", Test.TUNE_DRIVE_PID);
-            testMenu.addChoice("Tune Subsystem", Test.TUNE_SUBSYSTEM);
-            testMenu.addChoice("Vision Test", Test.VISION_TEST);
-            testMenu.addChoice("Swerve Calibration", Test.SWERVE_CALIBRATION);
-            testMenu.addChoice("Live Window", Test.LIVE_WINDOW, false, true);
+            testMenu.addChoice(Test.SubsystemsTest.name(), Test.SubsystemsTest, true, false);
+            testMenu.addChoice(Test.DriveSpeedTest.name(), Test.DriveSpeedTest);
+            testMenu.addChoice(Test.DriveMotorsTest.name(), Test.DriveMotorsTest);
+            testMenu.addChoice(Test.XTimedDrive.name(), Test.XTimedDrive);
+            testMenu.addChoice(Test.YTimedDrive.name(), Test.YTimedDrive);
+            testMenu.addChoice(Test.PurePursuitDrive.name(), Test.PurePursuitDrive);
+            testMenu.addChoice(Test.PidDrive.name(), Test.PidDrive);
+            testMenu.addChoice(Test.TuneDriveXPid.name(), Test.TuneDriveXPid);
+            testMenu.addChoice(Test.TuneDriveYPid.name(), Test.TuneDriveYPid);
+            testMenu.addChoice(Test.TuneTurnPid.name(), Test.TuneTurnPid);
+            testMenu.addChoice(Test.TuneSubsystem.name(), Test.TuneSubsystem);
+            testMenu.addChoice(Test.VisionTest.name(), Test.VisionTest);
+            testMenu.addChoice(Test.SwerveCalibration.name(), Test.SwerveCalibration);
+            testMenu.addChoice(Test.LiveWindow.name(), Test.LiveWindow, false, true);
             //
             // Initialize dashboard with default choice values.
             //
-            userChoices.addChoiceMenu(Dashboard.DBKEY_TEST_TESTS, testMenu);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_TARGET, 0.0);    // in ft
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_TARGET, 0.0);    // in ft
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_TARGET, 0.0); // in degrees
-            userChoices.addNumber(Dashboard.DBKEY_TEST_DRIVE_POWER, 0.5);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_POWER, 0.5);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_DRIVE_TIME, 0.0);  // in seconds
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_KP, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_KI, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_KD, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_KF, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_X_IZONE, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_KP, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_KI, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_KD, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_KF, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_Y_IZONE, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_KP, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_KI, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_KD, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_KF, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TURN_IZONE, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_MAX_VELOCITY, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_MAX_ACCELERATION, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_MAX_DECELERATION, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_ROBOT_VEL, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TARGET_VEL, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_ROBOT_POS, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_TARGET_POS, 0.0);
+            userChoices.addChoiceMenu(DBKEY_TESTS, testMenu);
+            userChoices.addNumber(DBKEY_TUNE_X_TARGET, 0.0);    // in ft
+            userChoices.addNumber(DBKEY_TUNE_Y_TARGET, 0.0);    // in ft
+            userChoices.addNumber(DBKEY_TUNE_TURN_TARGET, 0.0); // in degrees
+            userChoices.addNumber(DBKEY_DRIVE_POWER, 0.5);
+            userChoices.addNumber(DBKEY_TURN_POWER, 0.5);
+            userChoices.addNumber(DBKEY_DRIVE_TIME, 0.0);       // in seconds
+            userChoices.addNumber(DBKEY_TUNE_KP, 0.0);
+            userChoices.addNumber(DBKEY_TUNE_KI, 0.0);
+            userChoices.addNumber(DBKEY_TUNE_KD, 0.0);
+            userChoices.addNumber(DBKEY_TUNE_KF, 0.0);
+            userChoices.addNumber(DBKEY_TUNE_IZONE, 0.0);
+            userChoices.addNumber(DBKEY_MAX_VELOCITY, 0.0);
+            userChoices.addNumber(DBKEY_MAX_ACCELERATION, 0.0);
+            userChoices.addNumber(DBKEY_MAX_DECELERATION, 0.0);
+            userChoices.addNumber(DBKEY_ROBOT_VEL, 0.0);
+            userChoices.addNumber(DBKEY_TARGET_VEL, 0.0);
+            userChoices.addNumber(DBKEY_ROBOT_POS, 0.0);
+            userChoices.addNumber(DBKEY_TARGET_POS, 0.0);
 
             userChoices.addString(
-                Dashboard.DBKEY_TEST_SUBSYSTEM_NAME,
+                DBKEY_SUBSYSTEM_NAME,
                 RobotParams.Preferences.testSubsystemName != null? RobotParams.Preferences.testSubsystemName: "");
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, 0.0);
-            userChoices.addBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, false);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA, 0.0);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KP, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KI, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KD, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KF, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_IZONE, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TOLERANCE, 0.0);
+            userChoices.addBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, false);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KS, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KV, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_KA, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_GRAVITY_POWER, 0.0);
         }   //TestChoices
 
         //
@@ -168,126 +198,115 @@ public class FrcTest extends FrcTeleOp
             return testMenu.getCurrentChoiceObject();            
         }   //getTest
 
-        public double getXTarget()
+        public double getTuneXTarget()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_TARGET);
-        }   //getXTarget
+            return userChoices.getUserNumber(DBKEY_TUNE_X_TARGET);
+        }   //getTuneXTarget
 
-        public double getYTarget()
+        public double getTuneYTarget()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_TARGET);
-        }   //getYTarget
+            return userChoices.getUserNumber(DBKEY_TUNE_Y_TARGET);
+        }   //getTuneYTarget
 
-        public double getTurnTarget()
+        public double getTuneTurnTarget()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_TARGET);
-        }   //getTurnTarget
+            return userChoices.getUserNumber(DBKEY_TUNE_TURN_TARGET);
+        }   //getTuneTurnTarget
 
         public double getDrivePower()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_DRIVE_POWER);
+            return userChoices.getUserNumber(DBKEY_DRIVE_POWER);
         }   //getDrivePower
 
         public double getTurnPower()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_POWER);
+            return userChoices.getUserNumber(DBKEY_TURN_POWER);
         }   //getTurnPower
 
         public double getDriveTime()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_DRIVE_TIME);
+            return userChoices.getUserNumber(DBKEY_DRIVE_TIME);
         }   //getDriveTime
 
-        public TrcPidController.PidCoefficients getXPidCoefficients()
+        public TrcPidController.PidCoefficients getTunePidCoefficients()
         {
             return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_KP),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_KI),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_KD),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_KF),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_X_IZONE));
-        }   //getXPidCoefficients
+                userChoices.getUserNumber(DBKEY_TUNE_KP),
+                userChoices.getUserNumber(DBKEY_TUNE_KI),
+                userChoices.getUserNumber(DBKEY_TUNE_KD),
+                userChoices.getUserNumber(DBKEY_TUNE_KF),
+                userChoices.getUserNumber(DBKEY_TUNE_IZONE));
+        }   //getTunePidCoefficients
 
-        public TrcPidController.PidCoefficients getYPidCoefficients()
+        public void setTunePidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
         {
-            return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_KP),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_KI),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_KD),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_KF),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_Y_IZONE));
-        }   //getYPidCoefficients
-
-        public TrcPidController.PidCoefficients getTurnPidCoefficients()
-        {
-            return new TrcPidController.PidCoefficients(
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_KP),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_KI),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_KD),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_KF),
-                userChoices.getUserNumber(Dashboard.DBKEY_TEST_TURN_IZONE));
-        }   //getYPidCoefficients
+            userChoices.addNumber(DBKEY_TUNE_KP, pidCoeffs.kP);
+            userChoices.addNumber(DBKEY_TUNE_KI, pidCoeffs.kI);
+            userChoices.addNumber(DBKEY_TUNE_KD, pidCoeffs.kD);
+            userChoices.addNumber(DBKEY_TUNE_KF, pidCoeffs.kF);
+            userChoices.addNumber(DBKEY_TUNE_IZONE, pidCoeffs.iZone);
+        }   //setTunePidCoefficients
 
         public double getMaxVelocity()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_MAX_VELOCITY);
+            return userChoices.getUserNumber(DBKEY_MAX_VELOCITY);
         }   //getMaxVelocity
 
         public double getMaxAcceleration()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_MAX_ACCELERATION);
+            return userChoices.getUserNumber(DBKEY_MAX_ACCELERATION);
         }   //getMaxAcceleration
 
         public double getMaxDeceleration()
         {
-            return userChoices.getUserNumber(Dashboard.DBKEY_TEST_MAX_DECELERATION);
+            return userChoices.getUserNumber(DBKEY_MAX_DECELERATION);
         }   //getMaxDeceleration
 
         public String getSubsystemName()
         {
-            return userChoices.getUserString(Dashboard.DBKEY_TEST_SUBSYSTEM_NAME);
+            return userChoices.getUserString(DBKEY_SUBSYSTEM_NAME);
         }   //getSubsystemName
 
         public TrcMotor.PidParams getSubsystemPidParameters()
         {
             return new TrcMotor.PidParams()
                 .setPidCoefficients(
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE))
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KP),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KI),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KD),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KF),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_IZONE))
                 .setFFCoefficients(
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV),
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA))
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KS),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KV),
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_KA))
                 .setPidControlParams(
-                    userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE),
-                    userChoices.getUserBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID))
-                .setTuningParams(userChoices.getUserNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM));
+                    userChoices.getUserNumber(DBKEY_SUBSYSTEM_TOLERANCE),
+                    userChoices.getUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID))
+                .setTuningParams(userChoices.getUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM));
         }   //getSubsystemPidParameters
 
         public void setSubsystemPidParameters(TrcMotor.PidParams pidParams)
         {
             if (pidParams.pidCoeffs != null)
             {
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KP, pidParams.pidCoeffs.kP);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KI, pidParams.pidCoeffs.kI);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KD, pidParams.pidCoeffs.kD);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KF, pidParams.pidCoeffs.kF);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_IZONE, pidParams.pidCoeffs.iZone);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KP, pidParams.pidCoeffs.kP);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KI, pidParams.pidCoeffs.kI);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KD, pidParams.pidCoeffs.kD);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KF, pidParams.pidCoeffs.kF);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_IZONE, pidParams.pidCoeffs.iZone);
             }
 
             if (pidParams.ffCoeffs != null)
             {
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KS, pidParams.ffCoeffs.kS);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KV, pidParams.ffCoeffs.kV);
-                userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_KA, pidParams.ffCoeffs.kA);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KS, pidParams.ffCoeffs.kS);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KV, pidParams.ffCoeffs.kV);
+                userChoices.addNumber(DBKEY_SUBSYSTEM_KA, pidParams.ffCoeffs.kA);
             }
 
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
-            userChoices.addBoolean(Dashboard.DBKEY_TEST_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
-            userChoices.addNumber(Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
+            userChoices.addBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
         }   //setSubsystemPidParameters
 
         @Override
@@ -302,18 +321,15 @@ public class FrcTest extends FrcTeleOp
                 "drivePower=\"%.1f\" " +
                 "turnPower=\"%.1f\" " +
                 "driveTime=\"%.0f sec\" " +
-                "xPidCoeff=\"%s\" " +
-                "yPidCoeff=\"%s\" " +
-                "turnPidCoeff=\"%s\" " +
+                "tunePidCoeff=\"%s\" " +
                 "maxVelocity=\"%.1f\" " +
                 "maxAcceleration=\"%.1f\" " +
                 "maxDeceleration=\"%.1f\" " +
                 "subsystemName=\"%s\" " +
                 "subsystemPidParams=\"%s\" ",
-                getTest(), getXTarget(), getYTarget(), getTurnTarget(), getDrivePower(), getTurnPower(),
-                getDriveTime(), getXPidCoefficients(), getYPidCoefficients(), getTurnPidCoefficients(),
-                getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(), getSubsystemName(),
-                getSubsystemPidParameters());
+                getTest(), getTuneXTarget(), getTuneYTarget(), getTuneTurnTarget(), getDrivePower(), getTurnPower(),
+                getDriveTime(), getTunePidCoefficients(), getMaxVelocity(), getMaxAcceleration(), getMaxDeceleration(),
+                getSubsystemName(), getSubsystemPidParameters());
         }   //toString
 
     }   //class TestChocies
@@ -354,11 +370,6 @@ public class FrcTest extends FrcTeleOp
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
-        if (RobotParams.Preferences.hybridMode)
-        {
-            // Cancels all running commands at the start of test mode.
-            CommandScheduler.getInstance().cancelAll();
-        }
         //
         // Call TeleOp startMode.
         //
@@ -371,10 +382,11 @@ public class FrcTest extends FrcTeleOp
         // Create Command objects according to test choice.
         //
         boolean liveWindowEnabled = false;
+        Test test = testChoices.getTest();
 
-        switch (testChoices.getTest())
+        switch (test)
         {
-            case DRIVE_MOTORS_TEST:
+            case DriveMotorsTest:
                 if (robot.robotBase != null)
                 {
                     testCommand = new CmdDriveMotorsTest(
@@ -382,29 +394,30 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
-            case X_TIMED_DRIVE:
-                if (robot.robotBase != null && robot.robotBase.driveBase.supportsHolonomicDrive())
+            case XTimedDrive:
+            case YTimedDrive:
+                if (robot.robotBase != null &&
+                    (test == Test.YTimedDrive || robot.robotBase.driveBase.supportsHolonomicDrive()))
                 {
+                    double xPower, yPower;
+
+                    xPower = yPower = testChoices.getDrivePower();
+                    if (test == Test.XTimedDrive)
+                    {
+                        yPower = 0.0;
+                    }
+                    else
+                    {
+                        xPower = 0.0;
+                    }
                     robot.robotBase.driveBase.resetOdometry();
                     // robot.robotDrive.driveBase.setGyroAssistEnabled(robot.robotDrive.pidDrive.getTurnPidCtrl());
                     testCommand = new CmdTimedDrive(
-                        robot.robotBase.driveBase, 0.0, testChoices.getDriveTime(), testChoices.getDrivePower(),
-                        0.0, 0.0);
+                        robot.robotBase.driveBase, 0.0, testChoices.getDriveTime(), xPower, yPower, 0.0);
                 }
                 break;
 
-            case Y_TIMED_DRIVE:
-                if (robot.robotBase != null)
-                {
-                    robot.robotBase.driveBase.resetOdometry();
-                    // robot.robotDrive.driveBase.setGyroAssistEnabled(robot.robotDrive.pidDrive.getTurnPidCtrl());
-                    testCommand = new CmdTimedDrive(
-                        robot.robotBase.driveBase, 0.0, testChoices.getDriveTime(), 0.0, testChoices.getDrivePower(),
-                        0.0);
-                }
-                break;
-
-            case PP_DRIVE:
+            case PurePursuitDrive:
                 if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
                 {
                     robot.robotBase.driveBase.resetOdometry();
@@ -413,12 +426,12 @@ public class FrcTest extends FrcTeleOp
                     robot.robotBase.purePursuitDrive.start(
                         true, null,
                         new TrcPose2D(
-                            testChoices.getXTarget()*12.0, testChoices.getYTarget()*12.0,
-                            testChoices.getTurnTarget()));
+                            testChoices.getTuneXTarget()*12.0, testChoices.getTuneYTarget()*12.0,
+                            testChoices.getTuneTurnTarget()));
                 }
                 break;
 
-            case PID_DRIVE:
+            case PidDrive:
                 if (robot.robotBase != null && robot.robotBase.pidDrive != null)
                 {
                     robot.robotBase.driveBase.resetOdometry();
@@ -426,20 +439,20 @@ public class FrcTest extends FrcTeleOp
                     ((CmdPidDrive) testCommand).startPath(
                         0.0, testChoices.getDrivePower(), null,
                         new TrcPose2D(
-                            testChoices.getXTarget()*12.0, testChoices.getYTarget()*12.0,
-                            testChoices.getTurnTarget()));
+                            testChoices.getTuneXTarget()*12.0, testChoices.getTuneYTarget()*12.0,
+                            testChoices.getTuneTurnTarget()));
                 }
                 break;
 
-            case VISION_TEST:
+            case VisionTest:
                 if (robot.vision != null)
                 {
-                    robot.vision.setFrontCamPipeline();
-                    robot.vision.setBackCamPipeline();
+                    robot.vision.setCam1Pipeline();
+                    robot.vision.setCam2Pipeline();
                 }
                 break;
 
-            case SWERVE_CALIBRATION:
+            case SwerveCalibration:
                 if (robot.robotBase != null && robot.robotBase instanceof FrcSwerveBase)
                 {
                     robot.globalTracer.traceInfo(moduleName, "Start Swerve Calibration.");
@@ -448,7 +461,7 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
-            case LIVE_WINDOW:
+            case LiveWindow:
                 liveWindowEnabled = true;
                 break;
 
@@ -468,13 +481,13 @@ public class FrcTest extends FrcTeleOp
     {
         switch (testChoices.getTest())
         {
-            case X_TIMED_DRIVE:
-            case Y_TIMED_DRIVE:
+            case XTimedDrive:
+            case YTimedDrive:
                 // Cancel GyroAssist in case we turned it on for timed drive.
                 robot.robotBase.driveBase.setGyroAssistEnabled(null);
                 break;
 
-            case SWERVE_CALIBRATION:
+            case SwerveCalibration:
                 if (robot.robotBase != null && robot.robotBase instanceof FrcSwerveBase)
                 {
                     robot.globalTracer.traceInfo(moduleName, "Stop Swerve Calibration.");
@@ -522,7 +535,7 @@ public class FrcTest extends FrcTeleOp
         //
         switch (test)
         {
-            case DRIVE_SPEED_TEST:
+            case DriveSpeedTest:
                 if (robot.robotBase != null)
                 {
                     double currTime = TrcTimer.getCurrentTime();
@@ -577,17 +590,19 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
-            case TUNE_DRIVE_PID:
+            case TuneDriveXPid:
+            case TuneDriveYPid:
+            case TuneTurnPid:
                 if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
                 {
                     robot.dashboard.putNumber(
-                        Dashboard.DBKEY_TEST_ROBOT_VEL, robot.robotBase.purePursuitDrive.getPathRobotVelocity());
+                        DBKEY_ROBOT_VEL, robot.robotBase.purePursuitDrive.getPathRobotVelocity());
                     robot.dashboard.putNumber(
-                        Dashboard.DBKEY_TEST_TARGET_VEL, robot.robotBase.purePursuitDrive.getPathTargetVelocity());
+                        DBKEY_TARGET_VEL, robot.robotBase.purePursuitDrive.getPathTargetVelocity());
                     robot.dashboard.putNumber(
-                        Dashboard.DBKEY_TEST_ROBOT_POS, robot.robotBase.purePursuitDrive.getPathRelativePosition());
+                        DBKEY_ROBOT_POS, robot.robotBase.purePursuitDrive.getPathRelativePosition());
                     robot.dashboard.putNumber(
-                        Dashboard.DBKEY_TEST_TARGET_POS, robot.robotBase.purePursuitDrive.getPathPositionTarget());
+                        DBKEY_TARGET_POS, robot.robotBase.purePursuitDrive.getPathPositionTarget());
                 }
                 break;
     
@@ -610,8 +625,8 @@ public class FrcTest extends FrcTeleOp
             //
             switch (test)
             {
-                case X_TIMED_DRIVE:
-                case Y_TIMED_DRIVE:
+                case XTimedDrive:
+                case YTimedDrive:
                     if (robot.robotBase != null)
                     {
                         double flEnc = Math.abs(
@@ -632,9 +647,11 @@ public class FrcTest extends FrcTeleOp
                     }
                     break;
 
-                case PP_DRIVE:
-                case PID_DRIVE:
-                case TUNE_DRIVE_PID:
+                case PurePursuitDrive:
+                case PidDrive:
+                case TuneDriveXPid:
+                case TuneDriveYPid:
+                case TuneTurnPid:
                     if (robot.robotBase != null)
                     {
                         TrcPidController xPidCtrl = null, yPidCtrl = null, turnPidCtrl = null;
@@ -645,7 +662,7 @@ public class FrcTest extends FrcTeleOp
                             yPidCtrl = robot.robotBase.purePursuitDrive.getYPosPidCtrl();
                             turnPidCtrl = robot.robotBase.purePursuitDrive.getTurnPidCtrl();
                         }
-                        else if (test == Test.PID_DRIVE && robot.robotBase.pidDrive != null)
+                        else if (test == Test.PidDrive && robot.robotBase.pidDrive != null)
                         {
                             xPidCtrl = robot.robotBase.pidDrive.getXPidCtrl();
                             yPidCtrl = robot.robotBase.pidDrive.getYPidCtrl();
@@ -672,11 +689,11 @@ public class FrcTest extends FrcTeleOp
                     }
                     break;
 
-                case VISION_TEST:
+                case VisionTest:
                     lineNum = doVisionTest(lineNum);
                     break;
 
-                case SWERVE_CALIBRATION:
+                case SwerveCalibration:
                     if (robot.robotBase != null && robot.robotBase instanceof FrcSwerveBase)
                     {
                         FrcSwerveBase swerveBase = (FrcSwerveBase) robot.robotBase;
@@ -700,8 +717,8 @@ public class FrcTest extends FrcTeleOp
     {
         Test test = testChoices.getTest();
 
-        return test == Test.SUBSYSTEMS_TEST || test == Test.TUNE_SUBSYSTEM || test == Test.VISION_TEST ||
-               test == Test.DRIVE_SPEED_TEST;
+        return test == Test.SubsystemsTest || test == Test.TuneSubsystem || test == Test.VisionTest ||
+               test == Test.DriveSpeedTest;
     }   //allowTeleOp
 
     //
@@ -738,7 +755,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case DpadUp:
-                if (test == Test.SUBSYSTEMS_TEST)
+                if (test == Test.TuneSubsystem)
                 {
                     if (pressed)
                     {
@@ -750,7 +767,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case DpadDown:
-                if (test == Test.SUBSYSTEMS_TEST)
+                if (test == Test.TuneSubsystem)
                 {
                     if (pressed)
                     {
@@ -767,7 +784,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case Start:
-                if (test == Test.TUNE_SUBSYSTEM)
+                if (test == Test.TuneSubsystem)
                 {
                     if (pressed)
                     {
@@ -786,7 +803,7 @@ public class FrcTest extends FrcTeleOp
                     }
                     passToTeleOp = false;
                 }
-                else if (test == Test.TUNE_DRIVE_PID)
+                else if (test == Test.TuneDriveXPid || test == Test.TuneDriveYPid || test == Test.TuneTurnPid)
                 {
                     if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
                     {
@@ -798,15 +815,27 @@ public class FrcTest extends FrcTeleOp
                                 tuneDriveStartPoint = robot.robotBase.driveBase.getFieldPosition();
                                 tuneDriveEndPoint = tuneDriveStartPoint.addRelativePose(
                                     new TrcPose2D(
-                                        testChoices.getXTarget()*12.0, testChoices.getYTarget()*12.0,
-                                        testChoices.getTurnTarget()));
+                                        testChoices.getTuneXTarget()*12.0, testChoices.getTuneYTarget()*12.0,
+                                        testChoices.getTuneTurnTarget()));
                             }
-                            robot.robotBase.purePursuitDrive.setXPositionPidCoefficients(
-                                testChoices.getXPidCoefficients());
-                            robot.robotBase.purePursuitDrive.setYPositionPidCoefficients(
-                                testChoices.getYPidCoefficients());
-                            robot.robotBase.purePursuitDrive.setTurnPidCoefficients(
-                                testChoices.getTurnPidCoefficients());
+
+                            TrcPidController.PidCoefficients tunePidCoeffs = testChoices.getTunePidCoefficients();
+                            if (test == Test.TuneTurnPid)
+                            {
+                                robot.robotBase.purePursuitDrive.setTurnPidCoefficients(tunePidCoeffs);
+                            }
+                            else if (robot.robotBase instanceof FrcSwerveBase)
+                            {
+                                robot.robotBase.purePursuitDrive.setPositionPidCoefficients(tunePidCoeffs);
+                            }
+                            else if (test == Test.TuneDriveXPid)
+                            {
+                                robot.robotBase.purePursuitDrive.setXPositionPidCoefficients(tunePidCoeffs);
+                            }
+                            else
+                            {
+                                robot.robotBase.purePursuitDrive.setYPositionPidCoefficients(tunePidCoeffs);
+                            }
                             robot.robotBase.purePursuitDrive.setMoveOutputLimit(testChoices.getDrivePower());
                             robot.robotBase.purePursuitDrive.setRotOutputLimit(testChoices.getTurnPower());
                             TrcPose2D drivePoint = tuneDriveAtEndPoint? tuneDriveStartPoint: tuneDriveEndPoint;
@@ -847,7 +876,6 @@ public class FrcTest extends FrcTeleOp
     protected void operatorControllerButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
     {
         boolean passToTeleOp = true;
-        Test test = testChoices.getTest();
 
         if (traceButtonEvents)
         {
@@ -865,40 +893,8 @@ public class FrcTest extends FrcTeleOp
             case Y:
             case LeftBumper:
             case RightBumper:
-                break;
-
             case DpadUp:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        // Move subsystem to preset position up. This is useful for testing/tuning subsystems that
-                        // have a PID controller and a target position.
-                        String subsystemName = testChoices.getSubsystemName();
-
-                        robot.globalTracer.traceInfo(
-                            moduleName, ">>>>> Tune %s: Position up!", subsystemName);
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadDown:
-                if (test == Test.TUNE_SUBSYSTEM)
-                {
-                    if (pressed)
-                    {
-                        // Move subsystem to preset position up. This is useful for testing/tuning subsystems that
-                        // have a PID controller and a target position.
-                        String subsystemName = testChoices.getSubsystemName();
-
-                        robot.globalTracer.traceInfo(
-                            moduleName, ">>>>> Tune %s: Position down!", subsystemName);
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadLeft:
             case DpadRight:
             case Back:

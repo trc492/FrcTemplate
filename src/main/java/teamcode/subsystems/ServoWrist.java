@@ -24,9 +24,7 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
@@ -123,6 +121,17 @@ public class ServoWrist extends TrcSubsystem
         servo.setPosition(-90.0);
     }   //resetState
 
+    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POSITION, "");
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -133,14 +142,9 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(
-                Dashboard.DBKEY_SERVOWRIST_SHOW_STATUS, RobotParams.Preferences.showServoWristStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
-            {
-                dashboard.putNumber(Dashboard.DBKEY_SERVOWRIST_PHYSICAL_POS, servo.getPosition());
-                dashboard.putNumber(Dashboard.DBKEY_SERVOWRIST_LOGICAL_POS, servo.getLogicalPosition());
-            }
+            dashboard.putString(DBKEY_POSITION, servo.getPosition() + "/" + servo.getLogicalPosition());
         }
 
         return lineNum;

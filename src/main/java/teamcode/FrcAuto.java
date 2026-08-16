@@ -41,28 +41,41 @@ import trclib.robotcore.TrcRobot.RunMode;
 public class FrcAuto implements TrcRobot.RobotMode
 {
     private static final String moduleName = FrcAuto.class.getSimpleName();
-    //
-    // Global constants.
-    //
 
+    private static final String DBKEY_PREFIX            = "Auto/";
+    private static final String DBKEY_ALLIANCE          = DBKEY_PREFIX + "Alliance";        //Choices
+    private static final String DBKEY_STRATEGY          = DBKEY_PREFIX + "Strategy";        //Choices
+    private static final String DBKEY_START_POS         = DBKEY_PREFIX + "StartPos";        //Choices
+    private static final String DBKEY_START_DELAY       = DBKEY_PREFIX + "StartDelay";      //Number
+    private static final String DBKEY_PATHFILE          = DBKEY_PREFIX + "PathFile";        //String
+    private static final String DBKEY_X_DRIVE_TARGET    = DBKEY_PREFIX + "XDriveTarget";    //Number
+    private static final String DBKEY_Y_DRIVE_TARGET    = DBKEY_PREFIX + "YDriveTarget";    //Number
+    private static final String DBKEY_TURN_TARGET       = DBKEY_PREFIX + "TurnTareg";       //Number
+    private static final String DBKEY_DRIVE_TIME        = DBKEY_PREFIX + "DriveTime";       //Number
+    private static final String DBKEY_DRIVE_POWER       = DBKEY_PREFIX + "DrivePower";      //Number
+    // Game specific options
+    private static final String DBKEY_USE_VISION        = DBKEY_PREFIX + "UseVision";       //Boolean
+    private static final String DBKEY_SCORE_PRELOAD     = DBKEY_PREFIX + "ScorePreload";    //Boolean
+
+    public static final String DBKEY_CHOICES_SUBMIT     = DBKEY_PREFIX + "ChoicesSubmit";   //Boolean
     //
     // Auto choices enums.
     //
     public enum AutoStrategy
     {
-        STARTPOS1_AUTO,
-        PP_DRIVE,
-        PID_DRIVE,
-        TIMED_DRIVE,
-        HYBRID_MODE_AUTO,
-        DO_NOTHING
+        StartPos1Auto,
+        PurePursuitDrive,
+        PidDrive,
+        TimedDrive,
+        HybridModeAuto,
+        DoNothing
     }   //enum AutoStrategy
 
     public enum AutoStartPos
     {
-        POS_1(0),
-        POS_2(1),
-        POS_3(2);
+        StartPos1(0),
+        StartPos2(1),
+        StartPos3(2);
         // The value can be used as index into arrays if necessary.
         public int value;
         AutoStartPos(int value)
@@ -79,7 +92,7 @@ public class FrcAuto implements TrcRobot.RobotMode
      * 2. If the choice is a choice menu, create a FrcChoiceMenu variable for it, create the enum type if necessary,
      *    add code to create the FrcChoiceMenu object and add choices to it.
      * 3. Call userChoices to add the new choice object and provide default value if necessary.
-     * 4. Add a getter method for the new choice.
+     * 4. Add getter code to the fetchChoices method.
      * 5. Add an entry of the new choice to the toString method.
      */
     public static class AutoChoices
@@ -90,68 +103,68 @@ public class FrcAuto implements TrcRobot.RobotMode
         private final FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
         private final FrcChoiceMenu<AutoStartPos> autoStartPosMenu;
 
+        // Standard auto choices
         public Alliance alliance;
         public AutoStrategy strategy;
         public AutoStartPos startPos;
         public double startDelay;
-
-        public boolean useVision;
-        public boolean scorePreload;
-
         public String pathFile;
         public double xDriveDistance;
         public double yDriveDistance;
         public double turnAngle;
         public double driveTime;
         public double drivePower;
+        // Game specific auto choices
+        public boolean useVision;
+        public boolean scorePreload;
 
         public AutoChoices()
         {
             //
             // Create autonomous mode specific choice menus.
             //
-            allianceMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_AUTO_ALLIANCE);
-            autoStrategyMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_AUTO_STRATEGY);
-            autoStartPosMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_AUTO_START_POS);
+            allianceMenu = new FrcChoiceMenu<>(DBKEY_ALLIANCE);
+            autoStrategyMenu = new FrcChoiceMenu<>(DBKEY_STRATEGY);
+            autoStartPosMenu = new FrcChoiceMenu<>(DBKEY_START_POS);
             //
             // Populate autonomous mode choice menus.
             //
-            allianceMenu.addChoice("Red", DriverStation.Alliance.Red);
-            allianceMenu.addChoice("Blue", DriverStation.Alliance.Blue, true, true);
+            allianceMenu.addChoice(DriverStation.Alliance.Red.name(), DriverStation.Alliance.Red);
+            allianceMenu.addChoice(DriverStation.Alliance.Blue.name(), DriverStation.Alliance.Blue, true, true);
 
             if (RobotParams.Preferences.hybridMode)
             {
-                autoStrategyMenu.addChoice("Hybrid-mode Auto", AutoStrategy.HYBRID_MODE_AUTO);
+                autoStrategyMenu.addChoice(AutoStrategy.HybridModeAuto.name(), AutoStrategy.HybridModeAuto);
             }
             else
             {
-                autoStrategyMenu.addChoice("StartPos1 Auto", AutoStrategy.STARTPOS1_AUTO);
-                autoStrategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PP_DRIVE);
-                autoStrategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE);
-                autoStrategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE);
+                autoStrategyMenu.addChoice(AutoStrategy.StartPos1Auto.name(), AutoStrategy.StartPos1Auto);
+                autoStrategyMenu.addChoice(AutoStrategy.PurePursuitDrive.name(), AutoStrategy.PurePursuitDrive);
+                autoStrategyMenu.addChoice(AutoStrategy.PidDrive.name(), AutoStrategy.PidDrive);
+                autoStrategyMenu.addChoice(AutoStrategy.TimedDrive.name(), AutoStrategy.TimedDrive);
             }
-            autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, true);
+            autoStrategyMenu.addChoice(AutoStrategy.DoNothing.name(), AutoStrategy.DoNothing, true, true);
 
-            autoStartPosMenu.addChoice("Start Position 1", AutoStartPos.POS_1, true, false);
-            autoStartPosMenu.addChoice("Start Position 2", AutoStartPos.POS_2);
-            autoStartPosMenu.addChoice("Start Position 3", AutoStartPos.POS_3, false, true);
+            autoStartPosMenu.addChoice(AutoStartPos.StartPos1.name(), AutoStartPos.StartPos1, true, false);
+            autoStartPosMenu.addChoice(AutoStartPos.StartPos2.name(), AutoStartPos.StartPos2);
+            autoStartPosMenu.addChoice(AutoStartPos.StartPos3.name(), AutoStartPos.StartPos3, false, true);
             //
             // Initialize dashboard with default choice values.
             //
-            userChoices.addChoiceMenu(Dashboard.DBKEY_AUTO_ALLIANCE, allianceMenu);
-            userChoices.addChoiceMenu(Dashboard.DBKEY_AUTO_STRATEGY, autoStrategyMenu);
-            userChoices.addChoiceMenu(Dashboard.DBKEY_AUTO_START_POS, autoStartPosMenu);
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_START_DELAY, 0.0);
+            userChoices.addChoiceMenu(DBKEY_ALLIANCE, allianceMenu);
+            userChoices.addChoiceMenu(DBKEY_STRATEGY, autoStrategyMenu);
+            userChoices.addChoiceMenu(DBKEY_START_POS, autoStartPosMenu);
+            userChoices.addNumber(DBKEY_START_DELAY, 0.0);
 
-            userChoices.addBoolean(Dashboard.DBKEY_AUTO_USE_VISION, false);
-            userChoices.addBoolean(Dashboard.DBKEY_AUTO_SCORE_PRELOAD, false);
-
-            userChoices.addString(Dashboard.DBKEY_AUTO_PATHFILE, "DrivePath.csv");
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_X_DRIVE_DISTANCE, 0.0);      // in feet
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_Y_DRIVE_DISTANCE, 0.0);      // in feet
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_TURN_ANGLE, 0.0);            // in degrees
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_DRIVE_TIME, 0.0);            // in seconds
-            userChoices.addNumber(Dashboard.DBKEY_AUTO_DRIVE_POWER, 0.0);
+            userChoices.addString(DBKEY_PATHFILE, "DrivePath.csv");
+            userChoices.addNumber(DBKEY_X_DRIVE_TARGET, 0.0);   // in feet
+            userChoices.addNumber(DBKEY_Y_DRIVE_TARGET, 0.0);   // in feet
+            userChoices.addNumber(DBKEY_TURN_TARGET, 0.0);      // in degrees
+            userChoices.addNumber(DBKEY_DRIVE_TIME, 0.0);       // in seconds
+            userChoices.addNumber(DBKEY_DRIVE_POWER, 0.0);
+            // Game specific choices
+            userChoices.addBoolean(DBKEY_USE_VISION, false);
+            userChoices.addBoolean(DBKEY_SCORE_PRELOAD, false);
         }   //AutoChoices
 
         public void fetchChoices()
@@ -161,17 +174,17 @@ public class FrcAuto implements TrcRobot.RobotMode
             alliance = matchInfo.eventName != null? matchInfo.alliance: allianceMenu.getCurrentChoiceObject();
             strategy = autoStrategyMenu.getCurrentChoiceObject();
             startPos = autoStartPosMenu.getCurrentChoiceObject();
-            startDelay = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_START_DELAY);
+            startDelay = userChoices.getUserNumber(DBKEY_START_DELAY);
 
-            useVision = userChoices.getUserBoolean(Dashboard.DBKEY_AUTO_USE_VISION);
-            scorePreload = userChoices.getUserBoolean(Dashboard.DBKEY_AUTO_SCORE_PRELOAD);
+            pathFile = userChoices.getUserString(DBKEY_PATHFILE);
+            xDriveDistance = userChoices.getUserNumber(DBKEY_X_DRIVE_TARGET);
+            yDriveDistance = userChoices.getUserNumber(DBKEY_Y_DRIVE_TARGET);
+            turnAngle = userChoices.getUserNumber(DBKEY_TURN_TARGET);
+            driveTime = userChoices.getUserNumber(DBKEY_DRIVE_TIME);
+            drivePower = userChoices.getUserNumber(DBKEY_DRIVE_POWER);
 
-            pathFile = userChoices.getUserString(Dashboard.DBKEY_AUTO_PATHFILE);
-            xDriveDistance = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_X_DRIVE_DISTANCE);
-            yDriveDistance = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_Y_DRIVE_DISTANCE);
-            turnAngle = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_TURN_ANGLE);
-            driveTime = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_DRIVE_TIME);
-            drivePower = userChoices.getUserNumber(Dashboard.DBKEY_AUTO_DRIVE_POWER);
+            useVision = userChoices.getUserBoolean(DBKEY_USE_VISION);
+            scorePreload = userChoices.getUserBoolean(DBKEY_SCORE_PRELOAD);
         }   //fetchChoices
 
         @Override
@@ -182,15 +195,15 @@ public class FrcAuto implements TrcRobot.RobotMode
                    "startPos=\"" + startPos + "\" " +
                    "startDelay=" + startDelay + " sec " +
 
-                   "useVision=" + useVision + " " +
-                   "scorePreload=" + scorePreload + " " +
-
                    "pathFile=\"" + pathFile + "\" " +
                    "xDistance=" + xDriveDistance + " ft " +
                    "yDistance=" + yDriveDistance + " ft " +
                    "turnDegrees=" + turnAngle + " deg " +
                    "driveTime=" + driveTime + " sec " +
-                   "drivePower=" + drivePower + "\" ";
+                   "drivePower=" + drivePower + "\" " +
+
+                   "useVision=" + useVision + " " +
+                   "scorePreload=" + scorePreload;
         }   //toString
 
     }   //class AutoChoices
@@ -202,7 +215,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     public static final AutoChoices autoChoices = new AutoChoices();
     private final Robot robot;
     private final TrcRobot.RobotCommand startPos1Auto;
-    private TrcRobot.RobotCommand autoCommand;
+    private TrcRobot.RobotCommand autoCommand = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -215,6 +228,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         // Create and initialize global objects.
         //
         this.robot = robot;
+        robot.dashboard.refreshKey(DBKEY_CHOICES_SUBMIT, false);
         startPos1Auto = new CmdAuto(robot, autoChoices);
     }   //FrcAuto
 
@@ -233,6 +247,18 @@ public class FrcAuto implements TrcRobot.RobotMode
      */
     public void cancel()
     {
+        if (RobotParams.Preferences.hybridMode)
+        {
+            // This makes sure that the autonomous stops running when
+            // teleop starts running. If you want the autonomous to
+            // continue until interrupted by another command, remove
+            // this line or comment it out.
+            if (robot.m_autonomousCommand != null)
+            {
+                robot.m_autonomousCommand.cancel();
+            }
+        }
+
         if (autoCommand != null)
         {
             autoCommand.cancel();
@@ -261,14 +287,14 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         switch (autoChoices.strategy)
         {
-            case STARTPOS1_AUTO:
+            case StartPos1Auto:
                 if (robot.robotBase != null)
                 {
                     autoCommand = startPos1Auto;
                 }
                 break;
 
-            case PP_DRIVE:
+            case PurePursuitDrive:
                 if (robot.robotBase != null)
                 {
                     autoCommand = new CmdPurePursuitDrive(
@@ -284,7 +310,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                 }
                 break;
 
-            case PID_DRIVE:
+            case PidDrive:
                 if (robot.robotBase != null)
                 {
                     autoCommand = new CmdPidDrive(robot.robotBase.driveBase, robot.robotBase.pidDrive);
@@ -296,7 +322,7 @@ public class FrcAuto implements TrcRobot.RobotMode
                 }
                 break;
 
-            case TIMED_DRIVE:
+            case TimedDrive:
                 if (robot.robotBase != null)
                 {
                     autoCommand = new CmdTimedDrive(
@@ -305,14 +331,14 @@ public class FrcAuto implements TrcRobot.RobotMode
                 }
                 break;
 
-            case HYBRID_MODE_AUTO:
-            case DO_NOTHING:
+            case HybridModeAuto:
+            case DoNothing:
             default:
                 autoCommand = null;
-                robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
-                robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
                 break;
         }
+        robot.globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
+        robot.globalTracer.logInfo(moduleName, "AutoChoices", autoChoices.toString());
 
         if (autoCommand != null)
         {
@@ -330,13 +356,7 @@ public class FrcAuto implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        //
-        // Stop autonomous command.
-        //
-        if (autoCommand != null)
-        {
-            autoCommand.cancel();
-        }
+        cancel();
     }   //stopMode
 
     /**

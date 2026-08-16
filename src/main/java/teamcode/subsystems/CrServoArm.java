@@ -26,9 +26,7 @@ import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcEncoder.EncoderType;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcMotor.PidParams;
@@ -177,6 +175,19 @@ public class CrServoArm extends TrcSubsystem
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
 
+    private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //Number
+    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_POSITION, "");
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -187,14 +198,10 @@ public class CrServoArm extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_CRSERVOARM_SHOW_STATUS, RobotParams.Preferences.showCrServoArmStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
-            {
-                dashboard.putNumber(Dashboard.DBKEY_CRSERVOARM_POWER, motor.getPower());
-                dashboard.putString(Dashboard.DBKEY_CRSERVOARM_POSITION,
-                                    motor.getPosition() + "/" + motor.getPidTarget());
-            }
+            dashboard.putNumber(DBKEY_POWER, motor.getPower());
+            dashboard.putString(DBKEY_POSITION,motor.getPosition() + "/" + motor.getPidTarget());
         }
 
         return lineNum;
@@ -226,10 +233,10 @@ public class CrServoArm extends TrcSubsystem
             if (tuneGravityCompPower == null)
             {
                 tuneGravityCompPower = dashboard.getNumber(
-                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+                    FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             }
             dashboard.putNumber(
-                Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
         }
     }   //updateParamsToDashboard
 

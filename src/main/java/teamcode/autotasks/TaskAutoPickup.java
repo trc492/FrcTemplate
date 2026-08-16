@@ -202,11 +202,11 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
                     tracer.traceInfo(moduleName, "***** Not using Vision, manual pickup.");
                     sm.setState(State.PICKUP_OBJ);
                 }
-                else if (robot.vision != null && robot.vision.frontVision != null)
+                else if (robot.vision != null && robot.vision.cam1Vision != null)
                 {
                     tracer.traceInfo(moduleName, "***** Using ColorBlob Vision.");
-                    robot.vision.setFrontCamPipeline(
-                        taskParams.alliance == Alliance.Red? PipelineType.RED_BLOB: PipelineType.BLUE_BLOB);
+                    robot.vision.setCam1Pipeline(
+                        taskParams.alliance == Alliance.Red? PipelineType.RedBlob: PipelineType.BlueBlob);
                     visionExpiredTime = null;
                     sm.setState(State.FIND_OBJ);
                 }
@@ -220,7 +220,7 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
             case FIND_OBJ:
                 // Use vision to determine the appropriate AprilTag location.
                 FrcPhotonVision.DetectedObject object =
-                    robot.vision.frontVision.getBestDetectedObject(null);
+                    robot.vision.cam1Vision.getBestDetectedObject(null);
                 if (object != null)
                 {
                     objPose = object.getObjectPose();

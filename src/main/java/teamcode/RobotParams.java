@@ -41,6 +41,11 @@ public class RobotParams
      */
     public static class Preferences
     {
+        private static final String DBKEY_PREFIX                = "Preferences/";
+        public static final String DBKEY_COMMSTATUS_MONITOR     = DBKEY_PREFIX + "CommStatusMonitor";   //Boolean
+        public static final String DBKEY_SUBSYSTEM_ZEROCAL      = DBKEY_PREFIX + "SubsystemZeroCal";    //Boolean
+        public static final String DBKEY_UPDATE_DASHBOARD       = DBKEY_PREFIX + "UpdateDashboard";     //Boolean
+
         // Global config
         public static final RobotType robotType                 = RobotType.SwerveRobot;
         public static final boolean inCompetition               = false;
@@ -59,51 +64,28 @@ public class RobotParams
         public static final boolean hasOperatorGameController   = false;
         // Vision
         public static final boolean useVision                   = false;
-        public static final boolean showVisionStatus            = !inCompetition;
-        public static final boolean usePhotonVision             = true;
-        public static final boolean useOpenCvVision             = false;
-        public static final boolean useWebcamAprilTagVision     = false;
-        public static final boolean useWebcamColorBlobVision    = false;
-        public static final boolean useSolvePnp                 = false;
-        public static final boolean useStreamCamera             = false;
+        public static final boolean showCameraStream            = false;
         public static final boolean visionRelocalizeEnabled     = true;
         public static final boolean useWpiLibPoseEstimator      = true;
-        // Master switches for Subsystems
+        // Global switches for Subsystems
         public static final boolean useSubsystems               = true;
-        public static final boolean showSubsystemStatus         = true;
         public static final boolean zeroCalSubsystems           = false;
-        public static final String testSubsystemName            = "";
-        // Drive Base Subsystem
+        public static final String testSubsystemName            = null;
+        // Drive Base Subsystem.
         public static final boolean useDriveBase                = false;
-        public static final boolean showDriveBaseStatus         = false;
-        public static final boolean debugDriveBase              = false;
-        public static final boolean debugPidDrive               = false;
-        public static final boolean showDrivePower              = false;
         public static final boolean useGyroAssist               = false;
-        public static final boolean useAntiTipping              = false;
         // Other Subsystems
-        public static final boolean useMotorArm                 = false;
-        public static final boolean showMotorArmStatus          = false;
+        public static final boolean useMotorArm                 = true;
         public static final boolean useCrServoArm               = false;
-        public static final boolean showCrServoArmStatus        = false;
         public static final boolean useElevator                 = false;
-        public static final boolean showElevatorStatus          = false;
         public static final boolean useTurret                   = false;
-        public static final boolean showTurretStatus            = false;
         public static final boolean useIntake                   = false;
-        public static final boolean showIntakeStatus            = false;
         public static final boolean useShooter                  = false;
-        public static final boolean showShooterStatus           = false;
         public static final boolean useDiffyWrist               = false;
-        public static final boolean showDiffyWristStatus        = false;
         public static final boolean useServoWrist               = false;
-        public static final boolean showServoWristStatus        = false;
         public static final boolean useServoExtender            = false;
-        public static final boolean showServoExtenderStatus     = false;
         public static final boolean useServoClaw                = false;
-        public static final boolean showServoClawStatus         = false;
         public static final boolean useLatch                    = false;
-        public static final boolean showLatchStatus             = false;
         // Auto Tasks
         public static final boolean useAutoShoot                = false;
         public static final boolean useAutoPickup               = false;

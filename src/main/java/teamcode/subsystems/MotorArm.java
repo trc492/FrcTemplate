@@ -25,9 +25,7 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcMotor.PidParams;
@@ -201,6 +199,23 @@ public class MotorArm extends TrcSubsystem
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
 
+    private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //String
+    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+    private static final String DBKEY_LOWER_LIMIT       = SUBSYSTEM_NAME + "/LowerLimit";   //Boolean
+    private static final String DBKEY_UPPER_LIMIT       = SUBSYSTEM_NAME + "/UpperLimit";   //Boolean
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POWER, "");
+        dashboard.refreshKey(DBKEY_POSITION, "");
+        dashboard.refreshKey(DBKEY_LOWER_LIMIT, false);
+        dashboard.refreshKey(DBKEY_UPPER_LIMIT, false);
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -211,24 +226,19 @@ public class MotorArm extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_MOTORARM_SHOW_STATUS, RobotParams.Preferences.showMotorArmStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
+            dashboard.putString(DBKEY_POWER, motor.getPower() + "/" + motor.getCurrent());
+            dashboard.putString(DBKEY_POSITION, motor.getPosition() + "/" + motor.getPidTarget());
+
+            if (Params.HAS_LOWER_LIMIT_SWITCH)
             {
-                dashboard.putNumber(Dashboard.DBKEY_MOTORARM_POWER, motor.getPower());
-                dashboard.putNumber(Dashboard.DBKEY_MOTORARM_CURRENT, motor.getCurrent());
-                dashboard.putString(Dashboard.DBKEY_MOTORARM_POSITION,
-                                    motor.getPosition() + "/" + motor.getPidTarget());
+                dashboard.putBoolean(DBKEY_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
+            }
 
-                if (Params.HAS_LOWER_LIMIT_SWITCH)
-                {
-                    dashboard.putBoolean(Dashboard.DBKEY_MOTORARM_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
-                }
-
-                if (Params.HAS_UPPER_LIMIT_SWITCH)
-                {
-                    dashboard.putBoolean(Dashboard.DBKEY_MOTORARM_UPPER_LIMIT, motor.isUpperLimitSwitchActive());
-                }
+            if (Params.HAS_UPPER_LIMIT_SWITCH)
+            {
+                dashboard.putBoolean(DBKEY_UPPER_LIMIT, motor.isUpperLimitSwitchActive());
             }
         }
 
@@ -261,10 +271,10 @@ public class MotorArm extends TrcSubsystem
             if (tuneGravityCompPower == null)
             {
                 tuneGravityCompPower = dashboard.getNumber(
-                    Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+                    FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             }
             dashboard.putNumber(
-                Dashboard.DBKEY_TEST_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
         }
     }   //updateParamsToDashboard
 

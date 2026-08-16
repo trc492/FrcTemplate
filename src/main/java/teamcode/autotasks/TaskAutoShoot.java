@@ -194,10 +194,10 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     tracer.traceInfo(moduleName, "***** Not using AprilTag Vision.");
                     sm.setState(State.AIM_AND_SHOOT);
                 }
-                else if (robot.vision != null && robot.vision.frontVision != null)
+                else if (robot.vision != null && robot.vision.cam1Vision != null)
                 {
                     tracer.traceInfo(moduleName, "***** Using AprilTag Vision.");
-                    robot.vision.setFrontCamPipeline(PipelineType.APRILTAG);
+                    robot.vision.setCam1Pipeline(PipelineType.AprilTag);
                     visionExpiredTime = null;
                     sm.setState(State.FIND_APRILTAG);
                 }
@@ -211,7 +211,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
             case FIND_APRILTAG:
                 // Use vision to determine the appropriate AprilTag location.
                 FrcPhotonVision.DetectedObject object =
-                    robot.vision.frontVision.getDetectedAprilTag(null, taskParams.aprilTagIds);
+                    robot.vision.cam1Vision.getDetectedAprilTag(null, taskParams.aprilTagIds);
                 if (object != null)
                 {
                     int aprilTagId = object.target.getFiducialId();

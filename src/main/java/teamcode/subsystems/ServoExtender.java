@@ -24,9 +24,7 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
@@ -217,6 +215,19 @@ public class ServoExtender extends TrcSubsystem
         servo.setPosition(Params.POS_RETRACT);
     }   //resetState
 
+    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //Number
+    private static final String DBKEY_IS_EXTENDED       = SUBSYSTEM_NAME + "/IsExtended";   //Boolean
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_IS_EXTENDED, false);
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -227,13 +238,10 @@ public class ServoExtender extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_SERVOEXTENDER_SHOW_STATUS, RobotParams.Preferences.showServoExtenderStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
-            {
-                dashboard.putNumber(Dashboard.DBKEY_SERVOEXTENDER_POSITION, servo.getPosition());
-                dashboard.putBoolean(Dashboard.DBKEY_SERVOEXTENDER_IS_EXTENDED, isExtended());
-            }
+            dashboard.putNumber(DBKEY_POSITION, servo.getPosition());
+            dashboard.putBoolean(DBKEY_IS_EXTENDED, isExtended());
         }
 
         return lineNum;

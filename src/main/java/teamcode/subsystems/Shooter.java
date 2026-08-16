@@ -26,9 +26,7 @@ import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcShooter;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.dataprocessor.TrcLookupTable;
@@ -393,6 +391,41 @@ public class Shooter extends TrcSubsystem
         // If you need to tuck away pan and tilt for turtle mode, add code here.
     }   //resetState
 
+    private static final String DBKEY_POWER1            = SUBSYSTEM_NAME + "/Shooter1Power";        //String
+    private static final String DBKEY_VELOCITY1         = SUBSYSTEM_NAME + "/Shooter1Velocity";     //String
+
+    private static final String DBKEY_POWER2            = SUBSYSTEM_NAME + "/Shooter2Power";        //String
+    private static final String DBKEY_VELOCITY2         = SUBSYSTEM_NAME + "/Shooter2Velocity";     //String
+
+    private static final String DBKEY_PAN_POWER         = SUBSYSTEM_NAME + "/PanPower";             //String
+    private static final String DBKEY_PAN_POS           = SUBSYSTEM_NAME + "/PanPos";               //String
+
+    private static final String DBKEY_TILT_POWER        = SUBSYSTEM_NAME + "/TiltPower";            //String
+    private static final String DBKEY_TILT_POS          = SUBSYSTEM_NAME + "/TiltPos";              //String
+
+    private static final String DBKEY_LAUNCHER_POS      = SUBSYSTEM_NAME + "/LauncherPos";          //Number
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POWER1, "");
+        dashboard.refreshKey(DBKEY_VELOCITY1, "");
+
+        dashboard.refreshKey(DBKEY_POWER2, "");
+        dashboard.refreshKey(DBKEY_VELOCITY2, "");
+
+        dashboard.refreshKey(DBKEY_PAN_POWER, "");
+        dashboard.refreshKey(DBKEY_PAN_POS, "");
+
+        dashboard.refreshKey(DBKEY_TILT_POWER, "");
+        dashboard.refreshKey(DBKEY_TILT_POS, "");
+
+        dashboard.refreshKey(DBKEY_LAUNCHER_POS, 0.0);
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -403,57 +436,46 @@ public class Shooter extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_SHOOTER_SHOW_STATUS, RobotParams.Preferences.showShooterStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
+            TrcMotor motor;
+
+            dashboard.putString(
+                DBKEY_POWER1, shooter.getShooterMotor1Power() + "/" + shooter.getShooterMotor1Current());
+            dashboard.putString(
+                DBKEY_VELOCITY1, shooter.getShooterMotor1RPM() + "/" + shooter.getShooterMotor1TargetRPM());
+
+            if (shooter.getShooterMotor2() != null)
             {
-                TrcMotor motor;
-
-                dashboard.putNumber(Dashboard.DBKEY_SHOOTER_POWER1, shooter.getShooterMotor1Power());
-                dashboard.putNumber(Dashboard.DBKEY_SHOOTER_CURRENT1, shooter.getShooterMotor1Current());
-                dashboard.putNumber(Dashboard.DBKEY_SHOOTER_VELOCITY1, shooter.getShooterMotor1RPM());
-                dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TARGET_VEL1, shooter.getShooterMotor1TargetRPM());
-
-                motor = shooter.getShooterMotor2();
-                if (motor != null)
-                {
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_POWER2, shooter.getShooterMotor2Power());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_CURRENT2, shooter.getShooterMotor2Current());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_VELOCITY2, shooter.getShooterMotor2RPM());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TARGET_VEL2, shooter.getShooterMotor2TargetRPM());
-                }
-
-                motor = shooter.getPanMotor();
-                if (motor != null)
-                {
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_PAN_POWER, motor.getPower());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_PAN_CURRENT, motor.getCurrent());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_PAN_POS, motor.getPosition());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_PAN_TARGET_POS, motor.getPidTarget());
-                }
-
-                motor = shooter.getTiltMotor();
-                if (motor != null)
-                {
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TILT_POWER, motor.getPower());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TILT_CURRENT, motor.getCurrent());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TILT_POS, motor.getPosition());
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_TILT_TARGET_POS, motor.getPidTarget());
-                }
-
-                if (launcher != null)
-                {
-                    dashboard.putNumber(Dashboard.DBKEY_SHOOTER_LAUNCHER_POS, launcher.getPosition());
-                }
+                dashboard.putString(
+                    DBKEY_POWER2, shooter.getShooterMotor2Power() + "/" + shooter.getShooterMotor2Current());
+                dashboard.putString(
+                    DBKEY_VELOCITY2, shooter.getShooterMotor2RPM() + "/" + shooter.getShooterMotor2TargetRPM());
             }
-            else
+
+            motor = shooter.getPanMotor();
+            if (motor != null)
             {
-                dashboard.putObject("Shooter1MotorRPM", shooter.getShooterMotor1RPM());
-                dashboard.putObject("ShooterMotor1TargetRPM", shooter.getShooterMotor1TargetRPM());
-                dashboard.putObject("ShooterMotor1RangeMin", 0.0);
-                dashboard.putObject("ShooterMotor1RangeMax", Params.SHOOTER_MAX_VEL);
+                dashboard.putString(DBKEY_PAN_POWER, motor.getPower() + "/" + motor.getCurrent());
+                dashboard.putString(DBKEY_PAN_POS, motor.getPosition() + "/" + motor.getPidTarget());
+            }
+
+            motor = shooter.getTiltMotor();
+            if (motor != null)
+            {
+                dashboard.putString(DBKEY_TILT_POWER, motor.getPower() + "/" + motor.getCurrent());
+                dashboard.putString(DBKEY_TILT_POS, motor.getPosition() + "/" + motor.getPidTarget());
+            }
+
+            if (launcher != null)
+            {
+                dashboard.putNumber(DBKEY_LAUNCHER_POS, launcher.getPosition());
             }
         }
+        dashboard.putObject("Shooter1MotorRPM", shooter.getShooterMotor1RPM());
+        dashboard.putObject("ShooterMotor1TargetRPM", shooter.getShooterMotor1TargetRPM());
+        dashboard.putObject("ShooterMotor1RangeMin", 0.0);
+        dashboard.putObject("ShooterMotor1RangeMax", Params.SHOOTER_MAX_VEL);
 
         return lineNum;
     }   //updateStatus

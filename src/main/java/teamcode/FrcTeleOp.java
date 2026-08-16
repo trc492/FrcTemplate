@@ -24,6 +24,7 @@ package teamcode;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
+import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcXboxController;
 import teamcode.subsystems.CrServoArm;
 import teamcode.subsystems.Elevator;
@@ -48,6 +49,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private static final String moduleName = FrcTeleOp.class.getSimpleName();
     protected static final boolean traceButtonEvents = true;
 
+    private static final String DBKEY_PREFIX            = "TeleOp/";
+    private static final String DBKEY_DRIVE_MODE        = DBKEY_PREFIX + "DriveMode";           //Choices
+    private static final String DBKEY_DRIVE_ORIENTATION = DBKEY_PREFIX + "DriveOrientation";    //Choices
+    private static final String DBKEY_DRIVE_NORMAL_SCALE= DBKEY_PREFIX + "DriveNormalScale";    //Number
+    private static final String DBKEY_DRIVE_SLOW_SCALE  = DBKEY_PREFIX + "DriveSlowScale";      //Number
+    private static final String DBKEY_TURN_NORMAL_SCALE = DBKEY_PREFIX + "TurnNormalScale";     //Number
+    private static final String DBKEY_TURN_SLOW_SCALE   = DBKEY_PREFIX + "TurnSlowScale";       //Number
+    private static final String DBKEY_SHOW_DRIVE_POWER  = DBKEY_PREFIX + "ShowDrivePower";      //Boolean
+    private static final String DBKEY_DRIVE_POWER       = DBKEY_PREFIX + "DrivePower";          //String
+    private static final String DBKEY_USE_RUMBLE        = DBKEY_PREFIX + "UseRumble";           //Boolean
+
     public static final double DEF_DRIVE_NORMAL_SCALE = 1.0;
     public static final double DEF_DRIVE_SLOW_SCALE = 0.2;
     public static final double DEF_TURN_NORMAL_SCALE = 0.75;
@@ -55,9 +67,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
     // Global objects.
     //
+    protected final FrcDashboard dashboard;
     protected final Robot robot;
     private final FrcChoiceMenu<DriveMode> driveModeMenu;
     private final FrcChoiceMenu<DriveOrientation> driveOrientationMenu;
+
     private double driveSpeedScale;
     private double turnSpeedScale;
     private boolean controlsEnabled = false;
@@ -89,22 +103,28 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Create and initialize global object.
         //
+        this.dashboard = FrcDashboard.getInstance();
         this.robot = robot;
 
-        driveModeMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_TELEOP_DRIVE_MODE);
-        driveModeMenu.addChoice("Tank", DriveMode.TankMode);
-        driveModeMenu.addChoice("Holonomic", DriveMode.HolonomicMode);
-        driveModeMenu.addChoice("Arcade", DriveMode.ArcadeMode, true, true);
+        driveModeMenu = new FrcChoiceMenu<>(DBKEY_DRIVE_MODE);
+        driveModeMenu.addChoice(DriveMode.Tank.name(), DriveMode.Tank);
+        driveModeMenu.addChoice(DriveMode.Holonomic.name(), DriveMode.Holonomic);
+        driveModeMenu.addChoice(DriveMode.Arcade.name(), DriveMode.Arcade, true, true);
 
-        driveOrientationMenu = new FrcChoiceMenu<>(Dashboard.DBKEY_TELEOP_DRIVE_ORIENTATION);
-        driveOrientationMenu.addChoice("Inverted", DriveOrientation.INVERTED);
-        driveOrientationMenu.addChoice("Robot", DriveOrientation.ROBOT);
-        driveOrientationMenu.addChoice("Field", DriveOrientation.FIELD, true, true);
+        driveOrientationMenu = new FrcChoiceMenu<>(DBKEY_DRIVE_ORIENTATION);
+        driveOrientationMenu.addChoice(DriveOrientation.Inverted.name(), DriveOrientation.Inverted);
+        driveOrientationMenu.addChoice(DriveOrientation.Robot.name(), DriveOrientation.Robot);
+        driveOrientationMenu.addChoice(DriveOrientation.Field.name(), DriveOrientation.Field, true, true);
 
-        driveSpeedScale = robot.dashboard.getNumber(
-            Dashboard.DBKEY_TELEOP_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-        turnSpeedScale = robot.dashboard.getNumber(
-            Dashboard.DBKEY_TELEOP_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+        dashboard.refreshKey(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+        dashboard.refreshKey(DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
+        dashboard.refreshKey(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+        dashboard.refreshKey(DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
+        driveSpeedScale = dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+        turnSpeedScale = dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+        dashboard.refreshKey(DBKEY_SHOW_DRIVE_POWER, false);
+        dashboard.refreshKey(DBKEY_DRIVE_POWER, "");
+        dashboard.refreshKey(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble);
 
         turnPidCtrl = robot.robotBase != null && robot.robotBase.purePursuitDrive != null?
             robot.robotBase.purePursuitDrive.getTurnPidCtrl(): null;
@@ -136,18 +156,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         {
             // Set robot to FIELD by default but don't change the heading.
             robot.setDriveOrientation(driveOrientationMenu.getCurrentChoiceObject(), false);
-        }
-
-        if (RobotParams.Preferences.hybridMode)
-        {
-            // This makes sure that the autonomous stops running when
-            // teleop starts running. If you want the autonomous to
-            // continue until interrupted by another command, remove
-            // this line or comment it out.
-            if (robot.m_autonomousCommand != null)
-            {
-                robot.m_autonomousCommand.cancel();
-            }
         }
     }   //startMode
 
@@ -193,8 +201,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (robot.driverController != null)
                     {
-                        boolean showDriveBaseStatus = robot.dashboard.getBoolean(
-                            Dashboard.DBKEY_TELEOP_SHOW_DRIVE_POWER, RobotParams.Preferences.showDrivePower);
+                        boolean showDriveBaseStatus = robot.dashboard.getBoolean(DBKEY_SHOW_DRIVE_POWER, false);
                         double[] driveInputs = robot.driverController.getDriveInputs(
                             driveModeMenu.getCurrentChoiceObject(), true, driveSpeedScale, turnSpeedScale,
                             lockedHeading != null);
@@ -243,7 +250,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 if (showDriveBaseStatus)
                                 {
                                     robot.dashboard.putString(
-                                        Dashboard.DBKEY_TELEOP_DRIVE_POWER,
+                                        DBKEY_DRIVE_POWER,
                                         String.format(
                                             "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
                                             driveInputs[0], driveInputs[1], turnPower, gyroAngle));
@@ -255,7 +262,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 if (showDriveBaseStatus)
                                 {
                                     robot.dashboard.putString(
-                                        Dashboard.DBKEY_TELEOP_DRIVE_POWER,
+                                        DBKEY_DRIVE_POWER,
                                         String.format(
                                             "Arcade: x=%.2f, y=%.2f, rot=%.2f",
                                             driveInputs[0], driveInputs[1], turnPower));
@@ -388,7 +395,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     }
                 }
 
-                if (RobotParams.Preferences.useRumble)
+                if (robot.dashboard.getBoolean(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble))
                 {
                     if (!rumbling && elapsedTime > RobotParams.Game.TELEOP_PERIOD - RobotParams.Game.ENDGAME_THRESHOLD)
                     {
@@ -586,14 +593,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (driverAltFunc)
                     {
-                        if (robot.robotBase.driveBase.getDriveOrientation() != DriveOrientation.FIELD)
+                        if (robot.robotBase.driveBase.getDriveOrientation() != DriveOrientation.Field)
                         {
-                            robot.setDriveOrientation(DriveOrientation.FIELD, true);
+                            robot.setDriveOrientation(DriveOrientation.Field, true);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Field");
                         }
                         else
                         {
-                            robot.setDriveOrientation(DriveOrientation.ROBOT, false);
+                            robot.setDriveOrientation(DriveOrientation.Robot, false);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Robot");
                         }
                     }
@@ -640,17 +647,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     driveSpeedScale = robot.dashboard.getNumber(
-                        Dashboard.DBKEY_TELEOP_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
+                        DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
                     turnSpeedScale = robot.dashboard.getNumber(
-                        Dashboard.DBKEY_TELEOP_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
+                        DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
                     robot.globalTracer.traceInfo(moduleName, ">>>>> Slow Drive");
                 }
                 else
                 {
                     driveSpeedScale = robot.dashboard.getNumber(
-                        Dashboard.DBKEY_TELEOP_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+                        DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
                     turnSpeedScale = robot.dashboard.getNumber(
-                        Dashboard.DBKEY_TELEOP_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+                        DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
                     robot.globalTracer.traceInfo(moduleName, ">>>>> Normal Drive");
                 }
                 break;
@@ -726,7 +733,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.upValue();
                         robot.dashboard.putNumber(
-                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
+                            FrcTest.DBKEY_SUBSYSTEM_TARGET_PARAM,
                             robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
                     }
@@ -804,7 +811,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.downValue();
                         robot.dashboard.putNumber(
-                            Dashboard.DBKEY_TEST_SUBSYSTEM_TARGET_PARAM,
+                            FrcTest.DBKEY_SUBSYSTEM_TARGET_PARAM,
                             robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
                     }

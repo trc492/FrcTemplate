@@ -27,9 +27,7 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcServoClaw;
-import teamcode.Dashboard;
 import teamcode.FrcTest;
-import teamcode.RobotParams;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcServoClaw;
@@ -183,6 +181,27 @@ public class ServoClaw extends TrcSubsystem
         // Don't move claw during turtle.
     }   //resetState
 
+    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //Number
+    private static final String DBKEY_IS_CLOSED         = SUBSYSTEM_NAME + "/IsClosed";     //Boolean
+    private static final String DBKEY_HAS_OBJECT        = SUBSYSTEM_NAME + "/HasObject";    //Boolean
+    private static final String DBKEY_AUTO_ACTIVE       = SUBSYSTEM_NAME + "/AutoActive";   //Boolean
+    private static final String DBKEY_SENSOR_VALUE      = SUBSYSTEM_NAME + "/SensorValue";  //Number
+    private static final String DBKEY_SENSOR_STATE      = SUBSYSTEM_NAME + "/SensorState";  //Boolean
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_IS_CLOSED, false);
+        dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
+        dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
+        dashboard.refreshKey(DBKEY_SENSOR_VALUE, 0.0);
+        dashboard.refreshKey(DBKEY_SENSOR_STATE, false);
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -193,17 +212,14 @@ public class ServoClaw extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_SERVOCLAW_SHOW_STATUS, RobotParams.Preferences.showServoClawStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
-            {
-                dashboard.putNumber(Dashboard.DBKEY_SERVOCLAW_POSITION, claw.getPosition());
-                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_IS_CLOSED, claw.isClosed());
-                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_HAS_OBJECT, claw.hasObject());
-                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_AUTO_ACTIVE, claw.isAutoActive());
-                dashboard.putNumber(Dashboard.DBKEY_SERVOCLAW_SENSOR_VALUE, claw.getSensorValue());
-                dashboard.putBoolean(Dashboard.DBKEY_SERVOCLAW_SENSOR_STATE, claw.getTriggerState());
-            }
+            dashboard.putNumber(DBKEY_POSITION, claw.getPosition());
+            dashboard.putBoolean(DBKEY_IS_CLOSED, claw.isClosed());
+            dashboard.putBoolean(DBKEY_HAS_OBJECT, claw.hasObject());
+            dashboard.putBoolean(DBKEY_AUTO_ACTIVE, claw.isAutoActive());
+            dashboard.putNumber(DBKEY_SENSOR_VALUE, claw.getSensorValue());
+            dashboard.putBoolean(DBKEY_SENSOR_STATE, claw.getTriggerState());
         }
 
         return lineNum;

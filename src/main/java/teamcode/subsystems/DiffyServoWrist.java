@@ -24,8 +24,6 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcDifferentialServoWrist;
-import teamcode.Dashboard;
-import teamcode.RobotParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcDifferentialServoWrist;
 import trclib.subsystem.TrcSubsystem;
@@ -275,6 +273,23 @@ public class DiffyServoWrist extends TrcSubsystem
         setPosition(-90.0, 0.0);
     }   //resetState
 
+    private static final String DBKEY_TILT_POWER        = SUBSYSTEM_NAME + "/TiltPower";        //Number
+    private static final String DBKEY_TILT_POSITION     = SUBSYSTEM_NAME + "/TiltPosition";     //Number
+    private static final String DBKEY_ROTATE_POWER      = SUBSYSTEM_NAME + "/RotatePower";      //Number
+    private static final String DBKEY_ROTATE_POSITION   = SUBSYSTEM_NAME + "/RotatePosition";   //Number
+
+    /**
+     * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
+     */
+    @Override
+    public void publishToDashboard()
+    {
+        dashboard.refreshKey(DBKEY_TILT_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_TILT_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_ROTATE_POWER, 0.0);
+        dashboard.refreshKey(DBKEY_ROTATE_POSITION, 0.0);
+    }   //publishToDashboard
+
     /**
      * This method update the dashboard with the subsystem status.
      *
@@ -285,15 +300,12 @@ public class DiffyServoWrist extends TrcSubsystem
     @Override
     public int updateStatus(int lineNum, boolean slowLoop)
     {
-        if (dashboard.getBoolean(Dashboard.DBKEY_DIFFYWRIST_SHOW_STATUS, RobotParams.Preferences.showDiffyWristStatus))
+        if (slowLoop)
         {
-            if (slowLoop)
-            {
-                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_TILT_POWER, wrist.getTiltPower());
-                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_TILT_POSITION, wrist.getTiltPosition());
-                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_ROTATE_POWER, wrist.getRotatePower());
-                dashboard.putNumber(Dashboard.DBKEY_DIFFYWRIST_ROTATE_POSITION, wrist.getRotatePosition());
-            }
+            dashboard.putNumber(DBKEY_TILT_POWER, wrist.getTiltPower());
+            dashboard.putNumber(DBKEY_TILT_POSITION, wrist.getTiltPosition());
+            dashboard.putNumber(DBKEY_ROTATE_POWER, wrist.getRotatePower());
+            dashboard.putNumber(DBKEY_ROTATE_POSITION, wrist.getRotatePosition());
         }
 
         return lineNum;
