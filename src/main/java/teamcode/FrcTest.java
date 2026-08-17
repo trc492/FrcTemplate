@@ -253,11 +253,11 @@ public class FrcTest extends FrcTeleOp
 
         public void setTunePidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
         {
-            userChoices.addNumber(DBKEY_TUNE_KP, pidCoeffs.kP);
-            userChoices.addNumber(DBKEY_TUNE_KI, pidCoeffs.kI);
-            userChoices.addNumber(DBKEY_TUNE_KD, pidCoeffs.kD);
-            userChoices.addNumber(DBKEY_TUNE_KF, pidCoeffs.kF);
-            userChoices.addNumber(DBKEY_TUNE_IZONE, pidCoeffs.iZone);
+            userChoices.setUserNumber(DBKEY_TUNE_KP, pidCoeffs.kP);
+            userChoices.setUserNumber(DBKEY_TUNE_KI, pidCoeffs.kI);
+            userChoices.setUserNumber(DBKEY_TUNE_KD, pidCoeffs.kD);
+            userChoices.setUserNumber(DBKEY_TUNE_KF, pidCoeffs.kF);
+            userChoices.setUserNumber(DBKEY_TUNE_IZONE, pidCoeffs.iZone);
         }   //setTunePidCoefficients
 
         public double getMaxVelocity()
@@ -303,23 +303,23 @@ public class FrcTest extends FrcTeleOp
         {
             if (pidParams.pidCoeffs != null)
             {
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KP, pidParams.pidCoeffs.kP);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KI, pidParams.pidCoeffs.kI);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KD, pidParams.pidCoeffs.kD);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KF, pidParams.pidCoeffs.kF);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_IZONE, pidParams.pidCoeffs.iZone);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KP, pidParams.pidCoeffs.kP);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KI, pidParams.pidCoeffs.kI);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KD, pidParams.pidCoeffs.kD);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KF, pidParams.pidCoeffs.kF);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_IZONE, pidParams.pidCoeffs.iZone);
             }
 
             if (pidParams.ffCoeffs != null)
             {
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KS, pidParams.ffCoeffs.kS);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KV, pidParams.ffCoeffs.kV);
-                userChoices.addNumber(DBKEY_SUBSYSTEM_KA, pidParams.ffCoeffs.kA);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KS, pidParams.ffCoeffs.kS);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KV, pidParams.ffCoeffs.kV);
+                userChoices.setUserNumber(DBKEY_SUBSYSTEM_KA, pidParams.ffCoeffs.kA);
             }
 
-            userChoices.addNumber(DBKEY_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
-            userChoices.addBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
-            userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
+            userChoices.setUserNumber(DBKEY_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
+            userChoices.setUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
+            userChoices.setUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
         }   //setSubsystemPidParameters
 
         @Override
@@ -839,7 +839,7 @@ public class FrcTest extends FrcTeleOp
                     if (pressed)
                     {
                         subsystemName = testChoices.getSubsystemName();
-                        if (operatorAltFunc)
+                        if (driverAltFunc)
                         {
                             TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, null);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to current value.");
