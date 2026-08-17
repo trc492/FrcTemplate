@@ -156,19 +156,19 @@ public class LEDIndicator
     {
         switch (orientation)
         {
-            case INVERTED:
+            case Inverted:
                 leds[0].setPatternState(DRIVE_INVERTED_MODE, true);
                 leds[0].setPatternState(DRIVE_ROBOT_MODE, false);
                 leds[0].setPatternState(DRIVE_FIELD_MODE, false);
                 break;
 
-            case ROBOT:
+            case Robot:
                 leds[0].setPatternState(DRIVE_INVERTED_MODE, false);
                 leds[0].setPatternState(DRIVE_ROBOT_MODE, true);
                 leds[0].setPatternState(DRIVE_FIELD_MODE, false);
                 break;
 
-            case FIELD:
+            case Field:
                 leds[0].setPatternState(DRIVE_INVERTED_MODE, false);
                 leds[0].setPatternState(DRIVE_ROBOT_MODE, false);
                 leds[0].setPatternState(DRIVE_FIELD_MODE, true);
@@ -194,15 +194,15 @@ public class LEDIndicator
         {
             switch (pipelineType)
             {
-                case APRILTAG:
+                case AprilTag:
                     leds[0].setPatternState(APRILTAG_FOUND, true);
                     break;
 
-                case RED_BLOB:
+                case RedBlob:
                     leds[0].setPatternState(RED_BLOB, true);
                     break;
 
-                case BLUE_BLOB:
+                case BlueBlob:
                     leds[0].setPatternState(BLUE_BLOB, true);
                     break;
 

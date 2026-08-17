@@ -386,6 +386,10 @@ public class Robot extends FrcRobot
             }
         }
 
+        // Runtime runtime = Runtime.getRuntime();
+        // long usedMemoryMB = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
+        // dashboard.putNumber("Memory/UsedMB", usedMemoryMB);
+
         if (slowPeriodicLoop)
         {
             checkDashboardUpdateEnabled();
