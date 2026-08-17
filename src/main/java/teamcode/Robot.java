@@ -106,9 +106,9 @@ public class Robot extends FrcRobot
     public Vision vision;
     public boolean hasVisionPoseEstimator = false;
     public TrcVisionRelocalize trcVisionRelocalize = null;
+    private RelocalizationMode relocalizationMode = RelocalizationMode.Continuous;
     // Miscellaneous
     private boolean zeroCalibrated = false;
-    private RelocalizationMode relocalizationMode = RelocalizationMode.Continuous;
     // Hybrid mode objects.
     public Command m_autonomousCommand;
     //
@@ -143,7 +143,7 @@ public class Robot extends FrcRobot
     public void robotInit()
     {
         // Initialize global objects.
-        dashboard = new Dashboard().getDashboard();
+        dashboard = FrcDashboard.getInstance();
         createTeamFolderPath();
         DataLogManager.start();
         buildInfo = TrcBuildInfo.getBuildInfo();
@@ -196,7 +196,7 @@ public class Robot extends FrcRobot
                 if (RobotParams.Preferences.useWpiLibPoseEstimator &&
                     robotBase.driveBase instanceof FrcSwerveDrive)
                 {
-                    ((FrcSwerveDrive) robotBase.driveBase).createPoseEstimator(vision.frontVision);
+                    ((FrcSwerveDrive) robotBase.driveBase).createPoseEstimator(vision.cam1Vision);
                     hasVisionPoseEstimator = true;
                 }
                 else
@@ -205,7 +205,7 @@ public class Robot extends FrcRobot
                 }
             }
 
-            if (RobotParams.Preferences.useStreamCamera)
+            if (RobotParams.Preferences.showCameraStream)
             {
                 UsbCamera camera = CameraServer.startAutomaticCapture("DriverDisplay", 0);
                 camera.setResolution(160, 120);
@@ -225,7 +225,7 @@ public class Robot extends FrcRobot
             {
                 // Create subsystems.
 
-                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
+                TrcSubsystem.publishToDashboardAll();
 
                 // Create autotasks.
             }
@@ -239,12 +239,7 @@ public class Robot extends FrcRobot
         //
         // Miscellaneous initializations.
         //
-        // Enable LostComm detection.
-        if (dashboard.getBoolean(
-                Dashboard.DBKEY_PREFERENCE_COMMSTATUS_MONITOR, RobotParams.Preferences.useCommStatusMonitor))
-        {
-            super.setCommStatusMonitorEnabled(this::commStatusCallback);
-        }
+
         //
         // Create Robot Modes.
         //
@@ -302,18 +297,26 @@ public class Robot extends FrcRobot
                         robotBase.driveBase.setGyroAssistEnabled(robotBase.pidDrive.getTurnPidCtrl());
                     }
                 }
+
+                // Enable LostComm detection.
+                if (dashboard.getBoolean(
+                        RobotParams.Preferences.DBKEY_COMMSTATUS_MONITOR,
+                        RobotParams.Preferences.useCommStatusMonitor))
+                {
+                    super.setCommStatusMonitorEnabled(this::commStatusCallback);
+                }
             }
             // Zero calibrate it only once. Don't do it again just because we are enabling/disabling robot.
             if (!zeroCalibrated &&
                 dashboard.getBoolean(
-                    Dashboard.DBKEY_PREFERENCE_SUBSYSTEM_ZEROCAL, RobotParams.Preferences.zeroCalSubsystems))
+                    RobotParams.Preferences.DBKEY_SUBSYSTEM_ZEROCAL, RobotParams.Preferences.zeroCalSubsystems))
             {
                 if (runMode != RunMode.AUTO_MODE)
                 {
                     zeroCalibrate(null, null);
                 }
             }
-            // Start subsystems.
+
             if (ledIndicator != null)
             {
                 ledIndicator.reset();
@@ -383,17 +386,14 @@ public class Robot extends FrcRobot
             }
         }
 
-        Runtime runtime = Runtime.getRuntime();
-        long usedMemoryMB = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
-        dashboard.putNumber("Memory/UsedMB", usedMemoryMB);
-
         if (slowPeriodicLoop)
         {
-            Dashboard.checkDashboardUpdateEnabled();
-            if (dashboard.getBoolean(Dashboard.DBKEY_AUTO_CHOICES_SUBMIT, false))
+            checkDashboardUpdateEnabled();
+            if (dashboard.getBoolean(FrcAuto.DBKEY_CHOICES_REFRESH, false))
             {
                 FrcAuto.autoChoices.fetchChoices();
-                dashboard.putBoolean(Dashboard.DBKEY_AUTO_CHOICES_SUBMIT, false);
+                dashboard.putBoolean(FrcAuto.DBKEY_CHOICES_REFRESH, false);
+                globalTracer.traceInfo(moduleName, "Refresh Auto Choices: " + FrcAuto.autoChoices);
             }
         }
 
@@ -408,11 +408,35 @@ public class Robot extends FrcRobot
     }   //robotPeriodic
 
     /**
+     * This method is called periodically to check the Dashboard switch for enabling/disabling Dashboard update.
+     */
+    private void checkDashboardUpdateEnabled()
+    {
+        boolean updateDashboard = dashboard.getBoolean(
+            RobotParams.Preferences.DBKEY_UPDATE_DASHBOARD, RobotParams.Preferences.updateDashboard);
+        boolean updateEnabled = dashboard.isDashboardUpdateEnabled();
+
+        if (!updateEnabled && updateDashboard)
+        {
+            dashboard.enableDashboardUpdate(1, true);
+        }
+        else if (updateEnabled && !updateDashboard)
+        {
+            dashboard.disableDashboardUpdate();
+        }
+    }   //checkDashboardUpdateEnabled
+
+    /**
      * This method is called to cancel all pending operations and release the ownership of all subsystems.
      */
     public void cancelAll()
     {
         globalTracer.traceInfo(moduleName, "Cancel all operations.");
+        if (RobotParams.Preferences.hybridMode)
+        {
+            // Cancels all running commands at the start of test mode.
+            CommandScheduler.getInstance().cancelAll();
+        }
         // Cancel auto tasks.
         TrcAutoTask.cancelAllTasks();
         // Cancel subsystems.
@@ -522,7 +546,7 @@ public class Robot extends FrcRobot
         boolean seenAprilTag = false;
 
         if (vision != null&&
-            dashboard.getBoolean(Dashboard.DBKEY_VISION_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled))
+            dashboard.getBoolean(Vision.DBKEY_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled))
         {
             if (hasVisionPoseEstimator)
             {

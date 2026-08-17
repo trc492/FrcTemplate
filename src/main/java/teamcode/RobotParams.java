@@ -41,6 +41,11 @@ public class RobotParams
      */
     public static class Preferences
     {
+        private static final String DBKEY_PREFIX                = "Preferences/";
+        public static final String DBKEY_COMMSTATUS_MONITOR     = DBKEY_PREFIX + "CommStatusMonitor";   //Boolean
+        public static final String DBKEY_SUBSYSTEM_ZEROCAL      = DBKEY_PREFIX + "SubsystemZeroCal";    //Boolean
+        public static final String DBKEY_UPDATE_DASHBOARD       = DBKEY_PREFIX + "UpdateDashboard";     //Boolean
+
         // Global config
         public static final RobotType robotType                 = RobotType.SwerveRobot;
         public static final boolean inCompetition               = false;
@@ -56,31 +61,19 @@ public class RobotParams
         public static final boolean useLED                      = false;
         public static final boolean useRumble                   = false;
         public static final boolean hasDriverGameController     = true;
-        public static final boolean hasOperatorGameController   = true;
+        public static final boolean hasOperatorGameController   = false;
         // Vision
         public static final boolean useVision                   = false;
-        public static final boolean showVisionStatus            = !inCompetition;
-        public static final boolean usePhotonVision             = true;
-        public static final boolean useOpenCvVision             = false;
-        public static final boolean useWebcamAprilTagVision     = false;
-        public static final boolean useWebcamColorBlobVision    = false;
-        public static final boolean useSolvePnp                 = false;
-        public static final boolean useStreamCamera             = false;
+        public static final boolean showCameraStream            = false;
         public static final boolean visionRelocalizeEnabled     = true;
         public static final boolean useWpiLibPoseEstimator      = true;
-        // Master switches for Subsystems
+        // Global switches for Subsystems
         public static final boolean useSubsystems               = true;
-        public static final boolean showSubsystemStatus         = true;
         public static final boolean zeroCalSubsystems           = false;
-        public static final String testSubsystemName            = "";
-        // Drive Base Subsystem
+        public static final String testSubsystemName            = null;
+        // Drive Base Subsystem.
         public static final boolean useDriveBase                = false;
-        public static final boolean showDriveBaseStatus         = false;
-        public static final boolean debugDriveBase              = false;
-        public static final boolean debugPidDrive               = false;
-        public static final boolean showDrivePower              = false;
         public static final boolean useGyroAssist               = false;
-        public static final boolean useAntiTipping              = false;
         // Other Subsystems
         // Auto Tasks
     }   //class Preferences
