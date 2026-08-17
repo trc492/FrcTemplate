@@ -121,7 +121,7 @@ public class ServoWrist extends TrcSubsystem
         servo.setPosition(-90.0);
     }   //resetState
 
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+    private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
 
     /**
      * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
@@ -129,7 +129,7 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POSITION, "");
+        dashboard.refreshKey(DBKEY_POS_INFO, "");
     }   //publishToDashboard
 
     /**
@@ -144,7 +144,7 @@ public class ServoWrist extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putString(DBKEY_POSITION, servo.getPosition() + "/" + servo.getLogicalPosition());
+            dashboard.putString(DBKEY_POS_INFO, servo.getPosition() + "/" + servo.getLogicalPosition());
         }
 
         return lineNum;

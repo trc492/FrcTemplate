@@ -468,11 +468,11 @@ public class DriveBase extends TrcSubsystem
     private static final String DBKEY_DEBUG_DRIVEBASE   = SUBSYSTEM_NAME + "/DebugDriveBase";   //Boolean
     private static final String DBKEY_DEBUG_PIDDRIVE    = SUBSYSTEM_NAME + "/DebugPidDrive";    //Boolean
 
-    private static final String DBKEY_ROBOT_POSE        = SUBSYSTEM_NAME + "/RobotPose";        //String
-    private static final String DBKEY_ROBOT_VEL         = SUBSYSTEM_NAME + "/RobotVel";         //String
-    private static final String DBKEY_DRIVE_ENC         = SUBSYSTEM_NAME + "/DriveEnc";         //String
-    private static final String DBKEY_STEER_FRONT       = SUBSYSTEM_NAME + "/SteerFront";       //String
-    private static final String DBKEY_STEER_BACK        = SUBSYSTEM_NAME + "/SteerBack";        //String
+    private static final String DBKEY_ROBOT_POSE_INFO   = SUBSYSTEM_NAME + "/RobotPoseInfo";    //String
+    private static final String DBKEY_ROBOT_VEL_INFO    = SUBSYSTEM_NAME + "/RobotVelInfo";     //String
+    private static final String DBKEY_DRIVE_ENC_INFO    = SUBSYSTEM_NAME + "/DriveEncInfo";     //String
+    private static final String DBKEY_STEER_FRONT_INFO  = SUBSYSTEM_NAME + "/SteerFrontInfo";   //String
+    private static final String DBKEY_STEER_BACK_INFO   = SUBSYSTEM_NAME + "/SteerBackInfo";    //String
     private static final String DBKEY_XPID_INFO         = SUBSYSTEM_NAME + "/XPidInfo";         //String
     private static final String DBKEY_YPID_INFO         = SUBSYSTEM_NAME + "/YPidInfo";         //String
     private static final String DBKEY_TURNPID_INFO      = SUBSYSTEM_NAME + "/TurnPidInfo";      //String
@@ -487,11 +487,11 @@ public class DriveBase extends TrcSubsystem
         dashboard.refreshKey(DBKEY_DEBUG_DRIVEBASE, false);
         dashboard.refreshKey(DBKEY_DEBUG_PIDDRIVE, false);
 
-        dashboard.refreshKey(DBKEY_ROBOT_POSE, "");
-        dashboard.refreshKey(DBKEY_ROBOT_VEL, "");
-        dashboard.refreshKey(DBKEY_DRIVE_ENC, "");
-        dashboard.refreshKey(DBKEY_STEER_FRONT, "");
-        dashboard.refreshKey(DBKEY_STEER_BACK, "");
+        dashboard.refreshKey(DBKEY_ROBOT_POSE_INFO, "");
+        dashboard.refreshKey(DBKEY_ROBOT_VEL_INFO, "");
+        dashboard.refreshKey(DBKEY_DRIVE_ENC_INFO, "");
+        dashboard.refreshKey(DBKEY_STEER_FRONT_INFO, "");
+        dashboard.refreshKey(DBKEY_STEER_BACK_INFO, "");
         dashboard.refreshKey(DBKEY_XPID_INFO, "");
         dashboard.refreshKey(DBKEY_YPID_INFO, "");
         dashboard.refreshKey(DBKEY_TURNPID_INFO, "");
@@ -514,8 +514,8 @@ public class DriveBase extends TrcSubsystem
 
         if (slowLoop && dashboard.getBoolean(DBKEY_SHOW_STATUS, false))
         {
-            dashboard.putString(DBKEY_ROBOT_POSE, robotBase.driveBase.getFieldPosition().toString());
-            dashboard.putString(DBKEY_ROBOT_VEL, robotBase.driveBase.getRobotVelocity().toString());
+            dashboard.putString(DBKEY_ROBOT_POSE_INFO, robotBase.driveBase.getFieldPosition().toString());
+            dashboard.putString(DBKEY_ROBOT_VEL_INFO, robotBase.driveBase.getRobotVelocity().toString());
             if (dashboard.getBoolean(DBKEY_DEBUG_DRIVEBASE, false))
             {
                 // DriveBase debug info.
@@ -530,7 +530,7 @@ public class DriveBase extends TrcSubsystem
                     robotBase.driveMotors.length > 2?
                     robotBase.driveMotors[MotorIndex.BackRight.value].getPosition(): 0.0;
                 dashboard.putString(
-                    DBKEY_DRIVE_ENC,
+                    DBKEY_DRIVE_ENC_INFO,
                     String.format(
                         "lf=%.0f, rf=%.0f, lb=%.0f, rb=%.0f, avg=%.0f",
                         lfDriveEnc, rfDriveEnc, lbDriveEnc, rbDriveEnc,
@@ -539,7 +539,7 @@ public class DriveBase extends TrcSubsystem
                 {
                     FrcSwerveBase swerveBase = (FrcSwerveBase) robotBase;
                     dashboard.putString(
-                        DBKEY_STEER_FRONT,
+                        DBKEY_STEER_FRONT_INFO,
                         String.format(
                             "angle/motorEnc/absEnc: lf=%.1f/%.3f/%.3f, rf=%.1f/%.3f/%.3f",
                             swerveBase.swerveModules[MotorIndex.FrontLeft.value].getSteerAngle(),
@@ -549,7 +549,7 @@ public class DriveBase extends TrcSubsystem
                             swerveBase.steerMotors[MotorIndex.FrontRight.value].getMotorPosition(),
                             swerveBase.steerEncoders[MotorIndex.FrontRight.value].getRawPosition()));
                     dashboard.putString(
-                        DBKEY_STEER_BACK,
+                        DBKEY_STEER_BACK_INFO,
                         String.format(
                             "angle/motorEnc/absEnc: lb=%.1f/%.3f/%.3f, rb=%.1f/%.3f/%.3f",
                             swerveBase.swerveModules[MotorIndex.BackLeft.value].getSteerAngle(),

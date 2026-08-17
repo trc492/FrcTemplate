@@ -203,8 +203,9 @@ public class Elevator extends TrcSubsystem
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
 
-    private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //String
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+    private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwrInfo";      //String
+    private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
+    private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_LOWER_LIMIT       = SUBSYSTEM_NAME + "/LowerLimit";   //Boolean
     private static final String DBKEY_UPPER_LIMIT       = SUBSYSTEM_NAME + "/UpperLimit";   //Boolean
 
@@ -214,8 +215,9 @@ public class Elevator extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POWER, "");
-        dashboard.refreshKey(DBKEY_POSITION, "");
+        dashboard.refreshKey(DBKEY_PWR_INFO, "");
+        dashboard.refreshKey(DBKEY_POS_INFO, "");
+        dashboard.refreshKey(DBKEY_POS, 0.0);
         dashboard.refreshKey(DBKEY_LOWER_LIMIT, false);
         dashboard.refreshKey(DBKEY_UPPER_LIMIT, false);
     }   //publishToDashboard
@@ -232,8 +234,8 @@ public class Elevator extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putString(DBKEY_POWER, motor.getPower() + "/" + motor.getCurrent());
-            dashboard.putString(DBKEY_POSITION, motor.getPosition() + "/" + motor.getPidTarget());
+            dashboard.putString(DBKEY_PWR_INFO, motor.getPower() + "/" + motor.getCurrent());
+            dashboard.putString(DBKEY_POS_INFO, motor.getPosition() + "/" + motor.getPidTarget());
 
             if (Params.HAS_LOWER_LIMIT_SWITCH)
             {
@@ -245,6 +247,7 @@ public class Elevator extends TrcSubsystem
                 dashboard.putBoolean(DBKEY_UPPER_LIMIT, motor.isUpperLimitSwitchActive());
             }
         }
+        dashboard.putNumber(DBKEY_POS, motor.getPosition());
 
         return lineNum;
     }   //updateStatus

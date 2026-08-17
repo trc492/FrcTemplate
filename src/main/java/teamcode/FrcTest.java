@@ -39,6 +39,7 @@ import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcRobot.RunMode;
+import trclib.subsystem.TrcShooter.AimInfo;
 import trclib.subsystem.TrcSubsystem;
 import trclib.timer.TrcTimer;
 
@@ -84,7 +85,12 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_SUBSYSTEM_KV          = DBKEY_PREFIX + "SubsystemKv";             //Number
     private static final String DBKEY_SUBSYSTEM_KA          = DBKEY_PREFIX + "SubsystemKa";             //Number
     public static final String DBKEY_SUBSYSTEM_TARGET_PARAM = DBKEY_PREFIX + "SubsystemTargetParam";    //Number
-    public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";  //Number
+    public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";   //Number
+    // Shoot Table tuning.
+    private static final String DBKEY_SHOOT_DISTANCE        = DBKEY_PREFIX + "ShootDistance";           //Number
+    private static final String DBKEY_SHOOT_VELOCITY        = DBKEY_PREFIX + "ShootVelocity";           //Number
+    private static final String DBKEY_SHOOT_PAN_POS         = DBKEY_PREFIX + "ShootPanPos";             //Number
+    private static final String DBKEY_SHOOT_TILT_POS        = DBKEY_PREFIX + "ShootTiltPos";            //Number
 
     // private static final String DBKEY_SUBSYSTEM_INPUT       = DBKEY_PREFIX + "SubsystemInput";
     // private static final String DBKEY_SUBSYSTEM_TARGET      = DBKEY_PREFIX + "SubsystemTarget";
@@ -105,6 +111,7 @@ public class FrcTest extends FrcTeleOp
         TuneDriveYPid,
         TuneTurnPid,
         TuneSubsystem,
+        TuneShootTable,
         VisionTest,
         SwerveCalibration,
         LiveWindow
@@ -146,6 +153,7 @@ public class FrcTest extends FrcTeleOp
             testMenu.addChoice(Test.TuneDriveYPid.name(), Test.TuneDriveYPid);
             testMenu.addChoice(Test.TuneTurnPid.name(), Test.TuneTurnPid);
             testMenu.addChoice(Test.TuneSubsystem.name(), Test.TuneSubsystem);
+            testMenu.addChoice(Test.TuneShootTable.name(), Test.TuneShootTable);
             testMenu.addChoice(Test.VisionTest.name(), Test.VisionTest);
             testMenu.addChoice(Test.SwerveCalibration.name(), Test.SwerveCalibration);
             testMenu.addChoice(Test.LiveWindow.name(), Test.LiveWindow, false, true);
@@ -187,6 +195,11 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_SUBSYSTEM_KA, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_GRAVITY_POWER, 0.0);
+            // Shoot Table tuning.
+            userChoices.addNumber(DBKEY_SHOOT_DISTANCE, 0.0);
+            userChoices.addNumber(DBKEY_SHOOT_VELOCITY, 0.0);
+            userChoices.addNumber(DBKEY_SHOOT_PAN_POS, 0.0);
+            userChoices.addNumber(DBKEY_SHOOT_TILT_POS, 0.0);
         }   //TestChoices
 
         //
@@ -444,6 +457,31 @@ public class FrcTest extends FrcTeleOp
                 }
                 break;
 
+            case TuneDriveXPid:
+            case TuneDriveYPid:
+            case TuneTurnPid:
+                if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
+                {
+                    TrcPidController.PidCoefficients tunePidCoeffs;
+
+                    if (test == Test.TuneDriveXPid && robot.robotBase.purePursuitDrive.getXPosPidCtrl() != null)
+                    {
+                        tunePidCoeffs = robot.robotBase.purePursuitDrive.getXPosPidCtrl().getPidCoefficients();
+                    }
+                    else if (test == Test.TuneDriveYPid)
+                    {
+                        tunePidCoeffs = robot.robotBase.purePursuitDrive.getYPosPidCtrl().getPidCoefficients();
+                    }
+                    else
+                    {
+                        tunePidCoeffs = robot.robotBase.purePursuitDrive.getTurnPidCtrl().getPidCoefficients();
+                    }
+
+                    testChoices.setTunePidCoefficients(tunePidCoeffs);
+                    robot.globalTracer.traceInfo(moduleName, "[%s]: TunePidCoeffs=%s.", test, tunePidCoeffs);
+                }
+                break;
+
             case VisionTest:
                 if (robot.vision != null)
                 {
@@ -605,7 +643,7 @@ public class FrcTest extends FrcTeleOp
                         DBKEY_TARGET_POS, robot.robotBase.purePursuitDrive.getPathPositionTarget());
                 }
                 break;
-    
+
             default:
                 break;
         }
@@ -689,6 +727,18 @@ public class FrcTest extends FrcTeleOp
                     }
                     break;
 
+                case TuneShootTable:
+                    if (robot.vision != null)
+                    {
+                        TrcPose2D targetPose = robot.getShooterToTargetPose();
+                        if (targetPose != null)
+                        {
+                            robot.dashboard.putNumber(
+                                DBKEY_SHOOT_DISTANCE, Math.hypot(targetPose.x, targetPose.y));
+                        }
+                    }
+                    break;
+
                 case VisionTest:
                     lineNum = doVisionTest(lineNum);
                     break;
@@ -717,8 +767,8 @@ public class FrcTest extends FrcTeleOp
     {
         Test test = testChoices.getTest();
 
-        return test == Test.SubsystemsTest || test == Test.TuneSubsystem || test == Test.VisionTest ||
-               test == Test.DriveSpeedTest;
+        return test == Test.SubsystemsTest || test == Test.TuneSubsystem || test == Test.TuneShootTable ||
+               test == Test.VisionTest || test == Test.DriveSpeedTest;
     }   //allowTeleOp
 
     //
@@ -799,6 +849,31 @@ public class FrcTest extends FrcTeleOp
                             TrcSubsystem.updateSubsystemParamsFromDashboard(subsystemName);
                             robot.globalTracer.traceInfo(
                                 moduleName, ">>>>> Start subsystem tune with the tune params.");
+                        }
+                    }
+                    passToTeleOp = false;
+                }
+                else if (test == Test.TuneShootTable && robot.shooterSubsystem != null)
+                {
+                    if (pressed)
+                    {
+                        if (!robot.shooter.isActive())
+                        {
+                            // Shooter was inactive, fire it up and aim.
+                            AimInfo aimInfo = new AimInfo(
+                                dashboard.getNumber(DBKEY_SHOOT_VELOCITY, 0.0), null,
+                                dashboard.getNumber(DBKEY_SHOOT_PAN_POS, 0.0),
+                                dashboard.getNumber(DBKEY_SHOOT_TILT_POS, 0.0));
+                            robot.shooter.aimShooter(aimInfo);
+                        }
+                        else if (robot.shooter.shooterMotor1.isVelocityOnTarget())
+                        {
+                            // Shooter is ready, go shoot.
+                            robot.shooterSubsystem.shoot(null, null, null);
+                        }
+                        else
+                        {
+                            robot.globalTracer.traceInfo(moduleName, "Shooter not up to speed yet.");
                         }
                     }
                     passToTeleOp = false;

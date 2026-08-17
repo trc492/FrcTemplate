@@ -215,7 +215,7 @@ public class ServoExtender extends TrcSubsystem
         servo.setPosition(Params.POS_RETRACT);
     }   //resetState
 
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //Number
+    private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_IS_EXTENDED       = SUBSYSTEM_NAME + "/IsExtended";   //Boolean
 
     /**
@@ -224,7 +224,7 @@ public class ServoExtender extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_POS, 0.0);
         dashboard.refreshKey(DBKEY_IS_EXTENDED, false);
     }   //publishToDashboard
 
@@ -240,7 +240,7 @@ public class ServoExtender extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putNumber(DBKEY_POSITION, servo.getPosition());
+            dashboard.putNumber(DBKEY_POS, servo.getPosition());
             dashboard.putBoolean(DBKEY_IS_EXTENDED, isExtended());
         }
 

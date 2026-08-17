@@ -156,7 +156,7 @@ public class Intake extends TrcSubsystem
         // Intake does not support resetState.
     }   //resetState
 
-    private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //String
+    private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwrInfo";      //String
     private static final String DBKEY_HAS_OBJECT        = SUBSYSTEM_NAME + "/HasObject";    //Boolean
     private static final String DBKEY_FRONT_SENSOR      = SUBSYSTEM_NAME + "/FrontSensor";  //Boolean
     private static final String DBKEY_BACK_SENSOR       = SUBSYSTEM_NAME + "/BackSensor";   //Boolean
@@ -168,7 +168,7 @@ public class Intake extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POWER, "");
+        dashboard.refreshKey(DBKEY_PWR_INFO, "");
         dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
         dashboard.refreshKey(DBKEY_FRONT_SENSOR, false);
         dashboard.refreshKey(DBKEY_BACK_SENSOR, false);
@@ -187,7 +187,7 @@ public class Intake extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putString(DBKEY_POWER, intake.getPower() + "/" + intake.getCurrent());
+            dashboard.putString(DBKEY_PWR_INFO, intake.getPower() + "/" + intake.getCurrent());
             dashboard.putBoolean(DBKEY_HAS_OBJECT, intake.hasObject());
             dashboard.putBoolean(DBKEY_FRONT_SENSOR, intake.getFrontSensorState());
             dashboard.putBoolean(DBKEY_BACK_SENSOR, intake.getBackSensorState());

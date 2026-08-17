@@ -181,7 +181,7 @@ public class ServoClaw extends TrcSubsystem
         // Don't move claw during turtle.
     }   //resetState
 
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //Number
+    private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_IS_CLOSED         = SUBSYSTEM_NAME + "/IsClosed";     //Boolean
     private static final String DBKEY_HAS_OBJECT        = SUBSYSTEM_NAME + "/HasObject";    //Boolean
     private static final String DBKEY_AUTO_ACTIVE       = SUBSYSTEM_NAME + "/AutoActive";   //Boolean
@@ -194,7 +194,7 @@ public class ServoClaw extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POSITION, 0.0);
+        dashboard.refreshKey(DBKEY_POS, 0.0);
         dashboard.refreshKey(DBKEY_IS_CLOSED, false);
         dashboard.refreshKey(DBKEY_HAS_OBJECT, false);
         dashboard.refreshKey(DBKEY_AUTO_ACTIVE, false);
@@ -214,7 +214,7 @@ public class ServoClaw extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putNumber(DBKEY_POSITION, claw.getPosition());
+            dashboard.putNumber(DBKEY_POS, claw.getPosition());
             dashboard.putBoolean(DBKEY_IS_CLOSED, claw.isClosed());
             dashboard.putBoolean(DBKEY_HAS_OBJECT, claw.hasObject());
             dashboard.putBoolean(DBKEY_AUTO_ACTIVE, claw.isAutoActive());

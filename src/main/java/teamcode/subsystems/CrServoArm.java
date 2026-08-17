@@ -176,7 +176,8 @@ public class CrServoArm extends TrcSubsystem
     }   //resetState
 
     private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //Number
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+    private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
+    private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
 
     /**
      * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
@@ -185,7 +186,8 @@ public class CrServoArm extends TrcSubsystem
     public void publishToDashboard()
     {
         dashboard.refreshKey(DBKEY_POWER, 0.0);
-        dashboard.refreshKey(DBKEY_POSITION, "");
+        dashboard.refreshKey(DBKEY_POS_INFO, "");
+        dashboard.refreshKey(DBKEY_POS, 0.0);
     }   //publishToDashboard
 
     /**
@@ -201,8 +203,9 @@ public class CrServoArm extends TrcSubsystem
         if (slowLoop)
         {
             dashboard.putNumber(DBKEY_POWER, motor.getPower());
-            dashboard.putString(DBKEY_POSITION,motor.getPosition() + "/" + motor.getPidTarget());
+            dashboard.putString(DBKEY_POS_INFO, motor.getPosition() + "/" + motor.getPidTarget());
         }
+        dashboard.putNumber(DBKEY_POS, motor.getPosition());
 
         return lineNum;
     }   //updateStatus

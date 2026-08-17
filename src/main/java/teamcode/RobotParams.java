@@ -75,7 +75,7 @@ public class RobotParams
         public static final boolean useDriveBase                = false;
         public static final boolean useGyroAssist               = false;
         // Other Subsystems
-        public static final boolean useMotorArm                 = true;
+        public static final boolean useMotorArm                 = false;
         public static final boolean useCrServoArm               = false;
         public static final boolean useElevator                 = false;
         public static final boolean useTurret                   = false;
@@ -220,8 +220,9 @@ public class RobotParams
         //
         // Game element positions.
         //
-        public static final TrcPose2D BLUE_PICKUP_RING_POSE =
-            new TrcPose2D(-60.0, 100.0, 0.0);
+        public static final TrcPose2D BLUE_PICKUP_RING_POSE     = new TrcPose2D(-60.0, 100.0, 0.0);
+        public static final TrcPose2D RED_GOAL_POSE             = new TrcPose2D(-158.845, 469.11, 0.0);
+        public static final TrcPose2D BLUE_GOAL_POSE            = new TrcPose2D(-158.845, 182.11, 0.0);
     }   //class Game
 
 }   //class RobotParams

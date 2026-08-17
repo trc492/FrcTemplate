@@ -330,7 +330,7 @@ public class Robot extends FrcRobot
                     latch = latchSubsystem.getServo();
                 }
 
-                TrcSubsystem.updateSubsystemParamsToDashboard(FrcTest.testChoices.getSubsystemName(), null);
+                TrcSubsystem.publishToDashboardAll();
 
                 // Create autotasks.
                 if (RobotParams.Preferences.useAutoShoot && shooter != null)
@@ -507,10 +507,11 @@ public class Robot extends FrcRobot
         if (slowPeriodicLoop)
         {
             checkDashboardUpdateEnabled();
-            if (dashboard.getBoolean(FrcAuto.DBKEY_CHOICES_SUBMIT, false))
+            if (dashboard.getBoolean(FrcAuto.DBKEY_CHOICES_REFRESH, false))
             {
                 FrcAuto.autoChoices.fetchChoices();
-                dashboard.putBoolean(FrcAuto.DBKEY_CHOICES_SUBMIT, false);
+                dashboard.putBoolean(FrcAuto.DBKEY_CHOICES_REFRESH, false);
+                globalTracer.traceInfo(moduleName, "Refresh Auto Choices: " + FrcAuto.autoChoices);
             }
         }
 
@@ -715,6 +716,34 @@ public class Robot extends FrcRobot
         globalTracer.traceInfo(moduleName, "setRelocalizationMode to " + relocalizationMode);
         this.relocalizationMode = relocalizationMode;
     }   //setRelocalizationMode
+
+    /**
+     * This method returns the relative pose from the shooter to the target.
+     *
+     * @return relative pose from the shooter to the target.
+     */
+    public TrcPose2D getShooterToTargetPose()
+    {
+        TrcPose2D targetPose = null;
+        TrcPose2D goalFieldPose =
+            FrcAuto.autoChoices.alliance == Alliance.Red?
+                RobotParams.Game.RED_GOAL_POSE: RobotParams.Game.BLUE_GOAL_POSE;
+
+        if (goalFieldPose != null)
+        {
+            TrcPose2D robotFieldPose = robotBase.driveBase.getFieldPosition();
+            TrcPose2D shooterFieldPose = robotFieldPose.addRelativePose(Shooter.Params.robotToShooterPose);
+
+            targetPose = goalFieldPose.relativeTo(shooterFieldPose);
+            // targetPose angle should be the robot's bearing to target.
+            targetPose.angle = Math.toDegrees(Math.atan2(targetPose.x, targetPose.y));
+            globalTracer.traceDebug(
+                moduleName, "robotPose=%s, shooterPose=%s, goalPose=%s, targetPose=%s",
+                robotFieldPose, shooterFieldPose, goalFieldPose, targetPose);
+        }
+
+        return targetPose;
+    }   //getShooterDistanceToTarget
 
     /**
      * This method retrieves the field zero compass heading from the calibration data file.

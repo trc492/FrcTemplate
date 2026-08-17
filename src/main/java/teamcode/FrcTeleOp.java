@@ -57,7 +57,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private static final String DBKEY_TURN_NORMAL_SCALE = DBKEY_PREFIX + "TurnNormalScale";     //Number
     private static final String DBKEY_TURN_SLOW_SCALE   = DBKEY_PREFIX + "TurnSlowScale";       //Number
     private static final String DBKEY_SHOW_DRIVE_POWER  = DBKEY_PREFIX + "ShowDrivePower";      //Boolean
-    private static final String DBKEY_DRIVE_POWER       = DBKEY_PREFIX + "DrivePower";          //String
+    private static final String DBKEY_DRIVE_PWR_INFO    = DBKEY_PREFIX + "DrivePwrInfo";        //String
     private static final String DBKEY_USE_RUMBLE        = DBKEY_PREFIX + "UseRumble";           //Boolean
 
     public static final double DEF_DRIVE_NORMAL_SCALE = 1.0;
@@ -123,7 +123,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         driveSpeedScale = dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
         turnSpeedScale = dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
         dashboard.refreshKey(DBKEY_SHOW_DRIVE_POWER, false);
-        dashboard.refreshKey(DBKEY_DRIVE_POWER, "");
+        dashboard.refreshKey(DBKEY_DRIVE_PWR_INFO, "");
         dashboard.refreshKey(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble);
 
         turnPidCtrl = robot.robotBase != null && robot.robotBase.purePursuitDrive != null?
@@ -250,7 +250,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 if (showDriveBaseStatus)
                                 {
                                     robot.dashboard.putString(
-                                        DBKEY_DRIVE_POWER,
+                                        DBKEY_DRIVE_PWR_INFO,
                                         String.format(
                                             "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
                                             driveInputs[0], driveInputs[1], turnPower, gyroAngle));
@@ -262,7 +262,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 if (showDriveBaseStatus)
                                 {
                                     robot.dashboard.putString(
-                                        DBKEY_DRIVE_POWER,
+                                        DBKEY_DRIVE_PWR_INFO,
                                         String.format(
                                             "Arcade: x=%.2f, y=%.2f, rot=%.2f",
                                             driveInputs[0], driveInputs[1], turnPower));
