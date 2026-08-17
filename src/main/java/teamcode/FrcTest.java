@@ -91,10 +91,6 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_SHOOT_VELOCITY        = DBKEY_PREFIX + "ShootVelocity";           //Number
     private static final String DBKEY_SHOOT_PAN_POS         = DBKEY_PREFIX + "ShootPanPos";             //Number
     private static final String DBKEY_SHOOT_TILT_POS        = DBKEY_PREFIX + "ShootTiltPos";            //Number
-
-    // private static final String DBKEY_SUBSYSTEM_INPUT       = DBKEY_PREFIX + "SubsystemInput";
-    // private static final String DBKEY_SUBSYSTEM_TARGET      = DBKEY_PREFIX + "SubsystemTarget";
-
     //
     // Tests.
     //
@@ -813,6 +809,7 @@ public class FrcTest extends FrcTeleOp
                         TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, true);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value up.");
                     }
+                    passToTeleOp = false;
                 }
                 break;
 
@@ -825,6 +822,7 @@ public class FrcTest extends FrcTeleOp
                         TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, false);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value down.");
                     }
+                    passToTeleOp = false;
                 }
                 break;
 
