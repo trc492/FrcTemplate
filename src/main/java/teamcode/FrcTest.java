@@ -278,8 +278,7 @@ public class FrcTest extends FrcTeleOp
                     userChoices.getUserNumber(DBKEY_SUBSYSTEM_KA))
                 .setPidControlParams(
                     userChoices.getUserNumber(DBKEY_SUBSYSTEM_TOLERANCE),
-                    userChoices.getUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID))
-                .setTuningParams(userChoices.getUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM));
+                    userChoices.getUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID));
         }   //getSubsystemPidParameters
 
         public void setSubsystemPidParameters(TrcMotor.PidParams pidParams)
@@ -302,7 +301,6 @@ public class FrcTest extends FrcTeleOp
 
             userChoices.setUserNumber(DBKEY_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
             userChoices.setUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
-            userChoices.setUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
         }   //setSubsystemPidParameters
 
         @Override
@@ -773,34 +771,8 @@ public class FrcTest extends FrcTeleOp
             case Y:
             case LeftBumper:
             case RightBumper:
-                break;
-
             case DpadUp:
-                if (test == Test.TuneSubsystem)
-                {
-                    if (pressed)
-                    {
-                        subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, true);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value up.");
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadDown:
-                if (test == Test.TuneSubsystem)
-                {
-                    if (pressed)
-                    {
-                        subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, false);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value down.");
-                    }
-                    passToTeleOp = false;
-                }
-                break;
-
             case DpadLeft:
             case DpadRight:
             case Back:
@@ -814,7 +786,7 @@ public class FrcTest extends FrcTeleOp
                         subsystemName = testChoices.getSubsystemName();
                         if (driverAltFunc)
                         {
-                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, null);
+                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to current value.");
                         }
                         else

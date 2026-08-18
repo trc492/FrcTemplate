@@ -601,11 +601,9 @@ public class DriveBase extends TrcSubsystem
      * This method is called to update subsystem parameter to the Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
     }   //updateParamsToDashboard
 
