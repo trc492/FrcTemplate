@@ -437,6 +437,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case Start:
+                break;
+
             default:
                 break;
         }
