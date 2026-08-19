@@ -83,8 +83,9 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_SUBSYSTEM_KS          = DBKEY_PREFIX + "SubsystemKs";             //Number
     private static final String DBKEY_SUBSYSTEM_KV          = DBKEY_PREFIX + "SubsystemKv";             //Number
     private static final String DBKEY_SUBSYSTEM_KA          = DBKEY_PREFIX + "SubsystemKa";             //Number
-    public static final String DBKEY_SUBSYSTEM_TARGET_PARAM = DBKEY_PREFIX + "SubsystemTargetParam";    //Number
     public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";   //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_INPUT   = DBKEY_PREFIX + "TuneInput";               //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_TARGET  = DBKEY_PREFIX + "TuneTarget";              //Number
     //
     // Tests.
     //
@@ -181,8 +182,9 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_SUBSYSTEM_KS, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_KV, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_KA, 0.0);
-            userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_GRAVITY_POWER, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TUNE_INPUT, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TUNE_TARGET, 0.0);
         }   //TestChoices
 
         //
