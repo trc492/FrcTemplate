@@ -114,7 +114,7 @@ public class FrcAuto implements TrcRobot.RobotMode
         public double drivePower;
         public double driveTime;
         public String pathFile;
-        // Game specific auto choices
+        // Game specific options
         public boolean useVision;
         public boolean scorePreload;
 
@@ -158,7 +158,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             userChoices.addNumber(DBKEY_DRIVE_POWER, 0.0);
             userChoices.addNumber(DBKEY_DRIVE_TIME, 0.0);       // in seconds
             userChoices.addString(DBKEY_PATHFILE, "DrivePath.csv");
-            // Game specific choices
+            // Game specific options
             userChoices.addBoolean(DBKEY_USE_VISION, false);
             userChoices.addBoolean(DBKEY_SCORE_PRELOAD, false);
         }   //AutoChoices
@@ -178,7 +178,7 @@ public class FrcAuto implements TrcRobot.RobotMode
             drivePower = userChoices.getUserNumber(DBKEY_DRIVE_POWER);
             driveTime = userChoices.getUserNumber(DBKEY_DRIVE_TIME);
             pathFile = userChoices.getUserString(DBKEY_PATHFILE);
-
+            // Game specific options
             useVision = userChoices.getUserBoolean(DBKEY_USE_VISION);
             scorePreload = userChoices.getUserBoolean(DBKEY_SCORE_PRELOAD);
         }   //fetchChoices
