@@ -877,27 +877,6 @@ public class FrcTest extends FrcTeleOp
                     }
                     passToTeleOp = false;
                 }
-                else if (test == Test.TuneShootTable && robot.shooterSubsystem != null)
-                {
-                    if (pressed)
-                    {
-                        if (!driverAltFunc)
-                        {
-                            // Update shooter velocity, pan, tilt and start it up to aim.
-                            AimInfo aimInfo = new AimInfo(
-                                dashboard.getNumber(DBKEY_SHOOT_VELOCITY, 0.0), null,
-                                robot.shooter.panMotor != null? dashboard.getNumber(DBKEY_SHOOT_PAN_POS, 0.0): null,
-                                robot.shooter.tiltMotor != null? dashboard.getNumber(DBKEY_SHOOT_TILT_POS, 0.0): null);
-                            robot.shooter.aimShooter(moduleName, aimInfo);
-                        }
-                        else
-                        {
-                            // Shutdown shooter.
-                            robot.shooter.cancel(moduleName);
-                        }
-                    }
-                    passToTeleOp = false;
-                }
                 else if (test == Test.TuneDriveXPid || test == Test.TuneDriveYPid || test == Test.TuneTurnPid)
                 {
                     if (robot.robotBase != null && robot.robotBase.purePursuitDrive != null)
@@ -946,6 +925,27 @@ public class FrcTest extends FrcTeleOp
                         }
                         passToTeleOp = false;
                     }
+                }
+                else if (test == Test.TuneShootTable && robot.shooterSubsystem != null)
+                {
+                    if (pressed)
+                    {
+                        if (!driverAltFunc)
+                        {
+                            // Update shooter velocity, pan, tilt and start it up to aim.
+                            AimInfo aimInfo = new AimInfo(
+                                dashboard.getNumber(DBKEY_SHOOT_VELOCITY, 0.0), null,
+                                robot.shooter.panMotor != null? dashboard.getNumber(DBKEY_SHOOT_PAN_POS, 0.0): null,
+                                robot.shooter.tiltMotor != null? dashboard.getNumber(DBKEY_SHOOT_TILT_POS, 0.0): null);
+                            robot.shooter.aimShooter(moduleName, aimInfo);
+                        }
+                        else
+                        {
+                            // Shutdown shooter.
+                            robot.shooter.cancel(moduleName);
+                        }
+                    }
+                    passToTeleOp = false;
                 }
                 break;
 
