@@ -732,7 +732,7 @@ public class Robot extends FrcRobot
         if (goalFieldPose != null)
         {
             TrcPose2D robotFieldPose = robotBase.driveBase.getFieldPosition();
-            TrcPose2D shooterFieldPose = robotFieldPose.addRelativePose(Shooter.Params.robotToShooterPose);
+            TrcPose2D shooterFieldPose = robotFieldPose.addRelativePose(Shooter.robotToShooterPose);
 
             targetPose = goalFieldPose.relativeTo(shooterFieldPose);
             // targetPose angle should be the robot's bearing to target.

@@ -24,8 +24,6 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
-import teamcode.FrcTest;
-import trclib.motor.TrcMotor;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -57,7 +55,6 @@ public class ServoWrist extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcServo servo;
-    private double tuneLogicalPos = Params.LOGICAL_MIN_POS;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -155,21 +152,11 @@ public class ServoWrist extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            double currValue = servo.getPosition();
-
-            tuneLogicalPos = nextValueUp == null? currValue:
-                             nextValueUp? Params.LOGICAL_MAX_POS: Params.LOGICAL_MIN_POS;
-            FrcTest.testChoices.setSubsystemPidParameters(
-                new TrcMotor.PidParams().setTuningParams(tuneLogicalPos));
-        }
+        // ServoWirst doesn't support tuning.
     }   //updateParamsToDashboard
 
     /**
@@ -181,11 +168,29 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void updateParamsFromDashboard(String subsystemName)
     {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            servo.setPosition(tuneLogicalPos);
-            servo.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
-        }
+        // ServoWirst doesn't support tuning.
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        // ServoWirst doesn't support tuning.
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        // ServoWirst doesn't support tuning.
+    }   //setNextTuneTargetDown
 
 }   //class ServoWrist

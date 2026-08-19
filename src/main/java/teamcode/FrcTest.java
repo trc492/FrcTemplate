@@ -84,8 +84,9 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_SUBSYSTEM_KS          = DBKEY_PREFIX + "SubsystemKs";             //Number
     private static final String DBKEY_SUBSYSTEM_KV          = DBKEY_PREFIX + "SubsystemKv";             //Number
     private static final String DBKEY_SUBSYSTEM_KA          = DBKEY_PREFIX + "SubsystemKa";             //Number
-    public static final String DBKEY_SUBSYSTEM_TARGET_PARAM = DBKEY_PREFIX + "SubsystemTargetParam";    //Number
     public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";   //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_INPUT   = DBKEY_PREFIX + "TuneInput";               //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_TARGET  = DBKEY_PREFIX + "TuneTarget";              //Number
     // Shoot Table tuning.
     private static final String DBKEY_SHOOT_DISTANCE        = DBKEY_PREFIX + "ShootDistance";           //Number
     private static final String DBKEY_SHOOT_VELOCITY        = DBKEY_PREFIX + "ShootVelocity";           //Number
@@ -189,8 +190,9 @@ public class FrcTest extends FrcTeleOp
             userChoices.addNumber(DBKEY_SUBSYSTEM_KS, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_KV, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_KA, 0.0);
-            userChoices.addNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, 0.0);
             userChoices.addNumber(DBKEY_SUBSYSTEM_GRAVITY_POWER, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TUNE_INPUT, 0.0);
+            userChoices.addNumber(DBKEY_SUBSYSTEM_TUNE_TARGET, 0.0);
             // Shoot Table tuning.
             userChoices.addNumber(DBKEY_SHOOT_DISTANCE, 0.0);
             userChoices.addNumber(DBKEY_SHOOT_VELOCITY, 0.0);
@@ -291,8 +293,7 @@ public class FrcTest extends FrcTeleOp
                     userChoices.getUserNumber(DBKEY_SUBSYSTEM_KA))
                 .setPidControlParams(
                     userChoices.getUserNumber(DBKEY_SUBSYSTEM_TOLERANCE),
-                    userChoices.getUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID))
-                .setTuningParams(userChoices.getUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM));
+                    userChoices.getUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID));
         }   //getSubsystemPidParameters
 
         public void setSubsystemPidParameters(TrcMotor.PidParams pidParams)
@@ -315,7 +316,6 @@ public class FrcTest extends FrcTeleOp
 
             userChoices.setUserNumber(DBKEY_SUBSYSTEM_TOLERANCE, pidParams.pidTolerance);
             userChoices.setUserBoolean(DBKEY_SUBSYSTEM_SOFTWARE_PID, pidParams.useSoftwarePid);
-            userChoices.setUserNumber(DBKEY_SUBSYSTEM_TARGET_PARAM, pidParams.pidTarget);
         }   //setSubsystemPidParameters
 
         @Override
@@ -793,6 +793,32 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case A:
+                if (test == Test.TuneShootTable && robot.shooterSubsystem != null)
+                {
+                    if (pressed)
+                    {
+                        if (robot.shooter.isActive())
+                        {
+                            if (robot.shooter.shooterMotor1.isVelocityOnTarget())
+                            {
+                                // Shooter is ready, go shoot.
+                                robot.shooterSubsystem.shoot(moduleName, null, null);
+                            }
+                            else
+                            {
+                                robot.globalTracer.traceInfo(moduleName, "Shooter not up to speed yet.");
+                            }
+                        }
+                        else
+                        {
+                            robot.globalTracer.traceInfo(
+                                moduleName, "Shooter is not active, press start button to start it up.");
+                        }
+                    }
+                    passToTeleOp = false;
+                }
+                break;
+
             case B:
             case X:
             case Y:
@@ -806,8 +832,8 @@ public class FrcTest extends FrcTeleOp
                     if (pressed)
                     {
                         subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, true);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value up.");
+                        TrcSubsystem.setSubsystemTuneTargetUp(subsystemName);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetTuneTargetUp: " + subsystemName);
                     }
                     passToTeleOp = false;
                 }
@@ -819,8 +845,8 @@ public class FrcTest extends FrcTeleOp
                     if (pressed)
                     {
                         subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, false);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to next preset value down.");
+                        TrcSubsystem.setSubsystemTuneTargetDown(subsystemName);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetTuneTargetDown: " + subsystemName);
                     }
                     passToTeleOp = false;
                 }
@@ -839,7 +865,7 @@ public class FrcTest extends FrcTeleOp
                         subsystemName = testChoices.getSubsystemName();
                         if (driverAltFunc)
                         {
-                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName, null);
+                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Update tune param to current value.");
                         }
                         else
@@ -855,23 +881,19 @@ public class FrcTest extends FrcTeleOp
                 {
                     if (pressed)
                     {
-                        if (!robot.shooter.isActive())
+                        if (!driverAltFunc)
                         {
-                            // Shooter was inactive, fire it up and aim.
+                            // Update shooter velocity, pan, tilt and start it up to aim.
                             AimInfo aimInfo = new AimInfo(
                                 dashboard.getNumber(DBKEY_SHOOT_VELOCITY, 0.0), null,
-                                dashboard.getNumber(DBKEY_SHOOT_PAN_POS, 0.0),
-                                dashboard.getNumber(DBKEY_SHOOT_TILT_POS, 0.0));
-                            robot.shooter.aimShooter(aimInfo);
-                        }
-                        else if (robot.shooter.shooterMotor1.isVelocityOnTarget())
-                        {
-                            // Shooter is ready, go shoot.
-                            robot.shooterSubsystem.shoot(null, null, null);
+                                robot.shooter.panMotor != null? dashboard.getNumber(DBKEY_SHOOT_PAN_POS, 0.0): null,
+                                robot.shooter.tiltMotor != null? dashboard.getNumber(DBKEY_SHOOT_TILT_POS, 0.0): null);
+                            robot.shooter.aimShooter(moduleName, aimInfo);
                         }
                         else
                         {
-                            robot.globalTracer.traceInfo(moduleName, "Shooter not up to speed yet.");
+                            // Shutdown shooter.
+                            robot.shooter.cancel(moduleName);
                         }
                     }
                     passToTeleOp = false;

@@ -320,7 +320,7 @@ public class DiffyServoWrist extends TrcSubsystem
      *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
         // DiffyWirst doesn't support tuning.
     }   //updateParamsToDashboard
@@ -336,5 +336,27 @@ public class DiffyServoWrist extends TrcSubsystem
     {
         // DiffyWirst doesn't support tuning.
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        // DiffyWirst doesn't support tuning.
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        // DiffyWirst doesn't support tuning.
+    }   //setNextTuneTargetDown
 
 }   //class DiffyServoWrist

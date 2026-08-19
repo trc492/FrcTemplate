@@ -61,6 +61,7 @@ public class Shooter extends TrcSubsystem
 
         // Shooter Motor1
         public static final MotorType SHOOTER_MOTOR_TYPE        = MotorType.CanTalonSrx;
+
         public static final String SHOOTER_MOTOR1_NAME          = SUBSYSTEM_NAME + ".shooterMotor1";
         public static final int SHOOTER_MOTOR1_ID               = 10;
         public static final boolean SHOOTER_MOTOR1_INVERTED     = true;
@@ -76,14 +77,17 @@ public class Shooter extends TrcSubsystem
         public static final double SHOOTER_GEAR_RATIO           = 24.0/36.0;
         public static final double SHOOTER_REV_PER_COUNT        = 1.0/(GOBILDA6000_CPR * SHOOTER_GEAR_RATIO);
         public static final boolean SHOOTER_SOFTWARE_PID_ENABLED= true;
+
         public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
             new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.0, 0.0);
         public static final TrcPidController.FFCoefficients shooter1FFCoeffs =
             new TrcPidController.FFCoefficients(0.0, 0.008, 0.0);
+
         public static final TrcPidController.PidCoefficients shooter2PidCoeffs =
             new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.008, 0.0);
         public static final TrcPidController.FFCoefficients shooter2FFCoeffs =
             new TrcPidController.FFCoefficients(0.0, 0.008, 0.0);
+
         public static final double SHOOTER_PID_TOLERANCE        = 1.0;      // in RPS (60 RPM)
         public static final double SHOOTER_OFF_DELAY            = 0.5;      // in sec
 
@@ -118,6 +122,7 @@ public class Shooter extends TrcSubsystem
 
         public static final double PAN_POWER_LIMIT              = 1.0;
         public static final double PAN_MIN_POS                  = -90.0;
+        public static final double PAN_FRONT_POS                = 0.0;
         public static final double PAN_MAX_POS                  = 90.0;
 
         // Tilt Motor
@@ -139,20 +144,6 @@ public class Shooter extends TrcSubsystem
         public static final double TILT_MIN_POS                 = 0.0;
         public static final double TILT_MAX_POS                 = 90.0;
 
-        public static final TrcPose2D robotToShooterPose        = new TrcPose2D(0.0, 0.0, 0.0);
-
-        public static final TrcLookupTable.Region[] regions =
-        {
-            new TrcLookupTable.Region(60.0, new double[][] {null})
-        };
-
-        public static final TrcLookupTable shootParamTable = new TrcLookupTable()
-            //        name,                 distance,   region,             ShooterVel
-            .addEntry(null,                 36.0,       regions[0],         60.0)
-            .addEntry(null,                 48.0,       regions[0],         70.0)
-            .addEntry(null,                 60.0,       regions[0],         80.0)
-            .addEntry(null,                 72.0,       regions[0],         90.0);
-
         // Launcher
         public static final String LAUNCHER_SERVO_NAME          = SUBSYSTEM_NAME + ".launcher";
         public static final int LAUNCHER_SERVO_CHANNEL          = 0;
@@ -162,14 +153,32 @@ public class Shooter extends TrcSubsystem
         public static double LAUNCHER_LAUNCH_DURATION           = 0.5;  // in seconds
     }   //class Params
 
+    public static final TrcPose2D robotToShooterPose = new TrcPose2D(0.0, 0.0, 0.0);
+
+    private static final TrcLookupTable.Region[] regions =
+    {
+        new TrcLookupTable.Region(60.0, new double[][] {null})
+    };
+
+    public static final TrcLookupTable shootParamTable = new TrcLookupTable()
+        //        name,                 distance,   region,             ShooterVel(rps)
+        .addEntry(null,                 36.0,       regions[0],         60.0)
+        .addEntry(null,                 48.0,       regions[0],         70.0)
+        .addEntry(null,                 60.0,       regions[0],         80.0)
+        .addEntry(null,                 72.0,       regions[0],         90.0);
+
     private final FrcDashboard dashboard;
     private final TrcShooter shooter;
     public final TrcDiscreteValue shooter1Velocity;
     public final TrcDiscreteValue shooter2Velocity;
     public final TrcServo launcher;
+
     private String launchOwner;
     private TrcEvent launchCompletionEvent;
     private TrcEvent launchCallbackEvent = null;
+
+    private String tuneSubsystemName = null;
+    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -456,10 +465,10 @@ public class Shooter extends TrcSubsystem
             dashboard.putString(
                 DBKEY_VEL1_INFO, shooter.getShooterMotor1RPM() + "/" + shooter.getShooterMotor1TargetRPM());
 
-            if (shooter.getShooterMotor2() != null)
+            motor = shooter.getShooterMotor2();
+            if (motor != null)
             {
-                dashboard.putString(
-                    DBKEY_PWR2_INFO, shooter.getShooterMotor2Power() + "/" + shooter.getShooterMotor2Current());
+                dashboard.putString(DBKEY_PWR2_INFO, motor.getPower() + "/" + motor.getCurrent());
                 dashboard.putString(
                     DBKEY_VEL2_INFO, shooter.getShooterMotor2RPM() + "/" + shooter.getShooterMotor2TargetRPM());
             }
@@ -477,28 +486,35 @@ public class Shooter extends TrcSubsystem
                 dashboard.putString(DBKEY_TILT_PWR_INFO, motor.getPower() + "/" + motor.getCurrent());
                 dashboard.putString(DBKEY_TILT_POS_INFO, motor.getPosition() + "/" + motor.getPidTarget());
             }
+
+            if (launcher != null)
+            {
+                dashboard.putNumber(DBKEY_LAUNCHER_POS, launcher.getPosition());
+            }
         }
-
-        dashboard.putNumber(DBKEY_VEL1_RPM, shooter.getShooterMotor1RPM());
-
-        if (shooter.shooterMotor2 != null)
+        // The following entries need to be updated at fast rate for plotting graphs.
+        if (tuneSubsystemName != null)
         {
-            dashboard.putNumber(DBKEY_VEL2_RPM, shooter.getShooterMotor2RPM());
-        }
-
-        if (shooter.panMotor != null)
-        {
-            dashboard.putNumber(DBKEY_PAN_POS, shooter.getPanAngle());
-        }
-
-        if (shooter.tiltMotor != null)
-        {
-            dashboard.putNumber(DBKEY_TILT_POS, shooter.getTiltAngle());
-        }
-
-        if (launcher != null)
-        {
-            dashboard.putNumber(DBKEY_LAUNCHER_POS, launcher.getPosition());
+            if (tuneSubsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR1_NAME))
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getShooterMotor1RPM());
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter.getShooterMotor1TargetRPM());
+            }
+            else if (tuneSubsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getShooterMotor2RPM());
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter.getShooterMotor2TargetRPM());
+            }
+            else if (tuneSubsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getPanAngle());
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter.getPanAngleTarget());
+            }
+            else if (tuneSubsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getTiltAngle());
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter.getTiltAngleTarget());
+            }
         }
 
         return lineNum;
@@ -509,86 +525,70 @@ public class Shooter extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
         if (subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR1_NAME))
         {
-            if (nextValueUp != null)
-            {
-                if (nextValueUp)
-                {
-                    shooter1Velocity.upValue();
-                }
-                else
-                {
-                    shooter1Velocity.downValue();
-                }
-            }
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.shooter1PidCoeffs)
                     .setFFCoefficients(Params.shooter1FFCoeffs)
-                    .setPidControlParams(Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED)
-                    .setTuningParams(shooter1Velocity.getValue()));
+                    .setPidControlParams(Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED));
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter1Velocity.getValue());
         }
         else if (shooter.shooterMotor2 != null && subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
         {
-            if (nextValueUp != null)
-            {
-                if (nextValueUp)
-                {
-                    shooter2Velocity.upValue();
-                }
-                else
-                {
-                    shooter2Velocity.downValue();
-                }
-            }
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.shooter2PidCoeffs)
                     .setFFCoefficients(Params.shooter2FFCoeffs)
-                    .setPidControlParams(Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED)
-                    .setTuningParams(shooter2Velocity.getValue()));
+                    .setPidControlParams(Params.SHOOTER_PID_TOLERANCE, Params.SHOOTER_SOFTWARE_PID_ENABLED));
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter2Velocity.getValue());
         }
         else if (shooter.panMotor != null && subsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
         {
-            double currValue = shooter.panMotor.getPosition();
-            double paramValue = nextValueUp == null? currValue:
-                shooter.panMotor.getNextPresetPosition(currValue, nextValueUp);
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.panPidCoeffs)
-                    .setPidControlParams(Params.PAN_PID_TOLERANCE, Params.PAN_SOFTWARE_PID_ENABLED)
-                    .setTuningParams(paramValue));
+                    .setPidControlParams(Params.PAN_PID_TOLERANCE, Params.PAN_SOFTWARE_PID_ENABLED));
+
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.PAN_FRONT_POS);
+            }
         }
         else if (shooter.tiltMotor != null && subsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
         {
-            double currValue = shooter.tiltMotor.getPosition();
-            double paramValue = nextValueUp == null? currValue:
-                shooter.tiltMotor.getNextPresetPosition(currValue, nextValueUp);
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.tiltPidCoeffs)
-                    .setPidControlParams(Params.TILT_PID_TOLERANCE, Params.TILT_SOFTWARE_PID_ENABLED)
-                    .setTuningParams(paramValue));
+                    .setPidControlParams(Params.TILT_PID_TOLERANCE, Params.TILT_SOFTWARE_PID_ENABLED));
+
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TILT_MIN_POS);
+            }
         }
         else if (launcher != null && subsystemName.equalsIgnoreCase(Params.LAUNCHER_SERVO_NAME))
         {
-            double currValue = launcher.getPosition();
-            double paramValue = nextValueUp == null? currValue:
-                   nextValueUp? Params.LAUNCHER_LAUNCH_POS: Params.LAUNCHER_REST_POS;
-
-            FrcTest.testChoices.setSubsystemPidParameters(
-                new TrcMotor.PidParams().setTuningParams(paramValue));
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.LAUNCHER_REST_POS);
+            }
         }
     }   //updateParamsToDashboard
 
@@ -602,42 +602,133 @@ public class Shooter extends TrcSubsystem
     public void updateParamsFromDashboard(String subsystemName)
     {
         TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
-        boolean foundMatch = false;
 
+        tuneSubsystemName = null;
+        tuneTarget = null;
         if (subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR1_NAME))
         {
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.SHOOTER_DEF_VEL);
             shooter.shooterMotor1.setVelocityPidParameters(pidParams, null);
-            shooter.setShooterMotorRPM(pidParams.pidTarget, null);
-            foundMatch = true;
+            shooter1Velocity.setValue(tuneTarget);
+            shooter.setShooterMotorRPM(tuneTarget, null);
+            tuneSubsystemName = subsystemName;
         }
         else if (shooter.shooterMotor2 != null && subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
         {
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.SHOOTER_DEF_VEL);
             shooter.shooterMotor2.setVelocityPidParameters(pidParams, null);
-            shooter.setShooterMotorRPM(null, pidParams.pidTarget);
-            foundMatch = true;
+            shooter2Velocity.setValue(tuneTarget);
+            shooter.setShooterMotorRPM(null, tuneTarget);
+            tuneSubsystemName = subsystemName;
         }
         else if (shooter.panMotor != null && subsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
         {
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.PAN_FRONT_POS);
             shooter.panMotor.setPositionPidParameters(pidParams, null);
-            shooter.setPanAngle(pidParams.pidTarget);
-            foundMatch = true;
+            shooter.panMotor.setPosition(instanceName, 0.0, tuneTarget, true, null, null, 0.0);
+            tuneSubsystemName = subsystemName;
         }
         else if (shooter.tiltMotor != null && subsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
         {
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TILT_MIN_POS);
             shooter.tiltMotor.setPositionPidParameters(pidParams, null);
-            shooter.setTiltAngle(pidParams.pidTarget);
-            foundMatch = true;
+            shooter.tiltMotor.setPosition(instanceName, 0.0, tuneTarget, true, null, null, 0.0);
+            tuneSubsystemName = subsystemName;
         }
         else if (launcher != null && subsystemName.equalsIgnoreCase(Params.LAUNCHER_SERVO_NAME))
         {
-            launcher.setPosition(pidParams.pidTarget);
-            foundMatch = true;
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.LAUNCHER_REST_POS);
+            launcher.setPosition(tuneTarget);
+            tuneSubsystemName = subsystemName;
+            pidParams = null;
         }
 
-        if (foundMatch)
+        if (tuneTarget != null)
         {
-            shooter.tracer.traceInfo(instanceName, "Tune %s: target=%f", subsystemName, pidParams.pidTarget);
+            // Matched a subsystem name.
+            shooter.tracer.traceInfo(
+                instanceName, "Tune %s: pidParams=%s, target=%.3f", subsystemName, pidParams, tuneTarget);
         }
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        tuneTarget = null;
+        if (subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR1_NAME))
+        {
+            tuneTarget = shooter1Velocity.upValue();
+            shooter.setShooterMotorRPM(tuneTarget, null);
+        }
+        else if (shooter.shooterMotor2 != null && subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
+        {
+            tuneTarget = shooter2Velocity.upValue();
+            shooter.setShooterMotorRPM(null, tuneTarget);
+        }
+        else if (shooter.panMotor != null && subsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
+        {
+            tuneTarget = shooter.panMotor.presetPositionUp(null, null);
+        }
+        else if (shooter.tiltMotor != null && subsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
+        {
+            tuneTarget = shooter.tiltMotor.presetPositionUp(null, null);
+        }
+        else if (launcher != null && subsystemName.equalsIgnoreCase(Params.LAUNCHER_SERVO_NAME))
+        {
+            tuneTarget = Params.LAUNCHER_LAUNCH_POS;
+            launcher.setPosition(tuneTarget);
+        }
+
+        if (tuneTarget != null)
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            shooter.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        tuneTarget = null;
+        if (subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR1_NAME))
+        {
+            tuneTarget = shooter1Velocity.downValue();
+            shooter.setShooterMotorRPM(tuneTarget, null);
+        }
+        else if (shooter.shooterMotor2 != null && subsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
+        {
+            tuneTarget = shooter2Velocity.downValue();
+            shooter.setShooterMotorRPM(null, tuneTarget);
+        }
+        else if (shooter.panMotor != null && subsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
+        {
+            tuneTarget = shooter.panMotor.presetPositionDown(null, null);
+        }
+        else if (shooter.tiltMotor != null && subsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
+        {
+            tuneTarget = shooter.tiltMotor.presetPositionDown(null, null);
+        }
+        else if (launcher != null && subsystemName.equalsIgnoreCase(Params.LAUNCHER_SERVO_NAME))
+        {
+            tuneTarget = Params.LAUNCHER_REST_POS;
+            launcher.setPosition(tuneTarget);
+        }
+
+        if (tuneTarget != null)
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            shooter.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetDown
 
 }   //class Shooter

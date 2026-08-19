@@ -383,7 +383,7 @@ public class DriveBase extends TrcSubsystem
                         // CTRE expects CCW+ but we are CW+, invert steering to correct it.
                         // swerveBase.swerveModules[i].setSteerInverted(true);
                         // TrcDbgTrace.globalTraceDebug(
-                        //     moduleName, "%s: Setting ZeroOffset=%f", swerveInfo.steerEncoderZeros[i]);
+                        //     instanceName, "%s: Setting ZeroOffset=%f", swerveInfo.steerEncoderZeros[i]);
 
                     }
                 }
@@ -411,7 +411,7 @@ public class DriveBase extends TrcSubsystem
         if (statusCode != StatusCode.OK)
         {
             TrcDbgTrace.globalTraceWarn(
-                SUBSYSTEM_NAME,
+                instanceName,
                 swerveInfo.swerveModuleNames[index] + ": TalonFx.setPosition failed (code=" + statusCode +
                 ", pos=" + motorEncoderPos + ").");
         }
@@ -420,7 +420,7 @@ public class DriveBase extends TrcSubsystem
         if (Math.abs(motorEncoderPos - actualEncoderPos) > 0.1)
         {
             TrcDbgTrace.globalTraceWarn(
-                SUBSYSTEM_NAME,
+                instanceName,
                 swerveInfo.swerveModuleNames[index] +
                 ": Steer encoder out-of-sync (expected=" + motorEncoderPos + ", actual=" + actualEncoderPos + ")");
         }
@@ -601,12 +601,11 @@ public class DriveBase extends TrcSubsystem
      * This method is called to update subsystem parameter to the Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
+        // DriveBase doesn't support tuning.
     }   //updateParamsToDashboard
 
     /**
@@ -617,6 +616,29 @@ public class DriveBase extends TrcSubsystem
     @Override
     public void updateParamsFromDashboard(String subsystemName)
     {
+        // DriveBase doesn't support tuning.
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        // DriveBase doesn't support tuning.
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        // DriveBase doesn't support tuning.
+    }   //setNextTuneTargetDown
 
 }   //class RobotDrive

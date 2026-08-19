@@ -733,7 +733,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.upValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_SUBSYSTEM_TARGET_PARAM,
+                            FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET,
                             robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity up");
                     }
@@ -811,7 +811,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.shooterSubsystem.shooter1Velocity.downValue();
                         robot.dashboard.putNumber(
-                            FrcTest.DBKEY_SUBSYSTEM_TARGET_PARAM,
+                            FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET,
                             robot.shooterSubsystem.shooter1Velocity.getValue());
                         robot.globalTracer.traceInfo(moduleName, ">>>>> Shooter velocity down");
                     }

@@ -25,7 +25,6 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import teamcode.FrcTest;
-import trclib.motor.TrcMotor;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -55,7 +54,7 @@ public class ServoExtender extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcServo servo;
-    private double tuneLogicalPos = Params.POS_RETRACT;
+    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -252,20 +251,20 @@ public class ServoExtender extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            double currValue = servo.getPosition();
-
-            tuneLogicalPos = nextValueUp == null? currValue:
-                             nextValueUp? Params.POS_EXTEND: Params.POS_RETRACT;
-            FrcTest.testChoices.setSubsystemPidParameters(
-                new TrcMotor.PidParams().setTuningParams(tuneLogicalPos));
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
+            }
         }
     }   //updateParamsToDashboard
 
@@ -280,9 +279,42 @@ public class ServoExtender extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            servo.setPosition(tuneLogicalPos);
-            servo.tracer.traceInfo(instanceName, "Tune %s: LogicalPos=%f", subsystemName, tuneLogicalPos);
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
+            servo.setPosition(tuneTarget);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, tuneTarget);
         }
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+        {
+            tuneTarget = Params.POS_EXTEND;
+            servo.setPosition(tuneTarget);
+            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+        {
+            tuneTarget = Params.POS_RETRACT;
+            servo.setPosition(tuneTarget);
+            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetDown
 
 }   //class ServoExtender

@@ -48,6 +48,7 @@ public class CrServoArm extends TrcSubsystem
     public static final class Params
     {
         public static final MotorType MOTOR_TYPE                = MotorType.CRServo;
+
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final boolean PRIMARY_MOTOR_INVERTED      = false;
         public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = false;
@@ -87,6 +88,7 @@ public class CrServoArm extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
+    private Double tuneTarget = null;
     private Double tuneGravityCompPower = null;
 
     /**
@@ -177,7 +179,6 @@ public class CrServoArm extends TrcSubsystem
 
     private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //Number
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
-    private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
 
     /**
      * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
@@ -187,7 +188,6 @@ public class CrServoArm extends TrcSubsystem
     {
         dashboard.refreshKey(DBKEY_POWER, 0.0);
         dashboard.refreshKey(DBKEY_POS_INFO, "");
-        dashboard.refreshKey(DBKEY_POS, 0.0);
     }   //publishToDashboard
 
     /**
@@ -205,7 +205,9 @@ public class CrServoArm extends TrcSubsystem
             dashboard.putNumber(DBKEY_POWER, motor.getPower());
             dashboard.putString(DBKEY_POS_INFO, motor.getPosition() + "/" + motor.getPidTarget());
         }
-        dashboard.putNumber(DBKEY_POS, motor.getPosition());
+        // The following entries need to be updated at fast rate for plotting graphs.
+        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, motor.getPidTarget());
 
         return lineNum;
     }   //updateStatus
@@ -215,31 +217,35 @@ public class CrServoArm extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
-            double currValue = motor.getPosition();
-            double paramValue = nextValueUp == null? currValue:
-                motor.getNextPresetPosition(currValue, nextValueUp);
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
-                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED)
-                    .setTuningParams(paramValue));
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
 
-            if (tuneGravityCompPower == null)
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
+            }
+
+            if (tuneGravityCompPower != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
+            }
+            else
             {
                 tuneGravityCompPower = dashboard.getNumber(
                     FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             }
-            dashboard.putNumber(
-                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
         }
     }   //updateParamsToDashboard
 
@@ -256,11 +262,45 @@ public class CrServoArm extends TrcSubsystem
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
 
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
+            tuneGravityCompPower = dashboard.getNumber(
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             motor.setPositionPidParameters(pidParams, null);
+            motor.setPosition(tuneTarget);
             motor.tracer.traceInfo(
-                instanceName, "Tune %s: PidParams=%s, GravityPower=%.3f",
-                subsystemName, pidParams, tuneGravityCompPower);
+                instanceName, "Tune %s: PidParams=%s, target=%.3f, GravityPower=%.3f",
+                subsystemName, pidParams, tuneTarget, tuneGravityCompPower);
         }
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+        {
+            tuneTarget = motor.presetPositionUp(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+        {
+            tuneTarget = motor.presetPositionDown(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetDown
 
 }   //class CrServoArm

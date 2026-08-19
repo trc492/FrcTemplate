@@ -246,7 +246,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // Use vision distance to look up shooter parameters.
                     double aprilTagDistance = TrcUtil.magnitude(aprilTagPose.x, aprilTagPose.y);
                     TrcLookupTable.Entry shootParams =
-                        Shooter.Params.shootParamTable.get(aprilTagDistance, Interpolation.LinearInterpolation);
+                        Shooter.shootParamTable.get(aprilTagDistance, Interpolation.LinearInterpolation);
 
                     robot.shooter.aimShooter(
                         owner, shootParams.outputs[0], 0.0, aprilTagPose.angle, shootParams.region.value, event, 0.0,

@@ -65,15 +65,16 @@ public class Turret extends TrcSubsystem
 
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 325.0;
-        public static final double BACK                         = 0.0;
-        public static final double LEFT                         = 90.0;
-        public static final double FRONT                        = 180.0;
-        public static final double RIGHT                        = 270.0;
-        public static final double TURTLE_POS                   = FRONT;
+        public static final double BACK_POS                     = 0.0;
+        public static final double LEFT_POS                     = 90.0;
+        public static final double FRONT_POS                    = 180.0;
+        public static final double RIGHT_POS                    = 270.0;
+        public static final double TURTLE_POS                   = FRONT_POS;
         public static final double TURTLE_DELAY                 = 0.0;
 
         // Preset positions.
-        public static final double[] posPresets                 = new double[] {BACK, LEFT, FRONT, RIGHT};
+        public static final double[] posPresets                 =
+            new double[] {BACK_POS, LEFT_POS, FRONT_POS, RIGHT_POS};
         public static final double POS_PRESET_TOLERANCE         = 1.0;
 
         public static final boolean SOFTWARE_PID_ENABLED        = true;
@@ -84,6 +85,7 @@ public class Turret extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
+    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -155,8 +157,8 @@ public class Turret extends TrcSubsystem
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
 
-    private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //String
-    private static final String DBKEY_POSITION          = SUBSYSTEM_NAME + "/Position";     //String
+    private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwfInfo";      //String
+    private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
     private static final String DBKEY_LOWER_LIMIT       = SUBSYSTEM_NAME + "/LowerLimit";   //Boolean
 
     /**
@@ -165,8 +167,8 @@ public class Turret extends TrcSubsystem
     @Override
     public void publishToDashboard()
     {
-        dashboard.refreshKey(DBKEY_POWER, "");
-        dashboard.refreshKey(DBKEY_POSITION, "");
+        dashboard.refreshKey(DBKEY_PWR_INFO, "");
+        dashboard.refreshKey(DBKEY_POS_INFO, "");
         dashboard.refreshKey(DBKEY_LOWER_LIMIT, false);
     }   //publishToDashboard
 
@@ -182,10 +184,13 @@ public class Turret extends TrcSubsystem
     {
         if (slowLoop)
         {
-            dashboard.putString(DBKEY_POWER, motor.getPower() + "/" + motor.getCurrent());
-            dashboard.putString(DBKEY_POSITION, motor.getPosition() + "/" + motor.getPidTarget());
+            dashboard.putString(DBKEY_PWR_INFO, motor.getPower() + "/" + motor.getCurrent());
+            dashboard.putString(DBKEY_POS_INFO, motor.getPosition() + "/" + motor.getPidTarget());
             dashboard.putBoolean(DBKEY_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
         }
+        // The following entries need to be updated at fast rate for plotting graphs.
+        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, motor.getPidTarget());
 
         return lineNum;
     }   //updateStatus
@@ -195,23 +200,25 @@ public class Turret extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
-    public void updateParamsToDashboard(String subsystemName, Boolean nextValueUp)
+    public void updateParamsToDashboard(String subsystemName)
     {
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
-            double currValue = motor.getPosition();
-            double paramValue = nextValueUp == null? currValue:
-                motor.getNextPresetPosition(currValue, nextValueUp);
-
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
-                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED)
-                    .setTuningParams(paramValue));
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
+
+            if (tuneTarget != null)
+            {
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
+            }
+            else
+            {
+                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
+            }
         }
     }   //updateParamsToDashboard
 
@@ -227,11 +234,43 @@ public class Turret extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
-    
+
+            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
             motor.setPositionPidParameters(pidParams, null);
-            motor.setPosition(pidParams.pidTarget);
-            motor.tracer.traceInfo(instanceName, "Tune %s: PidParams=%s", subsystemName, pidParams);
+            motor.setPosition(tuneTarget);
+            motor.tracer.traceInfo(
+                instanceName, "Tune %s: PidParams=%s, target=%.3f", subsystemName, pidParams, tuneTarget);
         }
     }   //updateParamsFromDashboard
+
+    /**
+     * This method is called to set the next tune target up from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetUp(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
+        {
+            tuneTarget = motor.presetPositionUp(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetUp
+
+    /**
+     * This method is called to set the next tune target down from the current target.
+     *
+     * @param subsystemName specifies the name of the subsystem to update its tune target.
+     */
+    @Override
+    public void setNextTuneTargetDown(String subsystemName)
+    {
+        if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
+        {
+            tuneTarget = motor.presetPositionDown(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+        }
+    }   //setNextTuneTargetDown
 
 }   //class Turret
