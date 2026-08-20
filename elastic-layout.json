@@ -541,7 +541,7 @@
             "x": 0.0,
             "y": 0.0,
             "width": 256.0,
-            "height": 768.0,
+            "height": 640.0,
             "type": "List Layout",
             "properties": {
               "label_position": "TOP"
@@ -657,41 +657,13 @@
                   "period": 0.06,
                   "data_type": "boolean"
                 }
-              },
-              {
-                "title": "SubsystemTargetParam",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemTargetParam",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
-              },
-              {
-                "title": "SubsystemGravityPower",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/Test/SubsystemGravityPower",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": true
-                }
               }
             ]
           },
           {
             "title": "Feed Forward",
             "x": 256.0,
-            "y": 0.0,
+            "y": 128.0,
             "width": 256.0,
             "height": 256.0,
             "type": "List Layout",
@@ -744,7 +716,86 @@
             ]
           }
         ],
-        "containers": []
+        "containers": [
+          {
+            "title": "SubsystemTuneInput",
+            "x": 256.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/SubsystemTuneInput",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "SubsystemTuneTarget",
+            "x": 256.0,
+            "y": 384.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/SubsystemTuneTarget",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "SubsystemTuneInput",
+            "x": 512.0,
+            "y": 0.0,
+            "width": 896.0,
+            "height": 256.0,
+            "type": "Graph",
+            "properties": {
+              "topic": "/SmartDashboard/Test/SubsystemTuneInput",
+              "period": 0.033,
+              "data_type": "double",
+              "time_displayed": 5.0,
+              "min_value": 0.0,
+              "max_value": 8000.0,
+              "color": 4278238420,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "SubsystemTuneTarget",
+            "x": 512.0,
+            "y": 384.0,
+            "width": 896.0,
+            "height": 256.0,
+            "type": "Graph",
+            "properties": {
+              "topic": "/SmartDashboard/Test/SubsystemTuneTarget",
+              "period": 0.033,
+              "data_type": "double",
+              "time_displayed": 5.0,
+              "min_value": 0.0,
+              "max_value": 8000.0,
+              "color": 4278238420,
+              "line_width": 2.0
+            }
+          },
+          {
+            "title": "SubsystemGravityPower",
+            "x": 256.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Test/SubsystemGravityPower",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          }
+        ]
       }
     },
     {
@@ -1080,6 +1131,20 @@
                 }
               },
               {
+                "title": "SensorValue",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/ServoClaw/SensorValue",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
                 "title": "IsClosed",
                 "x": 0.0,
                 "y": 0.0,
@@ -1094,20 +1159,6 @@
                   "false_color": 4294198070,
                   "true_icon": "None",
                   "false_icon": "None"
-                }
-              },
-              {
-                "title": "SensorValue",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 128.0,
-                "height": 128.0,
-                "type": "Text Display",
-                "properties": {
-                  "topic": "/SmartDashboard/ServoClaw/SensorValue",
-                  "period": 0.06,
-                  "data_type": "double",
-                  "show_submit_button": false
                 }
               }
             ]

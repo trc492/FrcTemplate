@@ -85,8 +85,8 @@ public class FrcTest extends FrcTeleOp
     private static final String DBKEY_SUBSYSTEM_KV          = DBKEY_PREFIX + "SubsystemKv";             //Number
     private static final String DBKEY_SUBSYSTEM_KA          = DBKEY_PREFIX + "SubsystemKa";             //Number
     public static final String DBKEY_SUBSYSTEM_GRAVITY_POWER= DBKEY_PREFIX + "SubsystemGravityPower";   //Number
-    public static final String DBKEY_SUBSYSTEM_TUNE_INPUT   = DBKEY_PREFIX + "TuneInput";               //Number
-    public static final String DBKEY_SUBSYSTEM_TUNE_TARGET  = DBKEY_PREFIX + "TuneTarget";              //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_INPUT   = DBKEY_PREFIX + "SubsystemTuneInput";      //Number
+    public static final String DBKEY_SUBSYSTEM_TUNE_TARGET  = DBKEY_PREFIX + "SubsystemTuneTarget";     //Number
     // Shoot Table tuning.
     private static final String DBKEY_SHOOT_DISTANCE        = DBKEY_PREFIX + "ShootDistance";           //Number
     private static final String DBKEY_SHOOT_VELOCITY        = DBKEY_PREFIX + "ShootVelocity";           //Number
@@ -793,7 +793,7 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case A:
-                if (test == Test.TuneShootTable && robot.shooterSubsystem != null)
+                if (robot.shooterSubsystem != null && test == Test.TuneShootTable)
                 {
                     if (pressed)
                     {
@@ -855,6 +855,11 @@ public class FrcTest extends FrcTeleOp
             case DpadLeft:
             case DpadRight:
             case Back:
+                if (pressed)
+                {
+                    robot.cancelAll();
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel All Subsystems.");
+                }
                 break;
 
             case Start:

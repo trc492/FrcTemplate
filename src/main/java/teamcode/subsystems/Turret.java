@@ -85,7 +85,6 @@ public class Turret extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
-    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -190,7 +189,6 @@ public class Turret extends TrcSubsystem
         }
         // The following entries need to be updated at fast rate for plotting graphs.
         dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
-        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, motor.getPidTarget());
 
         return lineNum;
     }   //updateStatus
@@ -210,15 +208,7 @@ public class Turret extends TrcSubsystem
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
                     .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
-
-            if (tuneTarget != null)
-            {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
-            }
-            else
-            {
-                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
-            }
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
         }
     }   //updateParamsToDashboard
 
@@ -234,12 +224,12 @@ public class Turret extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
+            double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
 
-            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
             motor.setPositionPidParameters(pidParams, null);
-            motor.setPosition(tuneTarget);
+            motor.setPosition(target);
             motor.tracer.traceInfo(
-                instanceName, "Tune %s: PidParams=%s, target=%.3f", subsystemName, pidParams, tuneTarget);
+                instanceName, "Tune %s: PidParams=%s, target=%.3f", subsystemName, pidParams, target);
         }
     }   //updateParamsFromDashboard
 
@@ -253,8 +243,8 @@ public class Turret extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
-            tuneTarget = motor.presetPositionUp(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+            double target = motor.presetPositionUp(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetUp
 
@@ -268,8 +258,8 @@ public class Turret extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
-            tuneTarget = motor.presetPositionDown(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+            double target = motor.presetPositionDown(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetDown
 

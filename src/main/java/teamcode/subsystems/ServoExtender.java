@@ -54,7 +54,6 @@ public class ServoExtender extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcServo servo;
-    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -257,14 +256,7 @@ public class ServoExtender extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            if (tuneTarget != null)
-            {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
-            }
-            else
-            {
-                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
-            }
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
         }
     }   //updateParamsToDashboard
 
@@ -279,9 +271,9 @@ public class ServoExtender extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
-            servo.setPosition(tuneTarget);
-            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, tuneTarget);
+            double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.POS_RETRACT);
+            servo.setPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
 
@@ -295,9 +287,9 @@ public class ServoExtender extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = Params.POS_EXTEND;
-            servo.setPosition(tuneTarget);
-            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+            double target = Params.POS_EXTEND;
+            servo.setPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetUp
 
@@ -311,9 +303,9 @@ public class ServoExtender extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = Params.POS_RETRACT;
-            servo.setPosition(tuneTarget);
-            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+            double target = Params.POS_RETRACT;
+            servo.setPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetDown
 

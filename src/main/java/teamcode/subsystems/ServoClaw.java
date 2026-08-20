@@ -73,7 +73,6 @@ public class ServoClaw extends TrcSubsystem
     private final FrcDashboard dashboard;
     // private final Rev2mDistanceSensor analogSensor;
     private final TrcServoClaw claw;
-    private Double tuneTarget = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -235,14 +234,7 @@ public class ServoClaw extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            if (tuneTarget != null)
-            {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
-            }
-            else
-            {
-                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.OPEN_POS);
-            }
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.OPEN_POS);
         }
     }   //updateParamsToDashboard
 
@@ -257,9 +249,9 @@ public class ServoClaw extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.OPEN_POS);
-            claw.setPosition(null, 0.0, tuneTarget, null, 0.0);
-            claw.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, tuneTarget);
+            double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.OPEN_POS);
+            claw.setPosition(null, 0.0, target, null, 0.0);
+            claw.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
 
@@ -273,9 +265,9 @@ public class ServoClaw extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = Params.OPEN_POS;
-            claw.setPosition(null, 0.0, tuneTarget, null, 0.0);
-            claw.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+            double target = Params.OPEN_POS;
+            claw.setPosition(null, 0.0, target, null, 0.0);
+            claw.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetUp
 
@@ -289,9 +281,9 @@ public class ServoClaw extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
         {
-            tuneTarget = Params.CLOSE_POS;
-            claw.setPosition(null, 0.0, tuneTarget, null, 0.0);
-            claw.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+            double target = Params.CLOSE_POS;
+            claw.setPosition(null, 0.0, target, null, 0.0);
+            claw.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetDown
 

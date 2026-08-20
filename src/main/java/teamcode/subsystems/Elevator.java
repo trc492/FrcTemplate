@@ -94,7 +94,6 @@ public class Elevator extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
-    private Double tuneTarget = null;
     private Double tuneGravityCompPower = null;
 
     /**
@@ -248,7 +247,6 @@ public class Elevator extends TrcSubsystem
         }
         // The following entries need to be updated at fast rate for plotting graphs.
         dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
-        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, motor.getPidTarget());
 
         return lineNum;
     }   //updateStatus
@@ -268,25 +266,8 @@ public class Elevator extends TrcSubsystem
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
                     .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
-
-            if (tuneTarget != null)
-            {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, tuneTarget);
-            }
-            else
-            {
-                tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
-            }
-
-            if (tuneGravityCompPower != null)
-            {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, tuneGravityCompPower);
-            }
-            else
-            {
-                tuneGravityCompPower = dashboard.getNumber(
-                    FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
-            }
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
         }
     }   //updateParamsToDashboard
 
@@ -302,15 +283,15 @@ public class Elevator extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
+            double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
 
-            tuneTarget = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
             tuneGravityCompPower = dashboard.getNumber(
                 FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
             motor.setPositionPidParameters(pidParams, null);
-            motor.setPosition(tuneTarget);
+            motor.setPosition(target);
             motor.tracer.traceInfo(
                 instanceName, "Tune %s: PidParams=%s, target=%.3f, GravityPower=%.3f",
-                subsystemName, pidParams, tuneTarget, tuneGravityCompPower);
+                subsystemName, pidParams, target, tuneGravityCompPower);
         }
     }   //updateParamsFromDashboard
 
@@ -324,8 +305,8 @@ public class Elevator extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
-            tuneTarget = motor.presetPositionUp(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, tuneTarget);
+            double target = motor.presetPositionUp(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetUp
 
@@ -339,8 +320,8 @@ public class Elevator extends TrcSubsystem
     {
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
-            tuneTarget = motor.presetPositionDown(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, tuneTarget);
+            double target = motor.presetPositionDown(null, null);
+            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetDown
 
