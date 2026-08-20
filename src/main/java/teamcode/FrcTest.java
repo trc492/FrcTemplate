@@ -854,6 +854,8 @@ public class FrcTest extends FrcTeleOp
 
             case DpadLeft:
             case DpadRight:
+                break;
+
             case Back:
                 if (pressed)
                 {
