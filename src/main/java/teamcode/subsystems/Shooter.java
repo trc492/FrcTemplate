@@ -79,12 +79,12 @@ public class Shooter extends TrcSubsystem
         public static final boolean SHOOTER_SOFTWARE_PID_ENABLED= true;
 
         public static final TrcPidController.PidCoefficients shooter1PidCoeffs =
-            new TrcPidController.PidCoefficients(0.01, 0.0, 0.0, 0.008, 0.0);
+            new TrcPidController.PidCoefficients(0.02, 0.0, 0.0, 0.0085, 0.0);
         public static final TrcPidController.FFCoefficients shooter1FFCoeffs =
             new TrcPidController.FFCoefficients(0.0, 0.0, 0.0);
 
         public static final TrcPidController.PidCoefficients shooter2PidCoeffs =
-            new TrcPidController.PidCoefficients(0.075, 0.0, 0.0, 0.008, 0.0);
+            new TrcPidController.PidCoefficients(0.02, 0.0, 0.0, 0.0085, 0.0);
         public static final TrcPidController.FFCoefficients shooter2FFCoeffs =
             new TrcPidController.FFCoefficients(0.0, 0.008, 0.0);
 
@@ -103,8 +103,6 @@ public class Shooter extends TrcSubsystem
         public static final String PAN_MOTOR_NAME               = SUBSYSTEM_NAME + ".panMotor";
         public static final int PAN_MOTOR_ID                    = 14;
         public static final MotorType PAN_MOTOR_TYPE            = MotorType.CanTalonSrx;
-        public static final boolean PAN_MOTOR_BRUSHLESS         = false;
-        public static final boolean PAN_MOTOR_ENC_ABS           = false;
         public static final boolean PAN_MOTOR_INVERTED          = false;
 
         public static final double PAN_ZERO_CAL_POWER           = -0.2;
@@ -129,8 +127,6 @@ public class Shooter extends TrcSubsystem
         public static final String TILT_MOTOR_NAME              = SUBSYSTEM_NAME + ".tiltMotor";
         public static final int TILT_MOTOR_ID                   = 16;
         public static final MotorType TILT_MOTOR_TYPE           = MotorType.CanTalonSrx;
-        public static final boolean TILT_MOTOR_BRUSHLESS        = false;
-        public static final boolean TILT_MOTOR_ENC_ABS          = false;
         public static final boolean TILT_MOTOR_INVERTED         = false;
 
         public static final double TILT_DEG_PER_COUNT           = 1.0;
