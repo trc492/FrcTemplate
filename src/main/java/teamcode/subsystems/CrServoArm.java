@@ -52,13 +52,11 @@ public class CrServoArm extends TrcSubsystem
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final boolean PRIMARY_MOTOR_INVERTED      = false;
         public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = false;
-        public static final boolean PRIMARY_MOTOR_BRAKE_ENABLED = false;
+        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = null;
         public static final int PRIMARY_MOTOR_CHANNEL           = 0;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
-        public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = false;
-        public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED = false;
         public static final int FOLLOWER_MOTOR_CHANNEL          = 1;
 
         public static final String ABSENC_NAME                  = SUBSYSTEM_NAME + ".absEnc";
