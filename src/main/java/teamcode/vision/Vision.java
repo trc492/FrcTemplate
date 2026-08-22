@@ -83,7 +83,6 @@ public class Vision
         {
             pipelineIndex = value;
         }
-
     }   //enum PipelineType
 
     private final TrcDbgTrace tracer;
@@ -413,18 +412,6 @@ public class Vision
 
         return closestAprilTagPose.clone();
     }   //getClosestAprilTagPose
-
-    // private final FrcUserChoices visionChoices = new FrcUserChoices();
-
-    // /**
-    //  * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
-    //  */
-    // private void publishToDashboard()
-    // {
-    //     visionChoices.addChoiceMenu(DBKEY_CAM1_PIPELINES, cam1PipelineMenu);
-    //     visionChoices.addChoiceMenu(DBKEY_CAM2_PIPELINES, cam1PipelineMenu);
-
-    // }   //publishToDashboard
 
     /**
      * This method update the dashboard with vision status.
