@@ -77,6 +77,7 @@ public class RobotParams
         // Other Subsystems
         public static final boolean useMotorArm                 = false;
         public static final boolean useCrServoArm               = false;
+        public static final boolean useTelescopeArm             = false;
         public static final boolean useElevator                 = false;
         public static final boolean useTurret                   = false;
         public static final boolean useIntake                   = false;
