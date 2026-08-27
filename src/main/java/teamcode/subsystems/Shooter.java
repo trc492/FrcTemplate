@@ -494,15 +494,15 @@ public class Shooter extends TrcSubsystem
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getShooterMotor1RPM());
             }
-            else if (tuneSubsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
+            else if (shooter.shooterMotor2 != null && tuneSubsystemName.equalsIgnoreCase(Params.SHOOTER_MOTOR2_NAME))
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getShooterMotor2RPM());
             }
-            else if (tuneSubsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
+            else if (shooter.panMotor != null && tuneSubsystemName.equalsIgnoreCase(Params.PAN_MOTOR_NAME))
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getPanAngle());
             }
-            else if (tuneSubsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
+            else if (shooter.tiltMotor != null && tuneSubsystemName.equalsIgnoreCase(Params.TILT_MOTOR_NAME))
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, shooter.getTiltAngle());
             }

@@ -31,6 +31,7 @@ import teamcode.subsystems.Elevator;
 import teamcode.subsystems.Intake;
 import teamcode.subsystems.MotorArm;
 import teamcode.subsystems.Shooter;
+import teamcode.subsystems.TelescopeArm;
 import teamcode.subsystems.Turret;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
@@ -84,6 +85,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     private double prevMotorArmPower = 0.0;
     private double prevServoArmPower = 0.0;
+    private double prevTelescopePower = 0.0;
+    private double prevTelescopeTilterPower = 0.0;
     private double prevElevatorPower = 0.0;
     private double prevTurretPower = 0.0;
     private double prevDiffyWristTiltPower = 0.0;
@@ -315,6 +318,47 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                     CrServoArm.Params.MAX_POS, true);
                             }
                             prevServoArmPower = armPower;
+                        }
+                    }
+                    else if (robot.telescopeArm != null)
+                    {
+                        double telescopePower = robot.driverController.getLeftStickY(true);
+                        if (telescopePower != prevTelescopePower)
+                        {
+                            if (driverAltFunc)
+                            {
+                                // Manual override.
+                                robot.telescopeArm.telescope.setPower(telescopePower);
+                            }
+                            else
+                            {
+                                robot.telescopeArm.telescope.setPidPower(
+                                    telescopePower, TelescopeArm.Params.TELESCOPE_POWER_LIMIT,
+                                    TelescopeArm.Params.TELESCOPE_MIN_POS, TelescopeArm.Params.TELESCOPE_MAX_POS,
+                                    true);
+                            }
+                            prevTelescopePower = telescopePower;
+                        }
+
+                        if (robot.telescopeArm.tilter != null)
+                        {
+                            double tilterPower = robot.driverController.getRightStickY(true);
+                            if (tilterPower != prevTelescopeTilterPower)
+                            {
+                                if (driverAltFunc)
+                                {
+                                    // Manual override.
+                                    robot.telescopeArm.tilter.setPower(tilterPower);
+                                }
+                                else
+                                {
+                                    robot.telescopeArm.tilter.setPidPower(
+                                        tilterPower, TelescopeArm.Params.TILTER_POWER_LIMIT,
+                                        TelescopeArm.Params.TILTER_MIN_POS, TelescopeArm.Params.TILTER_MAX_POS,
+                                        true);
+                                }
+                                prevTelescopeTilterPower = tilterPower;
+                            }
                         }
                     }
                     else if (robot.elevator != null)
@@ -679,6 +723,27 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position up");
                     }
                 }
+                else if (robot.telescopeArm != null)
+                {
+                    if (pressed)
+                    {
+                        if (driverAltFunc)
+                        {
+                            if (robot.telescopeArm.tilter != null)
+                            {
+                                robot.telescopeArm.tilter.presetPositionUp(
+                                    null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope tilter position up");
+                            }
+                        }
+                        else
+                        {
+                            robot.telescopeArm.telescope.presetPositionUp(
+                                null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope position up");
+                        }
+                    }
+                }
                 else if (robot.elevator != null)
                 {
                     if (pressed)
@@ -755,6 +820,27 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.crServoArm.presetPositionDown(null, CrServoArm.Params.POWER_LIMIT);
                         robot.globalTracer.traceInfo(moduleName, ">>>>> CrServoArm position down");
+                    }
+                }
+                else if (robot.telescopeArm != null)
+                {
+                    if (pressed)
+                    {
+                        if (driverAltFunc)
+                        {
+                            if (robot.telescopeArm.tilter != null)
+                            {
+                                robot.telescopeArm.tilter.presetPositionDown(
+                                    null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope tilter position down");
+                            }
+                        }
+                        else
+                        {
+                            robot.telescopeArm.telescope.presetPositionDown(
+                                null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                            robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope position down");
+                        }
                     }
                 }
                 else if (robot.elevator != null)

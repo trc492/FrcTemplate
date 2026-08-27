@@ -66,6 +66,7 @@ import teamcode.subsystems.ServoClaw;
 import teamcode.subsystems.ServoExtender;
 import teamcode.subsystems.ServoWrist;
 import teamcode.subsystems.Shooter;
+import teamcode.subsystems.TelescopeArm;
 import teamcode.subsystems.Turret;
 import teamcode.vision.Vision;
 import trclib.drivebase.TrcDriveBase.DriveOrientation;
@@ -123,8 +124,8 @@ public class Robot extends FrcRobot
     // Vision.
     public Vision vision;
     public boolean hasVisionPoseEstimator = false;
+    private RelocalizationMode relocalizationMode = RelocalizationMode.Disabled;
     public TrcVisionRelocalize trcVisionRelocalize = null;
-    private RelocalizationMode relocalizationMode = RelocalizationMode.Continuous;
     // Miscellaneous
     private boolean zeroCalibrated = false;
     // Hybrid mode objects.
@@ -136,6 +137,7 @@ public class Robot extends FrcRobot
     public TrcMotor motorArm;
     public CrServoArm crServoArmSubsystem;
     public TrcMotor crServoArm;
+    public TelescopeArm telescopeArm;
     public Elevator elevatorSubsystem;
     public TrcMotor elevator;
     public Turret turretSubsystem;
@@ -274,6 +276,11 @@ public class Robot extends FrcRobot
                 {
                     crServoArmSubsystem = new CrServoArm();
                     crServoArm = crServoArmSubsystem.getMotor();
+                }
+
+                if (RobotParams.Preferences.useTelescopeArm)
+                {
+                    telescopeArm = new TelescopeArm();
                 }
 
                 if (RobotParams.Preferences.useElevator)
@@ -577,7 +584,7 @@ public class Robot extends FrcRobot
     }   //zeroCalibrate
 
     /**
-     * This method retracts all appendages for robot high speed travelling.
+     * This method retracts all appendages for robot high speed traveling.
      */
     public void turtle()
     {
@@ -663,7 +670,7 @@ public class Robot extends FrcRobot
     {
         boolean seenAprilTag = false;
 
-        if (vision != null&&
+        if (vision != null &&
             dashboard.getBoolean(Vision.DBKEY_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled))
         {
             if (hasVisionPoseEstimator)
@@ -673,11 +680,11 @@ public class Robot extends FrcRobot
             }
             else if (trcVisionRelocalize != null)
             {
-                DetectedObject aprilTagObj = vision.getBestDetectedAprilTag(null, null);
-                double fpgaTime = Timer.getFPGATimestamp();
                 TrcPose2D robotPose = robotBase.driveBase.getFieldPosition();
-
+                double fpgaTime = Timer.getFPGATimestamp();
                 trcVisionRelocalize.addTimedPose(fpgaTime, robotPose);
+                DetectedObject aprilTagObj = vision.getBestDetectedAprilTag(null, null);
+
                 if (aprilTagObj != null)
                 {
                     seenAprilTag = true;
@@ -707,9 +714,9 @@ public class Robot extends FrcRobot
     }   //relocalizeRobot
 
     /**
-     * This method enables/disables background relocalization.
+     * This method sets the relocalization mode.
      *
-     * @param enabled specifies true to enable background relocalization, false to disable.
+     * @param relocalizationMode specifies the relocalization mode.
      */
     public void setRelocalizationMode(RelocalizationMode relocalizationMode)
     {

@@ -56,7 +56,7 @@ import trclib.subsystem.TrcSubsystem;
 public class DriveBase extends TrcSubsystem
 {
     public static final String SUBSYSTEM_NAME = "DriveBase";
-    private static final boolean NEED_ZERO_CAL = true;
+    private static final boolean NEED_ZERO_CAL = false;
 
     /**
      * When the season starts, the competition robot may not be ready for programmers. It's crucial to save time by
@@ -280,7 +280,6 @@ public class DriveBase extends TrcSubsystem
     public DriveBase()
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
-
         dashboard = FrcDashboard.getInstance();
         switch (RobotParams.Preferences.robotType)
         {
