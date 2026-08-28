@@ -145,7 +145,7 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                     {
                         robot.globalTracer.traceInfo(moduleName, "***** Do delay " + autoChoices.startDelay + "s.");
                         timer.set(autoChoices.startDelay, event);
-                        sm.waitForSingleEvent(event, State.SCORE_PRELOAD);
+                        sm.waitForEvents(State.SCORE_PRELOAD, event);
                     }
                     else
                     {
@@ -157,7 +157,7 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                     if (autoChoices.scorePreload)
                     {
                         robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, null);
-                        sm.waitForSingleEvent(event, State.GOTO_RING_POS);
+                        sm.waitForEvents(State.GOTO_RING_POS, event);
                     }
                     else
                     {
@@ -169,22 +169,22 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                     robot.robotBase.purePursuitDrive.start(
                         event, 0.0, false, null,
                         robot.adjustPoseByAlliance(autoChoices.alliance, RobotParams.Game.BLUE_PICKUP_RING_POSE));
-                    sm.waitForSingleEvent(event, State.PICKUP_RING);
+                    sm.waitForEvents(State.PICKUP_RING, event);
                     break;
 
                 case PICKUP_RING:
                     robot.autoPickupTask.autoPickup(null, event, autoChoices.alliance, autoChoices.useVision);
-                    sm.waitForSingleEvent(event, State.GOTO_START_POS);
+                    sm.waitForEvents(State.GOTO_START_POS, event);
                     break;
 
                 case GOTO_START_POS:
                     robot.robotBase.purePursuitDrive.start(event, 0.0, false, null, startPose);
-                    sm.waitForSingleEvent(event, State.SCORE_RING);
+                    sm.waitForEvents(State.SCORE_RING, event);
                     break;
 
                 case SCORE_RING:
                     robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, null);
-                    sm.waitForSingleEvent(event, State.DONE);
+                    sm.waitForEvents(State.DONE, event);
                     break;
             
                 case DONE:

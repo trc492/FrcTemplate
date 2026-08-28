@@ -298,7 +298,7 @@ public class TelescopeArm extends TrcSubsystem
 
         if (completionEvent != null && (telescopeEvent != null || tilterEvent != null))
         {
-            completionEvent.signalOnMultipleEvents(true, false, telescopeEvent, tilterEvent, timeoutEvent);
+            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent, timeoutEvent);
         }
     }   //setPosition
 
@@ -341,7 +341,7 @@ public class TelescopeArm extends TrcSubsystem
 
         if (completionEvent != null)
         {
-            completionEvent.signalOnMultipleEvents(true, false, telescopeEvent, tilterEvent);
+            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent);
         }
     }   //zeroCalibrate
 

@@ -129,7 +129,7 @@ public class CmdAuto implements TrcRobot.RobotCommand
                     {
                         robot.globalTracer.traceInfo(moduleName, "***** Do delay " + startDelay + "s.");
                         timer.set(startDelay, event);
-                        sm.waitForSingleEvent(event, State.DONE);
+                        sm.waitForEvents(State.DONE, event);
                     }
                     else
                     {

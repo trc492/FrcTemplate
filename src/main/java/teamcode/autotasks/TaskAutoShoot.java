@@ -265,7 +265,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     tracer.traceInfo(
                         moduleName, "***** ManualShoot: shooterVel=" + shooterVel + " RPM");
                 }
-                sm.waitForSingleEvent(event, State.DONE);
+                sm.waitForEvents(State.DONE, event);
                 break;
 
             case DONE:

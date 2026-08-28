@@ -247,16 +247,16 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
                 break;
 
             case PICKUP_OBJ:
+                TrcEvent ppEvent = null;
                 robot.intake.autoIntake(owner, pickupEvent, 0.0);
-                sm.addEvent(pickupEvent);
                 tracer.traceInfo(moduleName, "***** AutoIntakeForward");
                 if (objPose != null && robot.robotBase != null)
                 {
+                    ppEvent = driveEvent;
                     robot.robotBase.purePursuitDrive.start(owner, driveEvent, 0.0, true, null, objPose);
-                    sm.addEvent(driveEvent);
                     tracer.traceInfo(moduleName, "***** Drive to object at " + objPose);
                 }
-                sm.waitForEvents(State.DONE, false);
+                sm.waitForEvents(State.DONE, false, pickupEvent, ppEvent);
                 break;
 
             case DONE:
