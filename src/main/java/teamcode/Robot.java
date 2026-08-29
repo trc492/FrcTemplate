@@ -105,8 +105,8 @@ public class Robot extends FrcRobot
     // Vision.
     public Vision vision;
     public boolean hasVisionPoseEstimator = false;
+    private RelocalizationMode relocalizationMode = RelocalizationMode.Disabled;
     public TrcVisionRelocalize trcVisionRelocalize = null;
-    private RelocalizationMode relocalizationMode = RelocalizationMode.Continuous;
     // Miscellaneous
     private boolean zeroCalibrated = false;
     // Hybrid mode objects.
@@ -463,7 +463,7 @@ public class Robot extends FrcRobot
     }   //zeroCalibrate
 
     /**
-     * This method retracts all appendages for robot high speed travelling.
+     * This method retracts all appendages for robot high speed traveling.
      */
     public void turtle()
     {
@@ -559,11 +559,11 @@ public class Robot extends FrcRobot
             }
             else if (trcVisionRelocalize != null)
             {
-                DetectedObject aprilTagObj = vision.getBestDetectedAprilTag(null, null);
-                double fpgaTime = Timer.getFPGATimestamp();
                 TrcPose2D robotPose = robotBase.driveBase.getFieldPosition();
-
+                double fpgaTime = Timer.getFPGATimestamp();
                 trcVisionRelocalize.addTimedPose(fpgaTime, robotPose);
+                DetectedObject aprilTagObj = vision.getBestDetectedAprilTag(null, null);
+
                 if (aprilTagObj != null)
                 {
                     seenAprilTag = true;
@@ -593,9 +593,9 @@ public class Robot extends FrcRobot
     }   //relocalizeRobot
 
     /**
-     * This method enables/disables background relocalization.
+     * This method sets the relocalization mode.
      *
-     * @param enabled specifies true to enable background relocalization, false to disable.
+     * @param relocalizationMode specifies the relocalization mode.
      */
     public void setRelocalizationMode(RelocalizationMode relocalizationMode)
     {
