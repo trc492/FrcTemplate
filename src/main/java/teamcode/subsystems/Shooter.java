@@ -312,6 +312,11 @@ public class Shooter extends TrcSubsystem
      */
     public void shoot(String owner, TrcEvent completionEvent, Object context)
     {
+        if (completionEvent != null)
+        {
+            completionEvent.clear();
+        }
+
         if (launcher != null)
         {
             TrcDbgTrace.globalTraceInfo(instanceName, "shoot(owner=" + owner + ", event=" + completionEvent + ")");
