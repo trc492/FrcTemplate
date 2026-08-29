@@ -293,14 +293,32 @@ public class TelescopeArm extends TrcSubsystem
         if (timeout > 0.0 && (telescopeEvent != null || tilterEvent != null))
         {
             timeoutEvent = new TrcEvent(SUBSYSTEM_NAME + ".timeoutEvent");
+            timeoutEvent.setCallback(this::handleTimeout, null);
             timer.set(TrcTimer.getCurrentTime() + timeout, timeoutEvent);
         }
 
         if (completionEvent != null && (telescopeEvent != null || tilterEvent != null))
         {
-            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent, timeoutEvent);
+            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent);
         }
     }   //setPosition
+
+    /**
+     * This method is called when the setPosition operation is timed out.
+     *
+     * @param context not used.
+     * @param canceled not used.
+     */
+    private void handleTimeout(Object context, boolean canceled)
+    {
+        // By canceling both the telescope and the tilter, it will cause telescopeEvent and tilterEvent to be canceled
+        // as well. That in turn will cause completionEvent to be canceled.
+        telescope.cancel();
+        if (tilter != null)
+        {
+            tilter.cancel();
+        }
+    }   //handleTimeout
 
     //
     // Implements TrcSubsystem abstract methods.
@@ -314,7 +332,10 @@ public class TelescopeArm extends TrcSubsystem
     {
         timer.cancel();
         telescope.cancel();
-        if (tilter != null) tilter.cancel();
+        if (tilter != null)
+        {
+            tilter.cancel();
+        }
     }   //cancel
 
    /**
@@ -568,4 +589,4 @@ public class TelescopeArm extends TrcSubsystem
         }
     }   //setNextTuneTargetDown
 
-}   //class MotorArm
+}   //class TelescopeArm
