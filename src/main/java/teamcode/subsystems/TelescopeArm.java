@@ -49,9 +49,9 @@ public class TelescopeArm extends TrcSubsystem
         public static final boolean TELESCOPE_HAS_LOWER_LIMIT_SW= false;
         public static final boolean TELESCOPE_HAS_UPPER_LIMIT_SW= false;
 
-        public static final boolean HAS_TILTER                  = false;
-        public static final boolean TILTER_HAS_LOWER_LIMIT_SW   = false;
-        public static final boolean TILTER_HAS_UPPER_LIMIT_SW   = false;
+        public static final boolean HAS_ELBOW                   = false;
+        public static final boolean ELBOW_HAS_LOWER_LIMIT_SW    = false;
+        public static final boolean ELBOW_HAS_UPPER_LIMIT_SW    = false;
 
         // Telescope Parameters.
         public static final MotorType TELESCOPE_MOTOR_TYPE      = MotorType.CanTalonSrx;
@@ -92,52 +92,52 @@ public class TelescopeArm extends TrcSubsystem
         public static final double TELESCOPE_STALL_TIMEOUT      = 0.1;
         public static final double TELESCOPE_STALL_RESET_TIMEOUT= 0.0;
 
-        // Tilter Parameters.
-        public static final MotorType TILTER_MOTOR_TYPE         = MotorType.CanTalonSrx;
-        public static final String TILTER_MOTOR_NAME            = SUBSYSTEM_NAME + ".tilterMotor";
-        public static final int TILTER_MOTOR_ID                 = 12;
-        public static final boolean TILTER_MOTOR_INVERTED       = true;
+        // Elbow Parameters.
+        public static final MotorType ELBOW_MOTOR_TYPE          = MotorType.CanTalonSrx;
+        public static final String ELBOW_MOTOR_NAME             = SUBSYSTEM_NAME + ".elbowMotor";
+        public static final int ELBOW_MOTOR_ID                  = 12;
+        public static final boolean ELBOW_MOTOR_INVERTED        = true;
 
-        public static final String TILTER_LOWER_LIMIT_SW_NAME   = SUBSYSTEM_NAME + ".tilterLowerLimit";
-        public static final int TILTER_LOWER_LIMIT_SW_CHANNEL   = 2;
-        public static final boolean TILTER_LOWER_LIMIT_SW_INVERTED = false;
+        public static final String ELBOW_LOWER_LIMIT_SW_NAME    = SUBSYSTEM_NAME + ".elbowLowerLimit";
+        public static final int ELBOW_LOWER_LIMIT_SW_CHANNEL    = 2;
+        public static final boolean ELBOW_LOWER_LIMIT_SW_INVERTED = false;
 
-        public static final String TILTER_UPPER_LIMIT_SW_NAME   = SUBSYSTEM_NAME + ".tilterUpperLimit";
-        public static final int TILTER_UPPER_LIMIT_SW_CHANNEL   = 3;
-        public static final boolean TILTER_UPPER_LIMIT_SW_INVERTED = false;
+        public static final String ELBOW_UPPER_LIMIT_SW_NAME    = SUBSYSTEM_NAME + ".elbowUpperLimit";
+        public static final int ELBOW_UPPER_LIMIT_SW_CHANNEL    = 3;
+        public static final boolean ELBOW_UPPER_LIMIT_SW_INVERTED = false;
 
-        public static final double TILTER_DEG_PER_COUNT         = 360.0 / GOBILDA312_CPR;
-        public static final double TILTER_POS_OFFSET            = 0.0;
-        public static final double TILTER_POWER_LIMIT           = 0.25;
-        public static final double TILTER_ZERO_CAL_POWER        = -0.2;
-        public static final double TILTER_ZERO_CAL_TIMEOUT      = 0.0;
+        public static final double ELBOW_DEG_PER_COUNT          = 360.0 / GOBILDA312_CPR;
+        public static final double ELBOW_POS_OFFSET             = 0.0;
+        public static final double ELBOW_POWER_LIMIT            = 0.25;
+        public static final double ELBOW_ZERO_CAL_POWER         = -0.2;
+        public static final double ELBOW_ZERO_CAL_TIMEOUT       = 0.0;
 
-        public static final double TILTER_MIN_POS               = TILTER_POS_OFFSET;
-        public static final double TILTER_MAX_POS               = 90.0;
-        public static final double TILTER_TURTLE_POS            = TILTER_MIN_POS;
-        public static final double TILTER_TURTLE_DELAY          = 0.0;
-        public static final double[] tilterPosPresets           = 
-            {TILTER_MIN_POS, 15.0, 30.0, 45.0, 60.0, 75.0, TILTER_MAX_POS};
-        public static final double TILTER_POS_PRESET_TOLERANCE  = 5.0;
+        public static final double ELBOW_MIN_POS                = ELBOW_POS_OFFSET;
+        public static final double ELBOW_MAX_POS                = 90.0;
+        public static final double ELBOW_TURTLE_POS             = ELBOW_MIN_POS;
+        public static final double ELBOW_TURTLE_DELAY           = 0.0;
+        public static final double[] elbowPosPresets            =
+            {ELBOW_MIN_POS, 15.0, 30.0, 45.0, 60.0, 75.0, ELBOW_MAX_POS};
+        public static final double ELBOW_POS_PRESET_TOLERANCE   = 5.0;
 
-        public static final boolean TILTER_USE_SOFTWARE_PID     = true;
-        public static final TrcPidController.PidCoefficients tilterPosPidCoeffs =
+        public static final boolean ELBOW_USE_SOFTWARE_PID      = true;
+        public static final TrcPidController.PidCoefficients elbowPosPidCoeffs =
             new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
-        public static final double TILTER_POS_PID_TOLERANCE     = 1.0;
-        public static final double TILTER_GRAVITY_COMP_POWER    = 0.161;
+        public static final double ELBOW_POS_PID_TOLERANCE      = 1.0;
+        public static final double ELBOW_GRAVITY_COMP_POWER     = 0.161;
         // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
-        public static final double TILTER_STALL_MIN_POWER       = Math.abs(TILTER_ZERO_CAL_POWER);
-        public static final double TILTER_STALL_TOLERANCE       = 0.1;
-        public static final double TILTER_STALL_TIMEOUT         = 0.1;
-        public static final double TILTER_STALL_RESET_TIMEOUT   = 0.0;
+        public static final double ELBOW_STALL_MIN_POWER        = Math.abs(ELBOW_ZERO_CAL_POWER);
+        public static final double ELBOW_STALL_TOLERANCE        = 0.1;
+        public static final double ELBOW_STALL_TIMEOUT          = 0.1;
+        public static final double ELBOW_STALL_RESET_TIMEOUT    = 0.0;
     }   //class Params
 
     private final FrcDashboard dashboard;
     public final TrcMotor telescope;
-    public final TrcMotor tilter;
+    public final TrcMotor elbow;
     private final TrcTimer timer;
     private Double tuneTelescopeGravityCompPower = null;
-    private Double tuneTilterGravityCompPower = null;
+    private Double tuneElbowGravityCompPower = null;
     private String tuneSubsystemName = null;
 
     /**
@@ -181,44 +181,44 @@ public class TelescopeArm extends TrcSubsystem
             Params.TELESCOPE_STALL_RESET_TIMEOUT);
         telescope.setSoftPositionLimits(Params.TELESCOPE_MIN_POS, Params.TELESCOPE_MAX_POS, false);
 
-        // Create Tilter.
-        if (Params.HAS_TILTER)
+        // Create Elbow.
+        if (Params.HAS_ELBOW)
         {
-            FrcMotorActuator.Params tilterMotorParams = new FrcMotorActuator.Params()
+            FrcMotorActuator.Params elbowMotorParams = new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    Params.TILTER_MOTOR_NAME, Params.TILTER_MOTOR_TYPE, Params.TILTER_MOTOR_INVERTED, true, true,
-                    Params.TILTER_MOTOR_ID, null, null)
-                .setPositionScaleAndOffset(Params.TILTER_DEG_PER_COUNT, Params.TILTER_POS_OFFSET)
-                .setPositionPresets(Params.TILTER_POS_PRESET_TOLERANCE, Params.tilterPosPresets);
+                    Params.ELBOW_MOTOR_NAME, Params.ELBOW_MOTOR_TYPE, Params.ELBOW_MOTOR_INVERTED, true, true,
+                    Params.ELBOW_MOTOR_ID, null, null)
+                .setPositionScaleAndOffset(Params.ELBOW_DEG_PER_COUNT, Params.ELBOW_POS_OFFSET)
+                .setPositionPresets(Params.ELBOW_POS_PRESET_TOLERANCE, Params.elbowPosPresets);
 
-            if (Params.TILTER_HAS_LOWER_LIMIT_SW)
+            if (Params.ELBOW_HAS_LOWER_LIMIT_SW)
             {
-                tilterMotorParams.setLowerLimitSwitch(
-                    Params.TILTER_LOWER_LIMIT_SW_NAME, Params.TILTER_LOWER_LIMIT_SW_CHANNEL,
-                    Params.TILTER_LOWER_LIMIT_SW_INVERTED);
+                elbowMotorParams.setLowerLimitSwitch(
+                    Params.ELBOW_LOWER_LIMIT_SW_NAME, Params.ELBOW_LOWER_LIMIT_SW_CHANNEL,
+                    Params.ELBOW_LOWER_LIMIT_SW_INVERTED);
             }
 
-            if (Params.TILTER_HAS_UPPER_LIMIT_SW)
+            if (Params.ELBOW_HAS_UPPER_LIMIT_SW)
             {
-                tilterMotorParams.setUpperLimitSwitch(
-                    Params.TILTER_UPPER_LIMIT_SW_NAME, Params.TILTER_UPPER_LIMIT_SW_CHANNEL,
-                    Params.TILTER_UPPER_LIMIT_SW_INVERTED);
+                elbowMotorParams.setUpperLimitSwitch(
+                    Params.ELBOW_UPPER_LIMIT_SW_NAME, Params.ELBOW_UPPER_LIMIT_SW_CHANNEL,
+                    Params.ELBOW_UPPER_LIMIT_SW_INVERTED);
             }
 
-            tilter = new FrcMotorActuator(tilterMotorParams).getMotor();
-            tilter.setPositionPidParameters(
+            elbow = new FrcMotorActuator(elbowMotorParams).getMotor();
+            elbow.setPositionPidParameters(
                 new PidParams()
-                    .setPidCoefficients(Params.tilterPosPidCoeffs)
-                    .setPidControlParams(Params.TILTER_POS_PID_TOLERANCE, Params.TILTER_USE_SOFTWARE_PID), null);
-            tilter.setPositionPidPowerComp(this::getTilterGravityComp);
-            tilter.setStallProtection(
-                Params.TILTER_STALL_MIN_POWER, Params.TILTER_STALL_TOLERANCE, Params.TILTER_STALL_TIMEOUT,
-                Params.TILTER_STALL_RESET_TIMEOUT);
-            tilter.setSoftPositionLimits(Params.TILTER_MIN_POS, Params.TILTER_MAX_POS, false);
+                    .setPidCoefficients(Params.elbowPosPidCoeffs)
+                    .setPidControlParams(Params.ELBOW_POS_PID_TOLERANCE, Params.ELBOW_USE_SOFTWARE_PID), null);
+            elbow.setPositionPidPowerComp(this::getElbowGravityComp);
+            elbow.setStallProtection(
+                Params.ELBOW_STALL_MIN_POWER, Params.ELBOW_STALL_TOLERANCE, Params.ELBOW_STALL_TIMEOUT,
+                Params.ELBOW_STALL_RESET_TIMEOUT);
+            elbow.setSoftPositionLimits(Params.ELBOW_MIN_POS, Params.ELBOW_MAX_POS, false);
         }
         else
         {
-            tilter = null;
+            elbow = null;
         }
 
         timer = new TrcTimer(SUBSYSTEM_NAME + ".timer");
@@ -235,10 +235,11 @@ public class TelescopeArm extends TrcSubsystem
         double gravityCompPower = tuneTelescopeGravityCompPower != null?
             tuneTelescopeGravityCompPower: Params.TELESCOPE_GRAVITY_COMP_POWER;
 
-        if (tilter != null)
+        if (elbow != null)
         {
-            // There is a tilter, compensation should take into account of tilt angle.
-            gravityCompPower *= Math.cos(Math.toRadians(tilter.getPosition()));
+            // There is an elbow, compensation should take into account of elbow angle.
+            // This is not a correct equation, it needs to be updated to reflect the physical mechanism.
+            gravityCompPower *= Math.cos(Math.toRadians(elbow.getPosition()));
 
         }
 
@@ -246,20 +247,21 @@ public class TelescopeArm extends TrcSubsystem
     }   //getTelescopeGravityComp
 
     /**
-     * This method calculates the power required to make the tilter gravity neutral.
+     * This method calculates the power required to make the elbow gravity neutral.
      *
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
-    private double getTilterGravityComp(TrcMotor motor, double currPower)
+    private double getElbowGravityComp(TrcMotor motor, double currPower)
     {
-        double gravityCompPower = tuneTilterGravityCompPower != null?
-            tuneTilterGravityCompPower: Params.TILTER_GRAVITY_COMP_POWER;
+        double gravityCompPower = tuneElbowGravityCompPower != null?
+            tuneElbowGravityCompPower: Params.ELBOW_GRAVITY_COMP_POWER;
 
-        gravityCompPower *= Math.cos(Math.toRadians(tilter.getPosition()));
+        // This is not a correct equation, it needs to be updated to reflect the physical mechanism.
+        gravityCompPower *= telescope.getPosition()*Math.cos(Math.toRadians(elbow.getPosition()));
 
         return gravityCompPower;
-    }   //getTilterGravityComp
+    }   //getElbowGravityComp
 
     /**
      * This method sets the telescope arm position including extending the telescope and tilting the arm.
@@ -267,15 +269,15 @@ public class TelescopeArm extends TrcSubsystem
      * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
      *        ownership aware.
      * @param telescopePos specifies the telescope extend position.
-     * @param tilterPos specifies the tilter angle.
+     * @param elbowPos specifies the elbow angle.
      * @param completionEvent specifies an event to signal when completion, can be null if not provided.
      * @param timeout specifies timeout in seconds, can be zero if no timeout.
      */
     public void setPosition(
-        String owner, Double telescopePos, Double tilterPos, TrcEvent completionEvent, double timeout)
+        String owner, Double telescopePos, Double elbowPos, TrcEvent completionEvent, double timeout)
     {
         TrcEvent telescopeEvent = null;
-        TrcEvent tilterEvent = null;
+        TrcEvent elbowEvent = null;
         TrcEvent timeoutEvent = null;
 
         if (telescopePos != null)
@@ -284,22 +286,22 @@ public class TelescopeArm extends TrcSubsystem
             telescope.setPosition(owner, 0.0, telescopePos, true, Params.TELESCOPE_POWER_LIMIT, telescopeEvent, 0.0);
         }
 
-        if (tilter != null && tilterPos != null)
+        if (elbow != null && elbowPos != null)
         {
-            tilterEvent = new TrcEvent(SUBSYSTEM_NAME + ".tilterEvent");
-            tilter.setPosition(owner, 0.0, tilterPos, true, Params.TILTER_POWER_LIMIT, tilterEvent, 0.0);
+            elbowEvent = new TrcEvent(SUBSYSTEM_NAME + ".elbowEvent");
+            elbow.setPosition(owner, 0.0, elbowPos, true, Params.ELBOW_POWER_LIMIT, elbowEvent, 0.0);
         }
 
-        if (timeout > 0.0 && (telescopeEvent != null || tilterEvent != null))
+        if (timeout > 0.0 && (telescopeEvent != null || elbowEvent != null))
         {
             timeoutEvent = new TrcEvent(SUBSYSTEM_NAME + ".timeoutEvent");
-            timeoutEvent.setCallback(this::handleTimeout, null);
+            timeoutEvent.setCallback(this::setPositionTimeout, null);
             timer.set(TrcTimer.getCurrentTime() + timeout, timeoutEvent);
         }
 
-        if (completionEvent != null && (telescopeEvent != null || tilterEvent != null))
+        if (completionEvent != null && (telescopeEvent != null || elbowEvent != null))
         {
-            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent);
+            completionEvent.signalOnEvents(true, false, telescopeEvent, elbowEvent);
         }
     }   //setPosition
 
@@ -309,16 +311,16 @@ public class TelescopeArm extends TrcSubsystem
      * @param context not used.
      * @param canceled not used.
      */
-    private void handleTimeout(Object context, boolean canceled)
+    private void setPositionTimeout(Object context, boolean canceled)
     {
-        // By canceling both the telescope and the tilter, it will cause telescopeEvent and tilterEvent to be canceled
+        // By canceling both the telescope and the elbow, it will cause telescopeEvent and elbowEvent to be canceled
         // as well. That in turn will cause completionEvent to be canceled.
         telescope.cancel();
-        if (tilter != null)
+        if (elbow != null)
         {
-            tilter.cancel();
+            elbow.cancel();
         }
-    }   //handleTimeout
+    }   //setPositionTimeout
 
     //
     // Implements TrcSubsystem abstract methods.
@@ -332,9 +334,9 @@ public class TelescopeArm extends TrcSubsystem
     {
         timer.cancel();
         telescope.cancel();
-        if (tilter != null)
+        if (elbow != null)
         {
-            tilter.cancel();
+            elbow.cancel();
         }
     }   //cancel
 
@@ -349,20 +351,20 @@ public class TelescopeArm extends TrcSubsystem
     public void zeroCalibrate(String owner, TrcEvent completionEvent)
     {
         TrcEvent telescopeEvent = new TrcEvent(SUBSYSTEM_NAME + ".telescopeEvent");
-        TrcEvent tilterEvent = null;
+        TrcEvent elbowEvent = null;
 
         telescope.zeroCalibrate(
             owner, Params.TELESCOPE_ZERO_CAL_POWER, telescopeEvent, Params.TELESCOPE_ZERO_CAL_TIMEOUT);
 
-        if (tilter != null)
+        if (elbow != null)
         {
-            tilterEvent = new TrcEvent(SUBSYSTEM_NAME + ".tilterEvent");
-            tilter.zeroCalibrate(owner, Params.TILTER_ZERO_CAL_POWER, tilterEvent, Params.TILTER_ZERO_CAL_TIMEOUT);
+            elbowEvent = new TrcEvent(SUBSYSTEM_NAME + ".elbowEvent");
+            elbow.zeroCalibrate(owner, Params.ELBOW_ZERO_CAL_POWER, elbowEvent, Params.ELBOW_ZERO_CAL_TIMEOUT);
         }
 
         if (completionEvent != null)
         {
-            completionEvent.signalOnEvents(true, false, telescopeEvent, tilterEvent);
+            completionEvent.signalOnEvents(true, false, telescopeEvent, elbowEvent);
         }
     }   //zeroCalibrate
 
@@ -375,10 +377,10 @@ public class TelescopeArm extends TrcSubsystem
         telescope.setPosition(
             Params.TELESCOPE_TURTLE_DELAY, Params.TELESCOPE_TURTLE_POS, true, Params.TELESCOPE_POWER_LIMIT);
 
-        if (tilter != null)
+        if (elbow != null)
         {
-            tilter.setPosition(
-                Params.TILTER_TURTLE_DELAY, Params.TILTER_TURTLE_POS, true, Params.TILTER_POWER_LIMIT);
+            elbow.setPosition(
+                Params.ELBOW_TURTLE_DELAY, Params.ELBOW_TURTLE_POS, true, Params.ELBOW_POWER_LIMIT);
         }
     }   //resetState
 
@@ -386,10 +388,10 @@ public class TelescopeArm extends TrcSubsystem
     private static final String DBKEY_TELESCOPE_POS_INFO    = SUBSYSTEM_NAME + "/TelescopePosInfo";     //String
     private static final String DBKEY_TELESCOPE_LOWER_LIMIT = SUBSYSTEM_NAME + "/TelescopeLowerLimit";  //Boolean
     private static final String DBKEY_TELESCOPE_UPPER_LIMIT = SUBSYSTEM_NAME + "/TelescopeUpperLimit";  //Boolean
-    private static final String DBKEY_TILTER_PWR_INFO       = SUBSYSTEM_NAME + "/TilterPwrInfo";        //String
-    private static final String DBKEY_TILTER_POS_INFO       = SUBSYSTEM_NAME + "/TilterPosInfo";        //String
-    private static final String DBKEY_TILTER_LOWER_LIMIT    = SUBSYSTEM_NAME + "/TilterLowerLimit";     //Boolean
-    private static final String DBKEY_TILTER_UPPER_LIMIT    = SUBSYSTEM_NAME + "/TilterUpperLimit";     //Boolean
+    private static final String DBKEY_ELBOW_PWR_INFO        = SUBSYSTEM_NAME + "/ElbowPwrInfo";         //String
+    private static final String DBKEY_ELBOW_POS_INFO        = SUBSYSTEM_NAME + "/ElbowPosInfo";         //String
+    private static final String DBKEY_ELBOW_LOWER_LIMIT     = SUBSYSTEM_NAME + "/ElbowLowerLimit";      //Boolean
+    private static final String DBKEY_ELBOW_UPPER_LIMIT     = SUBSYSTEM_NAME + "/ElbowUpperLimit";      //Boolean
 
     /**
      * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
@@ -401,10 +403,10 @@ public class TelescopeArm extends TrcSubsystem
         dashboard.refreshKey(DBKEY_TELESCOPE_POS_INFO, "");
         dashboard.refreshKey(DBKEY_TELESCOPE_LOWER_LIMIT, false);
         dashboard.refreshKey(DBKEY_TELESCOPE_UPPER_LIMIT, false);
-        dashboard.refreshKey(DBKEY_TILTER_PWR_INFO, "");
-        dashboard.refreshKey(DBKEY_TILTER_POS_INFO, "");
-        dashboard.refreshKey(DBKEY_TILTER_LOWER_LIMIT, false);
-        dashboard.refreshKey(DBKEY_TILTER_UPPER_LIMIT, false);
+        dashboard.refreshKey(DBKEY_ELBOW_PWR_INFO, "");
+        dashboard.refreshKey(DBKEY_ELBOW_POS_INFO, "");
+        dashboard.refreshKey(DBKEY_ELBOW_LOWER_LIMIT, false);
+        dashboard.refreshKey(DBKEY_ELBOW_UPPER_LIMIT, false);
     }   //publishToDashboard
 
     /**
@@ -432,19 +434,19 @@ public class TelescopeArm extends TrcSubsystem
                 dashboard.putBoolean(DBKEY_TELESCOPE_UPPER_LIMIT, telescope.isUpperLimitSwitchActive());
             }
 
-            if (tilter != null)
+            if (elbow != null)
             {
-                dashboard.putString(DBKEY_TILTER_PWR_INFO, tilter.getPower() + "/" + tilter.getCurrent());
-                dashboard.putString(DBKEY_TILTER_POS_INFO, tilter.getPosition() + "/" + tilter.getPidTarget());
+                dashboard.putString(DBKEY_ELBOW_PWR_INFO, elbow.getPower() + "/" + elbow.getCurrent());
+                dashboard.putString(DBKEY_ELBOW_POS_INFO, elbow.getPosition() + "/" + elbow.getPidTarget());
 
-                if (Params.TILTER_HAS_LOWER_LIMIT_SW)
+                if (Params.ELBOW_HAS_LOWER_LIMIT_SW)
                 {
-                    dashboard.putBoolean(DBKEY_TILTER_LOWER_LIMIT, tilter.isLowerLimitSwitchActive());
+                    dashboard.putBoolean(DBKEY_ELBOW_LOWER_LIMIT, elbow.isLowerLimitSwitchActive());
                 }
 
-                if (Params.TILTER_HAS_UPPER_LIMIT_SW)
+                if (Params.ELBOW_HAS_UPPER_LIMIT_SW)
                 {
-                    dashboard.putBoolean(DBKEY_TILTER_UPPER_LIMIT, tilter.isUpperLimitSwitchActive());
+                    dashboard.putBoolean(DBKEY_ELBOW_UPPER_LIMIT, elbow.isUpperLimitSwitchActive());
                 }
             }
         }
@@ -455,9 +457,9 @@ public class TelescopeArm extends TrcSubsystem
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, telescope.getPosition());
             }
-            else if (tilter != null && tuneSubsystemName.equalsIgnoreCase(Params.TILTER_MOTOR_NAME))
+            else if (elbow != null && tuneSubsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
             {
-                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, tilter.getPosition());
+                dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, elbow.getPosition());
             }
         }
 
@@ -482,14 +484,14 @@ public class TelescopeArm extends TrcSubsystem
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TELESCOPE_MIN_POS);
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.TELESCOPE_GRAVITY_COMP_POWER);
         }
-        else if (tilter != null && subsystemName.equalsIgnoreCase(Params.TILTER_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
         {
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
-                    .setPidCoefficients(Params.tilterPosPidCoeffs)
-                    .setPidControlParams(Params.TILTER_POS_PID_TOLERANCE, Params.TILTER_USE_SOFTWARE_PID));
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TILTER_MIN_POS);
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.TILTER_GRAVITY_COMP_POWER);
+                    .setPidCoefficients(Params.elbowPosPidCoeffs)
+                    .setPidControlParams(Params.ELBOW_POS_PID_TOLERANCE, Params.ELBOW_USE_SOFTWARE_PID));
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.ELBOW_MIN_POS);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.ELBOW_GRAVITY_COMP_POWER);
         }
     }   //updateParamsToDashboard
 
@@ -517,14 +519,14 @@ public class TelescopeArm extends TrcSubsystem
             gravityPower = tuneTelescopeGravityCompPower;
             tuneSubsystemName = subsystemName;
         }
-        else if (tilter != null && subsystemName.equalsIgnoreCase(Params.TILTER_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
         {
-            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TILTER_MIN_POS);
-            tuneTilterGravityCompPower = dashboard.getNumber(
-                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.TILTER_GRAVITY_COMP_POWER);
-            tilter.setPositionPidParameters(pidParams, null);
-            tilter.setPosition(target);
-            gravityPower = tuneTilterGravityCompPower;
+            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.ELBOW_MIN_POS);
+            tuneElbowGravityCompPower = dashboard.getNumber(
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.ELBOW_GRAVITY_COMP_POWER);
+            elbow.setPositionPidParameters(pidParams, null);
+            elbow.setPosition(target);
+            gravityPower = tuneElbowGravityCompPower;
             tuneSubsystemName = subsystemName;
         }
 
@@ -551,9 +553,9 @@ public class TelescopeArm extends TrcSubsystem
         {
             target = telescope.presetPositionUp(null, null);
         }
-        else if (tilter != null && subsystemName.equalsIgnoreCase(Params.TILTER_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
         {
-            target = tilter.presetPositionUp(null, null);
+            target = elbow.presetPositionUp(null, null);
         }
 
         if (target != null)
@@ -577,9 +579,9 @@ public class TelescopeArm extends TrcSubsystem
         {
             target = telescope.presetPositionDown(null, null);
         }
-        else if (tilter != null && subsystemName.equalsIgnoreCase(Params.TILTER_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
         {
-            target = tilter.presetPositionDown(null, null);
+            target = elbow.presetPositionDown(null, null);
         }
 
         if (target != null)

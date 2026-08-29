@@ -86,7 +86,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double prevMotorArmPower = 0.0;
     private double prevServoArmPower = 0.0;
     private double prevTelescopePower = 0.0;
-    private double prevTelescopeTilterPower = 0.0;
+    private double prevTelescopeElbowPower = 0.0;
     private double prevElevatorPower = 0.0;
     private double prevTurretPower = 0.0;
     private double prevDiffyWristTiltPower = 0.0;
@@ -340,24 +340,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             prevTelescopePower = telescopePower;
                         }
 
-                        if (robot.telescopeArm.tilter != null)
+                        if (robot.telescopeArm.elbow != null)
                         {
-                            double tilterPower = robot.driverController.getRightStickY(true);
-                            if (tilterPower != prevTelescopeTilterPower)
+                            double elbowPower = robot.driverController.getRightStickY(true);
+                            if (elbowPower != prevTelescopeElbowPower)
                             {
                                 if (driverAltFunc)
                                 {
                                     // Manual override.
-                                    robot.telescopeArm.tilter.setPower(tilterPower);
+                                    robot.telescopeArm.elbow.setPower(elbowPower);
                                 }
                                 else
                                 {
-                                    robot.telescopeArm.tilter.setPidPower(
-                                        tilterPower, TelescopeArm.Params.TILTER_POWER_LIMIT,
-                                        TelescopeArm.Params.TILTER_MIN_POS, TelescopeArm.Params.TILTER_MAX_POS,
+                                    robot.telescopeArm.elbow.setPidPower(
+                                        elbowPower, TelescopeArm.Params.ELBOW_POWER_LIMIT,
+                                        TelescopeArm.Params.ELBOW_MIN_POS, TelescopeArm.Params.ELBOW_MAX_POS,
                                         true);
                                 }
-                                prevTelescopeTilterPower = tilterPower;
+                                prevTelescopeElbowPower = elbowPower;
                             }
                         }
                     }
@@ -729,11 +729,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         if (driverAltFunc)
                         {
-                            if (robot.telescopeArm.tilter != null)
+                            if (robot.telescopeArm.elbow != null)
                             {
-                                robot.telescopeArm.tilter.presetPositionUp(
+                                robot.telescopeArm.elbow.presetPositionUp(
                                     null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope tilter position up");
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope elbow position up");
                             }
                         }
                         else
@@ -828,11 +828,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         if (driverAltFunc)
                         {
-                            if (robot.telescopeArm.tilter != null)
+                            if (robot.telescopeArm.elbow != null)
                             {
-                                robot.telescopeArm.tilter.presetPositionDown(
+                                robot.telescopeArm.elbow.presetPositionDown(
                                     null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope tilter position down");
+                                robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope elbow position down");
                             }
                         }
                         else

@@ -1461,7 +1461,7 @@
             ]
           },
           {
-            "title": "TelescopeArm.Tilter",
+            "title": "TelescopeArm.Elbow",
             "x": 384.0,
             "y": 320.0,
             "width": 192.0,
@@ -1472,42 +1472,42 @@
             },
             "children": [
               {
-                "title": "TilterPwrInfo",
+                "title": "ElbowPwrInfo",
                 "x": 384.0,
                 "y": 384.0,
                 "width": 128.0,
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/TelescopeArm/TilterPwrInfo",
+                  "topic": "/SmartDashboard/TelescopeArm/ElbowPwrInfo",
                   "period": 0.06,
                   "data_type": "string",
                   "show_submit_button": false
                 }
               },
               {
-                "title": "TilterPosInfo",
+                "title": "ElbowPosInfo",
                 "x": 384.0,
                 "y": 448.0,
                 "width": 128.0,
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/TelescopeArm/TilterPosInfo",
+                  "topic": "/SmartDashboard/TelescopeArm/ElbowPosInfo",
                   "period": 0.06,
                   "data_type": "string",
                   "show_submit_button": false
                 }
               },
               {
-                "title": "TilterLowerLimit",
+                "title": "ElbowLowerLimit",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
                 "height": 128.0,
                 "type": "Boolean Box",
                 "properties": {
-                  "topic": "/SmartDashboard/TelescopeArm/TilterLowerLimit",
+                  "topic": "/SmartDashboard/TelescopeArm/ElbowLowerLimit",
                   "period": 0.06,
                   "data_type": "boolean",
                   "true_color": 4283215696,
@@ -1517,14 +1517,14 @@
                 }
               },
               {
-                "title": "TilterUpperLimit",
+                "title": "ElbowUpperLimit",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 128.0,
                 "height": 128.0,
                 "type": "Boolean Box",
                 "properties": {
-                  "topic": "/SmartDashboard/TelescopeArm/TilterUpperLimit",
+                  "topic": "/SmartDashboard/TelescopeArm/ElbowUpperLimit",
                   "period": 0.06,
                   "data_type": "boolean",
                   "true_color": 4283215696,
