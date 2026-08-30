@@ -246,7 +246,6 @@ public class TelescopeArm extends TrcSubsystem
             // There is an elbow, compensation should take into account of elbow angle.
             // This is not a correct equation, it needs to be updated to reflect the physical mechanism.
             gravityCompPower *= Math.cos(Math.toRadians(elbow.getPosition()));
-
         }
 
         return gravityCompPower;
@@ -262,7 +261,6 @@ public class TelescopeArm extends TrcSubsystem
     {
         double gravityCompPower = tuneElbowGravityCompPower != null?
             tuneElbowGravityCompPower: Params.ELBOW_GRAVITY_COMP_POWER;
-
         // This is not a correct equation, it needs to be updated to reflect the physical mechanism.
         gravityCompPower *= telescope.getPosition()*Math.cos(Math.toRadians(elbow.getPosition()));
 
