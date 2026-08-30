@@ -302,7 +302,7 @@ public class TelescopeArm extends TrcSubsystem
         {
             timeoutEvent = new TrcEvent(SUBSYSTEM_NAME + ".timeoutEvent");
             timeoutEvent.setCallback(this::setPositionTimeout, null);
-            timer.set(TrcTimer.getCurrentTime() + timeout, timeoutEvent);
+            timer.set(timeout, timeoutEvent);
         }
 
         if (completionEvent != null && (telescopeEvent != null || elbowEvent != null))
