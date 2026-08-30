@@ -49,10 +49,14 @@ public class Intake extends TrcSubsystem
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 12;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
+        public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 14;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
+        public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
 
         public static final String FRONT_SENSOR_NAME             = SUBSYSTEM_NAME + ".frontSensor";
         public static final int FRONT_SENSOR_DIGITAL_CHANNEL    = 1;
@@ -82,7 +86,8 @@ public class Intake extends TrcSubsystem
         dashboard = FrcDashboard.getInstance();
         FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params()
             .setPrimaryMotor(
-                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED, true, true,
+                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED,
+                Params.PRIMARY_MOTOR_VOLTCOMP_ENABLED, Params.PRIMARY_MOTOR_BRAKE_ENABLED,
                 Params.PRIMARY_MOTOR_ID, null, null)
             .setPowerLevels(Params.INTAKE_POWER, Params.EJECT_POWER, Params.RETAIN_POWER)
             .setFinishDelays(Params.INTAKE_FINISH_DELAY, Params.EJECT_FINISH_DELAY);
@@ -91,6 +96,7 @@ public class Intake extends TrcSubsystem
         {
             intakeParams.setFollowerMotor(
                 Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_VOLTCOMP_ENABLED, Params.FOLLOWER_MOTOR_BRAKE_ENABLED,
                 Params.FOLLOWER_MOTOR_ID, null, null);
         }
 

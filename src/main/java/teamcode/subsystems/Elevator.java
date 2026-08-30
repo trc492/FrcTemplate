@@ -54,10 +54,14 @@ public class Elevator extends TrcSubsystem
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 10;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
+        public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 12;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
+        public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
 
         public static final String LOWER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
         public static final int LOWER_LIMIT_SWITCH_CHANNEL      = 0;
@@ -106,7 +110,8 @@ public class Elevator extends TrcSubsystem
         dashboard = FrcDashboard.getInstance();
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED, true, true,
+                Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED,
+                Params.PRIMARY_MOTOR_VOLTCOMP_ENABLED, Params.PRIMARY_MOTOR_BRAKE_ENABLED,
                 Params.PRIMARY_MOTOR_ID, null, null)
             .setPositionScaleAndOffset(Params.INCHES_PER_COUNT, Params.POS_OFFSET)
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
@@ -115,6 +120,7 @@ public class Elevator extends TrcSubsystem
         {
             motorParams.addFollowerMotor(
                 Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_VOLTCOMP_ENABLED, Params.FOLLOWER_MOTOR_BRAKE_ENABLED,
                 Params.FOLLOWER_MOTOR_ID, null, null);
         }
 

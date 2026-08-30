@@ -58,6 +58,8 @@ public class TelescopeArm extends TrcSubsystem
         public static final String TELESCOPE_MOTOR_NAME         = SUBSYSTEM_NAME + ".telescopeMotor";
         public static final int TELESCOPE_MOTOR_ID              = 10;
         public static final boolean TELESCOPE_MOTOR_INVERTED    = false;
+        public static final boolean TELESCOPE_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final boolean TELESCOPE_MOTOR_BRAKE_ENABLED = true;
 
         public static final String TELESCOPE_LOWER_LIMIT_SW_NAME= SUBSYSTEM_NAME + ".telescopeLowerLimit";
         public static final int TELESCOPE_LOWER_LIMIT_SW_CHANNEL= 0;
@@ -97,6 +99,8 @@ public class TelescopeArm extends TrcSubsystem
         public static final String ELBOW_MOTOR_NAME             = SUBSYSTEM_NAME + ".elbowMotor";
         public static final int ELBOW_MOTOR_ID                  = 12;
         public static final boolean ELBOW_MOTOR_INVERTED        = true;
+        public static final boolean ELBOW_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final boolean ELBOW_MOTOR_BRAKE_ENABLED   = true;
 
         public static final String ELBOW_LOWER_LIMIT_SW_NAME    = SUBSYSTEM_NAME + ".elbowLowerLimit";
         public static final int ELBOW_LOWER_LIMIT_SW_CHANNEL    = 2;
@@ -151,7 +155,8 @@ public class TelescopeArm extends TrcSubsystem
         // Create Telescope.
         FrcMotorActuator.Params telescopeMotorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.TELESCOPE_MOTOR_NAME, Params.TELESCOPE_MOTOR_TYPE, Params.TELESCOPE_MOTOR_INVERTED, true, true,
+                Params.TELESCOPE_MOTOR_NAME, Params.TELESCOPE_MOTOR_TYPE, Params.TELESCOPE_MOTOR_INVERTED,
+                Params.TELESCOPE_MOTOR_VOLTCOMP_ENABLED, Params.TELESCOPE_MOTOR_BRAKE_ENABLED,
                 Params.TELESCOPE_MOTOR_ID, null, null)
             .setPositionScaleAndOffset(Params.TELESCOPE_INCHES_PER_COUNT, Params.TELESCOPE_POS_OFFSET)
             .setPositionPresets(Params.TELESCOPE_POS_PRESET_TOLERANCE, Params.telescopePosPresets);
@@ -186,7 +191,8 @@ public class TelescopeArm extends TrcSubsystem
         {
             FrcMotorActuator.Params elbowMotorParams = new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    Params.ELBOW_MOTOR_NAME, Params.ELBOW_MOTOR_TYPE, Params.ELBOW_MOTOR_INVERTED, true, true,
+                    Params.ELBOW_MOTOR_NAME, Params.ELBOW_MOTOR_TYPE, Params.ELBOW_MOTOR_INVERTED,
+                    Params.ELBOW_MOTOR_VOLTCOMP_ENABLED, Params.ELBOW_MOTOR_BRAKE_ENABLED,
                     Params.ELBOW_MOTOR_ID, null, null)
                 .setPositionScaleAndOffset(Params.ELBOW_DEG_PER_COUNT, Params.ELBOW_POS_OFFSET)
                 .setPositionPresets(Params.ELBOW_POS_PRESET_TOLERANCE, Params.elbowPosPresets);

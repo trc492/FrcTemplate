@@ -65,11 +65,15 @@ public class Shooter extends TrcSubsystem
         public static final String SHOOTER_MOTOR1_NAME          = SUBSYSTEM_NAME + ".shooterMotor1";
         public static final int SHOOTER_MOTOR1_ID               = 10;
         public static final boolean SHOOTER_MOTOR1_INVERTED     = false;
+        public static final boolean SHOOTER_MOTOR1_VOLTCOMP_ENABLED = true;
+        public static final Boolean SHOOTER_MOTOR1_BRAKE_ENABLED = false;
 
         // Shooter Motor2
         public static final String SHOOTER_MOTOR2_NAME          = SUBSYSTEM_NAME + ".shooterMotor2";
         public static final int SHOOTER_MOTOR2_ID               = 12;
         public static final boolean SHOOTER_MOTOR2_INVERTED     = true;
+        public static final boolean SHOOTER_MOTOR2_VOLTCOMP_ENABLED = true;
+        public static final Boolean SHOOTER_MOTOR2_BRAKE_ENABLED = false;
 
         // Shooter motor1 and motor2 are the same type and have same gear ratio but they could have different
         // PID coefficients due to different motor strengths and frictions.
@@ -104,6 +108,8 @@ public class Shooter extends TrcSubsystem
         public static final int PAN_MOTOR_ID                    = 14;
         public static final MotorType PAN_MOTOR_TYPE            = MotorType.CanTalonSrx;
         public static final boolean PAN_MOTOR_INVERTED          = false;
+        public static final boolean PAN_MOTOR_VOLTCOMP_ENABLED  = true;
+        public static final Boolean PAN_MOTOR_BRAKE_ENABLED     = true;
 
         public static final double PAN_ZERO_CAL_POWER           = -0.2;
         public static final double PAN_STALL_MIN_POWER          = Math.abs(PAN_ZERO_CAL_POWER);
@@ -128,6 +134,8 @@ public class Shooter extends TrcSubsystem
         public static final int TILT_MOTOR_ID                   = 16;
         public static final MotorType TILT_MOTOR_TYPE           = MotorType.CanTalonSrx;
         public static final boolean TILT_MOTOR_INVERTED         = false;
+        public static final boolean TILT_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean TILT_MOTOR_BRAKE_ENABLED    = true;
 
         public static final double TILT_DEG_PER_COUNT           = 1.0;
         public static final double TILT_POS_OFFSET              = 0.0;
@@ -186,28 +194,32 @@ public class Shooter extends TrcSubsystem
         FrcShooter.Params shooterParams = new FrcShooter.Params()
             .setShooterMotor1(
                 Params.SHOOTER_MOTOR1_NAME, Params.SHOOTER_MOTOR_TYPE, Params.SHOOTER_MOTOR1_INVERTED,
+                Params.SHOOTER_MOTOR1_VOLTCOMP_ENABLED, Params.SHOOTER_MOTOR1_BRAKE_ENABLED,
                 Params.SHOOTER_MOTOR1_ID, null, null, false);
 
         if (Params.HAS_TWO_SHOOTER_MOTORS)
         {
             shooterParams.setShooterMotor2(
                 Params.SHOOTER_MOTOR2_NAME, Params.SHOOTER_MOTOR_TYPE, Params.SHOOTER_MOTOR2_INVERTED,
+                Params.SHOOTER_MOTOR2_VOLTCOMP_ENABLED, Params.SHOOTER_MOTOR2_BRAKE_ENABLED,
                 Params.SHOOTER_MOTOR2_ID, null, null, false, true);
         }
 
         if (Params.HAS_PAN_MOTOR)
         {
             shooterParams.setPanMotor(
-                Params.PAN_MOTOR_NAME, Params.PAN_MOTOR_TYPE, Params.PAN_MOTOR_INVERTED, Params.PAN_MOTOR_ID,
-                null, null,
+                Params.PAN_MOTOR_NAME, Params.PAN_MOTOR_TYPE, Params.PAN_MOTOR_INVERTED,
+                Params.PAN_MOTOR_VOLTCOMP_ENABLED, Params.PAN_MOTOR_BRAKE_ENABLED,
+                Params.PAN_MOTOR_ID, null, null,
                 new TrcShooter.PanTiltParams(Params.PAN_POWER_LIMIT, Params.PAN_MIN_POS, Params.PAN_MAX_POS));
         }
 
         if (Params.HAS_TILT_MOTOR)
         {
             shooterParams.setTiltMotor(
-                Params.TILT_MOTOR_NAME, Params.TILT_MOTOR_TYPE, Params.TILT_MOTOR_INVERTED, Params.TILT_MOTOR_ID,
-                null, null, 
+                Params.TILT_MOTOR_NAME, Params.TILT_MOTOR_TYPE, Params.TILT_MOTOR_INVERTED,
+                Params.TILT_MOTOR_VOLTCOMP_ENABLED, Params.TILT_MOTOR_BRAKE_ENABLED,
+                Params.TILT_MOTOR_ID, null, null, 
                 new TrcShooter.PanTiltParams(Params.TILT_POWER_LIMIT, Params.TILT_MIN_POS, Params.TILT_MAX_POS));
         }
 

@@ -51,13 +51,15 @@ public class CrServoArm extends TrcSubsystem
 
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final boolean PRIMARY_MOTOR_INVERTED      = false;
-        public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = false;
-        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = null;
         public static final int PRIMARY_MOTOR_CHANNEL           = 0;
+        public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = false;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
         public static final int FOLLOWER_MOTOR_CHANNEL          = 1;
+        public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
+        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED = false;
 
         public static final String ABSENC_NAME                  = SUBSYSTEM_NAME + ".absEnc";
         public static final EncoderType ABSENC_TYPE             = EncoderType.AnalogEncoder;
@@ -103,6 +105,7 @@ public class CrServoArm extends TrcSubsystem
                 Params.PRIMARY_MOTOR_CHANNEL, null, null)
             .addFollowerMotor(
                 Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
+                Params.FOLLOWER_MOTOR_VOLTCOMP_ENABLED, Params.FOLLOWER_MOTOR_BRAKE_ENABLED,
                 Params.FOLLOWER_MOTOR_CHANNEL, null, null)
             .setExternalEncoder(
                 Params.ABSENC_NAME, Params.ABSENC_TYPE, Params.ABSENC_INVERTED, Params.ABSENC_CHANNEL)
