@@ -615,15 +615,20 @@ public class Robot extends FrcRobot
     {
         if (TrcDbgTrace.isTraceLogOpened())
         {
-            String fileName = matchInfo.eventName != null?
-                String.format(
-                    Locale.US, "%s_%s%03d_%s",
-                    matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber, prevRunMode.name()):
-                prevRunMode.name();
+            if (prevRunMode == RunMode.INVALID_MODE)
+            {
+                TrcDbgTrace.deleteTraceLog();
+            }
+            else
+            {
+                String fileName = matchInfo.eventName != null?
+                    String.format(
+                        Locale.US, "%s_%s%03d_%s",
+                        matchInfo.eventName, matchInfo.matchType, matchInfo.matchNumber, prevRunMode.name()):
+                    prevRunMode.name();
 
-            TrcDbgTrace.closeTraceLog(
-                prevRunMode != RunMode.INVALID_MODE?
-                    TrcTimer.getCurrentTimeString() + "!" + fileName: null);
+                TrcDbgTrace.closeTraceLog(TrcTimer.getCurrentTimeString() + "!" + fileName);
+            }
         }
     }   //closeTraceLog
 
