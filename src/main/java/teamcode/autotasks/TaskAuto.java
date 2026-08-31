@@ -42,7 +42,7 @@ public class TaskAuto extends TrcAutoTask<TaskAuto.State>
         DONE
     }   //enum State
 
-    private class TaskParams
+    private static class TaskParams
     {
         TaskParams()
         {
