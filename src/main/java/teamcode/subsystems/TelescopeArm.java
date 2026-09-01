@@ -272,8 +272,8 @@ public class TelescopeArm extends TrcSubsystem
      *
      * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
      *        ownership aware.
-     * @param telescopePos specifies the telescope extend position.
-     * @param elbowPos specifies the elbow angle.
+     * @param telescopePos specifies the telescope extend position, can be null if not changing telescope position.
+     * @param elbowPos specifies the elbow angle, can be null if not changing elbow position.
      * @param completionEvent specifies an event to signal when completion, can be null if not provided.
      * @param timeout specifies timeout in seconds, can be zero if no timeout.
      */
