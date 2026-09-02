@@ -98,6 +98,7 @@ public class MotorArm extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
+    private String tuneSubsystemName = null;
     private Double tuneGravityCompPower = null;
 
     /**
@@ -161,6 +162,7 @@ public class MotorArm extends TrcSubsystem
     /**
      * This method calculates the power required to make the arm gravity neutral.
      *
+     * @param motor specifies the motor for determining its gravity comp power.
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
@@ -248,7 +250,10 @@ public class MotorArm extends TrcSubsystem
             }
         }
         // The following entries need to be updated at fast rate for plotting graphs.
-        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        if (tuneSubsystemName != null && tuneSubsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        }
 
         return lineNum;
     }   //updateStatus
@@ -282,6 +287,7 @@ public class MotorArm extends TrcSubsystem
     @Override
     public void updateParamsFromDashboard(String subsystemName)
     {
+        tuneSubsystemName = null;
         if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
@@ -294,6 +300,7 @@ public class MotorArm extends TrcSubsystem
             motor.tracer.traceInfo(
                 instanceName, "Tune %s: PidParams=%s, target=%.3f, GravityPower=%.3f",
                 subsystemName, pidParams, target, tuneGravityCompPower);
+            tuneSubsystemName = subsystemName;
         }
     }   //updateParamsFromDashboard
 

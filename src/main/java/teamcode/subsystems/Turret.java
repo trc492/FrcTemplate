@@ -85,6 +85,7 @@ public class Turret extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
+    private String tuneSubsystemName = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -188,7 +189,10 @@ public class Turret extends TrcSubsystem
             dashboard.putBoolean(DBKEY_LOWER_LIMIT, motor.isLowerLimitSwitchActive());
         }
         // The following entries need to be updated at fast rate for plotting graphs.
-        dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        if (tuneSubsystemName != null && tuneSubsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, motor.getPosition());
+        }
 
         return lineNum;
     }   //updateStatus
@@ -221,6 +225,7 @@ public class Turret extends TrcSubsystem
     @Override
     public void updateParamsFromDashboard(String subsystemName)
     {
+        tuneSubsystemName = null;
         if (subsystemName.equalsIgnoreCase(Params.MOTOR_NAME))
         {
             TrcMotor.PidParams pidParams = FrcTest.testChoices.getSubsystemPidParameters();
@@ -230,6 +235,7 @@ public class Turret extends TrcSubsystem
             motor.setPosition(target);
             motor.tracer.traceInfo(
                 instanceName, "Tune %s: PidParams=%s, target=%.3f", subsystemName, pidParams, target);
+            tuneSubsystemName = subsystemName;
         }
     }   //updateParamsFromDashboard
 

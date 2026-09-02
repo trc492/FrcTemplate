@@ -233,6 +233,7 @@ public class TelescopeArm extends TrcSubsystem
     /**
      * This method calculates the power required to make the telescope gravity neutral.
      *
+     * @param motor specifies the motor for determining its gravity comp power.
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
@@ -254,6 +255,7 @@ public class TelescopeArm extends TrcSubsystem
     /**
      * This method calculates the power required to make the elbow gravity neutral.
      *
+     * @param motor specifies the motor for determining its gravity comp power.
      * @param currPower specifies the current applied PID power (not used).
      * @return calculated compensation power.
      */
