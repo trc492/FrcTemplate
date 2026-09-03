@@ -333,8 +333,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             else
                             {
                                 robot.telescopeArm.telescope.setPidPower(
-                                    telescopePower, TelescopeArm.Params.TELESCOPE_POWER_LIMIT,
-                                    TelescopeArm.Params.TELESCOPE_MIN_POS, TelescopeArm.Params.TELESCOPE_MAX_POS,
+                                    telescopePower, TelescopeArm.TelescopeParams.POWER_LIMIT,
+                                    TelescopeArm.TelescopeParams.MIN_POS, TelescopeArm.TelescopeParams.MAX_POS,
                                     true);
                             }
                             prevTelescopePower = telescopePower;
@@ -353,8 +353,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 else
                                 {
                                     robot.telescopeArm.elbow.setPidPower(
-                                        elbowPower, TelescopeArm.Params.ELBOW_POWER_LIMIT,
-                                        TelescopeArm.Params.ELBOW_MIN_POS, TelescopeArm.Params.ELBOW_MAX_POS,
+                                        elbowPower, TelescopeArm.ElbowParams.POWER_LIMIT,
+                                        TelescopeArm.ElbowParams.MIN_POS, TelescopeArm.ElbowParams.MAX_POS,
                                         true);
                                 }
                                 prevTelescopeElbowPower = elbowPower;
@@ -525,7 +525,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 robot.shooter.aimShooter(
                                     moduleName, robot.shooterSubsystem.shooter1Velocity.getValue(), 0.0,
                                     null, null, null, 0.0, robot.shooterSubsystem::shoot, null,
-                                    Shooter.Params.SHOOTER_OFF_DELAY);
+                                    Shooter.ShooterMotorParams.OFF_DELAY);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
                             }
                         }
@@ -732,14 +732,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             if (robot.telescopeArm.elbow != null)
                             {
                                 robot.telescopeArm.elbow.presetPositionUp(
-                                    null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                    null, TelescopeArm.ElbowParams.POWER_LIMIT);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope elbow position up");
                             }
                         }
                         else
                         {
                             robot.telescopeArm.telescope.presetPositionUp(
-                                null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                null, TelescopeArm.TelescopeParams.POWER_LIMIT);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope position up");
                         }
                     }
@@ -831,14 +831,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             if (robot.telescopeArm.elbow != null)
                             {
                                 robot.telescopeArm.elbow.presetPositionDown(
-                                    null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                    null, TelescopeArm.ElbowParams.POWER_LIMIT);
                                 robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope elbow position down");
                             }
                         }
                         else
                         {
                             robot.telescopeArm.telescope.presetPositionDown(
-                                null, TelescopeArm.Params.TELESCOPE_POWER_LIMIT);
+                                null, TelescopeArm.TelescopeParams.POWER_LIMIT);
                             robot.globalTracer.traceInfo(moduleName, ">>>>> Telescope position down");
                         }
                     }

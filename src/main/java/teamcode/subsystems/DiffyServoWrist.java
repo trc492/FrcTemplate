@@ -38,8 +38,8 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class DiffyServoWrist extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "DiffyServoWrist";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "DiffyServoWrist";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static class Params
     {
@@ -51,20 +51,19 @@ public class DiffyServoWrist extends TrcSubsystem
         public static final int SERVO2_CHANNEL                  = 1;
         public static final boolean SERVO2_INVERTED             = !SERVO1_INVERTED;
 
+        public static final double MAX_STEP_RATE                = 300.0;    // deg/sec (max 520)
         public static final double LOGICAL_MIN_POS              = 0.15;
         public static final double LOGICAL_MAX_POS              = 0.85;
         public static final double PHYSICAL_POS_RANGE           = 230.0;
         public static final double TILT_POS_OFFSET              = -20.0;
         public static final double ROTATE_POS_OFFSET            = -1.0;
-        public static final double MAX_STEP_RATE                = 300.0;    // deg/sec (max 520)
 
         public static final double TILT_MIN_POS                 = -90.0;
         public static final double TILT_MAX_POS                 = 90.0;
         public static final double ROTATE_MIN_POS               = -90.0;
         public static final double ROTATE_MAX_POS               = 90.0;
-
         public static final double POS_PRESET_TOLERANCE         = 1.0;
-        public static final double[] tiltPosPresets             = {-110, -90.0, -45.0, 0.0, 45.0, 90.0, 110};
+        public static final double[] tiltPosPresets             = {-110.0, -90.0, -45.0, 0.0, 45.0, 90.0, 110.0};
         public static final double[] rotatePosPresets           = {-90.0, -45.0, 0.0, 45.0, 90.0};
     }   //class Params
 
@@ -316,8 +315,6 @@ public class DiffyServoWrist extends TrcSubsystem
      * parameters using Dashboard.
      *
      * @param subsystemName specifies the name of the subsystem to be updated.
-     * @param nextValueUp specifies true for the next preset target value up, false for next preset target value down,
-     *        null for the current target value.
      */
     @Override
     public void updateParamsToDashboard(String subsystemName)

@@ -39,13 +39,13 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoClaw extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "ServoClaw";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "ServoClaw";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static final class Params
     {
-        public static final boolean USE_ANALOG_SENSOR           = true;
-        public static final boolean USE_DIGITAL_SENSOR          = false;
+        // private static final boolean USE_ANALOG_SENSOR          = true;
+        private static final boolean USE_DIGITAL_SENSOR         = false;
 
         public static final String PRIMARY_SERVO_NAME           = SUBSYSTEM_NAME + ".leftClaw";
         public static final int PRIMARY_SERVO_CHANNEL           = 0;
@@ -55,11 +55,6 @@ public class ServoClaw extends TrcSubsystem
         public static final int FOLLOWER_SERVO_CHANNEL          = 1;
         public static final boolean FOLLOWER_SERVO_INVERTED     = !PRIMARY_SERVO_INVERTED;
 
-        public static final double OPEN_POS                     = 0.2;
-        public static final double OPEN_TIME                    = 0.5;
-        public static final double CLOSE_POS                    = 0.55;
-        public static final double CLOSE_TIME                   = 0.5;
-
         public static final String ANALOG_SENSOR_NAME           = SUBSYSTEM_NAME + ".sensor";
         public static final double LOWER_TRIGGER_THRESHOLD      = 2.0;
         public static final double UPPER_TRIGGER_THRESHOLD      = 3.0;
@@ -68,6 +63,11 @@ public class ServoClaw extends TrcSubsystem
         public static final String DIGITAL_SENSOR_NAME          = SUBSYSTEM_NAME + ".sensor";
         public static final int SENSOR_DIGITAL_CHANNEL          = 0;
         public static final boolean DIGITAL_TRIGGER_INVERTED    = false;
+
+        public static final double OPEN_POS                     = 0.2;
+        public static final double OPEN_TIME                    = 0.5;
+        public static final double CLOSE_POS                    = 0.55;
+        public static final double CLOSE_TIME                   = 0.5;
     }   //class Params
 
     private final FrcDashboard dashboard;

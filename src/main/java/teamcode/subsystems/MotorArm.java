@@ -39,27 +39,29 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class MotorArm extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "MotorArm";
-    public static final boolean NEED_ZERO_CAL                   = true;
+    public static final String SUBSYSTEM_NAME = "MotorArm";
+    private static final boolean NEED_ZERO_CAL = true;
+    private static final double GOBILDA312_CPR = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
 
     public static final class Params
     {
-        public static final boolean HAS_TWO_MOTORS              = false;
-        public static final boolean HAS_LOWER_LIMIT_SWITCH      = false;
-        public static final boolean HAS_UPPER_LIMIT_SWITCH      = false;
+        private static final boolean HAS_TWO_MOTORS             = false;
+        private static final boolean HAS_LOWER_LIMIT_SWITCH     = false;
+        private static final boolean HAS_UPPER_LIMIT_SWITCH     = false;
 
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 10;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
         public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
+        public static final boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 12;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
         public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
+        public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
 
         public static final String LOWER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
         public static final int LOWER_LIMIT_SWITCH_CHANNEL      = 0;
@@ -69,26 +71,25 @@ public class MotorArm extends TrcSubsystem
         public static final int UPPER_LIMIT_SWITCH_CHANNEL      = 1;
         public static final boolean UPPER_LIMIT_SWITCH_INVERTED = false;
 
-        public static final double GOBILDA312_CPR               = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
+        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final boolean USE_SOFTWARE_PID            = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
+
         public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
         public static final double POS_OFFSET                   = 39.0;
-        public static final double POWER_LIMIT                  = 0.25;
-        public static final double ZERO_CAL_POWER               = -0.2;
-        public static final double ZERO_CAL_TIMEOUT             = 0.0;
-
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 270.0;
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
+        public static final double POS_PRESET_TOLERANCE         = 10.0;
         public static final double[] posPresets                 = 
             {MIN_POS, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, MAX_POS};
-        public static final double POS_PRESET_TOLERANCE         = 10.0;
 
-        public static final boolean SOFTWARE_PID_ENABLED        = true;
-        public static final TrcPidController.PidCoefficients posPidCoeffs =
-            new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
-        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final double POWER_LIMIT                  = 0.25;
         public static final double GRAVITY_COMP_POWER           = 0.161;
+        public static final double ZERO_CAL_POWER               = -0.2;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
         // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
         public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
         public static final double STALL_TOLERANCE              = 0.1;
@@ -142,7 +143,7 @@ public class MotorArm extends TrcSubsystem
         motor.setPositionPidParameters(
             new PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
-                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
         motor.setStallProtection(
             Params.STALL_MIN_POWER, Params.STALL_TOLERANCE, Params.STALL_TIMEOUT, Params.STALL_RESET_TIMEOUT);
@@ -272,7 +273,7 @@ public class MotorArm extends TrcSubsystem
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
-                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID));
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
         }

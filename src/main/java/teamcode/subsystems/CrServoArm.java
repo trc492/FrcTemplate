@@ -53,36 +53,36 @@ public class CrServoArm extends TrcSubsystem
         public static final boolean PRIMARY_MOTOR_INVERTED      = false;
         public static final int PRIMARY_MOTOR_CHANNEL           = 0;
         public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = false;
+        public static final boolean PRIMARY_MOTOR_BRAKE_ENABLED = false;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final boolean FOLLOWER_MOTOR_INVERTED     = true;
         public static final int FOLLOWER_MOTOR_CHANNEL          = 1;
         public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED = false;
+        public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED = false;
 
         public static final String ABSENC_NAME                  = SUBSYSTEM_NAME + ".absEnc";
         public static final EncoderType ABSENC_TYPE             = EncoderType.AnalogEncoder;
         public static final boolean ABSENC_INVERTED             = true;
         public static final int ABSENC_CHANNEL                  = 0;
 
+        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final boolean USE_SOFTWARE_PID            = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.0162, 0.0, 0.0, 0.0, 2.0);
+
         public static final double POS_DEG_SCALE                = 360.0;
         public static final double POS_OFFSET                   = 27.0;
         public static final double ABSENC_ZERO_OFFSET           = 0.949697;
-        public static final double POWER_LIMIT                  = 0.25;
-
         public static final double MIN_POS                      = 27.3;
         public static final double MAX_POS                      = 300.0;
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
-        public static final double[] posPresets                 = {
-            30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0};
         public static final double POS_PRESET_TOLERANCE         = 5.0;
+        public static final double[] posPresets                 = 
+            {30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0};
 
-        public static final boolean SOFTWARE_PID_ENABLED        = true;
-        public static final TrcPidController.PidCoefficients posPidCoeffs =
-            new TrcPidController.PidCoefficients(0.0162, 0.0, 0.0, 0.0, 2.0);
-        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final double POWER_LIMIT                  = 0.25;
         public static final double GRAVITY_COMP_POWER           = 0.1675;
     }   //class Params
 
@@ -116,7 +116,7 @@ public class CrServoArm extends TrcSubsystem
         motor.setPositionPidParameters(
             new PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
-                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
         motor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
     }   //CrServoArm
@@ -230,7 +230,7 @@ public class CrServoArm extends TrcSubsystem
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
-                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID));
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
         }

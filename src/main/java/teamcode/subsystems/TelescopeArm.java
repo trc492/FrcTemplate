@@ -40,109 +40,111 @@ import trclib.timer.TrcTimer;
  */
 public class TelescopeArm extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "TelescopeArm";
-    public static final boolean NEED_ZERO_CAL                   = true;
-    public static final double GOBILDA312_CPR                   = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
+    public static final String SUBSYSTEM_NAME = "TelescopeArm";
+    private static final boolean NEED_ZERO_CAL = true;
+    private static final double GOBILDA312_CPR = (((1.0 + (46.0/17.0))) * (1.0 + (46.0/11.0))) * 28.0;
 
-    public static final class Params
+    private static final boolean HAS_ELBOW = false;
+
+    public static final class TelescopeParams
     {
-        public static final boolean TELESCOPE_HAS_LOWER_LIMIT_SW= false;
-        public static final boolean TELESCOPE_HAS_UPPER_LIMIT_SW= false;
+        private static final boolean HAS_LOWER_LIMIT_SW         = false;
+        private static final boolean HAS_UPPER_LIMIT_SW         = false;
 
-        public static final boolean HAS_ELBOW                   = false;
-        public static final boolean ELBOW_HAS_LOWER_LIMIT_SW    = false;
-        public static final boolean ELBOW_HAS_UPPER_LIMIT_SW    = false;
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+        public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".telescopeMotor";
+        public static final int MOTOR_ID                        = 10;
+        public static final boolean MOTOR_INVERTED              = false;
+        public static final boolean MOTOR_VOLTCOMP_ENABLED      = true;
+        public static final boolean MOTOR_BRAKE_ENABLED         = true;
 
-        // Telescope Parameters.
-        public static final MotorType TELESCOPE_MOTOR_TYPE      = MotorType.CanTalonSrx;
-        public static final String TELESCOPE_MOTOR_NAME         = SUBSYSTEM_NAME + ".telescopeMotor";
-        public static final int TELESCOPE_MOTOR_ID              = 10;
-        public static final boolean TELESCOPE_MOTOR_INVERTED    = false;
-        public static final boolean TELESCOPE_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final boolean TELESCOPE_MOTOR_BRAKE_ENABLED = true;
+        public static final String LOWER_LIMIT_SW_NAME          = SUBSYSTEM_NAME + ".telescopeLowerLimit";
+        public static final int LOWER_LIMIT_SW_CHANNEL          = 0;
+        public static final boolean LOWER_LIMIT_SW_INVERTED     = false;
 
-        public static final String TELESCOPE_LOWER_LIMIT_SW_NAME= SUBSYSTEM_NAME + ".telescopeLowerLimit";
-        public static final int TELESCOPE_LOWER_LIMIT_SW_CHANNEL= 0;
-        public static final boolean TELESCOPE_LOWER_LIMIT_SW_INVERTED = false;
+        public static final String UPPER_LIMIT_SW_NAME          = SUBSYSTEM_NAME + ".telescopeUpperLimit";
+        public static final int UPPER_LIMIT_SW_CHANNEL          = 1;
+        public static final boolean UPPER_LIMIT_SW_INVERTED     = false;
 
-        public static final String TELESCOPE_UPPER_LIMIT_SW_NAME= SUBSYSTEM_NAME + ".telescopeUpperLimit";
-        public static final int TELESCOPE_UPPER_LIMIT_SW_CHANNEL= 1;
-        public static final boolean TELESCOPE_UPPER_LIMIT_SW_INVERTED = false;
-
-        public static final double TELESCOPE_POS_OFFSET         = 17.5;
-        public static final double TELESCOPE_INCHES_PER_COUNT   = (37.75 - TELESCOPE_POS_OFFSET)/2323.0;
-        public static final double TELESCOPE_POWER_LIMIT        = 1.0;
-        public static final double TELESCOPE_ZERO_CAL_POWER     = -0.25;
-        public static final double TELESCOPE_ZERO_CAL_TIMEOUT   = 0.0;
-
-        public static final double TELESCOPE_MIN_POS            = TELESCOPE_POS_OFFSET;
-        public static final double TELESCOPE_MAX_POS            = 37.0;
-        public static final double TELESCOPE_TURTLE_POS         = TELESCOPE_MIN_POS;
-        public static final double TELESCOPE_TURTLE_DELAY       = 0.0;
-        public static final double[] telescopePosPresets        = 
-            {TELESCOPE_MIN_POS, 20.0, 25.0, 30.0, 35.0, TELESCOPE_MAX_POS};
-        public static final double TELESCOPE_POS_PRESET_TOLERANCE = 1.0;
-
-        public static final boolean TELESCOPE_USE_SOFTWARE_PID  = true;
-        public static final TrcPidController.PidCoefficients telescopePosPidCoeffs =
+        public static final double POS_PID_TOLERANCE            = 0.5;
+        public static final boolean USE_SOFTWARE_PID            = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.5, 0.0, 0.0, 0.0, 0.0);
-        public static final double TELESCOPE_POS_PID_TOLERANCE  = 0.5;
-        public static final double TELESCOPE_GRAVITY_COMP_POWER = 0.0;
+
+        public static final double POS_OFFSET                   = 17.5;
+        public static final double INCHES_PER_COUNT             = (37.75 - POS_OFFSET)/2323.0;
+        public static final double MIN_POS                      = POS_OFFSET;
+        public static final double MAX_POS                      = 37.0;
+        public static final double TURTLE_POS                   = MIN_POS;
+        public static final double TURTLE_DELAY                 = 0.0;
+        public static final double POS_PRESET_TOLERANCE         = 1.0;
+        public static final double[] posPresets                 = {MIN_POS, 20.0, 25.0, 30.0, 35.0, MAX_POS};
+
+        public static final double POWER_LIMIT                  = 1.0;
+        public static final double GRAVITY_COMP_POWER           = 0.0;
+        public static final double ZERO_CAL_POWER               = -0.25;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
+
         // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
-        public static final double TELESCOPE_STALL_MIN_POWER    = Math.abs(TELESCOPE_ZERO_CAL_POWER);
-        public static final double TELESCOPE_STALL_TOLERANCE    = 0.1;
-        public static final double TELESCOPE_STALL_TIMEOUT      = 0.1;
-        public static final double TELESCOPE_STALL_RESET_TIMEOUT= 0.0;
+        public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
+        public static final double STALL_TOLERANCE              = 0.1;
+        public static final double STALL_TIMEOUT                = 0.1;
+        public static final double STALL_RESET_TIMEOUT          = 0.0;
+    }   //class TelescopeParams
 
-        // Elbow Parameters.
-        public static final MotorType ELBOW_MOTOR_TYPE          = MotorType.CanTalonSrx;
-        public static final String ELBOW_MOTOR_NAME             = SUBSYSTEM_NAME + ".elbowMotor";
-        public static final int ELBOW_MOTOR_ID                  = 12;
-        public static final boolean ELBOW_MOTOR_INVERTED        = true;
-        public static final boolean ELBOW_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final boolean ELBOW_MOTOR_BRAKE_ENABLED   = true;
+    public static class ElbowParams
+    {
+        private static final boolean HAS_LOWER_LIMIT_SW         = false;
+        private static final boolean HAS_UPPER_LIMIT_SW         = false;
 
-        public static final String ELBOW_LOWER_LIMIT_SW_NAME    = SUBSYSTEM_NAME + ".elbowLowerLimit";
-        public static final int ELBOW_LOWER_LIMIT_SW_CHANNEL    = 2;
-        public static final boolean ELBOW_LOWER_LIMIT_SW_INVERTED = false;
+        public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+        public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".elbowMotor";
+        public static final int MOTOR_ID                        = 12;
+        public static final boolean MOTOR_INVERTED              = true;
+        public static final boolean MOTOR_VOLTCOMP_ENABLED      = true;
+        public static final boolean MOTOR_BRAKE_ENABLED         = true;
 
-        public static final String ELBOW_UPPER_LIMIT_SW_NAME    = SUBSYSTEM_NAME + ".elbowUpperLimit";
-        public static final int ELBOW_UPPER_LIMIT_SW_CHANNEL    = 3;
-        public static final boolean ELBOW_UPPER_LIMIT_SW_INVERTED = false;
+        public static final String LOWER_LIMIT_SW_NAME          = SUBSYSTEM_NAME + ".elbowLowerLimit";
+        public static final int LOWER_LIMIT_SW_CHANNEL          = 2;
+        public static final boolean LOWER_LIMIT_SW_INVERTED     = false;
 
-        public static final double ELBOW_DEG_PER_COUNT          = 360.0 / GOBILDA312_CPR;
-        public static final double ELBOW_POS_OFFSET             = 0.0;
-        public static final double ELBOW_POWER_LIMIT            = 0.25;
-        public static final double ELBOW_ZERO_CAL_POWER         = -0.2;
-        public static final double ELBOW_ZERO_CAL_TIMEOUT       = 0.0;
+        public static final String UPPER_LIMIT_SW_NAME          = SUBSYSTEM_NAME + ".elbowUpperLimit";
+        public static final int UPPER_LIMIT_SW_CHANNEL          = 3;
+        public static final boolean UPPER_LIMIT_SW_INVERTED     = false;
 
-        public static final double ELBOW_MIN_POS                = ELBOW_POS_OFFSET;
-        public static final double ELBOW_MAX_POS                = 90.0;
-        public static final double ELBOW_TURTLE_POS             = ELBOW_MIN_POS;
-        public static final double ELBOW_TURTLE_DELAY           = 0.0;
-        public static final double[] elbowPosPresets            =
-            {ELBOW_MIN_POS, 15.0, 30.0, 45.0, 60.0, 75.0, ELBOW_MAX_POS};
-        public static final double ELBOW_POS_PRESET_TOLERANCE   = 5.0;
-
-        public static final boolean ELBOW_USE_SOFTWARE_PID      = true;
-        public static final TrcPidController.PidCoefficients elbowPosPidCoeffs =
+        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final boolean USE_SOFTWARE_PID            = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
-        public static final double ELBOW_POS_PID_TOLERANCE      = 1.0;
-        public static final double ELBOW_GRAVITY_COMP_POWER     = 0.161;
+
+        public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
+        public static final double POS_OFFSET                   = 0.0;
+        public static final double MIN_POS                      = POS_OFFSET;
+        public static final double MAX_POS                      = 90.0;
+        public static final double TURTLE_POS                   = MIN_POS;
+        public static final double TURTLE_DELAY                 = 0.0;
+        public static final double POS_PRESET_TOLERANCE         = 5.0;
+        public static final double[] posPresets                 = {MIN_POS, 15.0, 30.0, 45.0, 60.0, 75.0, MAX_POS};
+
+        public static final double POWER_LIMIT                  = 0.25;
+        public static final double GRAVITY_COMP_POWER           = 0.161;
+        public static final double ZERO_CAL_POWER               = -0.2;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
+
         // Since we don't have lower limit switch, must enable Stall Protection to do zero calibration by stalling.
-        public static final double ELBOW_STALL_MIN_POWER        = Math.abs(ELBOW_ZERO_CAL_POWER);
-        public static final double ELBOW_STALL_TOLERANCE        = 0.1;
-        public static final double ELBOW_STALL_TIMEOUT          = 0.1;
-        public static final double ELBOW_STALL_RESET_TIMEOUT    = 0.0;
-    }   //class Params
+        public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
+        public static final double STALL_TOLERANCE              = 0.1;
+        public static final double STALL_TIMEOUT                = 0.1;
+        public static final double STALL_RESET_TIMEOUT          = 0.0;
+    }   //class ElbowParams
 
     private final FrcDashboard dashboard;
     public final TrcMotor telescope;
     public final TrcMotor elbow;
     private final TrcTimer timer;
+    private String tuneSubsystemName = null;
     private Double tuneTelescopeGravityCompPower = null;
     private Double tuneElbowGravityCompPower = null;
-    private String tuneSubsystemName = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -155,72 +157,72 @@ public class TelescopeArm extends TrcSubsystem
         // Create Telescope.
         FrcMotorActuator.Params telescopeMotorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.TELESCOPE_MOTOR_NAME, Params.TELESCOPE_MOTOR_TYPE, Params.TELESCOPE_MOTOR_INVERTED,
-                Params.TELESCOPE_MOTOR_VOLTCOMP_ENABLED, Params.TELESCOPE_MOTOR_BRAKE_ENABLED,
-                Params.TELESCOPE_MOTOR_ID, null, null)
-            .setPositionScaleAndOffset(Params.TELESCOPE_INCHES_PER_COUNT, Params.TELESCOPE_POS_OFFSET)
-            .setPositionPresets(Params.TELESCOPE_POS_PRESET_TOLERANCE, Params.telescopePosPresets);
+                TelescopeParams.MOTOR_NAME, TelescopeParams.MOTOR_TYPE, TelescopeParams.MOTOR_INVERTED,
+                TelescopeParams.MOTOR_VOLTCOMP_ENABLED, TelescopeParams.MOTOR_BRAKE_ENABLED,
+                TelescopeParams.MOTOR_ID, null, null)
+            .setPositionScaleAndOffset(TelescopeParams.INCHES_PER_COUNT, TelescopeParams.POS_OFFSET)
+            .setPositionPresets(TelescopeParams.POS_PRESET_TOLERANCE, TelescopeParams.posPresets);
 
-        if (Params.TELESCOPE_HAS_LOWER_LIMIT_SW)
+        if (TelescopeParams.HAS_LOWER_LIMIT_SW)
         {
             telescopeMotorParams.setLowerLimitSwitch(
-                Params.TELESCOPE_LOWER_LIMIT_SW_NAME, Params.TELESCOPE_LOWER_LIMIT_SW_CHANNEL,
-                Params.TELESCOPE_LOWER_LIMIT_SW_INVERTED);
+                TelescopeParams.LOWER_LIMIT_SW_NAME, TelescopeParams.LOWER_LIMIT_SW_CHANNEL,
+                TelescopeParams.LOWER_LIMIT_SW_INVERTED);
         }
 
-        if (Params.TELESCOPE_HAS_UPPER_LIMIT_SW)
+        if (TelescopeParams.HAS_UPPER_LIMIT_SW)
         {
             telescopeMotorParams.setUpperLimitSwitch(
-                Params.TELESCOPE_UPPER_LIMIT_SW_NAME, Params.TELESCOPE_UPPER_LIMIT_SW_CHANNEL,
-                Params.TELESCOPE_UPPER_LIMIT_SW_INVERTED);
+                TelescopeParams.UPPER_LIMIT_SW_NAME, TelescopeParams.UPPER_LIMIT_SW_CHANNEL,
+                TelescopeParams.UPPER_LIMIT_SW_INVERTED);
         }
 
         telescope = new FrcMotorActuator(telescopeMotorParams).getMotor();
         telescope.setPositionPidParameters(
             new PidParams()
-                .setPidCoefficients(Params.telescopePosPidCoeffs)
-                .setPidControlParams(Params.TELESCOPE_POS_PID_TOLERANCE, Params.TELESCOPE_USE_SOFTWARE_PID), null);
+                .setPidCoefficients(TelescopeParams.posPidCoeffs)
+                .setPidControlParams(TelescopeParams.POS_PID_TOLERANCE, TelescopeParams.USE_SOFTWARE_PID), null);
         telescope.setPositionPidPowerComp(this::getTelescopeGravityComp);
         telescope.setStallProtection(
-            Params.TELESCOPE_STALL_MIN_POWER, Params.TELESCOPE_STALL_TOLERANCE, Params.TELESCOPE_STALL_TIMEOUT,
-            Params.TELESCOPE_STALL_RESET_TIMEOUT);
-        telescope.setSoftPositionLimits(Params.TELESCOPE_MIN_POS, Params.TELESCOPE_MAX_POS, false);
+            TelescopeParams.STALL_MIN_POWER, TelescopeParams.STALL_TOLERANCE, TelescopeParams.STALL_TIMEOUT,
+            TelescopeParams.STALL_RESET_TIMEOUT);
+        telescope.setSoftPositionLimits(TelescopeParams.MIN_POS, TelescopeParams.MAX_POS, false);
 
         // Create Elbow.
-        if (Params.HAS_ELBOW)
+        if (HAS_ELBOW)
         {
             FrcMotorActuator.Params elbowMotorParams = new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    Params.ELBOW_MOTOR_NAME, Params.ELBOW_MOTOR_TYPE, Params.ELBOW_MOTOR_INVERTED,
-                    Params.ELBOW_MOTOR_VOLTCOMP_ENABLED, Params.ELBOW_MOTOR_BRAKE_ENABLED,
-                    Params.ELBOW_MOTOR_ID, null, null)
-                .setPositionScaleAndOffset(Params.ELBOW_DEG_PER_COUNT, Params.ELBOW_POS_OFFSET)
-                .setPositionPresets(Params.ELBOW_POS_PRESET_TOLERANCE, Params.elbowPosPresets);
+                    ElbowParams.MOTOR_NAME, ElbowParams.MOTOR_TYPE, ElbowParams.MOTOR_INVERTED,
+                    ElbowParams.MOTOR_VOLTCOMP_ENABLED, ElbowParams.MOTOR_BRAKE_ENABLED,
+                    ElbowParams.MOTOR_ID, null, null)
+                .setPositionScaleAndOffset(ElbowParams.DEG_PER_COUNT, ElbowParams.POS_OFFSET)
+                .setPositionPresets(ElbowParams.POS_PRESET_TOLERANCE, ElbowParams.posPresets);
 
-            if (Params.ELBOW_HAS_LOWER_LIMIT_SW)
+            if (ElbowParams.HAS_LOWER_LIMIT_SW)
             {
                 elbowMotorParams.setLowerLimitSwitch(
-                    Params.ELBOW_LOWER_LIMIT_SW_NAME, Params.ELBOW_LOWER_LIMIT_SW_CHANNEL,
-                    Params.ELBOW_LOWER_LIMIT_SW_INVERTED);
+                    ElbowParams.LOWER_LIMIT_SW_NAME, ElbowParams.LOWER_LIMIT_SW_CHANNEL,
+                    ElbowParams.LOWER_LIMIT_SW_INVERTED);
             }
 
-            if (Params.ELBOW_HAS_UPPER_LIMIT_SW)
+            if (ElbowParams.HAS_UPPER_LIMIT_SW)
             {
                 elbowMotorParams.setUpperLimitSwitch(
-                    Params.ELBOW_UPPER_LIMIT_SW_NAME, Params.ELBOW_UPPER_LIMIT_SW_CHANNEL,
-                    Params.ELBOW_UPPER_LIMIT_SW_INVERTED);
+                    ElbowParams.UPPER_LIMIT_SW_NAME, ElbowParams.UPPER_LIMIT_SW_CHANNEL,
+                    ElbowParams.UPPER_LIMIT_SW_INVERTED);
             }
 
             elbow = new FrcMotorActuator(elbowMotorParams).getMotor();
             elbow.setPositionPidParameters(
                 new PidParams()
-                    .setPidCoefficients(Params.elbowPosPidCoeffs)
-                    .setPidControlParams(Params.ELBOW_POS_PID_TOLERANCE, Params.ELBOW_USE_SOFTWARE_PID), null);
+                    .setPidCoefficients(ElbowParams.posPidCoeffs)
+                    .setPidControlParams(ElbowParams.POS_PID_TOLERANCE, ElbowParams.USE_SOFTWARE_PID), null);
             elbow.setPositionPidPowerComp(this::getElbowGravityComp);
             elbow.setStallProtection(
-                Params.ELBOW_STALL_MIN_POWER, Params.ELBOW_STALL_TOLERANCE, Params.ELBOW_STALL_TIMEOUT,
-                Params.ELBOW_STALL_RESET_TIMEOUT);
-            elbow.setSoftPositionLimits(Params.ELBOW_MIN_POS, Params.ELBOW_MAX_POS, false);
+                ElbowParams.STALL_MIN_POWER, ElbowParams.STALL_TOLERANCE, ElbowParams.STALL_TIMEOUT,
+                ElbowParams.STALL_RESET_TIMEOUT);
+            elbow.setSoftPositionLimits(ElbowParams.MIN_POS, ElbowParams.MAX_POS, false);
         }
         else
         {
@@ -240,7 +242,7 @@ public class TelescopeArm extends TrcSubsystem
     private double getTelescopeGravityComp(TrcMotor motor, double currPower)
     {
         double gravityCompPower = tuneTelescopeGravityCompPower != null?
-            tuneTelescopeGravityCompPower: Params.TELESCOPE_GRAVITY_COMP_POWER;
+            tuneTelescopeGravityCompPower: TelescopeParams.GRAVITY_COMP_POWER;
 
         if (elbow != null)
         {
@@ -262,7 +264,7 @@ public class TelescopeArm extends TrcSubsystem
     private double getElbowGravityComp(TrcMotor motor, double currPower)
     {
         double gravityCompPower = tuneElbowGravityCompPower != null?
-            tuneElbowGravityCompPower: Params.ELBOW_GRAVITY_COMP_POWER;
+            tuneElbowGravityCompPower: ElbowParams.GRAVITY_COMP_POWER;
         // This is not a correct equation, it needs to be updated to reflect the physical mechanism.
         gravityCompPower *= telescope.getPosition()*Math.cos(Math.toRadians(elbow.getPosition()));
 
@@ -289,13 +291,13 @@ public class TelescopeArm extends TrcSubsystem
         if (telescopePos != null)
         {
             telescopeEvent = new TrcEvent(SUBSYSTEM_NAME + ".telescopeEvent");
-            telescope.setPosition(owner, 0.0, telescopePos, true, Params.TELESCOPE_POWER_LIMIT, telescopeEvent, 0.0);
+            telescope.setPosition(owner, 0.0, telescopePos, true, TelescopeParams.POWER_LIMIT, telescopeEvent, 0.0);
         }
 
         if (elbow != null && elbowPos != null)
         {
             elbowEvent = new TrcEvent(SUBSYSTEM_NAME + ".elbowEvent");
-            elbow.setPosition(owner, 0.0, elbowPos, true, Params.ELBOW_POWER_LIMIT, elbowEvent, 0.0);
+            elbow.setPosition(owner, 0.0, elbowPos, true, ElbowParams.POWER_LIMIT, elbowEvent, 0.0);
         }
 
         if (timeout > 0.0 && (telescopeEvent != null || elbowEvent != null))
@@ -360,12 +362,12 @@ public class TelescopeArm extends TrcSubsystem
         TrcEvent elbowEvent = null;
 
         telescope.zeroCalibrate(
-            owner, Params.TELESCOPE_ZERO_CAL_POWER, telescopeEvent, Params.TELESCOPE_ZERO_CAL_TIMEOUT);
+            owner, TelescopeParams.ZERO_CAL_POWER, telescopeEvent, TelescopeParams.ZERO_CAL_TIMEOUT);
 
         if (elbow != null)
         {
             elbowEvent = new TrcEvent(SUBSYSTEM_NAME + ".elbowEvent");
-            elbow.zeroCalibrate(owner, Params.ELBOW_ZERO_CAL_POWER, elbowEvent, Params.ELBOW_ZERO_CAL_TIMEOUT);
+            elbow.zeroCalibrate(owner, ElbowParams.ZERO_CAL_POWER, elbowEvent, ElbowParams.ZERO_CAL_TIMEOUT);
         }
 
         if (completionEvent != null)
@@ -381,12 +383,12 @@ public class TelescopeArm extends TrcSubsystem
     public void resetState()
     {
         telescope.setPosition(
-            Params.TELESCOPE_TURTLE_DELAY, Params.TELESCOPE_TURTLE_POS, true, Params.TELESCOPE_POWER_LIMIT);
+            TelescopeParams.TURTLE_DELAY, TelescopeParams.TURTLE_POS, true, TelescopeParams.POWER_LIMIT);
 
         if (elbow != null)
         {
             elbow.setPosition(
-                Params.ELBOW_TURTLE_DELAY, Params.ELBOW_TURTLE_POS, true, Params.ELBOW_POWER_LIMIT);
+                ElbowParams.TURTLE_DELAY, ElbowParams.TURTLE_POS, true, ElbowParams.POWER_LIMIT);
         }
     }   //resetState
 
@@ -430,12 +432,12 @@ public class TelescopeArm extends TrcSubsystem
             dashboard.putString(DBKEY_TELESCOPE_PWR_INFO, telescope.getPower() + "/" + telescope.getCurrent());
             dashboard.putString(DBKEY_TELESCOPE_POS_INFO, telescope.getPosition() + "/" + telescope.getPidTarget());
 
-            if (Params.TELESCOPE_HAS_LOWER_LIMIT_SW)
+            if (TelescopeParams.HAS_LOWER_LIMIT_SW)
             {
                 dashboard.putBoolean(DBKEY_TELESCOPE_LOWER_LIMIT, telescope.isLowerLimitSwitchActive());
             }
 
-            if (Params.TELESCOPE_HAS_UPPER_LIMIT_SW)
+            if (TelescopeParams.HAS_UPPER_LIMIT_SW)
             {
                 dashboard.putBoolean(DBKEY_TELESCOPE_UPPER_LIMIT, telescope.isUpperLimitSwitchActive());
             }
@@ -445,12 +447,12 @@ public class TelescopeArm extends TrcSubsystem
                 dashboard.putString(DBKEY_ELBOW_PWR_INFO, elbow.getPower() + "/" + elbow.getCurrent());
                 dashboard.putString(DBKEY_ELBOW_POS_INFO, elbow.getPosition() + "/" + elbow.getPidTarget());
 
-                if (Params.ELBOW_HAS_LOWER_LIMIT_SW)
+                if (ElbowParams.HAS_LOWER_LIMIT_SW)
                 {
                     dashboard.putBoolean(DBKEY_ELBOW_LOWER_LIMIT, elbow.isLowerLimitSwitchActive());
                 }
 
-                if (Params.ELBOW_HAS_UPPER_LIMIT_SW)
+                if (ElbowParams.HAS_UPPER_LIMIT_SW)
                 {
                     dashboard.putBoolean(DBKEY_ELBOW_UPPER_LIMIT, elbow.isUpperLimitSwitchActive());
                 }
@@ -459,11 +461,11 @@ public class TelescopeArm extends TrcSubsystem
         // The following entries need to be updated at fast rate for plotting graphs.
         if (tuneSubsystemName != null)
         {
-            if (tuneSubsystemName.equalsIgnoreCase(Params.TELESCOPE_MOTOR_NAME))
+            if (tuneSubsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, telescope.getPosition());
             }
-            else if (elbow != null && tuneSubsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
+            else if (elbow != null && tuneSubsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
             {
                 dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_INPUT, elbow.getPosition());
             }
@@ -481,23 +483,23 @@ public class TelescopeArm extends TrcSubsystem
     @Override
     public void updateParamsToDashboard(String subsystemName)
     {
-        if (subsystemName.equalsIgnoreCase(Params.TELESCOPE_MOTOR_NAME))
+        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
         {
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
-                    .setPidCoefficients(Params.telescopePosPidCoeffs)
-                    .setPidControlParams(Params.TELESCOPE_POS_PID_TOLERANCE, Params.TELESCOPE_USE_SOFTWARE_PID));
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TELESCOPE_MIN_POS);
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.TELESCOPE_GRAVITY_COMP_POWER);
+                    .setPidCoefficients(TelescopeParams.posPidCoeffs)
+                    .setPidControlParams(TelescopeParams.POS_PID_TOLERANCE, TelescopeParams.USE_SOFTWARE_PID));
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, TelescopeParams.MIN_POS);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, TelescopeParams.GRAVITY_COMP_POWER);
         }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
         {
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
-                    .setPidCoefficients(Params.elbowPosPidCoeffs)
-                    .setPidControlParams(Params.ELBOW_POS_PID_TOLERANCE, Params.ELBOW_USE_SOFTWARE_PID));
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.ELBOW_MIN_POS);
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.ELBOW_GRAVITY_COMP_POWER);
+                    .setPidCoefficients(ElbowParams.posPidCoeffs)
+                    .setPidControlParams(ElbowParams.POS_PID_TOLERANCE, ElbowParams.USE_SOFTWARE_PID));
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, ElbowParams.MIN_POS);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, ElbowParams.GRAVITY_COMP_POWER);
         }
     }   //updateParamsToDashboard
 
@@ -515,21 +517,21 @@ public class TelescopeArm extends TrcSubsystem
         double gravityPower = 0.0;
 
         tuneSubsystemName = null;
-        if (subsystemName.equalsIgnoreCase(Params.TELESCOPE_MOTOR_NAME))
+        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
         {
-            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.TELESCOPE_MIN_POS);
+            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, TelescopeParams.MIN_POS);
             tuneTelescopeGravityCompPower = dashboard.getNumber(
-                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.TELESCOPE_GRAVITY_COMP_POWER);
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, TelescopeParams.GRAVITY_COMP_POWER);
             telescope.setPositionPidParameters(pidParams, null);
             telescope.setPosition(target);
             gravityPower = tuneTelescopeGravityCompPower;
             tuneSubsystemName = subsystemName;
         }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
         {
-            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.ELBOW_MIN_POS);
+            target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, ElbowParams.MIN_POS);
             tuneElbowGravityCompPower = dashboard.getNumber(
-                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.ELBOW_GRAVITY_COMP_POWER);
+                FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, ElbowParams.GRAVITY_COMP_POWER);
             elbow.setPositionPidParameters(pidParams, null);
             elbow.setPosition(target);
             gravityPower = tuneElbowGravityCompPower;
@@ -555,11 +557,11 @@ public class TelescopeArm extends TrcSubsystem
     {
         Double target = null;
 
-        if (subsystemName.equalsIgnoreCase(Params.TELESCOPE_MOTOR_NAME))
+        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
         {
             target = telescope.presetPositionUp(null, null);
         }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
         {
             target = elbow.presetPositionUp(null, null);
         }
@@ -581,11 +583,11 @@ public class TelescopeArm extends TrcSubsystem
     {
         Double target = null;
 
-        if (subsystemName.equalsIgnoreCase(Params.TELESCOPE_MOTOR_NAME))
+        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
         {
             target = telescope.presetPositionDown(null, null);
         }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(Params.ELBOW_MOTOR_NAME))
+        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
         {
             target = elbow.presetPositionDown(null, null);
         }

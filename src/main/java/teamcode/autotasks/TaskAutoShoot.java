@@ -250,7 +250,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
 
                     robot.shooter.aimShooter(
                         owner, shootParams.outputs[0], 0.0, aprilTagPose.angle, shootParams.region.value, event, 0.0,
-                        robot.shooterSubsystem::shoot, null, Shooter.Params.SHOOTER_OFF_DELAY);
+                        robot.shooterSubsystem::shoot, null, Shooter.ShooterMotorParams.OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ShootParams: distance=" + aprilTagDistance + ", params=" + shootParams);
                 }
@@ -261,7 +261,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
                     // ShooterVel is in RPM, aimShooter wants RPS.
                     robot.shooter.aimShooter(
                         owner, shooterVel / 60.0, 0.0, null, null, event, 0.0, robot.shooterSubsystem::shoot, null,
-                        Shooter.Params.SHOOTER_OFF_DELAY);
+                        Shooter.ShooterMotorParams.OFF_DELAY);
                     tracer.traceInfo(
                         moduleName, "***** ManualShoot: shooterVel=" + shooterVel + " RPM");
                 }

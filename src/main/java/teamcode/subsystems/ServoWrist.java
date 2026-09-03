@@ -24,6 +24,7 @@ package teamcode.subsystems;
 
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
+import teamcode.FrcTest;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -35,8 +36,8 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoWrist extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "ServoWrist";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "ServoWrist";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static class Params
     {
@@ -50,7 +51,7 @@ public class ServoWrist extends TrcSubsystem
         public static final double PHYSICAL_MAX_POS             = 90.0;     // in degrees
 
         public static final double POS_PRESET_TOLERANCE         = 1.0;      // in degrees
-        public static final double[] tiltPosPresets             = {-110, -90.0, -45.0, 0.0, 45.0, 90.0, 110};
+        public static final double[] posPresets                 = {-110.0, -90.0, -45.0, 0.0, 45.0, 90.0, 110.0};
     }   //class Params
 
     private final FrcDashboard dashboard;
@@ -68,7 +69,7 @@ public class ServoWrist extends TrcSubsystem
             .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
             .setLogicalPosRange(Params.LOGICAL_MIN_POS, Params.LOGICAL_MAX_POS)
             .setPhysicalPosRange(Params.PHYSICAL_MIN_POS, Params.PHYSICAL_MAX_POS)
-            .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.tiltPosPresets);
+            .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
 
         servo = new FrcServoActuator(wristParams).getServo();
     }   //ServoWrist
@@ -156,7 +157,10 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void updateParamsToDashboard(String subsystemName)
     {
-        // ServoWirst doesn't support tuning.
+        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.LOGICAL_MIN_POS);
+        }
     }   //updateParamsToDashboard
 
     /**
@@ -168,7 +172,12 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void updateParamsFromDashboard(String subsystemName)
     {
-        // ServoWirst doesn't support tuning.
+        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.LOGICAL_MIN_POS);
+            servo.setLogicalPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
+        }
     }   //updateParamsFromDashboard
 
     /**
@@ -179,7 +188,12 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void setNextTuneTargetUp(String subsystemName)
     {
-        // ServoWirst doesn't support tuning.
+        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            double target = Params.LOGICAL_MAX_POS;
+            servo.setLogicalPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
+        }
     }   //setNextTuneTargetUp
 
     /**
@@ -190,7 +204,12 @@ public class ServoWrist extends TrcSubsystem
     @Override
     public void setNextTuneTargetDown(String subsystemName)
     {
-        // ServoWirst doesn't support tuning.
+        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            double target = Params.LOGICAL_MIN_POS;
+            servo.setLogicalPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
+        }
     }   //setNextTuneTargetDown
 
 }   //class ServoWrist

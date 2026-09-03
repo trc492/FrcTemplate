@@ -41,28 +41,32 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class Turret extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "Turret";
-    public static final boolean NEED_ZERO_CAL                   = true;
+    public static final String SUBSYSTEM_NAME = "Turret";
+    private static final boolean NEED_ZERO_CAL = true;
 
     public static final class Params
     {
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+
         public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
         public static final int MOTOR_ID                        = 10;
         public static final boolean MOTOR_INVERTED              = true;
+        public static final boolean MOTOR_VOLTCOMP_ENABLED      = true;
+        public static final boolean MOTOR_BRAKE_ENABLED         = true;
 
         public static final String LOWER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
         public static final int LOWER_LIMIT_SWITCH_CHANNEL      = 0;
         public static final boolean LOWER_LIMIT_SWITCH_INVERTED = false;
 
+        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final boolean USE_SOFTWARE_PID            = true;
+        public static final TrcPidController.PidCoefficients posPidCoeffs =
+            new TrcPidController.PidCoefficients(0.04, 0.0, 0.0, 0.0, 0.0);
+
         public static final double ENCODER_PPR                  = 288.0;
         public static final double GEAR_RATIO                   = 100.0/60.0;
         public static final double DEG_PER_COUNT                = 360.0/(ENCODER_PPR*GEAR_RATIO);
         public static final double POS_OFFSET                   = 0.0;
-        public static final double POWER_LIMIT                  = 1.0;
-        public static final double ZERO_CAL_POWER               = -0.3;
-        public static final double ZERO_CAL_TIMEOUT             = 0.0;
-
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 325.0;
         public static final double BACK_POS                     = 0.0;
@@ -71,16 +75,12 @@ public class Turret extends TrcSubsystem
         public static final double RIGHT_POS                    = 270.0;
         public static final double TURTLE_POS                   = FRONT_POS;
         public static final double TURTLE_DELAY                 = 0.0;
-
-        // Preset positions.
-        public static final double[] posPresets                 =
-            new double[] {BACK_POS, LEFT_POS, FRONT_POS, RIGHT_POS};
         public static final double POS_PRESET_TOLERANCE         = 1.0;
+        public static final double[] posPresets                 = {BACK_POS, LEFT_POS, FRONT_POS, RIGHT_POS};
 
-        public static final boolean SOFTWARE_PID_ENABLED        = true;
-        public static final TrcPidController.PidCoefficients posPidCoeffs =
-            new TrcPidController.PidCoefficients(0.04, 0.0, 0.0, 0.0, 0.0);
-        public static final double POS_PID_TOLERANCE            = 1.0;
+        public static final double POWER_LIMIT                  = 1.0;
+        public static final double ZERO_CAL_POWER               = -0.3;
+        public static final double ZERO_CAL_TIMEOUT             = 0.0;
     }   //class Params
 
     private final FrcDashboard dashboard;
@@ -97,7 +97,8 @@ public class Turret extends TrcSubsystem
         dashboard = FrcDashboard.getInstance();
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
-                Params.MOTOR_NAME, Params.MOTOR_TYPE, Params.MOTOR_INVERTED, true, true, Params.MOTOR_ID, null, null)
+                Params.MOTOR_NAME, Params.MOTOR_TYPE, Params.MOTOR_INVERTED, Params.MOTOR_VOLTCOMP_ENABLED,
+                Params.MOTOR_BRAKE_ENABLED, Params.MOTOR_ID, null, null)
             .setLowerLimitSwitch(
                 Params.LOWER_LIMIT_SWITCH_NAME, Params.LOWER_LIMIT_SWITCH_CHANNEL, Params.LOWER_LIMIT_SWITCH_INVERTED)
             .setPositionScaleAndOffset(Params.DEG_PER_COUNT, Params.POS_OFFSET)
@@ -106,7 +107,7 @@ public class Turret extends TrcSubsystem
         motor.setPositionPidParameters(
             new PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
-                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED), null);
+                .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         // Since we don't have upper limit switch, setting soft limits will protect turret from overrunning the upper
         // limit in manual mode.
         motor.setSoftPositionLimits(Params.MIN_POS, Params.MAX_POS, false);
@@ -211,7 +212,7 @@ public class Turret extends TrcSubsystem
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
-                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.SOFTWARE_PID_ENABLED));
+                    .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID));
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.FRONT_POS);
         }
     }   //updateParamsToDashboard

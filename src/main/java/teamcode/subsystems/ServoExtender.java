@@ -35,8 +35,8 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class ServoExtender extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "ServoExtender";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "ServoExtender";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static class Params
     {

@@ -36,27 +36,28 @@ import trclib.subsystem.TrcRollerIntake.TriggerAction;
  */
 public class Intake extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "Intake";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "Intake";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static final class Params
     {
-        public static final boolean HAS_TWO_MOTORS              = false;
-        public static final boolean HAS_FRONT_SENSOR            = false;
-        public static final boolean HAS_BACK_SENSOR             = true;
+        private static final boolean HAS_TWO_MOTORS             = false;
+        private static final boolean HAS_FRONT_SENSOR           = false;
+        private static final boolean HAS_BACK_SENSOR            = true;
 
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
+
         public static final String PRIMARY_MOTOR_NAME           = SUBSYSTEM_NAME + ".primary";
         public static final int PRIMARY_MOTOR_ID                = 12;
         public static final boolean PRIMARY_MOTOR_INVERTED      = true;
         public static final boolean PRIMARY_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
+        public static final boolean PRIMARY_MOTOR_BRAKE_ENABLED = true;
 
         public static final String FOLLOWER_MOTOR_NAME          = SUBSYSTEM_NAME + ".follower";
         public static final int FOLLOWER_MOTOR_ID               = 14;
         public static final boolean FOLLOWER_MOTOR_INVERTED     = !PRIMARY_MOTOR_INVERTED;
         public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
-        public static final Boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
+        public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
 
         public static final String FRONT_SENSOR_NAME             = SUBSYSTEM_NAME + ".frontSensor";
         public static final int FRONT_SENSOR_DIGITAL_CHANNEL    = 1;

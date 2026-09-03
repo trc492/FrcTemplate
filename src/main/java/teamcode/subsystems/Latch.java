@@ -36,8 +36,8 @@ import trclib.subsystem.TrcSubsystem;
  */
 public class Latch extends TrcSubsystem
 {
-    public static final String SUBSYSTEM_NAME                   = "Latch";
-    public static final boolean NEED_ZERO_CAL                   = false;
+    public static final String SUBSYSTEM_NAME = "Latch";
+    private static final boolean NEED_ZERO_CAL = false;
 
     public static final class Params
     {
@@ -50,8 +50,6 @@ public class Latch extends TrcSubsystem
         public static final double LOGICAL_MIN_POS              = 0.17;
         public static final double LOGICAL_MAX_POS              = 0.57;
         public static final double MAX_STEP_RATE                = 420.0;
-        public static final double[] posPresets                 = {PHYSICAL_MIN_POS, 30.0, 60.0, PHYSICAL_MAX_POS};
-        public static final double POS_PRESET_TOLERANCE         = 1.0;
     }   //class Params
 
     private final FrcDashboard dashboard;
@@ -69,8 +67,7 @@ public class Latch extends TrcSubsystem
             .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
             .setPhysicalPosRange(Params.PHYSICAL_MIN_POS, Params.PHYSICAL_MAX_POS)
             .setLogicalPosRange(Params.LOGICAL_MIN_POS, Params.LOGICAL_MAX_POS)
-            .setMaxStepRate(Params.MAX_STEP_RATE)
-            .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
+            .setMaxStepRate(Params.MAX_STEP_RATE);
 
         servo = new FrcServoActuator(latchParams).getServo();
         servo.setPosition(Params.PHYSICAL_MIN_POS);
@@ -177,7 +174,7 @@ public class Latch extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
         {
             double target = dashboard.getNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.LOGICAL_MIN_POS);
-            servo.setPosition(target);
+            servo.setLogicalPosition(target);
             servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
@@ -193,7 +190,7 @@ public class Latch extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
         {
             double target = Params.LOGICAL_MAX_POS;
-            servo.setPosition(target);
+            servo.setLogicalPosition(target);
             servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetUp
@@ -209,7 +206,7 @@ public class Latch extends TrcSubsystem
         if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
         {
             double target = Params.LOGICAL_MIN_POS;
-            servo.setPosition(target);
+            servo.setLogicalPosition(target);
             servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
         }
     }   //setNextTuneTargetDown
