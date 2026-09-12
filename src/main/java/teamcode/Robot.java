@@ -12,7 +12,7 @@
  * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,g
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
@@ -55,7 +55,6 @@ import frclib.vision.FrcPhotonVision.DetectedObject;
 import teamcode.indicators.LEDIndicator;
 import teamcode.subsystems.DriveBase;
 import teamcode.vision.Vision;
-import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcAutoTask;
 import trclib.robotcore.TrcBuildInfo;
@@ -82,8 +81,8 @@ public class Robot extends FrcRobot
         Continuous
     }   //enum RelocalizationMode
 
+    private static final String moduleName = Robot.class.getSimpleName();
     // Global objects.
-    public static final String moduleName = Robot.class.getSimpleName();
     public final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
     public FrcDashboard dashboard;
     private TrcBuildInfo buildInfo;
@@ -91,16 +90,15 @@ public class Robot extends FrcRobot
     // Inputs.
     public FrcXboxController driverController;
     public FrcXboxController operatorController;
-    // Sensors.
-    public FrcPdp pdp;
-    public TrcRobotBattery battery;
-    public AnalogInput pressureSensor;
     // Robot Drive.
     public DriveBase robotDriveBase;
     public FrcRobotBase.RobotInfo robotInfo;
     public FrcRobotBase robotBase;
     private TrcPose2D endOfAutoRobotPose = null;
-    // Miscellaneous hardware.
+    // Sensors and indicators.
+    public FrcPdp pdp;
+    public TrcRobotBattery battery;
+    public AnalogInput pressureSensor;
     public LEDIndicator ledIndicator;
     // Vision.
     public Vision vision;
@@ -147,6 +145,7 @@ public class Robot extends FrcRobot
         createTeamFolderPath();
         DataLogManager.start();
         buildInfo = TrcBuildInfo.getBuildInfo();
+
         // Create and initialize inputs.
         if (RobotParams.Preferences.hasDriverGameController)
         {
@@ -164,7 +163,13 @@ public class Robot extends FrcRobot
             operatorController.setRightStickInverted(false, true);
         }
 
-        // Create and initialize sensors.
+        // Create and initialize DriveBase and RobotInfo. This must be done early because subsequent components may
+        // require it.
+        robotDriveBase = new DriveBase(this);
+        robotInfo = robotDriveBase.getRobotInfo();
+        robotBase = robotDriveBase.getRobotBase();
+
+        // Create and initialize sensors and indicators.
         if (RobotParams.Preferences.usePdp)
         {
             pdp = new FrcPdp(RobotParams.HwConfig.CANID_PDP, RobotParams.HwConfig.PDP_MODULE_TYPE);
@@ -177,12 +182,6 @@ public class Robot extends FrcRobot
             pressureSensor = new AnalogInput(RobotParams.HwConfig.AIN_PRESSURE_SENSOR);
         }
 
-        // Create and initialize RobotInfo. This must be done early because subsequent components may require it.
-        robotDriveBase = new DriveBase();
-        robotInfo = robotDriveBase.getRobotInfo();
-        robotBase = robotDriveBase.getRobotBase();
-
-        // Create and initialize sensors and indicators.
         ledIndicator =
             RobotParams.Preferences.useLED && robotInfo.ledInfos != null? new LEDIndicator(robotInfo.ledInfos): null;
 
@@ -190,7 +189,6 @@ public class Robot extends FrcRobot
         if (RobotParams.Preferences.useVision && robotInfo.camInfos != null)
         {
             vision = new Vision(this);
-
             if (RobotParams.Preferences.visionRelocalizeEnabled && robotBase != null)
             {
                 if (RobotParams.Preferences.useWpiLibPoseEstimator &&
@@ -397,7 +395,8 @@ public class Robot extends FrcRobot
             {
                 FrcAuto.autoChoices.fetchChoices();
                 dashboard.putBoolean(FrcAuto.DBKEY_CHOICES_REFRESH, false);
-                globalTracer.traceInfo(moduleName, "Refresh Auto Choices: " + FrcAuto.autoChoices);
+                globalTracer.logInfo(moduleName, "MatchInfo", FrcMatchInfo.getMatchInfo().toString());
+                globalTracer.logInfo(moduleName, "AutoChoices", FrcAuto.autoChoices.toString());
             }
         }
 
@@ -554,7 +553,7 @@ public class Robot extends FrcRobot
     {
         boolean seenAprilTag = false;
 
-        if (vision != null&&
+        if (vision != null &&
             dashboard.getBoolean(Vision.DBKEY_RELOCALIZE, RobotParams.Preferences.visionRelocalizeEnabled))
         {
             if (hasVisionPoseEstimator)
@@ -705,24 +704,6 @@ public class Robot extends FrcRobot
             FrcAuto.autoChoices.alliance, RobotParams.Game.startPoses[startPosIndex]);
         setFieldPosition(robotPose, false);
     }   //setRobotStartPosition
-
-    /**
-     * This method sets the drive orientation mode and update the LEDs if necessary.
-     *
-     * @param orientation specifies the drive orientation.
-     * @param resetHeading specifies true to also reset the robot heading, only valid for FIELD mode.
-     */
-    public void setDriveOrientation(DriveOrientation orientation, boolean resetHeading)
-    {
-        if (robotBase != null)
-        {
-            robotBase.driveBase.setDriveOrientation(orientation, resetHeading);
-            if (ledIndicator != null)
-            {
-                ledIndicator.setDriveOrientation(orientation);
-            }
-        }
-    }   //setDriveOrientation
 
     /**
      * This method uses the detect AprilTag to relocalize the robot's position.
