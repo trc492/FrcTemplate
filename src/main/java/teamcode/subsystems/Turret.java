@@ -28,7 +28,6 @@ import frclib.motor.FrcMotorActuator.MotorType;
 import teamcode.FrcTest;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -47,7 +46,6 @@ public class Turret extends TrcSubsystem
     public static final class Params
     {
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
-
         public static final String MOTOR_NAME                   = SUBSYSTEM_NAME + ".motor";
         public static final int MOTOR_ID                        = 10;
         public static final boolean MOTOR_INVERTED              = true;
@@ -86,6 +84,7 @@ public class Turret extends TrcSubsystem
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
     private String tuneSubsystemName = null;
+    private double prevTurretPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -105,7 +104,7 @@ public class Turret extends TrcSubsystem
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
         motor = new FrcMotorActuator(motorParams).getMotor();
         motor.setPositionPidParameters(
-            new PidParams()
+            new TrcMotor.PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
                 .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         // Since we don't have upper limit switch, setting soft limits will protect turret from overrunning the upper
@@ -136,7 +135,7 @@ public class Turret extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -157,6 +156,42 @@ public class Turret extends TrcSubsystem
     {
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+        if (power != prevTurretPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                motor.setPower(power);
+            }
+            else
+            {
+                motor.setPidPower(power, Params.POWER_LIMIT, Params.MIN_POS, Params.MAX_POS, true);
+            }
+            prevTurretPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwfInfo";      //String
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String

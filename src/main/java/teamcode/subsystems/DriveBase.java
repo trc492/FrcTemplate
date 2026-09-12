@@ -37,11 +37,13 @@ import frclib.motor.FrcCANTalonFX;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcCANCoder;
 import frclib.sensor.FrcEncoder.EncoderType;
+import teamcode.Robot;
 import teamcode.RobotParams;
 import teamcode.RobotParams.HwConfig;
 import teamcode.vision.Vision;
 import trclib.controller.TrcPidController;
 import trclib.drivebase.TrcDriveBase;
+import trclib.drivebase.TrcDriveBase.DriveOrientation;
 import trclib.drivebase.TrcDriveBase.MotorIndex;
 import trclib.drivebase.TrcSwerveDrive;
 import trclib.motor.TrcMotor;
@@ -267,16 +269,21 @@ public class DriveBase extends TrcSubsystem
         }   //VisionOnlyInfo
     }   //class VisionOnlyInfo
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     private final FrcRobotBase.RobotInfo robotInfo;
     private final FrcRobotBase robotBase;
 
     /**
-     * Constructor: Create an instance of the object.
+     * Constructor: Creates an instance of the object.
+     *
+     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public DriveBase()
+    public DriveBase(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
+
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         switch (RobotParams.Preferences.robotType)
         {
@@ -306,7 +313,7 @@ public class DriveBase extends TrcSubsystem
                 break;
         }
         configureRobotDrive();
-    }   //RobotBase
+    }   //DriveBase
 
     /**
      * This method returns the created RobotInfo object.
@@ -460,7 +467,103 @@ public class DriveBase extends TrcSubsystem
         // DriveBase does not support resetState.
     }   //resetState
 
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        boolean showDriveBaseStatus = robot.dashboard.getBoolean(DBKEY_SHOW_DRIVE_POWER, false);
+
+        if (robotBase.driveBase.supportsHolonomicDrive())
+        {
+            robotBase.driveBase.holonomicDrive(
+                null, inputs[0], inputs[1], inputs[2], robotBase.driveBase.getDriveGyroAngle());
+
+            if (showDriveBaseStatus)
+            {
+                robot.dashboard.putString(
+                    DBKEY_DRIVE_PWR_INFO,
+                    String.format("Holonomic: x=%.2f, y=%.2f, rot=%.2f", inputs[0], inputs[1], inputs[2]));
+            }
+        }
+        else
+        {
+            robotBase.driveBase.arcadeDrive(inputs[1], inputs[2]);
+
+            if (showDriveBaseStatus)
+            {
+                robot.dashboard.putString(
+                    DBKEY_DRIVE_PWR_INFO,
+                    String.format("Arcade: x=%.2f, y=%.2f, rot=%.2f", inputs[0], inputs[1], inputs[2]));
+            }
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            if (altFunc)
+            {
+                if (robotBase.driveBase.isGyroAssistEnabled())
+                {
+                    robotBase.driveBase.setGyroAssistEnabled(null);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Disabling GyroAssist.");
+                }
+                else
+                {
+                    robotBase.driveBase.setGyroAssistEnabled(robotBase.purePursuitDrive.getTurnPidCtrl());
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling GyroAssist.");
+                }
+            }
+            else if (robotBase.driveBase.supportsHolonomicDrive())
+            {
+                // Toggle between field or robot oriented driving, only applicable for holonomic drive base.
+                if (robotBase.driveBase.getDriveOrientation() != TrcDriveBase.DriveOrientation.Field)
+                {
+                    setDriveOrientation(TrcDriveBase.DriveOrientation.Field, false);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling FIELD mode.");
+                }
+                else
+                {
+                    setDriveOrientation(TrcDriveBase.DriveOrientation.Robot, false);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling ROBOT mode.");
+                }
+            }
+        }
+    }   //subsystemAction
+
+    /**
+     * This method sets the drive orientation mode and update the LEDs if necessary.
+     *
+     * @param orientation specifies the drive orientation.
+     * @param resetHeading specifies true to also reset the robot heading, only valid for FIELD mode.
+     */
+    public void setDriveOrientation(DriveOrientation orientation, boolean resetHeading)
+    {
+        if (robotBase != null)
+        {
+            robotBase.driveBase.setDriveOrientation(orientation, resetHeading);
+            if (robot.ledIndicator != null)
+            {
+                robot.ledIndicator.setDriveOrientation(orientation);
+            }
+        }
+    }   //setDriveOrientation
+
     private static final String DBKEY_SHOW_STATUS       = SUBSYSTEM_NAME + "/ShowStatus";       //Boolean
+    private static final String DBKEY_SHOW_DRIVE_POWER  = SUBSYSTEM_NAME + "/ShowDrivePower";   //Boolean
     private static final String DBKEY_DEBUG_DRIVEBASE   = SUBSYSTEM_NAME + "/DebugDriveBase";   //Boolean
     private static final String DBKEY_DEBUG_PIDDRIVE    = SUBSYSTEM_NAME + "/DebugPidDrive";    //Boolean
 
@@ -472,6 +575,7 @@ public class DriveBase extends TrcSubsystem
     private static final String DBKEY_XPID_INFO         = SUBSYSTEM_NAME + "/XPidInfo";         //String
     private static final String DBKEY_YPID_INFO         = SUBSYSTEM_NAME + "/YPidInfo";         //String
     private static final String DBKEY_TURNPID_INFO      = SUBSYSTEM_NAME + "/TurnPidInfo";      //String
+    private static final String DBKEY_DRIVE_PWR_INFO    = SUBSYSTEM_NAME + "/DrivePwrInfo";     //String
 
     /**
      * This method publishes the NetworkTable entries for the subsystem to the Dashboard.
@@ -480,6 +584,7 @@ public class DriveBase extends TrcSubsystem
     public void publishToDashboard()
     {
         dashboard.refreshKey(DBKEY_SHOW_STATUS, false);
+        dashboard.refreshKey(DBKEY_SHOW_DRIVE_POWER, false);
         dashboard.refreshKey(DBKEY_DEBUG_DRIVEBASE, false);
         dashboard.refreshKey(DBKEY_DEBUG_PIDDRIVE, false);
 
@@ -491,6 +596,7 @@ public class DriveBase extends TrcSubsystem
         dashboard.refreshKey(DBKEY_XPID_INFO, "");
         dashboard.refreshKey(DBKEY_YPID_INFO, "");
         dashboard.refreshKey(DBKEY_TURNPID_INFO, "");
+        dashboard.refreshKey(DBKEY_DRIVE_PWR_INFO, "");
     }   //pubishToDashboard
 
     /**
@@ -637,4 +743,4 @@ public class DriveBase extends TrcSubsystem
         // DriveBase doesn't support tuning.
     }   //setNextTuneTargetDown
 
-}   //class RobotDrive
+}   //class DriveBase

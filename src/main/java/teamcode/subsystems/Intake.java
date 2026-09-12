@@ -25,6 +25,8 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcRollerIntake;
+import teamcode.FrcAuto;
+import teamcode.Robot;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcSubsystem;
@@ -59,7 +61,7 @@ public class Intake extends TrcSubsystem
         public static final boolean FOLLOWER_MOTOR_VOLTCOMP_ENABLED = true;
         public static final boolean FOLLOWER_MOTOR_BRAKE_ENABLED= true;
 
-        public static final String FRONT_SENSOR_NAME             = SUBSYSTEM_NAME + ".frontSensor";
+        public static final String FRONT_SENSOR_NAME            = SUBSYSTEM_NAME + ".frontSensor";
         public static final int FRONT_SENSOR_DIGITAL_CHANNEL    = 1;
         public static final boolean FRONT_SENSOR_INVERTED       = false;
 
@@ -74,16 +76,20 @@ public class Intake extends TrcSubsystem
         public static final double EJECT_FINISH_DELAY           = 0.5;
     }   //class Params
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     private final TrcRollerIntake intake;
-    
+
     /**
      * Constructor: Creates an instance of the object.
+     *
+     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public Intake()
+    public Intake(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcRollerIntake.Params intakeParams = new FrcRollerIntake.Params()
             .setPrimaryMotor(
@@ -95,7 +101,7 @@ public class Intake extends TrcSubsystem
 
         if (Params.HAS_TWO_MOTORS)
         {
-            intakeParams.setFollowerMotor(
+            intakeParams.addFollowerMotor(
                 Params.FOLLOWER_MOTOR_NAME, Params.MOTOR_TYPE, Params.FOLLOWER_MOTOR_INVERTED,
                 Params.FOLLOWER_MOTOR_VOLTCOMP_ENABLED, Params.FOLLOWER_MOTOR_BRAKE_ENABLED,
                 Params.FOLLOWER_MOTOR_ID, null, null);
@@ -141,7 +147,7 @@ public class Intake extends TrcSubsystem
         intake.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -162,6 +168,75 @@ public class Intake extends TrcSubsystem
     {
         // Intake does not support resetState.
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            if (robot.autoPickupTask != null)
+            {
+                if (robot.autoPickupTask.isActive())
+                {
+                    robot.autoPickupTask.cancel();
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Cancel Auto Pickup");
+                }
+                else
+                {
+                    robot.autoPickupTask.autoPickup(
+                        instanceName, null, FrcAuto.autoChoices.alliance, !altFunc);
+                    robot.globalTracer.traceInfo(
+                        instanceName, ">>>>> Auto Pickup (useVision=" + !altFunc + ")");
+                }
+            }
+            else
+            {
+                if (altFunc)
+                {
+                    if (robot.intake.getPower() == 0.0)
+                    {
+                        robot.intake.setPower(Params.INTAKE_POWER);
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Manual Intake");
+                    }
+                    else
+                    {
+                        robot.intake.cancel();
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Cancel Manual Intake");
+                    }
+                }
+                else
+                {
+                    if (robot.intake.isAutoActive())
+                    {
+                        robot.intake.cancel();
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Cancel Sensor Intake");
+                    }
+                    else
+                    {
+                        robot.intake.autoIntake(instanceName);
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Sensor Intake");
+                    }
+                }
+            }
+        }
+    }   //subsystemAction
 
     private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwrInfo";      //String
     private static final String DBKEY_HAS_OBJECT        = SUBSYSTEM_NAME + "/HasObject";    //Boolean

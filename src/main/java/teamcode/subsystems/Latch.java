@@ -25,6 +25,7 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import teamcode.FrcTest;
+import teamcode.Robot;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -45,23 +46,27 @@ public class Latch extends TrcSubsystem
         public static final int SERVO_CHANNEL                   = 0;
         public static final boolean SERVO_INVERTED              = true;
 
+        public static final double MAX_STEP_RATE                = 420.0;
         public static final double PHYSICAL_MIN_POS             = 0.0;
         public static final double PHYSICAL_MAX_POS             = 90.0;
         public static final double LOGICAL_MIN_POS              = 0.17;
         public static final double LOGICAL_MAX_POS              = 0.57;
-        public static final double MAX_STEP_RATE                = 420.0;
     }   //class Params
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     private final TrcServo servo;
+    private double prevLatchPower = 0.0;
+    private boolean latched = false;
 
     /**
      * Constructor: Creates an instance of the object.
      */
-    public Latch()
+    public Latch(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcServoActuator.Params latchParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
@@ -96,7 +101,7 @@ public class Latch extends TrcSubsystem
         servo.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -117,6 +122,47 @@ public class Latch extends TrcSubsystem
     {
         servo.setPosition(Params.PHYSICAL_MAX_POS);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+        if (power != prevLatchPower)
+        {
+            servo.setPower(power);
+            prevLatchPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            latched = !latched;
+            if (latched)
+            {
+                servo.setPosition(Params.PHYSICAL_MIN_POS);
+            }
+            else
+            {
+                servo.setPosition(Params.PHYSICAL_MAX_POS);
+            }
+            robot.globalTracer.traceInfo(instanceName, ">>>>> Toggle Latch: latched=" + latched);
+        }
+    }   //subsystemAction
 
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
 

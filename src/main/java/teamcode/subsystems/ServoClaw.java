@@ -28,7 +28,9 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.subsystem.FrcServoClaw;
 import teamcode.FrcTest;
+import teamcode.Robot;
 import trclib.robotcore.TrcEvent;
+// import trclib.sensor.TrcTriggerThresholdRange;
 import trclib.subsystem.TrcServoClaw;
 import trclib.subsystem.TrcSubsystem;
 
@@ -70,17 +72,21 @@ public class ServoClaw extends TrcSubsystem
         public static final double CLOSE_TIME                   = 0.5;
     }   //class Params
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     // private final Rev2mDistanceSensor analogSensor;
     private final TrcServoClaw claw;
 
     /**
      * Constructor: Creates an instance of the object.
+     *
+     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public ServoClaw()
+    public ServoClaw(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
 
         // if (Params.USE_ANALOG_SENSOR)
@@ -103,8 +109,9 @@ public class ServoClaw extends TrcSubsystem
         // if (analogSensor != null)
         // {
         //     clawParams.setAnalogSourceTrigger(
-        //         Params.ANALOG_SENSOR_NAME, this::getSensorData, Params.LOWER_TRIGGER_THRESHOLD,
-        //         Params.UPPER_TRIGGER_THRESHOLD, Params.TRIGGER_SETTLING_TIME);
+        //         Params.ANALOG_SENSOR_NAME, this::getSensorData,
+        //         new TrcTriggerThresholdRange.TriggerParams(
+        //             Params.LOWER_TRIGGER_THRESHOLD, Params.UPPER_TRIGGER_THRESHOLD, Params.TRIGGER_SETTLING_TIME));
         // }
         // else if (Params.USE_DIGITAL_SENSOR)
         if (Params.USE_DIGITAL_SENSOR)
@@ -157,7 +164,7 @@ public class ServoClaw extends TrcSubsystem
         claw.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -178,6 +185,58 @@ public class ServoClaw extends TrcSubsystem
     {
         // Don't move claw during turtle.
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            if (altFunc)
+            {
+                if (claw.isClosed())
+                {
+                    claw.open();
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Opening claws");
+                }
+                else
+                {
+                    claw.close();
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Closing claws");
+                }
+            }
+            else
+            {
+                if (claw.isAutoActive() || claw.hasObject())
+                {
+                    claw.cancel();
+                    claw.open();
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Canceling AutoGrab.");
+                }
+                else
+                {
+                    claw.autoGrab(null, 0.0, null, 0.0);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling AutoGrab.");
+                }
+            }
+        }
+    }   //subsystemAction
 
     private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_IS_CLOSED         = SUBSYSTEM_NAME + "/IsClosed";     //Boolean

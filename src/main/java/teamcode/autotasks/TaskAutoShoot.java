@@ -54,7 +54,7 @@ public class TaskAutoShoot extends TrcAutoTask<TaskAutoShoot.State>
         DONE
     }   //enum State
 
-    private class TaskParams
+    private static class TaskParams
     {
         boolean useVision;
         int[] aprilTagIds;

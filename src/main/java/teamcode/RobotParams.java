@@ -15,7 +15,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHEPIXYRWISE, ARISING FROM,
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
@@ -29,7 +29,7 @@ import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 
 /**
- * This class contains robot and subsystem constants and parameters.
+ * This class contains robot constants and parameters.
  */
 public class RobotParams
 {
@@ -51,6 +51,7 @@ public class RobotParams
         public static final boolean inCompetition               = false;
         public static final boolean hybridMode                  = false;
         public static final boolean useTraceLog                 = true;
+        public static final boolean useLoopPerformanceMonitor   = true;
         public static final boolean useCommStatusMonitor        = false;
         // Sensors and Indicators
         public static final boolean usePdp                      = false;
@@ -67,11 +68,11 @@ public class RobotParams
         public static final boolean showCameraStream            = false;
         public static final boolean visionRelocalizeEnabled     = true;
         public static final boolean useWpiLibPoseEstimator      = true;
-        // Global switches for Subsystems
+        // Subsystem Switches
         public static final boolean useSubsystems               = true;
         public static final boolean zeroCalSubsystems           = false;
         public static final String testSubsystemName            = null;
-        // Drive Base Subsystem.
+        // Drive Base Subsystem
         public static final boolean useDriveBase                = false;
         public static final boolean useGyroAssist               = false;
         // Other Subsystems
@@ -170,7 +171,7 @@ public class RobotParams
     public static class Game
     {
         //
-        // Game time.
+        // Game elapsed times.
         //
         public static final double AUTONOMOUS_PERIOD            = 15.0;     // in seconds
         public static final double TELEOP_PERIOD                = 135.0;    // in seconds
@@ -184,7 +185,7 @@ public class RobotParams
         public static final double halfFieldWidth               = fieldWidth / 2.0;             //158.845
         public static final double halfFieldLength              = fieldLength / 2.0;            //325.61
         //
-        // AprilTag Poses
+        // AprilTag locations.
         //
         private static TrcPose2D[] getAprilTagFieldPoses()
         {
@@ -201,7 +202,7 @@ public class RobotParams
 
         public static final TrcPose2D[] aprilTagFieldPoses      = getAprilTagFieldPoses();
         //
-        // Robot starting positions.
+        // Robot starting locations.
         //
         public static final double STARTPOS_BLUE_Y              = Robot.ROBOT_LENGTH / 2.0;
         public static final double STARTPOS_RED_Y               = Game.fieldLength - STARTPOS_BLUE_Y;
@@ -219,9 +220,9 @@ public class RobotParams
             STARTPOS_BLUE_1, STARTPOS_BLUE_2, STARTPOS_BLUE_3
         };
         //
-        // Game element positions.
+        // Game element locations.
         //
-        public static final TrcPose2D BLUE_PICKUP_RING_POSE     = new TrcPose2D(-60.0, 100.0, 0.0);
+        public static final TrcPose2D BLUE_PICKUP_POSE          = new TrcPose2D(-60.0, 100.0, 0.0);
         public static final TrcPose2D RED_GOAL_POSE             = new TrcPose2D(-158.845, 469.11, 0.0);
         public static final TrcPose2D BLUE_GOAL_POSE            = new TrcPose2D(-158.845, 182.11, 0.0);
     }   //class Game

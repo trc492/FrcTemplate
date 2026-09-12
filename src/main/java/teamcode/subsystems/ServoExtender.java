@@ -25,6 +25,7 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import teamcode.FrcTest;
+import teamcode.Robot;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -52,16 +53,22 @@ public class ServoExtender extends TrcSubsystem
         public static double POS_EXTEND                         = 0.8;
     }   //class Params
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     private final TrcServo servo;
+    private double prevExtenderPower = 0.0;
+    private boolean extended = false;
 
     /**
      * Constructor: Creates an instance of the object.
+     *
+     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public ServoExtender()
+    public ServoExtender(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcServoActuator.Params extenderParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.PRIMARY_SERVO_NAME, Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
@@ -191,7 +198,7 @@ public class ServoExtender extends TrcSubsystem
         servo.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -212,6 +219,48 @@ public class ServoExtender extends TrcSubsystem
     {
         servo.setPosition(Params.POS_RETRACT);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+
+        if (power != prevExtenderPower)
+        {
+            servo.setPower(power);
+            prevExtenderPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            extended = !extended;
+            if (extended)
+            {
+                extend();
+            }
+            else
+            {
+                retract();
+            }
+            robot.globalTracer.traceInfo(instanceName, ">>>>> Toggle Extender: extend=" + extended);
+        }
+    }   //subsystemAction
 
     private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_IS_EXTENDED       = SUBSYSTEM_NAME + "/IsExtended";   //Boolean

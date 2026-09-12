@@ -62,6 +62,7 @@ public class DiffyServoWrist extends TrcSubsystem
         public static final double TILT_MAX_POS                 = 90.0;
         public static final double ROTATE_MIN_POS               = -90.0;
         public static final double ROTATE_MAX_POS               = 90.0;
+
         public static final double POS_PRESET_TOLERANCE         = 1.0;
         public static final double[] tiltPosPresets             = {-110.0, -90.0, -45.0, 0.0, 45.0, 90.0, 110.0};
         public static final double[] rotatePosPresets           = {-90.0, -45.0, 0.0, 45.0, 90.0};
@@ -69,6 +70,8 @@ public class DiffyServoWrist extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     public final TrcDifferentialServoWrist wrist;
+    private double prevTiltPower = 0.0;
+    private double prevRotatePower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -250,7 +253,7 @@ public class DiffyServoWrist extends TrcSubsystem
         wrist.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -271,6 +274,37 @@ public class DiffyServoWrist extends TrcSubsystem
     {
         setPosition(-90.0, 0.0);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double rotatePower = inputs[0];
+        double tiltPower = inputs[1];
+
+        if (rotatePower != prevRotatePower || tiltPower != prevTiltPower)
+        {
+            wrist.setPower(tiltPower, rotatePower);
+            prevRotatePower = rotatePower;
+            prevTiltPower = tiltPower;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_TILT_POWER        = SUBSYSTEM_NAME + "/TiltPower";        //Number
     private static final String DBKEY_TILT_POSITION     = SUBSYSTEM_NAME + "/TiltPosition";     //Number

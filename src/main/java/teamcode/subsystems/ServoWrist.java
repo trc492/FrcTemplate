@@ -56,6 +56,7 @@ public class ServoWrist extends TrcSubsystem
 
     private final FrcDashboard dashboard;
     private final TrcServo servo;
+    private double prevWristPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -97,7 +98,7 @@ public class ServoWrist extends TrcSubsystem
         servo.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -118,6 +119,35 @@ public class ServoWrist extends TrcSubsystem
     {
         servo.setPosition(-90.0);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+
+        if (power != prevWristPower)
+        {
+            servo.setPower(power);
+            prevWristPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
 

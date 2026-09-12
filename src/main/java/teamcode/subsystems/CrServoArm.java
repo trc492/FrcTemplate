@@ -29,7 +29,6 @@ import frclib.sensor.FrcEncoder.EncoderType;
 import teamcode.FrcTest;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -79,7 +78,7 @@ public class CrServoArm extends TrcSubsystem
         public static final double TURTLE_POS                   = MIN_POS;
         public static final double TURTLE_DELAY                 = 0.0;
         public static final double POS_PRESET_TOLERANCE         = 5.0;
-        public static final double[] posPresets                 = 
+        public static final double[] posPresets                 =
             {30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0};
 
         public static final double POWER_LIMIT                  = 0.25;
@@ -90,6 +89,7 @@ public class CrServoArm extends TrcSubsystem
     private final TrcMotor motor;
     private String tuneSubsystemName = null;
     private Double tuneGravityCompPower = null;
+    private double prevArmPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -114,7 +114,7 @@ public class CrServoArm extends TrcSubsystem
             .setPositionPresets(Params.POS_PRESET_TOLERANCE, Params.posPresets);
         motor = new FrcMotorActuator(motorParams).getMotor();
         motor.setPositionPidParameters(
-            new PidParams()
+            new TrcMotor.PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
                 .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
@@ -157,7 +157,7 @@ public class CrServoArm extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -178,6 +178,43 @@ public class CrServoArm extends TrcSubsystem
     {
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+
+        if (power != prevArmPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                motor.setPower(power);
+            }
+            else
+            {
+                motor.setPidPower(power, Params.POWER_LIMIT, Params.MIN_POS, Params.MAX_POS, true);
+            }
+            prevArmPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_POWER             = SUBSYSTEM_NAME + "/Power";        //Number
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
@@ -231,8 +268,8 @@ public class CrServoArm extends TrcSubsystem
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
                     .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID));
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
         }
     }   //updateParamsToDashboard
 

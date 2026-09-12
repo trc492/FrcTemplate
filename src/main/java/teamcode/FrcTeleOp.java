@@ -28,9 +28,7 @@ import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcXboxController;
 import teamcode.subsystems.CrServoArm;
 import teamcode.subsystems.Elevator;
-import teamcode.subsystems.Intake;
 import teamcode.subsystems.MotorArm;
-import teamcode.subsystems.Shooter;
 import teamcode.subsystems.TelescopeArm;
 import teamcode.subsystems.Turret;
 import trclib.controller.TrcPidController;
@@ -57,8 +55,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private static final String DBKEY_DRIVE_SLOW_SCALE  = DBKEY_PREFIX + "DriveSlowScale";      //Number
     private static final String DBKEY_TURN_NORMAL_SCALE = DBKEY_PREFIX + "TurnNormalScale";     //Number
     private static final String DBKEY_TURN_SLOW_SCALE   = DBKEY_PREFIX + "TurnSlowScale";       //Number
-    private static final String DBKEY_SHOW_DRIVE_POWER  = DBKEY_PREFIX + "ShowDrivePower";      //Boolean
-    private static final String DBKEY_DRIVE_PWR_INFO    = DBKEY_PREFIX + "DrivePwrInfo";        //String
     private static final String DBKEY_USE_RUMBLE        = DBKEY_PREFIX + "UseRumble";           //Boolean
 
     public static final double DEF_DRIVE_NORMAL_SCALE = 1.0;
@@ -73,28 +69,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private final FrcChoiceMenu<DriveMode> driveModeMenu;
     private final FrcChoiceMenu<DriveOrientation> driveOrientationMenu;
 
-    private double driveSpeedScale;
-    private double turnSpeedScale;
-    private boolean controlsEnabled = false;
+    private double drivePowerScale;
+    private double turnPowerScale;
     protected boolean driverAltFunc = false;
     protected boolean operatorAltFunc = false;
+    protected boolean controlsEnabled = false;
     // Locked heading
     private final TrcPidController turnPidCtrl;
     private Double lockedHeading;
     private boolean rumbling = false;
-
-    private double prevMotorArmPower = 0.0;
-    private double prevServoArmPower = 0.0;
-    private double prevTelescopePower = 0.0;
-    private double prevTelescopeElbowPower = 0.0;
-    private double prevElevatorPower = 0.0;
-    private double prevTurretPower = 0.0;
-    private double prevDiffyWristTiltPower = 0.0;
-    private double prevDiffyWristRotatePower = 0.0;
-    private double prevServoWristPower = 0.0;
-    private double prevServoExtenderPower = 0.0;
-    private double prevLatchPower = 0.0;
-    private boolean extenderExtended = false;
 
     /**
      * Constructor: Create an instance of the object.
@@ -123,10 +106,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         dashboard.refreshKey(DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
         dashboard.refreshKey(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
         dashboard.refreshKey(DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
-        driveSpeedScale = dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-        turnSpeedScale = dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
-        dashboard.refreshKey(DBKEY_SHOW_DRIVE_POWER, false);
-        dashboard.refreshKey(DBKEY_DRIVE_PWR_INFO, "");
+        drivePowerScale = dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+        turnPowerScale = dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
         dashboard.refreshKey(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble);
 
         turnPidCtrl = robot.robotBase != null && robot.robotBase.purePursuitDrive != null?
@@ -149,7 +130,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         //
-        // Enabling joysticks.
+        // Enabling gamepads.
         //
         setControlsEnabled(true);
         //
@@ -158,7 +139,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (robot.robotBase != null)
         {
             // Set robot to FIELD by default but don't change the heading.
-            robot.setDriveOrientation(driveOrientationMenu.getCurrentChoiceObject(), false);
+            robot.robotDriveBase.setDriveOrientation(driveOrientationMenu.getCurrentChoiceObject(), false);
         }
     }   //startMode
 
@@ -173,7 +154,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
         //
-        // Disabling joysticks.
+        // Disabling gamepads.
         //
         setControlsEnabled(false);
         //
@@ -204,32 +185,31 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     if (robot.driverController != null)
                     {
-                        boolean showDriveBaseStatus = robot.dashboard.getBoolean(DBKEY_SHOW_DRIVE_POWER, false);
-                        double[] driveInputs = robot.driverController.getDriveInputs(
-                            driveModeMenu.getCurrentChoiceObject(), true, driveSpeedScale, turnSpeedScale,
+                        double[] inputs = robot.driverController.getDriveInputs(
+                            driveModeMenu.getCurrentChoiceObject(), true, drivePowerScale, turnPowerScale,
                             lockedHeading != null);
-                        // driveInputs have changed or rotating to lockedHeading.
-                        if (driveInputs != null)
+                        // inputs have changed or rotating to lockedHeading.
+                        if (inputs != null)
                         {
-                            double turnPower = driveInputs[2];
-
                             if (turnPidCtrl != null && lockedHeading != null)
                             {
-                                if (turnPower == 0.0)
+                                if (inputs[2] == 0.0)
                                 {
+                                    // No turning movement from joystick, use PID to turn to lockedHeading.
                                     double currHeading = robot.robotBase.driveBase.getHeading();
-                                    double targetHeading = TrcWarpSpace.getOptimizedTarget(lockedHeading, currHeading, 360.0);
+                                    double targetHeading = TrcWarpSpace.getOptimizedTarget(
+                                        lockedHeading, currHeading, 360.0);
 
                                     if (Math.abs(targetHeading - currHeading) >
                                         robot.robotInfo.baseParams.turnPidTolerance)
                                     {
-                                        turnPower = TrcUtil.clipRange(
+                                        inputs[2] = TrcUtil.clipRange(
                                             turnPidCtrl.calculate(currHeading, lockedHeading),
                                             robot.robotInfo.baseParams.turnPowerLimit);
                                         robot.globalTracer.traceDebug(
                                             moduleName,
                                             "currHeading=%f, lockedHeading=%f, targetHeading=%f, turnPower=%f",
-                                            currHeading, lockedHeading, targetHeading, turnPower);
+                                            currHeading, lockedHeading, targetHeading, inputs[2]);
                                     }
                                     else
                                     {
@@ -244,32 +224,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 }
                             }
 
-                            if (robot.robotBase.driveBase.supportsHolonomicDrive())
-                            {
-                                Double gyroAngle = robot.robotBase.driveBase.getDriveGyroAngle();
+                            robot.robotDriveBase.subsystemControl(driverAltFunc, inputs);
+                        }
 
-                                robot.robotBase.driveBase.holonomicDrive(
-                                    null, driveInputs[0], driveInputs[1], turnPower, gyroAngle);
-                                if (showDriveBaseStatus)
-                                {
-                                    robot.dashboard.putString(
-                                        DBKEY_DRIVE_PWR_INFO,
-                                        String.format(
-                                            "Holonomic: x=%.2f, y=%.2f, rot=%.2f, gyroAngle=%.2f",
-                                            driveInputs[0], driveInputs[1], turnPower, gyroAngle));
-                                }
-                            }
-                            else
+
+                        if (robot.dashboard.getBoolean(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble))
+                        {
+                            if (!rumbling &&
+                                elapsedTime > RobotParams.Game.TELEOP_PERIOD - RobotParams.Game.ENDGAME_THRESHOLD)
                             {
-                                robot.robotBase.driveBase.arcadeDrive(driveInputs[1], turnPower);
-                                if (showDriveBaseStatus)
-                                {
-                                    robot.dashboard.putString(
-                                        DBKEY_DRIVE_PWR_INFO,
-                                        String.format(
-                                            "Arcade: x=%.2f, y=%.2f, rot=%.2f",
-                                            driveInputs[0], driveInputs[1], turnPower));
-                                }
+                                robot.driverController.setRumble(RumbleType.kBothRumble, 1.0, 0.5);
+                                rumbling = true;
                             }
                         }
                     }
@@ -282,169 +247,61 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     // Analog control of subsystems.
                     // Note that this sample code assumes only one subsystem is enabled at a time for demo purpose.
                     // Therefore, the same control may be assigned to multiple subsystems.
-                    if (robot.motorArm != null)
+                    if (robot.motorArmSubsystem != null)
                     {
-                        double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevMotorArmPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.motorArm.setPower(armPower);
-                            }
-                            else
-                            {
-                                robot.motorArm.setPidPower(
-                                    armPower, MotorArm.Params.POWER_LIMIT, MotorArm.Params.MIN_POS,
-                                    MotorArm.Params.MAX_POS, true);
-                            }
-                            prevMotorArmPower = armPower;
-                        }
+                        robot.motorArmSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true));
                     }
-                    else if (robot.crServoArm != null)
+                    else if (robot.crServoArmSubsystem != null)
                     {
-                        double armPower = robot.driverController.getLeftStickY(true);
-                        if (armPower != prevServoArmPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.crServoArm.setPower(armPower);
-                            }
-                            else
-                            {
-                                robot.crServoArm.setPidPower(
-                                    armPower, CrServoArm.Params.POWER_LIMIT, CrServoArm.Params.MIN_POS,
-                                    CrServoArm.Params.MAX_POS, true);
-                            }
-                            prevServoArmPower = armPower;
-                        }
+                        robot.crServoArmSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true));
                     }
                     else if (robot.telescopeArm != null)
                     {
-                        double telescopePower = robot.driverController.getLeftStickY(true);
-                        if (telescopePower != prevTelescopePower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.telescopeArm.telescope.setPower(telescopePower);
-                            }
-                            else
-                            {
-                                robot.telescopeArm.telescope.setPidPower(
-                                    telescopePower, TelescopeArm.TelescopeParams.POWER_LIMIT,
-                                    TelescopeArm.TelescopeParams.MIN_POS, TelescopeArm.TelescopeParams.MAX_POS,
-                                    true);
-                            }
-                            prevTelescopePower = telescopePower;
-                        }
-
-                        if (robot.telescopeArm.elbow != null)
-                        {
-                            double elbowPower = robot.driverController.getRightStickY(true);
-                            if (elbowPower != prevTelescopeElbowPower)
-                            {
-                                if (driverAltFunc)
-                                {
-                                    // Manual override.
-                                    robot.telescopeArm.elbow.setPower(elbowPower);
-                                }
-                                else
-                                {
-                                    robot.telescopeArm.elbow.setPidPower(
-                                        elbowPower, TelescopeArm.ElbowParams.POWER_LIMIT,
-                                        TelescopeArm.ElbowParams.MIN_POS, TelescopeArm.ElbowParams.MAX_POS,
-                                        true);
-                                }
-                                prevTelescopeElbowPower = elbowPower;
-                            }
-                        }
+                        robot.telescopeArm.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true),
+                            robot.driverController.getRightStickY(true));
                     }
-                    else if (robot.elevator != null)
+                    else if (robot.elevatorSubsystem != null)
                     {
-                        double elevatorPower = robot.driverController.getLeftStickY(true);
-                        if (elevatorPower != prevElevatorPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.elevator.setPower(elevatorPower);
-                            }
-                            else
-                            {
-                                robot.elevator.setPidPower(
-                                    elevatorPower, Elevator.Params.POWER_LIMIT, Elevator.Params.MIN_POS,
-                                    Elevator.Params.MAX_POS, true);
-                            }
-                            prevElevatorPower = elevatorPower;
-                        }
+                        robot.elevatorSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true));
                     }
-                    else if (robot.turret != null)
+                    else if (robot.turretSubsystem != null)
                     {
-                        double turretPower = robot.driverController.getLeftStickY(true);
-                        if (turretPower != prevTurretPower)
-                        {
-                            if (driverAltFunc)
-                            {
-                                // Manual override.
-                                robot.turret.setPower(turretPower);
-                            }
-                            else
-                            {
-                                robot.turret.setPidPower(
-                                    turretPower, Turret.Params.POWER_LIMIT, Turret.Params.MIN_POS,
-                                    Turret.Params.MAX_POS, true);
-                            }
-                            prevTurretPower = turretPower;
-                        }
+                        robot.turretSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true));
+                    }
+                    else if (robot.shooterSubsystem != null)
+                    {
+                        robot.shooterSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickY(true),
+                            robot.driverController.getRightStickX(true));
                     }
                     else if (robot.diffyWrist != null)
                     {
-                        double rotatePower = robot.driverController.getLeftStickX(true);
-                        double tiltPower = robot.driverController.getLeftStickY(true);
-                        if (rotatePower != prevDiffyWristRotatePower || tiltPower != prevDiffyWristTiltPower)
-                        {
-                            robot.diffyWrist.wrist.setPower(tiltPower, rotatePower);
-                            prevDiffyWristRotatePower = rotatePower;
-                            prevDiffyWristTiltPower = tiltPower;
-                        }
+                        robot.diffyWrist.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickX(true),
+                            robot.driverController.getLeftStickY(true));
                     }
-                    else if (robot.servoWrist != null)
+                    else if (robot.servoWristSubsystem != null)
                     {
-                        double wristPower = robot.driverController.getLeftStickY(true);
-                        if (wristPower != prevServoWristPower)
-                        {
-                            robot.servoWrist.setPower(wristPower);
-                            prevServoWristPower = wristPower;
-                        }
+                        robot.servoWristSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickX(true),
+                            robot.driverController.getLeftStickY(true));
                     }
-                    else if (robot.servoExtender != null)
+                    else if (robot.servoExtenderSubsystem != null)
                     {
-                        double extenderPower = robot.driverController.getLeftStickY(true);
-                        if (extenderPower != prevServoExtenderPower)
-                        {
-                            robot.servoExtender.setPower(extenderPower);
-                            prevServoExtenderPower = extenderPower;
-                        }
+                        robot.servoExtenderSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickX(true),
+                            robot.driverController.getLeftStickY(true));
                     }
-                    else if (robot.latch != null)
+                    else if (robot.latchSubsystem != null)
                     {
-                        double latchPower = robot.driverController.getLeftStickY(true);
-                        if (latchPower != prevLatchPower)
-                        {
-                            robot.latch.setPower(latchPower);
-                            prevLatchPower = latchPower;
-                        }
-                    }
-                }
-
-                if (robot.dashboard.getBoolean(DBKEY_USE_RUMBLE, RobotParams.Preferences.useRumble))
-                {
-                    if (!rumbling && elapsedTime > RobotParams.Game.TELEOP_PERIOD - RobotParams.Game.ENDGAME_THRESHOLD)
-                    {
-                        robot.driverController.setRumble(RumbleType.kBothRumble, 1.0, 0.5);
-                        rumbling = true;
+                        robot.latchSubsystem.subsystemControl(
+                            driverAltFunc, robot.driverController.getLeftStickX(true),
+                            robot.driverController.getLeftStickY(true));
                     }
                 }
             }
@@ -452,9 +309,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     }   //periodic
 
     /**
-     * This method enables/disables joystick controls.
+     * This method enables/disables gamepad controls.
      *
-     * @param enabled specifies true to enable joystick control, false to disable.
+     * @param enabled specifies true to enable gamepad controls, false to disable.
      */
     protected void setControlsEnabled(boolean enabled)
     {
@@ -462,12 +319,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (robot.driverController != null)
         {
-            robot.driverController.setButtonEventHandler(enabled? this::driverControllerButtonEvent: null);
+            robot.driverController.setButtonEventHandler(enabled? this::driverButtonEvent: null);
         }
 
         if (robot.operatorController != null)
         {
-            robot.operatorController.setButtonEventHandler(enabled? this::operatorControllerButtonEvent: null);
+            robot.operatorController.setButtonEventHandler(enabled? this::operatorButtonEvent: null);
         }
     }   //setControlsEnabled
 
@@ -476,186 +333,48 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     //
 
     /**
-     * This method is called when a driver controller button event is detected.
+     * This method is called when driver gamepad button event is detected.
      *
-     * @param button specifies the button that generated the event.
+     * @param button specifies the button that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    protected void driverControllerButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
+    protected void driverButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
     {
         if (traceButtonEvents)
         {
             robot.globalTracer.traceInfo(moduleName, "##### button=" + button + ", pressed=" + pressed);
         }
-
-        robot.dashboard.displayPrintf(
-            15, "DriverController: " + button + "=" + (pressed ? "pressed" : "released"));
-
+        robot.dashboard.displayPrintf(15, "Driver: " + button + "=" + (pressed? "pressed": "released"));
         switch (button)
         {
             case A:
-                if (robot.shooter != null)
+                if (robot.shooterSubsystem != null)
                 {
-                    if (pressed)
-                    {
-                        if (robot.autoShootTask != null)
-                        {
-                            // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
-                            if (robot.autoShootTask.isActive())
-                            {
-                                robot.autoShootTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Shoot");
-                            }
-                            else
-                            {
-                                robot.autoShootTask.autoShoot(moduleName, null, !driverAltFunc, null);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Auto Shoot");
-                            }
-                        }
-                        else
-                        {
-                            // Auto Shoot Task is disabled, shoot manually.
-                            if (robot.shooter.isActive())
-                            {
-                                robot.shooter.cancel(moduleName);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Shoot");
-                            }
-                            else
-                            {
-                                robot.shooter.aimShooter(
-                                    moduleName, robot.shooterSubsystem.shooter1Velocity.getValue(), 0.0,
-                                    null, null, null, 0.0, robot.shooterSubsystem::shoot, null,
-                                    Shooter.ShooterMotorParams.OFF_DELAY);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Shoot");
-                            }
-                        }
-                    }
+                    robot.shooterSubsystem.subsystemAction(pressed, driverAltFunc);
                 }
-                else if (robot.intake != null)
+                else if (robot.intakeSubsystem != null)
                 {
-                    if (pressed)
-                    {
-                        if (robot.autoPickupTask != null)
-                        {
-                            if (robot.autoPickupTask.isActive())
-                            {
-                                robot.autoPickupTask.cancel();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Auto Pickup");
-                            }
-                            else
-                            {
-                                robot.autoPickupTask.autoPickup(
-                                    moduleName, null, FrcAuto.autoChoices.alliance, !driverAltFunc);
-                                robot.globalTracer.traceInfo(
-                                    moduleName, ">>>>> Auto Pickup (useVision=" + !driverAltFunc + ")");
-                            }
-                        }
-                        else
-                        {
-                            if (driverAltFunc)
-                            {
-                                if (robot.intake.getPower() == 0.0)
-                                {
-                                    robot.intake.setPower(Intake.Params.INTAKE_POWER);
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Manual Intake");
-                                }
-                                else
-                                {
-                                    robot.intake.cancel();
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Manual Intake");
-                                }
-                            }
-                            else
-                            {
-                                if (robot.intake.isAutoActive())
-                                {
-                                    robot.intake.cancel();
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel Sensor Intake");
-                                }
-                                else
-                                {
-                                    robot.intake.autoIntake(moduleName);
-                                    robot.globalTracer.traceInfo(moduleName, ">>>>> Sensor Intake");
-                                }
-                            }
-                        }
-                    }
+                    robot.intakeSubsystem.subsystemAction(pressed, driverAltFunc);
                 }
                 else if (robot.servoExtender != null)
                 {
-                    if (pressed)
-                    {
-                        extenderExtended = !extenderExtended;
-                        if (extenderExtended)
-                        {
-                            robot.servoExtenderSubsystem.extend();
-                        }
-                        else
-                        {
-                            robot.servoExtenderSubsystem.retract();
-                        }
-                    }
+                    robot.servoExtenderSubsystem.subsystemAction(pressed, driverAltFunc);
                 }
-                else if (robot.servoClaw != null)
+                else if (robot.servoClawSubsystem != null)
                 {
-                    if (pressed)
-                    {
-                        if (driverAltFunc)
-                        {
-                            if (robot.servoClaw.isClosed())
-                            {
-                                robot.servoClaw.open();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Opening claws");
-                            }
-                            else
-                            {
-                                robot.servoClaw.close();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Closing claws");
-                            }
-                        }
-                        else
-                        {
-                            if (robot.servoClaw.isAutoActive() || robot.servoClaw.hasObject())
-                            {
-                                robot.servoClaw.cancel();
-                                robot.servoClaw.open();
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Canceling AutoGrab.");
-                            }
-                            else
-                            {
-                                robot.servoClaw.autoGrab(null, 0.0, null, 0.0);
-                                robot.globalTracer.traceInfo(moduleName, ">>>>> Enabling AutoGrab.");
-                            }
-                        }
-                    }
+                    robot.servoClawSubsystem.subsystemAction(pressed, driverAltFunc);
+                }
+                else if (robot.latchSubsystem != null)
+                {
+                    robot.latchSubsystem.subsystemAction(pressed, driverAltFunc);
                 }
                 break;
 
             case B:
-                // Toggle between field or robot oriented driving.
-                if (robot.robotBase != null && pressed)
+                if (robot.robotDriveBase != null && pressed)
                 {
-                    if (driverAltFunc)
-                    {
-                        if (robot.robotBase.driveBase.getDriveOrientation() != DriveOrientation.Field)
-                        {
-                            robot.setDriveOrientation(DriveOrientation.Field, true);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Field");
-                        }
-                        else
-                        {
-                            robot.setDriveOrientation(DriveOrientation.Robot, false);
-                            robot.globalTracer.traceInfo(moduleName, ">>>>> Setting Mode to: Robot");
-                        }
-                    }
-                    else
-                    {
-                        robot.robotBase.driveBase.resetFieldForwardHeading();
-                        robot.globalTracer.traceInfo(
-                            moduleName,
-                            ">>>>> Reset field forward heading (heading=" + robot.robotBase.driveBase.getHeading() +
-                            ")");
-                    }
+                    // Set drive orientation mode.
+                    robot.robotDriveBase.subsystemAction(pressed, driverAltFunc);
                 }
                 break;
 
@@ -688,22 +407,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case RightBumper:
-                if (pressed)
-                {
-                    driveSpeedScale = robot.dashboard.getNumber(
-                        DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
-                    turnSpeedScale = robot.dashboard.getNumber(
-                        DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
-                    robot.globalTracer.traceInfo(moduleName, ">>>>> Slow Drive");
-                }
-                else
-                {
-                    driveSpeedScale = robot.dashboard.getNumber(
-                        DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
-                    turnSpeedScale = robot.dashboard.getNumber(
-                        DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
-                    robot.globalTracer.traceInfo(moduleName, ">>>>> Normal Drive");
-                }
+                setDriveSpeedMode(pressed, driverAltFunc);
                 break;
 
             case DpadUp:
@@ -946,35 +650,41 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.cancelAll();
-                    robot.zeroCalibrate(null, null);
-                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel All and Zero Calibrate");
+                    robot.globalTracer.traceInfo(moduleName, ">>>>> Cancel All");
+                    if (!driverAltFunc)
+                    {
+                        robot.zeroCalibrate(null, null);
+                        robot.globalTracer.traceInfo(moduleName, ">>>>> Zero Calibrate");
+                    }
                 }
                 break;
 
             case Start:
+                if (pressed)
+                {
+                    robot.setRelocalizationMode(
+                        driverAltFunc? Robot.RelocalizationMode.Continuous: Robot.RelocalizationMode.OneShot);
+                }
                 break;
 
             default:
                 break;
         }
-    }   //driverControllerButtonEvent
+    }   //driverButtonEvent
 
     /**
-     * This method is called when an operator controller button event is detected.
+     * This method is called when operator gamepad button event is detected.
      *
-     * @param button specifies the button that generated the event.
+     * @param button specifies the button that generates the event.
      * @param pressed specifies true if the button is pressed, false otherwise.
      */
-    protected void operatorControllerButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
+    protected void operatorButtonEvent(FrcXboxController.ButtonType button, boolean pressed)
     {
         if (traceButtonEvents)
         {
             robot.globalTracer.traceInfo(moduleName, "##### button=" + button + ", pressed=" + pressed);
         }
-
-        robot.dashboard.displayPrintf(
-            15, "OperatorController: " + button + "=" + (pressed ? "pressed" : "released"));
-
+        robot.dashboard.displayPrintf(15, "Operator: " + button + "=" + (pressed? "pressed": "released"));
         switch (button)
         {
             case A:
@@ -1015,6 +725,32 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             default:
                 break;
         }
-    }   //operatorControllerButtonEvent
+    }   //operatorButtonEvent
+
+    /**
+     * This method is called to set drive speed modes.
+     *
+     * @param pressed specifies true if the button is pressed, false if released.
+     * @param altFunc specifies true if AltFunc is pressed, false otherwise.
+     */
+    private void setDriveSpeedMode(boolean pressed, boolean altFunc)
+    {
+        if (!altFunc)
+        {
+            // Press and hold for slow drive.
+            if (pressed)
+            {
+                drivePowerScale = robot.dashboard.getNumber(DBKEY_DRIVE_SLOW_SCALE, DEF_DRIVE_SLOW_SCALE);
+                turnPowerScale = robot.dashboard.getNumber(DBKEY_TURN_SLOW_SCALE, DEF_TURN_SLOW_SCALE);
+                robot.globalTracer.traceInfo(moduleName, ">>>>> DrivePower slow.");
+            }
+            else
+            {
+                drivePowerScale = robot.dashboard.getNumber(DBKEY_DRIVE_NORMAL_SCALE, DEF_DRIVE_NORMAL_SCALE);
+                turnPowerScale = robot.dashboard.getNumber(DBKEY_TURN_NORMAL_SCALE, DEF_TURN_NORMAL_SCALE);
+                robot.globalTracer.traceInfo(moduleName, ">>>>> DrivePower normal.");
+            }
+        }
+    }   //setDriveSpeedMode
 
 }   //class FrcTeleOp

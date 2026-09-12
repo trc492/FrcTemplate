@@ -93,8 +93,6 @@ public class Vision
 
     public final FrcPhotonVision cam1Vision;
     public final FrcPhotonVision cam2Vision;
-    // private final Transform3d cam1FromRobot;
-    // private final Transform3d cam2FromRobot;
     private PipelineType cam1Pipeline;
     private PipelineType cam2Pipeline;
 
@@ -130,20 +128,12 @@ public class Vision
                 moduleName, "Creating cam1Vision for camera %s.", robot.robotInfo.camInfos[0].camName);
             cam1Vision = new FrcPhotonVision(
                 robot.robotInfo.camInfos[0], this::getAprilTagGroundOffset, this::getRobotToCamera1);
-            // cam1FromRobot = new Transform3d(
-            //     new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.y),
-            //                       -Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.x),
-            //                       Units.inchesToMeters(robot.robotInfo.camInfos[0].camPose.z)),
-            //     new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.roll),
-            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.pitch),
-            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[0].camPose.yaw)));
             setCam1Pipeline();
             robot.globalTracer.traceInfo(moduleName, "Setting Cam1 pipeline to " + cam1Pipeline);
         }
         else
         {
             cam1Vision = null;
-            // cam1FromRobot = null;
         }
 
         if (robot.robotInfo.camInfos.length > 1 && robot.robotInfo.camInfos[1] != null)
@@ -152,20 +142,12 @@ public class Vision
                 moduleName, "Creating cam2Vision for camera %s.", robot.robotInfo.camInfos[1].camName);
             cam2Vision = new FrcPhotonVision(
                 robot.robotInfo.camInfos[1], this::getAprilTagGroundOffset, this::getRobotToCamera2);
-            // cam2FromRobot = new Transform3d(
-            //     new Translation3d(Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.y),
-            //                       -Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.x),
-            //                       Units.inchesToMeters(robot.robotInfo.camInfos[1].camPose.z)),
-            //     new Rotation3d(Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.roll),
-            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.pitch),
-            //                    -Units.degreesToRadians(robot.robotInfo.camInfos[1].camPose.yaw)));
             setCam2Pipeline();
             robot.globalTracer.traceInfo(moduleName, "Setting Cam2 pipeline to " + cam2Pipeline);
         }
         else
         {
             cam2Vision = null;
-            // cam2FromRobot = null;
         }
 
         FrcDashboard.getInstance().addStatusUpdate(moduleName, this::updateStatus);
@@ -364,30 +346,6 @@ public class Vision
         return (int)((t2.getArea() - t1.getArea())*100);
     }   //compareArea
 
-    // /**
-    //  * This method determines the robot's absolute field pose by averaging the robotFieldPose determined by both
-    //  * camera 1 and 2.
-    //  *
-    //  * @return averaged robot field pose.
-    //  */
-    // public TrcPose2D getRobotFieldPose()
-    // {
-    //     TrcPose2D robotFieldPoseFromCam1 =
-    //         cam1Vision != null? cam1Vision.getRobotEstimatedPose(cam1FromRobot): null;
-    //     TrcPose2D robotFieldPoseFromCam2 =
-    //         cam2Vision != null? cam2Vision.getRobotEstimatedPose(cam2FromRobot): null;
-    //     // Average the robotFieldPose from both cameras.
-    //     TrcPose2D robotFieldPose = new TrcPose2D(
-    //         (robotFieldPoseFromCam1.x + robotFieldPoseFromCam2.x)/2.0,
-    //         (robotFieldPoseFromCam1.y + robotFieldPoseFromCam2.y)/2.0,
-    //         (robotFieldPoseFromCam1.angle + robotFieldPoseFromCam2.angle)/2.0);
-
-    //     TrcDbgTrace.globalTraceDebug(
-    //         moduleName, "RobotPoseCam1=%s, RobotPoseCam2=%s, RobotPose=%s",
-    //         robotFieldPoseFromCam1, robotFieldPoseFromCam2, robotFieldPose);
-    //     return robotFieldPose;
-    // }   //getRobotFieldPose
-
     /**
      * This method determines the closest AprilTag from the given robot pose.
      *
@@ -437,12 +395,7 @@ public class Vision
                             "Cam1Vision[%d]:targetPose=%s,robotPose=%s",
                             detectedObj.target.getFiducialId(), detectedObj.targetPose, detectedObj.robotPose);
                         dashboard.putString(DBKEY_PREFIX + "Cam1", msg);
-                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    // else
-                    // {
-                    //     lineNum++;
-                    // }
                 }
                 else
                 {
@@ -453,12 +406,7 @@ public class Vision
                             "Cam1Vision(%s): targetPose=%s, robotPose=%s",
                             cam1Pipeline, detectedObj.targetPose, detectedObj.robotPose);
                         dashboard.putString(DBKEY_PREFIX + "Cam1", msg);
-                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    // else
-                    // {
-                    //     lineNum++;
-                    // }
                 }
             }
 
@@ -473,12 +421,7 @@ public class Vision
                             "Cam2Vision[%d]:targetPose=%s,robotPose=%s",
                             detectedObj.target.getFiducialId(), detectedObj.targetPose, detectedObj.robotPose);
                         dashboard.putString(DBKEY_PREFIX + "Cam2", msg);
-                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    // else
-                    // {
-                    //     lineNum++;
-                    // }
                 }
                 else
                 {
@@ -489,12 +432,7 @@ public class Vision
                             "Cam2Vision(%s): targetPose=%s, robotPose=%s",
                             cam2Pipeline, detectedObj.targetPose, detectedObj.robotPose);
                         dashboard.putString(DBKEY_PREFIX + "Cam2", msg);
-                        // dashboard.displayPrintf(lineNum++, msg);
                     }
-                    // else
-                    // {
-                    //     lineNum++;
-                    // }
                 }
             }
         }

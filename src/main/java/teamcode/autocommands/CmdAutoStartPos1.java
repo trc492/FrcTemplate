@@ -42,10 +42,10 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
     {
         START,
         SCORE_PRELOAD,
-        GOTO_RING_POS,
-        PICKUP_RING,
+        GOTO_PICKUP_POS,
+        PICKUP_OBJECT,
         GOTO_START_POS,
-        SCORE_RING,
+        SCORE_OBJECT,
         DONE
     }   //enum State
 
@@ -88,6 +88,16 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
     }   //start
 
     /**
+     * This method cancels the command if it is active.
+     */
+    @Override
+    public void cancel()
+    {
+        timer.cancel();
+        sm.stop();
+    }   //cancel
+
+    /**
      * This method checks if the current RobotCommand  is running.
      *
      * @return true if the command is running, false otherwise.
@@ -97,16 +107,6 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
     {
         return sm.isEnabled();
     }   //isActive
-
-    /**
-     * This method cancels the command if it is active.
-     */
-    @Override
-    public void cancel()
-    {
-        timer.cancel();
-        sm.stop();
-    }   //cancel
 
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.
@@ -141,6 +141,7 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                     // Set robot location according to auto choices.
                     robot.setRobotStartPosition(autoChoices);
                     startPose = robot.robotBase.driveBase.getFieldPosition();
+                    // Do delay if necessary.
                     if (autoChoices.startDelay > 0.0)
                     {
                         robot.globalTracer.traceInfo(moduleName, "***** Do delay " + autoChoices.startDelay + "s.");
@@ -156,37 +157,37 @@ public class CmdAutoStartPos1 implements TrcRobot.RobotCommand
                 case SCORE_PRELOAD:
                     if (autoChoices.scorePreload)
                     {
-                        robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, null);
-                        sm.waitForEvents(State.GOTO_RING_POS, event);
+                        robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, (int[]) null);
+                        sm.waitForEvents(State.GOTO_PICKUP_POS, event);
                     }
                     else
                     {
-                        sm.setState(State.GOTO_RING_POS);
+                        sm.setState(State.GOTO_PICKUP_POS);
                     }
                     break;
 
-                case GOTO_RING_POS:
+                case GOTO_PICKUP_POS:
                     robot.robotBase.purePursuitDrive.start(
                         event, 0.0, false, null,
-                        robot.adjustPoseByAlliance(autoChoices.alliance, RobotParams.Game.BLUE_PICKUP_RING_POSE));
-                    sm.waitForEvents(State.PICKUP_RING, event);
+                        robot.adjustPoseByAlliance(autoChoices.alliance, RobotParams.Game.BLUE_PICKUP_POSE));
+                    sm.waitForEvents(State.PICKUP_OBJECT, event);
                     break;
 
-                case PICKUP_RING:
+                case PICKUP_OBJECT:
                     robot.autoPickupTask.autoPickup(null, event, autoChoices.alliance, autoChoices.useVision);
                     sm.waitForEvents(State.GOTO_START_POS, event);
                     break;
 
                 case GOTO_START_POS:
                     robot.robotBase.purePursuitDrive.start(event, 0.0, false, null, startPose);
-                    sm.waitForEvents(State.SCORE_RING, event);
+                    sm.waitForEvents(State.SCORE_OBJECT, event);
                     break;
 
-                case SCORE_RING:
-                    robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, null);
+                case SCORE_OBJECT:
+                    robot.autoShootTask.autoShoot(null, event, autoChoices.useVision, (int[]) null);
                     sm.waitForEvents(State.DONE, event);
                     break;
-            
+
                 case DONE:
                 default:
                     // We are done.

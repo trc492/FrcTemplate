@@ -28,7 +28,6 @@ import frclib.motor.FrcMotorActuator.MotorType;
 import teamcode.FrcTest;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 
@@ -68,7 +67,7 @@ public class Elevator extends TrcSubsystem
         public static final int LOWER_LIMIT_SWITCH_CHANNEL      = 0;
         public static final boolean LOWER_LIMIT_SWITCH_INVERTED = false;
 
-        public static final String UPPER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".lowerLimit";
+        public static final String UPPER_LIMIT_SWITCH_NAME      = SUBSYSTEM_NAME + ".upperLimit";
         public static final int UPPER_LIMIT_SWITCH_CHANNEL      = 1;
         public static final boolean UPPER_LIMIT_SWITCH_INVERTED = false;
 
@@ -90,6 +89,7 @@ public class Elevator extends TrcSubsystem
         public static final double GRAVITY_COMP_POWER           = 0.0;
         public static final double ZERO_CAL_POWER               = -0.25;
         public static final double ZERO_CAL_TIMEOUT             = 0.0;
+
         public static final double STALL_MIN_POWER              = Math.abs(ZERO_CAL_POWER);
         public static final double STALL_TOLERANCE              = 0.1;
         public static final double STALL_TIMEOUT                = 0.1;
@@ -100,6 +100,7 @@ public class Elevator extends TrcSubsystem
     private final TrcMotor motor;
     private String tuneSubsystemName = null;
     private Double tuneGravityCompPower = null;
+    private double prevElevatorPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -139,7 +140,7 @@ public class Elevator extends TrcSubsystem
 
         motor = new FrcMotorActuator(motorParams).getMotor();
         motor.setPositionPidParameters(
-            new PidParams()
+            new TrcMotor.PidParams()
                 .setPidCoefficients(Params.posPidCoeffs)
                 .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID), null);
         motor.setPositionPidPowerComp(this::getGravityComp);
@@ -189,7 +190,7 @@ public class Elevator extends TrcSubsystem
         motor.cancel();
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -210,6 +211,43 @@ public class Elevator extends TrcSubsystem
     {
         motor.setPosition(Params.TURTLE_DELAY, Params.TURTLE_POS, true, Params.POWER_LIMIT);
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+
+        if (power != prevElevatorPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                motor.setPower(power);
+            }
+            else
+            {
+                motor.setPidPower(power, Params.POWER_LIMIT, Params.MIN_POS, Params.MAX_POS, true);
+            }
+            prevElevatorPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwrInfo";      //String
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
@@ -277,8 +315,8 @@ public class Elevator extends TrcSubsystem
                 new TrcMotor.PidParams()
                     .setPidCoefficients(Params.posPidCoeffs)
                     .setPidControlParams(Params.POS_PID_TOLERANCE, Params.USE_SOFTWARE_PID));
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_GRAVITY_POWER, Params.GRAVITY_COMP_POWER);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, Params.MIN_POS);
         }
     }   //updateParamsToDashboard
 

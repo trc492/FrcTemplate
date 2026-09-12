@@ -27,6 +27,7 @@ import frclib.motor.FrcServoActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.subsystem.FrcShooter;
 import teamcode.FrcTest;
+import teamcode.Robot;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcDiscreteValue;
 import trclib.dataprocessor.TrcLookupTable;
@@ -53,13 +54,13 @@ public class Shooter extends TrcSubsystem
     private static final boolean NEED_ZERO_CAL = false;
     private static final double GOBILDA6000_CPR = 28.0;
 
-    private static final boolean HAS_TWO_SHOOTER_MOTORS = false;
     private static final boolean HAS_PAN_MOTOR = false;
     private static final boolean HAS_TILT_MOTOR = false;
     private static final boolean HAS_LAUNCHER = false;
 
     public static class ShooterMotorParams
     {
+        private static final boolean HAS_TWO_SHOOTER_MOTORS     = false;
         // Shooter motor1 and motor2 are the same type and have same gear ratio but they could have different
         // PID coefficients due to different motor strengths and frictions.
         public static final MotorType MOTOR_TYPE                = MotorType.CanTalonSrx;
@@ -72,8 +73,6 @@ public class Shooter extends TrcSubsystem
 
         public static final TrcPidController.PidCoefficients motor1PidCoeffs =
             new TrcPidController.PidCoefficients(0.02, 0.0, 0.0, 0.0085, 0.0);
-        public static final TrcPidController.FFCoefficients motor1FFCoeffs =
-            new TrcPidController.FFCoefficients(0.0, 0.0, 0.0);
 
         public static final String MOTOR2_NAME                  = SUBSYSTEM_NAME + ".shooterMotor2";
         public static final int MOTOR2_ID                       = 12;
@@ -83,8 +82,6 @@ public class Shooter extends TrcSubsystem
 
         public static final TrcPidController.PidCoefficients motor2PidCoeffs =
             new TrcPidController.PidCoefficients(0.02, 0.0, 0.0, 0.0085, 0.0);
-        public static final TrcPidController.FFCoefficients motor2FFCoeffs =
-            new TrcPidController.FFCoefficients(0.0, 0.008, 0.0);
 
         public static final double PID_TOLERANCE                = 1.0;      // in RPS (60 RPM)
         public static final boolean USE_SOFTWARE_PID            = true;
@@ -181,6 +178,7 @@ public class Shooter extends TrcSubsystem
         .addEntry(null,                 60.0,       regions[0],         80.0)
         .addEntry(null,                 72.0,       regions[0],         90.0);
 
+    private final Robot robot;
     private final FrcDashboard dashboard;
     private final TrcShooter shooter;
     public final TrcDiscreteValue shooter1Velocity;
@@ -192,14 +190,19 @@ public class Shooter extends TrcSubsystem
     private TrcEvent launchCallbackEvent = null;
 
     private String tuneSubsystemName = null;
+    private double prevTiltPower = 0.0;
+    private double prevPanPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
+     *
+     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public Shooter()
+    public Shooter(Robot robot)
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
+        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcShooter.Params shooterParams = new FrcShooter.Params()
             .setShooterMotor1(
@@ -207,7 +210,7 @@ public class Shooter extends TrcSubsystem
                 ShooterMotorParams.MOTOR1_VOLTCOMP_ENABLED, ShooterMotorParams.MOTOR1_BRAKE_ENABLED,
                 ShooterMotorParams.MOTOR1_ID, null, null, false);
 
-        if (HAS_TWO_SHOOTER_MOTORS)
+        if (ShooterMotorParams.HAS_TWO_SHOOTER_MOTORS)
         {
             shooterParams.setShooterMotor2(
                 ShooterMotorParams.MOTOR2_NAME, ShooterMotorParams.MOTOR_TYPE, ShooterMotorParams.MOTOR2_INVERTED,
@@ -244,7 +247,6 @@ public class Shooter extends TrcSubsystem
         motor.setVelocityPidParameters(
             new TrcMotor.PidParams()
                 .setPidCoefficients(ShooterMotorParams.motor1PidCoeffs)
-                .setFFCoefficients(ShooterMotorParams.motor1FFCoeffs)
                 .setPidControlParams(ShooterMotorParams.PID_TOLERANCE, ShooterMotorParams.USE_SOFTWARE_PID), null);
         // For tuning shooter motor 1 PID.
         shooter1Velocity = new TrcDiscreteValue(
@@ -262,7 +264,6 @@ public class Shooter extends TrcSubsystem
             motor.setVelocityPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(ShooterMotorParams.motor2PidCoeffs)
-                    .setFFCoefficients(ShooterMotorParams.motor2FFCoeffs)
                     .setPidControlParams(ShooterMotorParams.PID_TOLERANCE, ShooterMotorParams.USE_SOFTWARE_PID), null);
             // For tuning shooter motor 2 PID.
             shooter2Velocity = new TrcDiscreteValue(
@@ -403,7 +404,7 @@ public class Shooter extends TrcSubsystem
         }
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -428,6 +429,92 @@ public class Shooter extends TrcSubsystem
         // Shooter does not support resetState.
         // If you need to tuck away pan and tilt for turtle mode, add code here.
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+        if (shooter.tiltMotor != null && power != prevTiltPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                shooter.tiltMotor.setPower(power);
+            }
+            else
+            {
+                shooter.tiltMotor.setPidPower(
+                    power, TiltMotorParams.POWER_LIMIT, TiltMotorParams.MIN_POS, TiltMotorParams.MAX_POS, true);
+            }
+            prevTiltPower = power;
+        }
+
+        power = inputs[1];
+        if (shooter.panMotor != null && power != prevPanPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                shooter.panMotor.setPower(power);
+            }
+            else
+            {
+                shooter.panMotor.setPidPower(
+                    power, PanMotorParams.POWER_LIMIT, PanMotorParams.MIN_POS, PanMotorParams.MAX_POS, true);
+            }
+            prevPanPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+        if (pressed)
+        {
+            if (robot.autoShootTask != null)
+            {
+                // Auto Shoot Task is enabled, auto shoot at any AprilTag detected.
+                if (robot.autoShootTask.isActive())
+                {
+                    robot.autoShootTask.cancel();
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Cancel Auto Shoot");
+                }
+                else
+                {
+                    robot.autoShootTask.autoShoot(instanceName, null, !altFunc, (int[])null);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Auto Shoot");
+                }
+            }
+            else
+            {
+                // Auto Shoot Task is disabled, shoot manually.
+                if (robot.shooter.isActive())
+                {
+                    robot.shooter.cancel(instanceName);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Cancel Manual Shoot");
+                }
+                else
+                {
+                    robot.shooter.aimShooter(
+                        instanceName, robot.shooterSubsystem.shooter1Velocity.getValue(), 0.0, null, null, null, 0.0,
+                        robot.shooterSubsystem::shoot, null, Shooter.ShooterMotorParams.OFF_DELAY);
+                    robot.globalTracer.traceInfo(instanceName, ">>>>> Manual Shoot");
+                }
+            }
+        }
+    }   //subsystemAction
 
     private static final String DBKEY_PWR1_INFO         = SUBSYSTEM_NAME + "/ShooterPwr1Info";      //String
     private static final String DBKEY_VEL1_INFO         = SUBSYSTEM_NAME + "/ShooterVel1Info";      //String
@@ -486,8 +573,9 @@ public class Shooter extends TrcSubsystem
         {
             TrcMotor motor;
 
+            motor = shooter.getShooterMotor1();
             dashboard.putString(
-                DBKEY_PWR1_INFO, shooter.getShooterMotor1Power() + "/" + shooter.getShooterMotor1Current());
+                DBKEY_PWR1_INFO, motor.getPower() + "/" + motor.getCurrent());
             dashboard.putString(
                 DBKEY_VEL1_INFO, shooter.getShooterMotor1RPM() + "/" + shooter.getShooterMotor1TargetRPM());
 
@@ -557,7 +645,6 @@ public class Shooter extends TrcSubsystem
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(ShooterMotorParams.motor1PidCoeffs)
-                    .setFFCoefficients(ShooterMotorParams.motor1FFCoeffs)
                     .setPidControlParams(ShooterMotorParams.PID_TOLERANCE, ShooterMotorParams.USE_SOFTWARE_PID));
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter1Velocity.getValue());
         }
@@ -566,7 +653,6 @@ public class Shooter extends TrcSubsystem
             FrcTest.testChoices.setSubsystemPidParameters(
                 new TrcMotor.PidParams()
                     .setPidCoefficients(ShooterMotorParams.motor2PidCoeffs)
-                    .setFFCoefficients(ShooterMotorParams.motor2FFCoeffs)
                     .setPidControlParams(ShooterMotorParams.PID_TOLERANCE, ShooterMotorParams.USE_SOFTWARE_PID));
             dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, shooter2Velocity.getValue());
         }

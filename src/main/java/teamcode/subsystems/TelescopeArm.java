@@ -28,7 +28,6 @@ import frclib.motor.FrcMotorActuator.MotorType;
 import teamcode.FrcTest;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.motor.TrcMotor.PidParams;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
 import trclib.timer.TrcTimer;
@@ -117,8 +116,8 @@ public class TelescopeArm extends TrcSubsystem
         public static final TrcPidController.PidCoefficients posPidCoeffs =
             new TrcPidController.PidCoefficients(0.018, 0.0, 0.001, 0.0, 0.0);
 
-        public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
         public static final double POS_OFFSET                   = 0.0;
+        public static final double DEG_PER_COUNT                = 360.0 / GOBILDA312_CPR;
         public static final double MIN_POS                      = POS_OFFSET;
         public static final double MAX_POS                      = 90.0;
         public static final double TURTLE_POS                   = MIN_POS;
@@ -145,6 +144,8 @@ public class TelescopeArm extends TrcSubsystem
     private String tuneSubsystemName = null;
     private Double tuneTelescopeGravityCompPower = null;
     private Double tuneElbowGravityCompPower = null;
+    private double prevTelescopePower = 0.0;
+    private double prevElbowPower = 0.0;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -179,7 +180,7 @@ public class TelescopeArm extends TrcSubsystem
 
         telescope = new FrcMotorActuator(telescopeMotorParams).getMotor();
         telescope.setPositionPidParameters(
-            new PidParams()
+            new TrcMotor.PidParams()
                 .setPidCoefficients(TelescopeParams.posPidCoeffs)
                 .setPidControlParams(TelescopeParams.POS_PID_TOLERANCE, TelescopeParams.USE_SOFTWARE_PID), null);
         telescope.setPositionPidPowerComp(this::getTelescopeGravityComp);
@@ -215,7 +216,7 @@ public class TelescopeArm extends TrcSubsystem
 
             elbow = new FrcMotorActuator(elbowMotorParams).getMotor();
             elbow.setPositionPidParameters(
-                new PidParams()
+                new TrcMotor.PidParams()
                     .setPidCoefficients(ElbowParams.posPidCoeffs)
                     .setPidControlParams(ElbowParams.POS_PID_TOLERANCE, ElbowParams.USE_SOFTWARE_PID), null);
             elbow.setPositionPidPowerComp(this::getElbowGravityComp);
@@ -230,7 +231,7 @@ public class TelescopeArm extends TrcSubsystem
         }
 
         timer = new TrcTimer(SUBSYSTEM_NAME + ".timer");
-    }   //MotorArm
+    }   //TelescopeArm
 
     /**
      * This method calculates the power required to make the telescope gravity neutral.
@@ -348,7 +349,7 @@ public class TelescopeArm extends TrcSubsystem
         }
     }   //cancel
 
-   /**
+    /**
      * This method starts zero calibrate of the subsystem.
      *
      * @param owner specifies the owner ID to check if the caller has ownership of the motor.
@@ -391,6 +392,59 @@ public class TelescopeArm extends TrcSubsystem
                 ElbowParams.TURTLE_DELAY, ElbowParams.TURTLE_POS, true, ElbowParams.POWER_LIMIT);
         }
     }   //resetState
+
+    /**
+     * This method is called when gamepad analog control is operated on the subsystem.
+     *
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param inputs specifies an array of analog values.
+     */
+    @Override
+    public void subsystemControl(boolean altFunc, double... inputs)
+    {
+        double power = inputs[0];
+        if (power != prevTelescopePower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                telescope.setPower(power);
+            }
+            else
+            {
+                telescope.setPidPower(
+                    power, TelescopeParams.POWER_LIMIT, TelescopeParams.MIN_POS, TelescopeParams.MAX_POS, true);
+            }
+            prevTelescopePower = power;
+        }
+
+        power = inputs[1];
+        if (elbow != null && power != prevElbowPower)
+        {
+            if (altFunc)
+            {
+                // Manual override.
+                elbow.setPower(power);
+            }
+            else
+            {
+                elbow.setPidPower(
+                    power, ElbowParams.POWER_LIMIT, ElbowParams.MIN_POS, ElbowParams.MAX_POS, true);
+            }
+            prevElbowPower = power;
+        }
+    }   //subsystemControl
+
+    /**
+     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     *
+     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
+     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     */
+    @Override
+    public void subsystemAction(boolean pressed, boolean altFunc)
+    {
+    }   //subsystemAction
 
     private static final String DBKEY_TELESCOPE_PWR_INFO    = SUBSYSTEM_NAME + "/TelescopePwrInfo";     //String
     private static final String DBKEY_TELESCOPE_POS_INFO    = SUBSYSTEM_NAME + "/TelescopePosInfo";     //String

@@ -49,7 +49,7 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
         DONE
     }   //enum State
 
-    private class TaskParams
+    private static class TaskParams
     {
         Alliance alliance;
         boolean useVision;
@@ -218,7 +218,7 @@ public class TaskAutoPickup extends TrcAutoTask<TaskAutoPickup.State>
                 break;
 
             case FIND_OBJ:
-                // Use vision to determine the appropriate AprilTag location.
+                // Use vision to determine the appropriate object location.
                 FrcPhotonVision.DetectedObject object =
                     robot.vision.cam1Vision.getBestDetectedObject(null);
                 if (object != null)
