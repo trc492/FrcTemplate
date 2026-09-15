@@ -37,7 +37,7 @@ import trclib.timer.TrcTimer;
  * not have any limit switches, so it is using motor stall detection to zero calibrate the built-in relative encoder.
  * It supports gravity compensation by computing the power required to hold the arm at its current angle.
  */
-public class TelescopeArm extends TrcSubsystem
+public class TelescopeArm extends TrcSubsystem<TelescopeArm.Action>
 {
     public static final String SUBSYSTEM_NAME = "TelescopeArm";
     private static final boolean NEED_ZERO_CAL = true;
@@ -136,6 +136,12 @@ public class TelescopeArm extends TrcSubsystem
         public static final double STALL_TIMEOUT                = 0.1;
         public static final double STALL_RESET_TIMEOUT          = 0.0;
     }   //class ElbowParams
+
+    public enum Action
+    {
+        PresetPosUp,
+        PresetPosDown
+    }   //enum Action
 
     private final FrcDashboard dashboard;
     public final TrcMotor telescope;
@@ -436,15 +442,71 @@ public class TelescopeArm extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action.
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
+        if (context != null)
+        {
+            String subsystemObjName = (String) context;
+            Double target = null;
+
+            if (subsystemObjName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
+            {
+                target = action == Action.PresetPosUp?
+                    telescope.presetPositionUp(null, TelescopeParams.POWER_LIMIT):
+                    telescope.presetPositionDown(null, TelescopeParams.POWER_LIMIT);
+            }
+            else if (elbow != null && subsystemObjName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
+            {
+                target = action == Action.PresetPosUp?
+                    elbow.presetPositionUp(null, ElbowParams.POWER_LIMIT):
+                    elbow.presetPositionDown(null, ElbowParams.POWER_LIMIT);
+            }
+
+            if (target != null)
+            {
+                telescope.tracer.traceInfo(
+                    instanceName, ">>>>> %s preset position %s.",
+                    subsystemObjName, action == Action.PresetPosUp? "up": "down");
+            }
+        }
     }   //subsystemAction
+
+    /**
+     * This method is called to perform the subsystem tune action.
+     *
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
+     */
+    @Override
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
+    {
+        Double target = null;
+
+        if (tuneSubsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
+        {
+            target = action == TuneAction.SetNextTuneTargetUp?
+                telescope.presetPositionUp(null, null): telescope.presetPositionDown(null, null);
+        }
+        else if (elbow != null && tuneSubsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
+        {
+            target = action == TuneAction.SetNextTuneTargetUp?
+                elbow.presetPositionUp(null, null): elbow.presetPositionDown(null, null);
+        }
+
+        if (target != null)
+        {
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, target);
+            telescope.tracer.traceInfo(
+                instanceName, "Tune %s %s: target=%.3f",
+                tuneSubsystemName, action == TuneAction.SetNextTuneTargetUp? "Up": "Down", target);
+        }
+    }   //tuneSubsystem
 
     private static final String DBKEY_TELESCOPE_PWR_INFO    = SUBSYSTEM_NAME + "/TelescopePwrInfo";     //String
     private static final String DBKEY_TELESCOPE_POS_INFO    = SUBSYSTEM_NAME + "/TelescopePosInfo";     //String
@@ -600,57 +662,5 @@ public class TelescopeArm extends TrcSubsystem
                 subsystemName, pidParams, target, gravityPower);
         }
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        Double target = null;
-
-        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
-        {
-            target = telescope.presetPositionUp(null, null);
-        }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
-        {
-            target = elbow.presetPositionUp(null, null);
-        }
-
-        if (target != null)
-        {
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, target);
-            telescope.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        Double target = null;
-
-        if (subsystemName.equalsIgnoreCase(TelescopeParams.MOTOR_NAME))
-        {
-            target = telescope.presetPositionDown(null, null);
-        }
-        else if (elbow != null && subsystemName.equalsIgnoreCase(ElbowParams.MOTOR_NAME))
-        {
-            target = elbow.presetPositionDown(null, null);
-        }
-
-        if (target != null)
-        {
-            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, target);
-            telescope.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetDown
 
 }   //class TelescopeArm

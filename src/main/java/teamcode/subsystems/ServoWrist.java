@@ -34,7 +34,7 @@ import trclib.subsystem.TrcSubsystem;
  * It allows the wrist to tilt up and down. Angular servos have a limited range of movement. Therefore, it limits
  * the tilting range of the wrist.
  */
-public class ServoWrist extends TrcSubsystem
+public class ServoWrist extends TrcSubsystem<ServoWrist.Action>
 {
     public static final String SUBSYSTEM_NAME = "ServoWrist";
     private static final boolean NEED_ZERO_CAL = false;
@@ -53,6 +53,12 @@ public class ServoWrist extends TrcSubsystem
         public static final double POS_PRESET_TOLERANCE         = 1.0;      // in degrees
         public static final double[] posPresets                 = {-110.0, -90.0, -45.0, 0.0, 45.0, 90.0, 110.0};
     }   //class Params
+
+    public enum Action
+    {
+        PresetPosUp,
+        PresetPosDown
+    }   //enum Action
 
     private final FrcDashboard dashboard;
     private final TrcServo servo;
@@ -139,15 +145,47 @@ public class ServoWrist extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action.
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
+        switch (action)
+        {
+            case PresetPosUp:
+                servo.presetPositionUp(null);
+                servo.tracer.traceInfo(instanceName, ">>>>> ServoWrist preset position up.");
+                break;
+
+            case PresetPosDown:
+                servo.presetPositionDown(null);
+                servo.tracer.traceInfo(instanceName, ">>>>> ServoWrist preset position down.");
+                break;
+
+            default:
+                break;
+        }
     }   //subsystemAction
+
+    /**
+     * This method is called to perform the subsystem tune action.
+     *
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
+     */
+    @Override
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
+    {
+        if (tuneSubsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            double target = action == TuneAction.SetNextTuneTargetUp? Params.LOGICAL_MAX_POS: Params.LOGICAL_MIN_POS;
+            servo.setLogicalPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", tuneSubsystemName, target);
+        }
+    }   //tuneSubsystem
 
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
 
@@ -209,37 +247,5 @@ public class ServoWrist extends TrcSubsystem
             servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            double target = Params.LOGICAL_MAX_POS;
-            servo.setLogicalPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            double target = Params.LOGICAL_MIN_POS;
-            servo.setLogicalPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetDown
 
 }   //class ServoWrist

@@ -36,7 +36,7 @@ import trclib.subsystem.TrcSubsystem;
  * not have any limit switches, so it is using motor stall detection to zero calibrate the built-in relative encoder.
  * It supports gravity compensation by computing the power required to hold the arm at its current angle.
  */
-public class MotorArm extends TrcSubsystem
+public class MotorArm extends TrcSubsystem<MotorArm.Action>
 {
     public static final String SUBSYSTEM_NAME = "MotorArm";
     private static final boolean NEED_ZERO_CAL = true;
@@ -97,6 +97,12 @@ public class MotorArm extends TrcSubsystem
         public static final double STALL_RESET_TIMEOUT          = 0.0;
     }   //class Params
 
+    public enum Action
+    {
+        PresetPosUp,
+        PresetPosDown
+    }   //enum Action
+
     private final FrcDashboard dashboard;
     private final TrcMotor motor;
     private String tuneSubsystemName = null;
@@ -111,7 +117,6 @@ public class MotorArm extends TrcSubsystem
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
         dashboard = FrcDashboard.getInstance();
-
         FrcMotorActuator.Params motorParams = new FrcMotorActuator.Params()
             .setPrimaryMotor(
                 Params.PRIMARY_MOTOR_NAME, Params.MOTOR_TYPE, Params.PRIMARY_MOTOR_INVERTED,
@@ -242,15 +247,50 @@ public class MotorArm extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action.
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
+        switch (action)
+        {
+            case PresetPosUp:
+                motor.presetPositionUp(null, Params.POWER_LIMIT);
+                motor.tracer.traceInfo(instanceName, ">>>>> MotorArm preset position up.");
+                break;
+
+            case PresetPosDown:
+                motor.presetPositionDown(null, Params.POWER_LIMIT);
+                motor.tracer.traceInfo(instanceName, ">>>>> MotorArm preset position down.");
+                break;
+
+            default:
+                break;
+        }
     }   //subsystemAction
+
+    /**
+     * This method is called to perform the subsystem tune action.
+     *
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
+     */
+    @Override
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
+    {
+        if (tuneSubsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
+        {
+            double target = action == TuneAction.SetNextTuneTargetUp?
+                motor.presetPositionUp(null, null): motor.presetPositionDown(null, null);
+            dashboard.putNumber(FrcTest.DBKEY_SUBSYSTEM_TUNE_TARGET, target);
+            motor.tracer.traceInfo(
+                instanceName, "Tune %s %s: target=%.3f",
+                tuneSubsystemName, action == TuneAction.SetNextTuneTargetUp? "Up": "Down", target);
+        }
+    }   //tuneSubsystem
 
     private static final String DBKEY_PWR_INFO          = SUBSYSTEM_NAME + "/PwrInfo";      //String
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
@@ -348,35 +388,5 @@ public class MotorArm extends TrcSubsystem
             tuneSubsystemName = subsystemName;
         }
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
-        {
-            double target = motor.presetPositionUp(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_MOTOR_NAME))
-        {
-            double target = motor.presetPositionDown(null, null);
-            motor.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetDown
 
 }   //class MotorArm

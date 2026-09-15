@@ -25,7 +25,6 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import teamcode.FrcTest;
-import teamcode.Robot;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -34,7 +33,7 @@ import trclib.subsystem.TrcSubsystem;
  * This class creates the Servo Extender subsystem. This implementation is a linear extender driven by two servos
  * to either extend or retract the extender.
  */
-public class ServoExtender extends TrcSubsystem
+public class ServoExtender extends TrcSubsystem<ServoExtender.Action>
 {
     public static final String SUBSYSTEM_NAME = "ServoExtender";
     private static final boolean NEED_ZERO_CAL = false;
@@ -53,7 +52,13 @@ public class ServoExtender extends TrcSubsystem
         public static double POS_EXTEND                         = 0.8;
     }   //class Params
 
-    private final Robot robot;
+    public enum Action
+    {
+        TogglePos,
+        PresetPosUp,
+        PresetPosDown
+    }   //enum Action
+
     private final FrcDashboard dashboard;
     private final TrcServo servo;
     private double prevExtenderPower = 0.0;
@@ -61,14 +66,11 @@ public class ServoExtender extends TrcSubsystem
 
     /**
      * Constructor: Creates an instance of the object.
-     *
-     * @param robot specifies the robot object to access other subsystems if necessary.
      */
-    public ServoExtender(Robot robot)
+    public ServoExtender()
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
-        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcServoActuator.Params extenderParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.PRIMARY_SERVO_NAME, Params.PRIMARY_SERVO_CHANNEL, Params.PRIMARY_SERVO_INVERTED)
@@ -239,15 +241,15 @@ public class ServoExtender extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action.
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
-        if (pressed)
+        if (action == Action.TogglePos)
         {
             extended = !extended;
             if (extended)
@@ -258,9 +260,36 @@ public class ServoExtender extends TrcSubsystem
             {
                 retract();
             }
-            robot.globalTracer.traceInfo(instanceName, ">>>>> Toggle Extender: extend=" + extended);
+            servo.tracer.traceInfo(instanceName, ">>>>> Toggle Extender: extend=" + extended);
+        }
+        else if (action == Action.PresetPosUp)
+        {
+            servo.presetPositionUp(null);
+            servo.tracer.traceInfo(instanceName, ">>>>> ServoExtender preset position up.");
+        }
+        else if (action == Action.PresetPosDown)
+        {
+            servo.presetPositionDown(null);
+            servo.tracer.traceInfo(instanceName, ">>>>> ServoExtender preset position down.");
         }
     }   //subsystemAction
+
+    /**
+     * This method is called to perform the subsystem tune action.
+     *
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
+     */
+    @Override
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
+    {
+        if (tuneSubsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
+        {
+            double target = action == TuneAction.SetNextTuneTargetUp? Params.POS_EXTEND: Params.POS_RETRACT;
+            servo.setPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", tuneSubsystemName, target);
+        }
+    }   //tuneSubsystem
 
     private static final String DBKEY_POS               = SUBSYSTEM_NAME + "/Pos";          //Number
     private static final String DBKEY_IS_EXTENDED       = SUBSYSTEM_NAME + "/IsExtended";   //Boolean
@@ -325,37 +354,5 @@ public class ServoExtender extends TrcSubsystem
             servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
-        {
-            double target = Params.POS_EXTEND;
-            servo.setPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.PRIMARY_SERVO_NAME))
-        {
-            double target = Params.POS_RETRACT;
-            servo.setPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetDown
 
 }   //class ServoExtender

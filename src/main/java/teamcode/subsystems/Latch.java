@@ -25,7 +25,6 @@ package teamcode.subsystems;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcServoActuator;
 import teamcode.FrcTest;
-import teamcode.Robot;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcSubsystem;
@@ -35,7 +34,7 @@ import trclib.subsystem.TrcSubsystem;
  * two positions: latched and unlatched. It also supports analog control that allows using a joystick to speed
  * control the latch for tuning purpose.
  */
-public class Latch extends TrcSubsystem
+public class Latch extends TrcSubsystem<Latch.Action>
 {
     public static final String SUBSYSTEM_NAME = "Latch";
     private static final boolean NEED_ZERO_CAL = false;
@@ -53,7 +52,13 @@ public class Latch extends TrcSubsystem
         public static final double LOGICAL_MAX_POS              = 0.57;
     }   //class Params
 
-    private final Robot robot;
+    public enum Action
+    {
+        TogglePos,
+        PresetPosUp,
+        PresetPosDown
+    }   //enum Action
+
     private final FrcDashboard dashboard;
     private final TrcServo servo;
     private double prevLatchPower = 0.0;
@@ -62,11 +67,10 @@ public class Latch extends TrcSubsystem
     /**
      * Constructor: Creates an instance of the object.
      */
-    public Latch(Robot robot)
+    public Latch()
     {
         super(SUBSYSTEM_NAME, NEED_ZERO_CAL);
 
-        this.robot = robot;
         dashboard = FrcDashboard.getInstance();
         FrcServoActuator.Params latchParams = new FrcServoActuator.Params()
             .setPrimaryServo(Params.SERVO_NAME, Params.SERVO_CHANNEL, Params.SERVO_INVERTED)
@@ -141,15 +145,15 @@ public class Latch extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action.
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
-        if (pressed)
+        if (action == Action.TogglePos)
         {
             latched = !latched;
             if (latched)
@@ -160,9 +164,36 @@ public class Latch extends TrcSubsystem
             {
                 servo.setPosition(Params.PHYSICAL_MAX_POS);
             }
-            robot.globalTracer.traceInfo(instanceName, ">>>>> Toggle Latch: latched=" + latched);
+            servo.tracer.traceInfo(instanceName, ">>>>> Toggle Latch: latched=" + latched);
+        }
+        else if (action == Action.PresetPosUp)
+        {
+            servo.presetPositionUp(null);
+            servo.tracer.traceInfo(instanceName, ">>>>> Latch preset position up.");
+        }
+        else if (action == Action.PresetPosDown)
+        {
+            servo.presetPositionDown(null);
+            servo.tracer.traceInfo(instanceName, ">>>>> Latch preset position down.");
         }
     }   //subsystemAction
+
+    /**
+     * This method is called to perform the subsystem tune action.
+     *
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
+     */
+    @Override
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
+    {
+        if (tuneSubsystemName.equalsIgnoreCase(Params.SERVO_NAME))
+        {
+            double target = action == TuneAction.SetNextTuneTargetUp? Params.LOGICAL_MAX_POS: Params.LOGICAL_MIN_POS;
+            servo.setLogicalPosition(target);
+            servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", tuneSubsystemName, target);
+        }
+    }   //tuneSubsystem
 
     private static final String DBKEY_POS_INFO          = SUBSYSTEM_NAME + "/PosInfo";      //String
 
@@ -224,37 +255,5 @@ public class Latch extends TrcSubsystem
             servo.tracer.traceInfo(instanceName, "Tune %s: target=%.3f", subsystemName, target);
         }
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            double target = Params.LOGICAL_MAX_POS;
-            servo.setLogicalPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Up: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        if (subsystemName.equalsIgnoreCase(Params.SERVO_NAME))
-        {
-            double target = Params.LOGICAL_MIN_POS;
-            servo.setLogicalPosition(target);
-            servo.tracer.traceInfo(instanceName, "Tune %s Down: target=%.3f", subsystemName, target);
-        }
-    }   //setNextTuneTargetDown
 
 }   //class Latch
