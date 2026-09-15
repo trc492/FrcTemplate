@@ -55,8 +55,14 @@ import trclib.subsystem.TrcSubsystem;
 /**
  * This class creates the appropriate Robot Drive Base according to the specified robot type.
  */
-public class DriveBase extends TrcSubsystem
+public class DriveBase extends TrcSubsystem<DriveBase.Action>
 {
+    public enum Action
+    {
+        ToggleDriveMode,
+        ToggleGyroAssist
+    }   //enum Action
+
     public static final String SUBSYSTEM_NAME = "DriveBase";
     private static final boolean NEED_ZERO_CAL = false;
 
@@ -336,6 +342,24 @@ public class DriveBase extends TrcSubsystem
     }   //getRobotBase
 
     /**
+     * This method sets the drive orientation mode and update the LEDs if necessary.
+     *
+     * @param orientation specifies the drive orientation.
+     * @param resetHeading specifies true to also reset the robot heading, only valid for FIELD mode.
+     */
+    public void setDriveOrientation(DriveOrientation orientation, boolean resetHeading)
+    {
+        if (robotBase != null)
+        {
+            robotBase.driveBase.setDriveOrientation(orientation, resetHeading);
+            if (robot.ledIndicator != null)
+            {
+                robot.ledIndicator.setDriveOrientation(orientation);
+            }
+        }
+    }   //setDriveOrientation
+
+    /**
      * This method configures robotDrive with implementation details.
      */
     private void configureRobotDrive()
@@ -504,18 +528,33 @@ public class DriveBase extends TrcSubsystem
     }   //subsystemControl
 
     /**
-     * This method is called when a gamepad button is pressed to perform the subsystem action.
+     * This method is called to perform the subsystem action.
      *
-     * @param pressed specifies true if the gamepad button is pressed, false otherwise.
-     * @param altFunc specifies true if the gamepad AltFunc button is pressed, false otherwise.
+     * @param action specifies the subsystem action to perform.
+     * @param context specifies the context object for the action (not used).
      */
     @Override
-    public void subsystemAction(boolean pressed, boolean altFunc)
+    public void subsystemAction(Action action, Object context)
     {
-        if (pressed)
+        switch (action)
         {
-            if (altFunc)
-            {
+            case ToggleDriveMode:
+                if (robotBase.driveBase.supportsHolonomicDrive())
+                {
+                    if (robotBase.driveBase.getDriveOrientation() != TrcDriveBase.DriveOrientation.Field)
+                    {
+                        setDriveOrientation(TrcDriveBase.DriveOrientation.Field, false);
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling FIELD mode.");
+                    }
+                    else
+                    {
+                        setDriveOrientation(TrcDriveBase.DriveOrientation.Robot, false);
+                        robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling ROBOT mode.");
+                    }
+                }
+                break;
+
+            case ToggleGyroAssist:
                 if (robotBase.driveBase.isGyroAssistEnabled())
                 {
                     robotBase.driveBase.setGyroAssistEnabled(null);
@@ -526,41 +565,23 @@ public class DriveBase extends TrcSubsystem
                     robotBase.driveBase.setGyroAssistEnabled(robotBase.purePursuitDrive.getTurnPidCtrl());
                     robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling GyroAssist.");
                 }
-            }
-            else if (robotBase.driveBase.supportsHolonomicDrive())
-            {
-                // Toggle between field or robot oriented driving, only applicable for holonomic drive base.
-                if (robotBase.driveBase.getDriveOrientation() != TrcDriveBase.DriveOrientation.Field)
-                {
-                    setDriveOrientation(TrcDriveBase.DriveOrientation.Field, false);
-                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling FIELD mode.");
-                }
-                else
-                {
-                    setDriveOrientation(TrcDriveBase.DriveOrientation.Robot, false);
-                    robot.globalTracer.traceInfo(instanceName, ">>>>> Enabling ROBOT mode.");
-                }
-            }
+                break;
+
+            default:
+                break;
         }
     }   //subsystemAction
 
     /**
-     * This method sets the drive orientation mode and update the LEDs if necessary.
+     * This method is called to perform the subsystem tune action.
      *
-     * @param orientation specifies the drive orientation.
-     * @param resetHeading specifies true to also reset the robot heading, only valid for FIELD mode.
+     * @param action specifies the subsystem tune action to perform.
+     * @param tuneSubsystemName specifies the subsystem object to tune.
      */
-    public void setDriveOrientation(DriveOrientation orientation, boolean resetHeading)
+    public void tuneSubsystem(TuneAction action, String tuneSubsystemName)
     {
-        if (robotBase != null)
-        {
-            robotBase.driveBase.setDriveOrientation(orientation, resetHeading);
-            if (robot.ledIndicator != null)
-            {
-                robot.ledIndicator.setDriveOrientation(orientation);
-            }
-        }
-    }   //setDriveOrientation
+        // DriveBase doesn't support tuning.
+    }   //tuneSubsystem
 
     private static final String DBKEY_SHOW_STATUS       = SUBSYSTEM_NAME + "/ShowStatus";       //Boolean
     private static final String DBKEY_SHOW_DRIVE_POWER  = SUBSYSTEM_NAME + "/ShowDrivePower";   //Boolean
@@ -720,27 +741,5 @@ public class DriveBase extends TrcSubsystem
     {
         // DriveBase doesn't support tuning.
     }   //updateParamsFromDashboard
-
-    /**
-     * This method is called to set the next tune target up from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetUp(String subsystemName)
-    {
-        // DriveBase doesn't support tuning.
-    }   //setNextTuneTargetUp
-
-    /**
-     * This method is called to set the next tune target down from the current target.
-     *
-     * @param subsystemName specifies the name of the subsystem to update its tune target.
-     */
-    @Override
-    public void setNextTuneTargetDown(String subsystemName)
-    {
-        // DriveBase doesn't support tuning.
-    }   //setNextTuneTargetDown
 
 }   //class DriveBase

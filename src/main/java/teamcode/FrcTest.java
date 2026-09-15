@@ -835,7 +835,7 @@ public class FrcTest extends FrcTeleOp
     {
         boolean passToTeleOp = true;
         Test test = testChoices.getTest();
-        String subsystemName = null;
+        String tuneSubsystemName = null;
         //
         // In addition to or instead of the gamepad controls handled by FtcTeleOp, we can add to or override the
         // FtcTeleOp gamepad actions.
@@ -860,9 +860,11 @@ public class FrcTest extends FrcTeleOp
                 {
                     if (pressed)
                     {
-                        subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.setSubsystemTuneTargetUp(subsystemName);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetTuneTargetUp: " + subsystemName);
+                        tuneSubsystemName = testChoices.getSubsystemName();
+                        TrcSubsystem.performTuneSubsystemAction(
+                            TrcSubsystem.TuneAction.SetNextTuneTargetUp, tuneSubsystemName);
+                        robot.globalTracer.traceInfo(
+                            moduleName, ">>>>> SetTuneTargetUp: " + tuneSubsystemName);
                     }
                     passToTeleOp = false;
                 }
@@ -873,9 +875,11 @@ public class FrcTest extends FrcTeleOp
                 {
                     if (pressed)
                     {
-                        subsystemName = testChoices.getSubsystemName();
-                        TrcSubsystem.setSubsystemTuneTargetDown(subsystemName);
-                        robot.globalTracer.traceInfo(moduleName, ">>>>> SetTuneTargetDown: " + subsystemName);
+                        tuneSubsystemName = testChoices.getSubsystemName();
+                        TrcSubsystem.performTuneSubsystemAction(
+                            TrcSubsystem.TuneAction.SetNextTuneTargetDown, tuneSubsystemName);
+                        robot.globalTracer.traceInfo(
+                            moduleName, ">>>>> SetTuneTargetDown: " + tuneSubsystemName);
                     }
                     passToTeleOp = false;
                 }
@@ -891,17 +895,17 @@ public class FrcTest extends FrcTeleOp
                 {
                     if (pressed)
                     {
-                        subsystemName = testChoices.getSubsystemName();
+                        tuneSubsystemName = testChoices.getSubsystemName();
                         if (driverAltFunc)
                         {
-                            TrcSubsystem.updateSubsystemParamsToDashboard(subsystemName);
+                            TrcSubsystem.updateSubsystemParamsToDashboard(tuneSubsystemName);
                             robot.globalTracer.traceInfo(
                                 moduleName,
                                 ">>>>> Update Dashboard with subsystem tune params.");
                         }
                         else
                         {
-                            TrcSubsystem.updateSubsystemParamsFromDashboard(subsystemName);
+                            TrcSubsystem.updateSubsystemParamsFromDashboard(tuneSubsystemName);
                             robot.globalTracer.traceInfo(
                                 moduleName,
                                 ">>>>> Update subsystem tune params from Dashboard and Start subsystem tuning.");

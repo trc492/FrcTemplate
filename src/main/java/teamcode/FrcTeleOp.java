@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frclib.driverio.FrcChoiceMenu;
 import frclib.driverio.FrcDashboard;
 import frclib.driverio.FrcXboxController;
+import teamcode.subsystems.DriveBase;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.dataprocessor.TrcWarpSpace;
@@ -288,10 +289,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case B:
-                if (robot.robotDriveBase != null && pressed)
+                if (robot.robotDriveBase != null)
                 {
-                    // Set drive orientation mode.
-                    robot.robotDriveBase.subsystemAction(pressed, driverAltFunc);
+                    if (pressed)
+                    {
+                        if (driverAltFunc)
+                        {
+                            robot.robotDriveBase.subsystemAction(DriveBase.Action.ToggleGyroAssist, null);
+                        }
+                        else
+                        {
+                            robot.robotDriveBase.subsystemAction(DriveBase.Action.ToggleDriveMode, null);
+                        }
+                    }
                 }
                 break;
 
